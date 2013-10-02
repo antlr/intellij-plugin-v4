@@ -35,14 +35,6 @@ grammar GrammarParser;
 grammarSpec
 	:	DOC_COMMENT?
 		grammarType id ';'
-
-		// A number of things can be declared/stated before the grammar rules
-		// 'proper' are parsed. These include grammar imports, grammar
-		// options, token declarations, and actions such as @header.
-        // We allow any number of these constructs in any order so that you aren't
-		// constrained by some arbitrary order of declarations that nobody
-		// can remember. In the next phase, we verify that these
-		// constructs are valid, not repeated and so on.
 		prequelConstruct*
 		ruleSpec*
 		modeSpec*
