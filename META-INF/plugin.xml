@@ -1,8 +1,8 @@
 <idea-plugin version="2">
-  <id>com.yourcompany.unique.plugin.id</id>
-  <name>Plugin display name here</name>
+  <id>org.antlr.intellij.plugin</id>
+  <name>ANTLR v4 grammar plugin</name>
   <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
       Enter short description for your plugin here.<br>
@@ -37,6 +37,7 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
+	<fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
+	<!--<lang.parserDefinition language="Simple" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>-->
   </extensions>
 </idea-plugin>
