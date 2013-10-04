@@ -28,7 +28,12 @@
  *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** A grammar for ANTLR v4 written in ANTLR v4 */
+/** A grammar for ANTLR v4 written in ANTLR v4.
+
+Build with
+
+$ antlr4 -no-listener *.g4
+*/
 parser grammar ANTLRv4Parser;
 
 options { tokenVocab=ANTLRv4Lexer; superClass=org.antlr.intellij.plugin.adaptors.AdaptorParserBase; }
