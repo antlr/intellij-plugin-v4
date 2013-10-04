@@ -28,10 +28,10 @@
  *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** A grammar for ANTLR v4 tokens suitable for use in an IDE for handling
-    erroneous input well.
- */
-lexer grammar GrammarLexer;
+/** A grammar for ANTLR v4 tokens */
+lexer grammar ANTLRv4Lexer;
+
+@header { package org.antlr.intellij.plugin.parser; }
 
 tokens {
 	TOKEN_REF,
@@ -40,7 +40,6 @@ tokens {
 }
 
 @members {
-
 	private int _ruleType;
 
 	protected void handleBeginArgAction() {
@@ -49,6 +48,7 @@ tokens {
 			more();
 		} else {
 			pushMode(ArgAction);
+			more();
 		}
 	}
 
@@ -75,20 +75,7 @@ tokens {
 	private boolean inLexerRule() {
 		return _ruleType == TOKEN_REF;
 	}
-
 }
-
-// +=====================+
-// | Lexer specification |
-// +=====================+
-
-// --------
-// Comments
-//
-// ANTLR comments can be multi or single line and we don't care
-// which particularly. However we also accept Javadoc style comments
-// of the form: /** ... */ and we do take care to distinguish those
-// from ordinary multi-line comments
 
 DOC_COMMENT
 	:	'/**' .*? '*/'
@@ -106,36 +93,20 @@ DOUBLE_QUOTE_STRING_LITERAL
 	:	'"' ('\\' . | ~'"' )*? '"'
 	;
 
-// --------------
-// Argument specs
-//
-// Certain argument lists, such as those specifying call parameters
-// to a rule invocation, or input parameters to a rule specification
-// are contained within square brackets.
-//
 BEGIN_ARG_ACTION
 	:	'[' {handleBeginArgAction();}
 	;
 
-// -------
-// Actions
-//
-
 BEGIN_ACTION
-	:	'{' -> pushMode(Action)
+	:	'{' -> more, pushMode(Action)
 	;
 
-// Keywords
-// --------
-// keywords used to specify ANTLR v4 grammars. Keywords may not be used as
-// labels for rules or in any other context where they would be ambiguous
-// with the keyword vs some other identifier
 // OPTIONS and TOKENS must also consume the opening brace that captures
-// their option block, as this is the easiest way to parse it separate
-// to an ACTION block, despite it using the same {} delimiters.
+// their option block, as this is teh easiest way to parse it separate
+// to an ACTION block, despite it usingthe same {} delimiters.
 //
-OPTIONS      : 'options' WSNLCHAR* '{'  ;
-TOKENS       : 'tokens'  WSNLCHAR* '{'  ;
+OPTIONS      : 'options' [ \t\f\n\r]* '{'  ;
+TOKENS		 : 'tokens'  [ \t\f\n\r]* '{'  ;
 
 IMPORT       : 'import'               ;
 FRAGMENT     : 'fragment'             ;
@@ -152,11 +123,6 @@ CATCH        : 'catch'                ;
 FINALLY      : 'finally'              ;
 MODE         : 'mode'                 ;
 
-// -----------
-// Punctuation
-//
-// Character sequences used as separators, delimters, operators, etc
-//
 COLON        : ':'                    ;
 COLONCOLON   : '::'                   ;
 COMMA        : ','                    ;
@@ -173,7 +139,7 @@ PLUS         : '+'                    ;
 PLUS_ASSIGN  : '+='                   ;
 OR           : '|'                    ;
 DOLLAR       : '$'                    ;
-DOT		     : '.'                    ; // can be WILDCARD or DOT in qid or imported rule ref
+DOT		     : '.'                    ;
 RANGE        : '..'                   ;
 AT           : '@'                    ;
 POUND        : '#'                    ;
@@ -181,7 +147,7 @@ NOT          : '~'                    ;
 RBRACE       : '}'                    ;
 
 /** Allow unicode rule/token names */
-ID			:	NameStartChar NameChar*;
+ID	:	NameStartChar NameChar*;
 
 fragment
 NameChar
@@ -210,60 +176,9 @@ NameStartChar
 	|   '\uFDF0'..'\uFFFD'
 	; // ignores | ['\u10000-'\uEFFFF] ;
 
-// ----------------------------
-// Literals embedded in actions
-//
-// Note that we have made the assumption that the language used within
-// actions uses the fairly standard " and ' delimiters for literals and
-// that within these literals, characters are escaped using the \ character.
-// There are some languages which do not conform to this in all cases, such
-// as by using /string/ and so on. We will have to deal with such cases if
-// if they come up in targets.
-//
-
-// Within actions, or other structures that are not part of the ANTLR
-// syntax, we may encounter literal characters. Within these, we do
-// not want to inadvertantly match things like '}' and so we eat them
-// specifically. While this rule is called CHAR it allows for the fact that
-// some languages may use/allow ' as the string delimiter.
-//
-fragment
-ACTION_CHAR_LITERAL
-	:	'\'' (ACTION_ESC | ~['\\] )* '\''
+INT	: [0-9]+
 	;
 
-// Within actions, or other structures that are not part of the ANTLR
-// syntax, we may encounter literal strings. Within these, we do
-// not want to inadvertantly match things like '}' and so we eat them
-// specifically.
-//
-fragment
-ACTION_STRING_LITERAL
-	:	'"' (ACTION_ESC | ~["\\])* '"'
-	;
-
-// Within literal strings and characters that are not part of the ANTLR
-// syntax, we must allow for escaped character sequences so that we do not
-// inadvertantly recognize the end of a string or character when the terminating
-// delimiter has been esacped.
-//
-fragment
-ACTION_ESC
-	:	'\\' .
-	;
-
-// -------
-// Integer
-//
-// Obviously (I hope) match an arbitrary long sequence of digits.
-//
-INT
-	: [0-9]+
-	;
-
-// --------------
-// Literal string
-//
 // ANTLR makes no distinction between a single character literal and a
 // multi-character string. All literals are single quote delimited and
 // may contain unicode escape sequences of the form \uxxxx, where x
@@ -272,22 +187,13 @@ STRING_LITERAL
 	:  '\'' (ESC_SEQ | ~['\\])* '\''
 	;
 
-// A valid hex digit specification
-//
-fragment
-HEX_DIGIT
-	:	[0-9a-fA-F]
-	;
-
 // Any kind of escaped character that we can embed within ANTLR
 // literal strings.
-//
 fragment
 ESC_SEQ
 	:	'\\'
 		(	// The standard escaped character set such as tab, newline, etc.
 			[btnfr"'\\]
-
 		|	// A Java style Unicode escape sequence
 			UNICODE_ESC
 		)
@@ -298,26 +204,10 @@ UNICODE_ESC
     :   'u' (HEX_DIGIT (HEX_DIGIT (HEX_DIGIT HEX_DIGIT?)?)?)?
     ;
 
-// ----------
-// Whitespace
-//
-// Characters and character constructs that are of no import
-// to the parser and are used to make the grammar easier to read
-// for humans.
-//
-WS
-	:	[ \t\r\n\f]+
-		-> channel(HIDDEN)
-	;
-
-// A fragment rule for recognizing both traditional whitespace and
-// end of line markers, when we don't care to distinguish but don't
-// want any action code going on.
-//
 fragment
-WSNLCHAR
-	:	[ \t\f\n\r]
-	;
+HEX_DIGIT : [0-9a-fA-F]	;
+
+WS  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;
 
 // -----------------
 // Illegal Character
@@ -334,54 +224,31 @@ ERRCHAR
 	:	.	-> skip
 	;
 
-mode ArgAction;
+mode ArgAction; // E.g., [int x, List<String> a[]]
 
-	ARG_ACTION_LT       : '<' ;
-	ARG_ACTION_GT       : '>' ;
-	ARG_ACTION_LPAREN   : '(' ;
-	ARG_ACTION_RPAREN   : ')' ;
-	ARG_ACTION_EQUALS   : '=' ;
-	ARG_ACTION_COMMA    : ',' ;
+	NESTED_ARG_ACTION
+		:	'['                         -> more, pushMode(ArgAction)
+		;
 
 	ARG_ACTION_ESCAPE
-		:   '\\' .
+		:   '\\' .                      -> more
 		;
 
-	ARG_ACTION_WORD
-		:   [$a-zA-Z0-9_]
-			[a-zA-Z0-9_]*
+    ARG_ACTION_STRING_LITERAL
+        :	('"' ('\\' . | ~["\\])* '"')-> more
+        ;
+
+    ARG_ACTION_CHAR_LITERAL
+        :	('"' '\\' . | ~["\\] '"')   -> more
+        ;
+
+    ARG_ACTION
+		:   ']'                         -> popMode
 		;
 
-	ARG_ACTION_ELEMENT
-		:   ACTION_STRING_LITERAL
-		|   ACTION_CHAR_LITERAL
-		;
-
-	/**
-	 * This covers a group of characters which don't match any of the above rules.
-	 */
-	ARG_ACTION_TEXT
-		:   ~(  ['"]
-			|   ']'
-			|   '\\'
-			|   [=,<>()]
-			|   [$a-zA-Z0-9_]
-			|   [ \t\r\n]
-			)+
-		;
-
-	ARG_ACTION_WS
-		:   [ \t]+
-		;
-
-	ARG_ACTION_NEWLINE
-		:   '\r' '\n'?
-		|   '\n'
-		;
-
-	END_ARG_ACTION
-		:   ']' -> popMode
-		;
+    ARG_ACTION_CHAR // must be last
+        :   .                           -> more
+        ;
 
 // ----------------
 // Action structure
@@ -396,69 +263,39 @@ mode ArgAction;
 mode Action;
 
 	NESTED_ACTION
-		:	'{' -> type(BEGIN_ACTION), pushMode(Action)
+		:	'{' 
+            -> more, pushMode(Action)
 		;
-
-	ACTION_DOT      : '.' ;
-	ACTION_LT       : '<' ;
-	ACTION_GT       : '>' ;
-	ACTION_LPAREN   : '(' ;
-	ACTION_RPAREN   : ')' ;
-	ACTION_LBRACK   : '[' ;
-	ACTION_RBRACK   : ']' ;
-	ACTION_EQUALS   : '=' ;
-	ACTION_COMMA    : ',' ;
-	ACTION_COLON2   : '::' ;
-	ACTION_COLON    : ':' ;
-	ACTION_MINUS    : '-' ;
 
 	ACTION_ESCAPE
-		:	'\\' .
+		:   '\\' .                      -> more
 		;
 
-	ACTION_WORD
-		:	[a-zA-Z0-9_]+
-		;
+    ACTION_STRING_LITERAL
+        :	'"' ('\\' . | ~["\\])* '"'  -> more
+        ;
 
-	ACTION_REFERENCE
-		:	'$' ACTION_WORD?
-		;
+    ACTION_CHAR_LITERAL
+        :	('"' '\\' . | ~["\\] '"')   -> more
+        ;
 
 	ACTION_COMMENT
-		:   BLOCK_COMMENT
-		|   LINE_COMMENT
+		:   (BLOCK_COMMENT
+            |LINE_COMMENT
+            )                           -> more
+        ;
+
+    ACTION
+		:   '}'
+            {
+            popMode();
+        	if ( _modeStack.size()>0 ) more(); // keep scarfing until outermost }
+            }
 		;
 
-	ACTION_LITERAL
-		:   ACTION_STRING_LITERAL
-		|   ACTION_CHAR_LITERAL
-		;
-
-	ACTION_TEXT
-		:   (   '/' ~[*/]
-			|   ~(  ['"]             // strings
-				|   [{}]             // nested actions
-				|   '\\'             // escapes
-				|   '/'              // potential comments
-				|   [.=,<>()\[\]:-]  // delimiters
-				|   [$a-zA-Z0-9_]    // words
-				|   [ \t\r\n]
-				)
-			)+
-		;
-
-	ACTION_WS
-		:	[ \t]+
-		;
-
-	ACTION_NEWLINE
-		:	'\r' '\n'?
-		|	'\n'
-		;
-
-	END_ACTION
-		:	'}' -> popMode
-		;
+    ACTION_CHAR
+        :   .                           -> more
+        ;
 
 mode LexerCharSet;
 
@@ -466,10 +303,10 @@ mode LexerCharSet;
 		:	(	~[\]\\]
 			|	'\\' .
 			)+
-			-> more
+                                        -> more
 		;
 
-	END_LEXER_CHAR_SET
-		:   ']' -> type(LEXER_CHAR_SET), popMode
+	LEXER_CHAR_SET
+		:   ']'                         -> popMode
 		;
 

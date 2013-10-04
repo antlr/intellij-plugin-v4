@@ -29,7 +29,11 @@
  */
 
 /** A grammar for ANTLR v4 written in ANTLR v4 */
-grammar ANTLRv4Parser;
+parser grammar ANTLRv4Parser;
+
+options { tokenVocab=ANTLRv4Lexer; }
+
+@header { package org.antlr.intellij.plugin.parser; }
 
 // The main entry point for parsing a v4 grammar.
 grammarSpec
@@ -288,9 +292,9 @@ blockSuffix
 	;
 
 ebnfSuffix
-	:	QUESTION
-	|	STAR
-	|	PLUS
+	:	QUESTION QUESTION?
+  	|	STAR QUESTION?
+   	|	PLUS QUESTION?
 	;
 
 lexerAtom
