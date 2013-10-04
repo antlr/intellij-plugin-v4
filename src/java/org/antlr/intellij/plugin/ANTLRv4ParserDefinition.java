@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
@@ -47,7 +48,7 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 			@Override
 			public void parse(Parser parser, PsiBuilder builder) {
 				((ANTLRv4Parser)parser).builder = builder;
-				((ANTLRv4Parser) parser).file();
+				((ANTLRv4Parser)parser).grammarSpec();
 			}
 		};
 	}
@@ -74,7 +75,7 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 
 	@Override
 	public PsiFile createFile(FileViewProvider viewProvider) {
-		return new SimplePSIFileRoot(viewProvider);
+		return new ANTLRv4FileRoot(viewProvider);
 	}
 
 	public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
@@ -89,9 +90,6 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 	public PsiElement createElement(ASTNode node) {
 		IElementType elementType = node.getElementType();
 //		System.out.println("PSI createElement from "+elementType);
-		if ( elementType == ANTLRv4TokenTypeAdaptor.ruleNameToIDEAElementType.get("func") ) {
-			return new FuncElement(node);
-		}
-		return new SimplePSIElement(node);
+		return new ASTWrapperPsiElement(node);
 	}
 }

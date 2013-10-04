@@ -31,7 +31,7 @@
 /** A grammar for ANTLR v4 written in ANTLR v4 */
 parser grammar ANTLRv4Parser;
 
-options { tokenVocab=ANTLRv4Lexer; }
+options { tokenVocab=ANTLRv4Lexer; superClass=org.antlr.intellij.plugin.adaptors.AdaptorParserBase; }
 
 @header { package org.antlr.intellij.plugin.parser; }
 

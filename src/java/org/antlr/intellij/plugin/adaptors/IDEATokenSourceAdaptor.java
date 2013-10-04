@@ -3,7 +3,6 @@ package org.antlr.intellij.plugin.adaptors;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
-import com.simpleplugin.ANTLRv4TokenTypeAdaptor;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenFactory;

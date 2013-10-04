@@ -2,7 +2,6 @@ package org.antlr.intellij.plugin.adaptors;
 
 
 import com.intellij.lang.PsiBuilder;
-import com.simpleplugin.ANTLRv4TokenTypeAdaptor;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
