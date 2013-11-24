@@ -19,13 +19,12 @@ import org.antlr.intellij.plugin.adaptors.ParserAdaptor;
 import org.antlr.intellij.plugin.adaptors.Utils;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.jetbrains.annotations.NotNull;
 
-/** The general interface between IDEA and ANTLR. All adaptor objects
- *  created here.  Try to create just one lexer, parser objects.
- */
+/** The general interface between IDEA and ANTLR. */
 public class ANTLRv4ParserDefinition implements ParserDefinition {
 	public static final IFileElementType FILE =
 		new IFileElementType(Language.<ANTLRv4Language>findInstance(ANTLRv4Language.class));
@@ -34,9 +33,10 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 	@Override
 	public Lexer createLexer(Project project) {
 		final ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
+
 		LexerATNSimulator sim =
-			Utils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, ANTLRv4Lexer._decisionToDFA,
-									   ANTLRv4Lexer._sharedContextCache);
+			Utils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
+									   lexer.getInterpreter().getSharedContextCache());
 		lexer.setInterpreter(sim);
 		return new LexerAdaptor(lexer);
 	}

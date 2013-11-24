@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.adaptors;
 
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.atn.ATN;
@@ -8,11 +9,11 @@ import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
 
 public class Utils {
-	/* My ANTLR parser wants to ignore bad token sequences which works but
-		 * then all of the error red squigglies are shifted off target.
-		 * Allow all tokens through and then strip bad tokens by adding them
-		 * to whitespace IDEA token set.
-		 */
+	/** My ANTLR parser wants to ignore bad token sequences which works but
+	 *  then all of the error red squigglies are shifted off target.
+	 *  Allow all tokens through and then strip bad tokens by adding them
+	 *  to whitespace IDEA token set.
+	 */
 	public static LexerATNSimulator getLexerATNSimulator(final org.antlr.v4.runtime.Lexer lexer,
 														 ATN atn,
 														 DFA[] _decisionToDFA,
