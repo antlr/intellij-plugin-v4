@@ -1,0 +1,17 @@
+tokenTypeFile(package, grammarName, tokenTypeClassName, tokenNames, commentTokens, whitespaceTokens) ::= <<
+package <package>;
+
+import com.intellij.psi.TokenType;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
+
+public interface <grammarName>TokenTypes {
+    IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
+    IElementType BAD_CHARACTER = TokenType.BAD_CHARACTER;
+
+    <tokenNames:{t | <tokenTypeClassName> <t> = new <tokenTypeClassName>("<tokenTypeClassName>");}; separator="\n">
+
+    TokenSet COMMENTS = TokenSet.create(<commentTokens; separator=",">);
+    TokenSet WHITESPACES = TokenSet.create(<whitespaceTokens; separator=",">);
+}
+>>

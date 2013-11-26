@@ -2,7 +2,7 @@ package org.antlr.intellij.plugin.parser;
 
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.antlr.intellij.plugin.ANTLR4TokenType;
+import org.antlr.intellij.plugin.ANTLRv4TokenType;
 import org.antlr.v4.runtime.Token;
 
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public class ANTLRv4TokenTypeAdaptor {
 	 *  pass these to the parser because I categorize them as white space.
 	 *  Not optimal but did make sure everything is in sync.
 	 */
-	public static final ANTLR4TokenType BAD_TOKEN = new ANTLR4TokenType("BAD_TOKEN");
+	public static final ANTLRv4TokenType BAD_TOKEN = new ANTLRv4TokenType("BAD_TOKEN");
 	public static int BAD_TOKEN_TYPE;
 
 	public static final TokenSet WHITE_SPACES;
@@ -31,7 +31,7 @@ public class ANTLRv4TokenTypeAdaptor {
 	static {
 		nameToType = toMap(tokenNames);
 		for (String tname : tokenNames) {
-			nameToIDEATokenType.put(tname, new ANTLR4TokenType(tname));
+			nameToIDEATokenType.put(tname, new ANTLRv4TokenType(tname));
 		}
 		nameToIDEATokenType.put("BAD_TOKEN", BAD_TOKEN);
 		BAD_TOKEN_TYPE = tokenNames.length + 1; // invent new token type
@@ -42,7 +42,7 @@ public class ANTLRv4TokenTypeAdaptor {
 		COMMENTS = TokenSet.create(nameToIDEATokenType.get("COMMENT"));
 
 		for (String rname : ANTLRv4Parser.ruleNames) {
-			ruleNameToIDEAElementType.put(rname, new ANTLR4TokenType(rname));
+			ruleNameToIDEAElementType.put(rname, new ANTLRv4TokenType(rname));
 		}
 	}
 
