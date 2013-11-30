@@ -3,7 +3,7 @@ package org.antlr.intellij.plugin.adaptors;
 
 import com.intellij.lexer.LexerBase;
 import com.intellij.psi.tree.IElementType;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -53,9 +53,9 @@ public class LexerAdaptor extends LexerBase {
 		}
 		int antlrTokenType = t.getType();
 		if ( antlrTokenType == Token.EOF ) {
-			return ANTLRv4TokenTypes.EOF;
+			return null; // IDEA wants null not EOF.
 		}
-		IElementType type = ANTLRv4TokenTypes.typeIDEATokenType[antlrTokenType];
+		IElementType type = ANTLRv4TokenTypeAdaptor.typeToIDEATokenType[antlrTokenType];
 		System.out.println("getTokenType: "+type);
 		return type;
 	}

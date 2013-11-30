@@ -5,7 +5,13 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class ANTLRv4TokenType extends IElementType {
-	public ANTLRv4TokenType(@NotNull @NonNls String debugName) {
+	public int ttype;
+	public ANTLRv4TokenType(String debugName) {
 		super(debugName, ANTLRv4Language.INSTANCE);
+	}
+
+	public ANTLRv4TokenType(int ttype, @NotNull @NonNls String debugName) {
+		super(debugName, ANTLRv4Language.INSTANCE);
+		this.ttype = ttype;
 	}
 }

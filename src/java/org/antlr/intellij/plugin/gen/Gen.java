@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.gen;
 
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.Grammar;
+import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
@@ -20,26 +21,32 @@ public class Gen {
 
 	public static void main(String[] args) throws IOException {
 		Gen gen = new Gen();
-		URL url = gen.getClass().getClassLoader().getResource("org/antlr/intellij/plugin/parser/ANTLRv4Lexer.g4");
+		URL lexerurl = gen.getClass().getClassLoader().getResource("org/antlr/intellij/plugin/parser/ANTLRv4Lexer.g4");
+		URL parserurl = gen.getClass().getClassLoader().getResource("org/antlr/intellij/plugin/parser/ANTLRv4Parser.g4");
 
 		Tool antlr = new Tool();
-		GrammarRootAST ast = antlr.loadGrammar(url.getFile());
+		GrammarRootAST ast = antlr.loadGrammar(lexerurl.getFile());
+		LexerGrammar lg = (LexerGrammar)antlr.createGrammar(ast);
+		antlr.process(lg, false);
+
+		ast = antlr.loadGrammar(parserurl.getFile());
 		Grammar g = antlr.createGrammar(ast);
 		antlr.process(g, false);
-		ST st = getTokenTypeFile(g);
+
+		ST st = getTokenTypeFile(lg, g);
 		System.out.println(st.render());
 	}
 
-	public static ST getTokenTypeFile(Grammar g) {
+	public static ST getTokenTypeFile(LexerGrammar lg, Grammar g) {
 		ST st = tokenTypeFile.getInstanceOf("tokenTypeFile");
 		//tokenTypeFile(package, grammarName, tokenTypeClassName, commentTokens, whitespaceTokens)
 		st.add("package", "org.antlr.intellij.plugin.parser");
 		st.add("grammarName", "ANTLRv4");
-		st.add("maxTokenType", g.getMaxTokenType());
 		st.add("tokenTypeClassName", "ANTLRv4TokenType");
-		Set<String> tokenNames = g.tokenNameToTypeMap.keySet();
+		Set<String> tokenNames = lg.tokenNameToTypeMap.keySet();
 		tokenNames.remove("EOF");
 		st.add("tokenNames", tokenNames);
+		st.add("ruleNames", g.getRuleNames());
 		st.add("commentTokens", "DOC_COMMENT");
 		st.add("commentTokens", "BLOCK_COMMENT");
 		st.add("commentTokens", "LINE_COMMENT");

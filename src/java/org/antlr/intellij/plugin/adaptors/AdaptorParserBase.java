@@ -15,7 +15,8 @@ public abstract class AdaptorParserBase extends Parser {
 	// fields set by parse().
 	public PsiBuilder builder;
 
-	public Stack<String> ruleNameStack = new Stack<String>();
+//	public Stack<String> ruleNameStack = new Stack<String>();
+	public Stack<Integer> ruleIndexStack = new Stack<Integer>();
 	public Stack<PsiBuilder.Marker> markerStack = new Stack<PsiBuilder.Marker>();
 
 	public AdaptorParserBase(TokenStream input) { // unused; just to compile
@@ -25,7 +26,7 @@ public abstract class AdaptorParserBase extends Parser {
 	@Override
 	public void reset() {
 		super.reset();
-		if ( ruleNameStack!=null ) ruleNameStack.clear();
+		if ( ruleIndexStack!=null ) ruleIndexStack.clear();
 		if ( markerStack!=null ) markerStack.clear();
 	}
 
@@ -44,7 +45,7 @@ public abstract class AdaptorParserBase extends Parser {
 		super.enterRule(localctx, state, ruleIndex);
 		markerStack.push(builder.mark());
 		String currentRuleName = getRuleNames()[ruleIndex];
-		ruleNameStack.push(currentRuleName);
+		ruleIndexStack.push(ruleIndex);
 //		System.out.println("mark " + currentRuleName);
 	}
 
@@ -54,10 +55,10 @@ public abstract class AdaptorParserBase extends Parser {
 	@Override
 	public void exitRule() {
 		super.exitRule();
-		String currentRuleName = ruleNameStack.pop();
+		Integer currentRuleIndex = ruleIndexStack.pop();
 //		System.out.println("done " + currentRuleName);
 		// consume any bad tokens so parser sees them in correct tree
 		PsiBuilder.Marker marker = markerStack.pop();
-		marker.done(ANTLRv4TokenTypeAdaptor.ruleNameToIDEAElementType.get(currentRuleName));
+		marker.done(ANTLRv4TokenTypeAdaptor.ruleToIDEATokenType[currentRuleIndex]);
 	}
 }
