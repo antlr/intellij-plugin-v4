@@ -16,6 +16,7 @@ public class ANTLRv4TokenTypeAdaptor {
 
 	public static final TokenSet WHITE_SPACES = ANTLRv4TokenTypes.WHITESPACES;
 	public static final TokenSet COMMENTS = ANTLRv4TokenTypes.COMMENTS;
+	public static final TokenSet KEYWORDS = ANTLRv4TokenTypes.KEYWORDS;
 
 	public static ANTLRv4TokenType[] typeToIDEATokenType = ANTLRv4TokenTypes.typeToIDEATokenType;
 	public static ANTLRv4TokenType[] ruleToIDEATokenType = ANTLRv4TokenTypes.ruleToIDEATokenType;

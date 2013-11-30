@@ -1,4 +1,4 @@
-tokenTypeFile(package, grammarName, tokenTypeClassName, tokenNames, ruleNames, commentTokens, whitespaceTokens) ::= <<
+tokenTypeFile(package, grammarName, tokenTypeClassName, tokenNames, keywords, ruleNames, commentTokens, whitespaceTokens) ::= <<
 package <package>;
 
 import com.intellij.psi.TokenType;
@@ -20,6 +20,7 @@ public class <grammarName>TokenTypes {
 
     public static TokenSet COMMENTS = TokenSet.create(<commentTokens; separator=",">);
     public static TokenSet WHITESPACES = TokenSet.create(<whitespaceTokens; separator=",">);
+	public static TokenSet KEYWORDS = TokenSet.create(<keywords; wrap, anchor, separator=",">);
 
     public static <tokenTypeClassName>[] typeToIDEATokenType = new <tokenTypeClassName>[<length(tokenNames)>+1];
     public static <tokenTypeClassName>[] ruleToIDEATokenType = new <tokenTypeClassName>[<length(ruleNames)>+1];

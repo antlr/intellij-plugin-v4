@@ -34,7 +34,7 @@ public class Gen {
 		antlr.process(g, false);
 
 		ST st = getTokenTypeFile(lg, g);
-		System.out.println(st.render());
+		System.out.println(st.render(80));
 	}
 
 	public static ST getTokenTypeFile(LexerGrammar lg, Grammar g) {
@@ -51,6 +51,13 @@ public class Gen {
 		st.add("commentTokens", "BLOCK_COMMENT");
 		st.add("commentTokens", "LINE_COMMENT");
 		st.add("whitespaceTokens", "WS");
+		for (String lit : lg.getStringLiterals()) {
+			if ( lit.matches("'[a-zA-Z_0-9]+'") ) {
+				int ttype = lg.getTokenType(lit);
+				String tokenDisplayName = lg.getTokenNames()[ttype];
+				st.add("keywords", tokenDisplayName);
+			}
+		}
 		return st;
 	}
 }

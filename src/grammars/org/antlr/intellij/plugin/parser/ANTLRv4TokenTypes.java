@@ -69,7 +69,10 @@ public class ANTLRv4TokenTypes {
 
     public static TokenSet COMMENTS = TokenSet.create(DOC_COMMENT,BLOCK_COMMENT,LINE_COMMENT);
     public static TokenSet WHITESPACES = TokenSet.create(WS);
-
+	public static TokenSet KEYWORDS = TokenSet.create(LEXER,PROTECTED,IMPORT,CATCH,
+                                                   PRIVATE,FRAGMENT,PUBLIC,MODE,
+                                                   FINALLY,RETURNS,THROWS,GRAMMAR,
+                                                   LOCALS,PARSER);
     public static ANTLRv4TokenType[] typeToIDEATokenType = new ANTLRv4TokenType[54+1];
     public static ANTLRv4TokenType[] ruleToIDEATokenType = new ANTLRv4TokenType[60+1];
 
