@@ -41,10 +41,10 @@
 	  <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
 	  <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
+	  <lang.psiStructureViewFactory language="ANTLRv4"
+       		implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
 	  <!--
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
-   <lang.psiStructureViewFactory language="Simple"
-       implementationClass="com.simpleplugin.structview.SimpleStructureViewFactory"/>
   LanguageASTFactory
 -->
   </extensions>

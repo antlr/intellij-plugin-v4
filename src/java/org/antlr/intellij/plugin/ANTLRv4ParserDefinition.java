@@ -20,6 +20,10 @@ import org.antlr.intellij.plugin.adaptors.Utils;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
+import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
+import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
+import org.antlr.intellij.plugin.psi.RulesNode;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.jetbrains.annotations.NotNull;
@@ -89,6 +93,15 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 	@NotNull
 	public PsiElement createElement(ASTNode node) {
 		IElementType elementType = node.getElementType();
+		if ( elementType==ANTLRv4TokenTypes.rules ) {
+			return new RulesNode(node);
+		}
+		if ( elementType==ANTLRv4TokenTypes.parserRuleSpec ) {
+			return new ParserRuleSpecNode(node);
+		}
+		if ( elementType==ANTLRv4TokenTypes.lexerRule ) {
+			return new LexerRuleSpecNode(node);
+		}
 //		System.out.println("PSI createElement from "+elementType);
 		return new ASTWrapperPsiElement(node);
 	}

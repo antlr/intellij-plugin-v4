@@ -4,9 +4,11 @@ import com.intellij.lang.ASTFactory;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.FileElement;
 import com.intellij.psi.impl.source.tree.LeafElement;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
+import org.antlr.intellij.plugin.psi.ANTLRv4PSIElement;
+import org.antlr.intellij.plugin.psi.RuleElement;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
 	/** Create a FileElement for root or a parse tree CompositeElement (not
@@ -25,9 +27,9 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 	 */
     @Override
     public LeafElement createLeaf(IElementType type, CharSequence text) {
-//		if ( type.toString().equals("ID") ) {
-//			return new IDRefElement(type, text);
-//		}
-		return new LeafPsiElement(type, text);
+		if ( type == ANTLRv4TokenTypes.RULE_REF ) {
+			return new RuleElement(type, text);
+		}
+		return new ANTLRv4PSIElement(type, text);
     }
 }

@@ -18,6 +18,8 @@ public class <grammarName>TokenTypes {
 
     <tokenNames:{t | public static <tokenTypeClassName> <t> = new <tokenTypeClassName>(ANTLRv4Lexer.<t>, "<t>");}; separator="\n">
 
+    <ruleNames:{r | public static <tokenTypeClassName> <r> = new <tokenTypeClassName>("<r>");}; separator="\n">
+
     public static TokenSet COMMENTS = TokenSet.create(<commentTokens; separator=",">);
     public static TokenSet WHITESPACES = TokenSet.create(<whitespaceTokens; separator=",">);
 	public static TokenSet KEYWORDS = TokenSet.create(<keywords; wrap, anchor, separator=",">);
@@ -27,7 +29,7 @@ public class <grammarName>TokenTypes {
 
     static {
     	<tokenNames:{t | typeToIDEATokenType[<grammarName>Lexer.<t>] = <t>;}; separator="\n">
-    	<ruleNames:{r | ruleToIDEATokenType[<i0>] = new <tokenTypeClassName>("<r>");}; separator="\n">
+    	<ruleNames:{r | ruleToIDEATokenType[<i0>] = <r>;}; separator="\n">
     }
 }
 >>
