@@ -19,7 +19,6 @@ public abstract class ParserAdaptor implements PsiParser {
 	@NotNull
 	@Override
 	public ASTNode parse(IElementType root, PsiBuilder builder) {
-		System.out.println("ANTLRv4ParserAdaptor.parse");
 		// mark now so we can rewind after grabbing all tokens
 		PsiBuilder.Marker rootMarker = builder.mark();
 
@@ -36,7 +35,7 @@ public abstract class ParserAdaptor implements PsiParser {
 
 		tokens.fill();
 		rootMarker.rollbackTo();
-		System.out.println("startRule: tokens=" + tokens.getTokens());
+//		System.out.println("startRule: tokens=" + tokens.getTokens());
 
 		rootMarker = builder.mark();
 

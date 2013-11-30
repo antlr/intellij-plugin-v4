@@ -37,15 +37,15 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-	<fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
+	  <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
 	  <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
-<!--
-   <lang.parserDefinition language="Simple" implementationClass="com.simpleplugin.SimpleParserDefinition"/>
+      <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
+	  <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
+	  <!--
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
    <lang.psiStructureViewFactory language="Simple"
        implementationClass="com.simpleplugin.structview.SimpleStructureViewFactory"/>
   LanguageASTFactory
-<lang.ast.factory language="Simple" implementationClass="com.simpleplugin.SimpleASTFactory"/>
 -->
   </extensions>
 </idea-plugin>

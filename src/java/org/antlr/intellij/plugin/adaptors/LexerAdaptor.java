@@ -39,7 +39,7 @@ public class LexerAdaptor extends LexerBase {
 		this.endOffset = endOffset;
 		this.initialState = initialState;
 		String text = buffer.subSequence(startOffset, endOffset).toString();
-		System.out.println("start: "+buffer+", "+startOffset+", "+endOffset+", "+initialState);
+//		System.out.println("start: "+buffer+", "+startOffset+", "+endOffset+", "+initialState);
 		CharStream in = new ANTLRInputStream(text);
 		lexer.setInputStream(in);
 	}
@@ -56,7 +56,7 @@ public class LexerAdaptor extends LexerBase {
 			return null; // IDEA wants null not EOF.
 		}
 		IElementType type = ANTLRv4TokenTypeAdaptor.typeToIDEATokenType[antlrTokenType];
-		System.out.println("getTokenType: "+type);
+//		System.out.println("getTokenType: "+type);
 		return type;
 	}
 

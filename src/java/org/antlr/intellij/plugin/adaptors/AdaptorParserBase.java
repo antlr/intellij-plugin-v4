@@ -33,7 +33,7 @@ public abstract class AdaptorParserBase extends Parser {
 	@Override
 	public Token consume() {
 		Token t = super.consume();
-		System.out.println("consuming current token="+t); // print current token
+//		System.out.println("consuming current token="+t); // print current token
 		builder.advanceLexer();
 		return t;
 	}
