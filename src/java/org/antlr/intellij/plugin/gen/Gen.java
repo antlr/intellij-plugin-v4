@@ -9,6 +9,7 @@ import org.stringtemplate.v4.STGroupFile;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Set;
 
 public class Gen {
 	static STGroup tokenTypeFile;
@@ -34,8 +35,11 @@ public class Gen {
 		//tokenTypeFile(package, grammarName, tokenTypeClassName, commentTokens, whitespaceTokens)
 		st.add("package", "org.antlr.intellij.plugin.parser");
 		st.add("grammarName", "ANTLRv4");
+		st.add("maxTokenType", g.getMaxTokenType());
 		st.add("tokenTypeClassName", "ANTLRv4TokenType");
-		st.add("tokenNames", g.tokenNameToTypeMap.keySet());
+		Set<String> tokenNames = g.tokenNameToTypeMap.keySet();
+		tokenNames.remove("EOF");
+		st.add("tokenNames", tokenNames);
 		st.add("commentTokens", "DOC_COMMENT");
 		st.add("commentTokens", "BLOCK_COMMENT");
 		st.add("commentTokens", "LINE_COMMENT");

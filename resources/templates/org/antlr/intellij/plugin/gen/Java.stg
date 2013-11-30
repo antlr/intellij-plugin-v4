@@ -1,17 +1,26 @@
-tokenTypeFile(package, grammarName, tokenTypeClassName, tokenNames, commentTokens, whitespaceTokens) ::= <<
+tokenTypeFile(package, grammarName, tokenTypeClassName, maxTokenType, tokenNames, commentTokens, whitespaceTokens) ::= <<
 package <package>;
 
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.antlr.intellij.plugin.ANTLRv4TokenType;
+import static <package>.<grammarName>Lexer.*;
 
-public interface <grammarName>TokenTypes {
-    IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
-    IElementType BAD_CHARACTER = TokenType.BAD_CHARACTER;
+public class <grammarName>TokenTypes {
+    public static IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
+    public static IElementType BAD_CHARACTER = TokenType.BAD_CHARACTER;
+    public static IElementType EOF = new <tokenTypeClassName>("EOF");
 
-    <tokenNames:{t | <tokenTypeClassName> <t> = new <tokenTypeClassName>("<tokenTypeClassName>");}; separator="\n">
+    <tokenNames:{t | public static <tokenTypeClassName> <t> = new <tokenTypeClassName>("<t>");}; separator="\n">
 
-    TokenSet COMMENTS = TokenSet.create(<commentTokens; separator=",">);
-    TokenSet WHITESPACES = TokenSet.create(<whitespaceTokens; separator=",">);
+    public static TokenSet COMMENTS = TokenSet.create(<commentTokens; separator=",">);
+    public static TokenSet WHITESPACES = TokenSet.create(<whitespaceTokens; separator=",">);
+
+    public static IElementType[] typeIDEATokenType = new IElementType[<maxTokenType>+1];
+
+    static {
+    	<tokenNames:{t | typeIDEATokenType[<grammarName>Lexer.<t>] = <t>;}; separator="\n">
+    }
 }
 >>

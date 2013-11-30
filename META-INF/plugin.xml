@@ -38,6 +38,14 @@
 
   <extensions defaultExtensionNs="com.intellij">
 	<fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
-	<!--<lang.parserDefinition language="Simple" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>-->
+	  <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+<!--
+   <lang.parserDefinition language="Simple" implementationClass="com.simpleplugin.SimpleParserDefinition"/>
+   <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
+   <lang.psiStructureViewFactory language="Simple"
+       implementationClass="com.simpleplugin.structview.SimpleStructureViewFactory"/>
+  LanguageASTFactory
+<lang.ast.factory language="Simple" implementationClass="com.simpleplugin.SimpleASTFactory"/>
+-->
   </extensions>
 </idea-plugin>
