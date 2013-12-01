@@ -8,4 +8,9 @@ public class ANTLRv4PSIElement extends LeafPsiElement {
 	public ANTLRv4PSIElement(IElementType type, CharSequence text) {
 		super(type, text);
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" + getElementType().toString() + ")";
+	}
 }

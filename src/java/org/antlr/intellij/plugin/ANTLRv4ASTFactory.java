@@ -8,7 +8,8 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.psi.ANTLRv4PSIElement;
-import org.antlr.intellij.plugin.psi.RuleElement;
+import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
+import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
 	/** Create a FileElement for root or a parse tree CompositeElement (not
@@ -27,9 +28,17 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 	 */
     @Override
     public LeafElement createLeaf(IElementType type, CharSequence text) {
+		LeafElement t;
 		if ( type == ANTLRv4TokenTypes.RULE_REF ) {
-			return new RuleElement(type, text);
+			t = new ParserRuleRefNode(type, text);
 		}
-		return new ANTLRv4PSIElement(type, text);
+		else if ( type == ANTLRv4TokenTypes.TOKEN_REF ) {
+			t = new LexerRuleRefNode(type, text);
+		}
+		else {
+			t = new ANTLRv4PSIElement(type, text);
+		}
+//		System.out.println("createLeaf "+t+" from "+type+" "+text);
+		return t;
     }
 }

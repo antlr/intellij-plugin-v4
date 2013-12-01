@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.structview;
 
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.SortableTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
@@ -9,8 +10,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
+import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
+import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
-import org.antlr.intellij.plugin.psi.RuleElement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,12 +64,13 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 	public TreeElement[] getChildren() {
 		if (element instanceof ANTLRv4FileRoot) {
 			// now jump into grammar to look for rules
-			Collection<ParserRuleSpecNode> rules = PsiTreeUtil.collectElementsOfType(element, ParserRuleSpecNode.class);
+			Collection<ASTWrapperPsiElement> rules =
+				PsiTreeUtil.collectElementsOfType(element, new Class[]{LexerRuleSpecNode.class, ParserRuleSpecNode.class});
 			System.out.println("rules="+rules);
 			List<TreeElement> treeElements = new ArrayList<TreeElement>(rules.size());
-			for (PsiElement el : rules) {
-				RuleElement r = PsiTreeUtil.findChildOfType(el, RuleElement.class);
-				treeElements.add(new ANTLRv4StructureViewElement(r));
+			for (ASTWrapperPsiElement el : rules) {
+				PsiElement rule = PsiTreeUtil.findChildOfAnyType(el, new Class[]{LexerRuleRefNode.class, ParserRuleRefNode.class});
+				treeElements.add(new ANTLRv4StructureViewElement(rule));
 			}
 			return treeElements.toArray(new TreeElement[treeElements.size()]);
 		}

@@ -21,6 +21,8 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
+import org.antlr.intellij.plugin.psi.GrammarSpecNode;
+import org.antlr.intellij.plugin.psi.IdRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RulesNode;
@@ -86,23 +88,34 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 		return SpaceRequirements.MAY;
 	}
 
-	/** Convert from parse node (AST they call it) to final PSI node. This
+	/** Convert from internal parse node (AST they call it) to final PSI node. This
 	 *  converts only internal rule nodes apparently, not leaf nodes. Leaves
 	 *  are just tokens I guess.
 	 */
 	@NotNull
 	public PsiElement createElement(ASTNode node) {
 		IElementType elementType = node.getElementType();
+		PsiElement t;
 		if ( elementType==ANTLRv4TokenTypes.rules ) {
-			return new RulesNode(node);
+			t = new RulesNode(node);
 		}
-		if ( elementType==ANTLRv4TokenTypes.parserRuleSpec ) {
-			return new ParserRuleSpecNode(node);
+		else if ( elementType==ANTLRv4TokenTypes.parserRuleSpec ) {
+			t = new ParserRuleSpecNode(node);
 		}
-		if ( elementType==ANTLRv4TokenTypes.lexerRule ) {
-			return new LexerRuleSpecNode(node);
+		else if ( elementType==ANTLRv4TokenTypes.lexerRule ) {
+			t = new LexerRuleSpecNode(node);
 		}
-//		System.out.println("PSI createElement from "+elementType);
-		return new ASTWrapperPsiElement(node);
+		else if ( elementType==ANTLRv4TokenTypes.id ) {
+			t = new IdRefNode(node);
+		}
+		else if ( elementType==ANTLRv4TokenTypes.grammarSpec ) {
+			t = new GrammarSpecNode(node);
+		}
+
+		else {
+			t = new ASTWrapperPsiElement(node);
+		}
+//		System.out.println("PSI createElement "+t+" from "+elementType);
+		return t;
 	}
 }

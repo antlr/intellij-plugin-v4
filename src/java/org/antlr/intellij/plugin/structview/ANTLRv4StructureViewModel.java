@@ -6,7 +6,8 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.Sorter;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.psi.RuleElement;
+import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
+import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.jetbrains.annotations.NotNull;
 
 public class ANTLRv4StructureViewModel extends StructureViewModelBase
@@ -14,16 +15,16 @@ public class ANTLRv4StructureViewModel extends StructureViewModelBase
 {
 	ANTLRv4FileRoot rootElement;
 
-    public ANTLRv4StructureViewModel(ANTLRv4FileRoot rootElement) {
-        super(rootElement, new ANTLRv4StructureViewElement(rootElement));
+	public ANTLRv4StructureViewModel(ANTLRv4FileRoot rootElement) {
+		super(rootElement, new ANTLRv4StructureViewElement(rootElement));
 		this.rootElement = rootElement;
 	}
 
 
-    @NotNull
-    public Sorter[] getSorters() {
-        return new Sorter[] {Sorter.ALPHA_SORTER};
-    }
+	@NotNull
+	public Sorter[] getSorters() {
+		return new Sorter[] {Sorter.ALPHA_SORTER};
+	}
 
 	@Override
 	protected PsiFile getPsiFile() {
@@ -41,10 +42,10 @@ public class ANTLRv4StructureViewModel extends StructureViewModelBase
 		return false;
 	}
 
-    @Override
-    public boolean isAlwaysLeaf(StructureViewTreeElement element) {
-        return element instanceof ANTLRv4FileRoot;
-    }
+	@Override
+	public boolean isAlwaysLeaf(StructureViewTreeElement element) {
+		return element instanceof ANTLRv4FileRoot;
+	}
 
 	/**
 	 Intellij: The implementation of StructureViewTreeElement.getChildren()
@@ -56,6 +57,8 @@ public class ANTLRv4StructureViewModel extends StructureViewModelBase
 	 */
 	@NotNull
 	protected Class[] getSuitableClasses() {
-		return new Class[] {ANTLRv4FileRoot.class, RuleElement.class};
+		return new Class[] {ANTLRv4FileRoot.class,
+			LexerRuleSpecNode.class,
+			ParserRuleSpecNode.class};
 	}
 }
