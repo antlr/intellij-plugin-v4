@@ -30,7 +30,10 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
 		if (element instanceof ANTLRv4FileRoot) {
 			GrammarSpecNode gnode = PsiTreeUtil.findChildOfType(element, GrammarSpecNode.class);
 			IdRefNode id = PsiTreeUtil.findChildOfType(gnode, IdRefNode.class);
-			return id.getFirstChild().getText();
+			if ( id!=null && id.getFirstChild()!=null ) {
+				return id.getFirstChild().getText();
+			}
+			return "<n/a>";
 		}
 		ASTNode node = element.getNode();
 		return node.getText();

@@ -248,6 +248,10 @@ mode ArgAction; // E.g., [int x, List<String> a[]]
 		:   ']'                         -> popMode
 		;
 
+	UNTERMINATED_ARG_ACTION // added this to return non-EOF token type here. EOF did something weird
+		:	EOF							-> popMode
+		;
+
     ARG_ACTION_CHAR // must be last
         :   .                           -> more
         ;

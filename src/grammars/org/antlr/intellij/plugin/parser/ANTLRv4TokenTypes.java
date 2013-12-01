@@ -1,10 +1,13 @@
 package org.antlr.intellij.plugin.parser;
 
+import com.intellij.psi.TokenType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.antlr.intellij.plugin.ANTLRv4TokenType;
 import org.antlr.v4.runtime.Token;
 
 public class ANTLRv4TokenTypes {
+    public static IElementType BAD_CHARACTER = TokenType.BAD_CHARACTER;
 	public static ANTLRv4TokenType BAD_TOKEN = new ANTLRv4TokenType("BAD_TOKEN");
     public static ANTLRv4TokenType EOF = new ANTLRv4TokenType(Token.EOF, "EOF");
 
@@ -59,6 +62,7 @@ public class ANTLRv4TokenTypes {
     public static ANTLRv4TokenType STRING_LITERAL = new ANTLRv4TokenType(ANTLRv4Lexer.STRING_LITERAL, "STRING_LITERAL");
     public static ANTLRv4TokenType WS = new ANTLRv4TokenType(ANTLRv4Lexer.WS, "WS");
     public static ANTLRv4TokenType ARG_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.ARG_ACTION, "ARG_ACTION");
+    public static ANTLRv4TokenType UNTERMINATED_ARG_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.UNTERMINATED_ARG_ACTION, "UNTERMINATED_ARG_ACTION");
     public static ANTLRv4TokenType ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.ACTION, "ACTION");
     public static ANTLRv4TokenType BEGIN_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.BEGIN_ACTION, "BEGIN_ACTION");
 
@@ -124,13 +128,13 @@ public class ANTLRv4TokenTypes {
     public static ANTLRv4TokenType id = new ANTLRv4TokenType("id");
 
     public static TokenSet COMMENTS = TokenSet.create(DOC_COMMENT,BLOCK_COMMENT,LINE_COMMENT);
-    public static TokenSet WHITESPACES = TokenSet.create(WS, BAD_TOKEN);
+    public static TokenSet WHITESPACES = TokenSet.create(BAD_TOKEN, WS);
 	public static TokenSet KEYWORDS = TokenSet.create(LEXER,PROTECTED,IMPORT,CATCH,
                                                    PRIVATE,FRAGMENT,PUBLIC,MODE,
                                                    FINALLY,RETURNS,THROWS,GRAMMAR,
                                                    LOCALS,PARSER);
 
-    public static ANTLRv4TokenType[] typeToIDEATokenType = new ANTLRv4TokenType[53+1];
+    public static ANTLRv4TokenType[] typeToIDEATokenType = new ANTLRv4TokenType[54+1];
     public static ANTLRv4TokenType[] ruleToIDEATokenType = new ANTLRv4TokenType[60+1];
 
     static {
@@ -185,6 +189,7 @@ public class ANTLRv4TokenTypes {
     	typeToIDEATokenType[ANTLRv4Lexer.STRING_LITERAL] = STRING_LITERAL;
     	typeToIDEATokenType[ANTLRv4Lexer.WS] = WS;
     	typeToIDEATokenType[ANTLRv4Lexer.ARG_ACTION] = ARG_ACTION;
+    	typeToIDEATokenType[ANTLRv4Lexer.UNTERMINATED_ARG_ACTION] = UNTERMINATED_ARG_ACTION;
     	typeToIDEATokenType[ANTLRv4Lexer.ACTION] = ACTION;
     	typeToIDEATokenType[ANTLRv4Lexer.BEGIN_ACTION] = BEGIN_ACTION;
     	ruleToIDEATokenType[0] = grammarSpec;

@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.adaptors;
 
 import com.intellij.lexer.LexerBase;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -40,7 +41,7 @@ public class LexerAdaptor extends LexerBase {
 		this.endOffset = endOffset;
 		this.initialState = initialState;
 		String text = buffer.subSequence(startOffset, endOffset).toString();
-		System.out.println("start: "+buffer+", "+startOffset+", "+endOffset+", "+initialState);
+//		System.out.println("start: "+buffer+", "+startOffset+", "+endOffset+", "+initialState);
 		CharStream in = new ANTLRInputStream(text);
 		lexer.setInputStream(in);
 		advance(); // get first token, makes it available to lexer.getToken() in getTokenType()
@@ -56,13 +57,13 @@ public class LexerAdaptor extends LexerBase {
 		if ( antlrTokenType == Token.EOF ) {
 			type = null; // IDEA wants null not EOF.
 		}
-		else if ( antlrTokenType==Token.INVALID_TYPE ) {
+		else if ( antlrTokenType==Token.INVALID_TYPE || antlrTokenType==ANTLRv4Lexer.UNTERMINATED_ARG_ACTION) {
 			type = ANTLRv4TokenTypes.BAD_TOKEN;
 		}
 		else {
 			type = ANTLRv4TokenTypeAdaptor.typeToIDEATokenType[antlrTokenType];
 		}
-		System.out.println("getTokenType: "+type+" from "+t);
+//		System.out.println("getTokenType: "+type+" from "+t);
 		return type;
 	}
 
