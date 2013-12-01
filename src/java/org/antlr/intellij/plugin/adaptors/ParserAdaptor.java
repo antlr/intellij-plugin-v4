@@ -35,7 +35,7 @@ public abstract class ParserAdaptor implements PsiParser {
 
 		tokens.fill();
 		rootMarker.rollbackTo();
-//		System.out.println("startRule: tokens=" + tokens.getTokens());
+		System.out.println("tokens=" + tokens.getTokens());
 
 		rootMarker = builder.mark();
 

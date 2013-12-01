@@ -66,7 +66,7 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 			// now jump into grammar to look for rules
 			Collection<ASTWrapperPsiElement> rules =
 				PsiTreeUtil.collectElementsOfType(element, new Class[]{LexerRuleSpecNode.class, ParserRuleSpecNode.class});
-			System.out.println("rules="+rules);
+//			System.out.println("rules="+rules);
 			List<TreeElement> treeElements = new ArrayList<TreeElement>(rules.size());
 			for (ASTWrapperPsiElement el : rules) {
 				PsiElement rule = PsiTreeUtil.findChildOfAnyType(el, new Class[]{LexerRuleRefNode.class, ParserRuleRefNode.class});

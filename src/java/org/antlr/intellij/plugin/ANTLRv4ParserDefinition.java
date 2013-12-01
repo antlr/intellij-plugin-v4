@@ -111,7 +111,6 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 		else if ( elementType==ANTLRv4TokenTypes.grammarSpec ) {
 			t = new GrammarSpecNode(node);
 		}
-
 		else {
 			t = new ASTWrapperPsiElement(node);
 		}

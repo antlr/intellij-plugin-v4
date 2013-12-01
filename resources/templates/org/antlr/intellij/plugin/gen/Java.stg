@@ -11,7 +11,6 @@ import org.antlr.intellij.plugin.ANTLRv4TokenType;
 import static <package>.<grammarName>Lexer.*;
 
 public class <grammarName>TokenTypes {
-    public static IElementType WHITE_SPACE = TokenType.WHITE_SPACE;
     public static IElementType BAD_CHARACTER = TokenType.BAD_CHARACTER;
 	public static <tokenTypeClassName> BAD_TOKEN = new <tokenTypeClassName>("BAD_TOKEN");
     public static <tokenTypeClassName> EOF = new <tokenTypeClassName>(Token.EOF, "EOF");
@@ -21,7 +20,7 @@ public class <grammarName>TokenTypes {
     <ruleNames:{r | public static <tokenTypeClassName> <r> = new <tokenTypeClassName>("<r>");}; separator="\n">
 
     public static TokenSet COMMENTS = TokenSet.create(<commentTokens; separator=",">);
-    public static TokenSet WHITESPACES = TokenSet.create(<whitespaceTokens; separator=",">);
+    public static TokenSet WHITESPACES = TokenSet.create(BAD_TOKEN, <whitespaceTokens; separator=",">);
 	public static TokenSet KEYWORDS = TokenSet.create(<keywords; wrap, anchor, separator=",">);
 
     public static <tokenTypeClassName>[] typeToIDEATokenType = new <tokenTypeClassName>[<length(tokenNames)>+1];

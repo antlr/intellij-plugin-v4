@@ -82,11 +82,11 @@ DOC_COMMENT
 	;
 
 BLOCK_COMMENT
-	:	'/*' .*? '*/' -> channel(HIDDEN)
+	:	'/*' .*? '*/'  //-> channel(HIDDEN)
 	;
 
 LINE_COMMENT
-	:	'//' ~[\r\n]* -> channel(HIDDEN)
+	:	'//' ~[\r\n]*  // -> channel(HIDDEN)
 	;
 
 DOUBLE_QUOTE_STRING_LITERAL
@@ -207,7 +207,7 @@ UNICODE_ESC
 fragment
 HEX_DIGIT : [0-9a-fA-F]	;
 
-WS  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;
+WS  :	[ \t\r\n\f]+ ; //-> channel(HIDDEN)	;
 
 // -----------------
 // Illegal Character
@@ -220,9 +220,11 @@ WS  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;
 // but we will not try to analyse or code generate from a file with lexical
 // errors.
 //
+/*
 ERRCHAR
-	:	.	-> skip
+	:	.	-> channel(HIDDEN)
 	;
+*/
 
 mode ArgAction; // E.g., [int x, List<String> a[]]
 
@@ -263,7 +265,7 @@ mode ArgAction; // E.g., [int x, List<String> a[]]
 mode Action;
 
 	NESTED_ACTION
-		:	'{' 
+		:	'{'
             -> more, pushMode(Action)
 		;
 

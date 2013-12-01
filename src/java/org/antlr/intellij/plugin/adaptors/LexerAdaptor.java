@@ -4,6 +4,7 @@ package org.antlr.intellij.plugin.adaptors;
 import com.intellij.lexer.LexerBase;
 import com.intellij.psi.tree.IElementType;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -39,24 +40,29 @@ public class LexerAdaptor extends LexerBase {
 		this.endOffset = endOffset;
 		this.initialState = initialState;
 		String text = buffer.subSequence(startOffset, endOffset).toString();
-//		System.out.println("start: "+buffer+", "+startOffset+", "+endOffset+", "+initialState);
+		System.out.println("start: "+buffer+", "+startOffset+", "+endOffset+", "+initialState);
 		CharStream in = new ANTLRInputStream(text);
 		lexer.setInputStream(in);
+		advance(); // get first token, makes it available to lexer.getToken() in getTokenType()
 	}
 
 	@Nullable
 	@Override
 	public IElementType getTokenType() {
 		Token t = lexer.getToken();
-		if ( t==null ) {
-			t = lexer.nextToken();
-		}
 		int antlrTokenType = t.getType();
+
+		IElementType type;
 		if ( antlrTokenType == Token.EOF ) {
-			return null; // IDEA wants null not EOF.
+			type = null; // IDEA wants null not EOF.
 		}
-		IElementType type = ANTLRv4TokenTypeAdaptor.typeToIDEATokenType[antlrTokenType];
-//		System.out.println("getTokenType: "+type);
+		else if ( antlrTokenType==Token.INVALID_TYPE ) {
+			type = ANTLRv4TokenTypes.BAD_TOKEN;
+		}
+		else {
+			type = ANTLRv4TokenTypeAdaptor.typeToIDEATokenType[antlrTokenType];
+		}
+		System.out.println("getTokenType: "+type+" from "+t);
 		return type;
 	}
 
@@ -79,18 +85,12 @@ public class LexerAdaptor extends LexerBase {
 	@Override
 	public int getTokenStart() {
 		Token t = lexer.getToken();
-		if ( t==null ) {
-			t = lexer.nextToken();
-		}
 		return startOffset + t.getStartIndex();
 	}
 
 	@Override
 	public int getTokenEnd() {
 		Token t = lexer.getToken();
-		if ( t==null ) {
-			t = lexer.nextToken();
-		}
 		// seems like stop must be one PAST the last char for this token
 		return startOffset + t.getStopIndex() + 1;
 	}

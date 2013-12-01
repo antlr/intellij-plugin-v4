@@ -1,8 +1,8 @@
 package org.antlr.intellij.plugin.adaptors;
 
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.antlr.v4.runtime.atn.PredictionContextCache;
@@ -31,10 +31,12 @@ public class Utils {
 					ttype = super.match(input, mode);
 				}
 				catch (LexerNoViableAltException e) {
+//					System.out.println("trapped lexer error: "+e);
 					// trap bad token errors here and ignore exception
 					// so they flow through to Lexer.nextToken() and it
-					// returns an actual token for Intellij.
-					ttype = ANTLRv4TokenTypeAdaptor.BAD_TOKEN_TYPE;
+					// returns an actual token for Intellij for highlighting purposes.
+					// there are two lexers, one for highlighting and one for actual parsing.
+					ttype = Token.INVALID_TYPE;
 					lexer.notifyListeners(e);		// report error
 					lexer.recover(e);
 				}

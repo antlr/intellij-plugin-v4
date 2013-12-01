@@ -47,6 +47,9 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
 		if ( element instanceof ParserRuleRefNode ) {
 			return Icons.PARSER_RULE;
 		}
+		if ( element instanceof ANTLRv4FileRoot ) {
+			return Icons.FILE;
+		}
 		return Icons.LEXER_RULE;
 	}
 }

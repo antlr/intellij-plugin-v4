@@ -10,7 +10,6 @@ import com.intellij.psi.tree.IElementType;
 import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
 import org.antlr.intellij.plugin.adaptors.Utils;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +87,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 		else if (tokenType == ANTLRv4TokenTypes.LINE_COMMENT) {
 			return COMMENT_KEYS;
 		}
-		else if (tokenType.equals(ANTLRv4TokenTypeAdaptor.BAD_TOKEN)) {
+		else if (tokenType == ANTLRv4TokenTypes.BAD_TOKEN ) {
 			return BAD_CHAR_KEYS;
 		}
 		else {
