@@ -37,6 +37,6 @@ public class ParserRuleRefNode extends ANTLRv4PSIElement implements PsiNamedElem
 
 	@Override
 	public PsiReference getReference() {
-		return new ParserRuleRef(this, getText());
+		return new GrammarRuleRef(this, getText());
 	}
 }

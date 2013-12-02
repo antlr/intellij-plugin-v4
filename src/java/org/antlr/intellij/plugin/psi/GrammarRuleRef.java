@@ -9,9 +9,9 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ParserRuleRef extends PsiReferenceBase<ParserRuleRefNode> {
+public class GrammarRuleRef extends PsiReferenceBase<ANTLRv4PSIElement> {
 	String ruleName;
-	public ParserRuleRef(ParserRuleRefNode idNode, String ruleName) {
+	public GrammarRuleRef(ANTLRv4PSIElement idNode, String ruleName) {
 		super(idNode, new TextRange(0, ruleName.length()));
 		this.ruleName = ruleName;
 	}
@@ -33,7 +33,8 @@ public class ParserRuleRef extends PsiReferenceBase<ParserRuleRefNode> {
 			public boolean isAccepted(PsiElement element) {
 				PsiElement nameNode = element.getFirstChild();
 				if ( nameNode==null ) return false;
-				return element instanceof ParserRuleSpecNode && nameNode.getText().equals(ruleName);
+				return (element instanceof ParserRuleSpecNode || element instanceof LexerRuleSpecNode) &&
+					   nameNode.getText().equals(ruleName);
 			}
 		};
 		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(rules, defnode);

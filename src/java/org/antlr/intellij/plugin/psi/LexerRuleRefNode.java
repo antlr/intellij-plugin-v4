@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.psi;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
 import org.antlr.intellij.plugin.Icons;
@@ -32,5 +33,10 @@ public class LexerRuleRefNode extends ANTLRv4PSIElement implements PsiNamedEleme
 	@Override
 	public Icon getIcon(int flags) {
 		return Icons.LEXER_RULE;
+	}
+
+	@Override
+	public PsiReference getReference() {
+		return new GrammarRuleRef(this, getText());
 	}
 }
