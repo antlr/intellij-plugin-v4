@@ -77,8 +77,9 @@ option
 	;
 
 optionValue
-	:	id
+	:	id (DOT id)*
 	|	STRING_LITERAL
+	|	ACTION
 	|	INT
 	;
 

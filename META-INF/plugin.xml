@@ -1,17 +1,16 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.0</version>
+  <version>1.0a2</version>
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <small>most HTML tags may be used</small>
+      This plugin is for ANTLR v4 grammars. It does syntax highlighting and syntax
+      error checking. You get a navigation window too.
       ]]></description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <small>most HTML tags may be used</small>
+      Initial release.
       ]]>
   </change-notes>
 
