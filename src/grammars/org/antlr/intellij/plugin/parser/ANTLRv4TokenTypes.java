@@ -64,6 +64,8 @@ public class ANTLRv4TokenTypes {
     public static ANTLRv4TokenType ARG_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.ARG_ACTION, "ARG_ACTION");
     public static ANTLRv4TokenType UNTERMINATED_ARG_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.UNTERMINATED_ARG_ACTION, "UNTERMINATED_ARG_ACTION");
     public static ANTLRv4TokenType ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.ACTION, "ACTION");
+    public static ANTLRv4TokenType UNTERMINATED_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.UNTERMINATED_ACTION, "UNTERMINATED_ACTION");
+    public static ANTLRv4TokenType UNTERMINATED_CHAR_SET = new ANTLRv4TokenType(ANTLRv4Lexer.UNTERMINATED_CHAR_SET, "UNTERMINATED_CHAR_SET");
     public static ANTLRv4TokenType BEGIN_ACTION = new ANTLRv4TokenType(ANTLRv4Lexer.BEGIN_ACTION, "BEGIN_ACTION");
 
     public static ANTLRv4TokenType grammarSpec = new ANTLRv4TokenType("grammarSpec");
@@ -134,7 +136,7 @@ public class ANTLRv4TokenTypes {
                                                    FINALLY,RETURNS,THROWS,GRAMMAR,
                                                    LOCALS,PARSER);
 
-    public static ANTLRv4TokenType[] typeToIDEATokenType = new ANTLRv4TokenType[54+1];
+    public static ANTLRv4TokenType[] typeToIDEATokenType = new ANTLRv4TokenType[56+1];
     public static ANTLRv4TokenType[] ruleToIDEATokenType = new ANTLRv4TokenType[60+1];
 
     static {
@@ -191,6 +193,8 @@ public class ANTLRv4TokenTypes {
     	typeToIDEATokenType[ANTLRv4Lexer.ARG_ACTION] = ARG_ACTION;
     	typeToIDEATokenType[ANTLRv4Lexer.UNTERMINATED_ARG_ACTION] = UNTERMINATED_ARG_ACTION;
     	typeToIDEATokenType[ANTLRv4Lexer.ACTION] = ACTION;
+    	typeToIDEATokenType[ANTLRv4Lexer.UNTERMINATED_ACTION] = UNTERMINATED_ACTION;
+    	typeToIDEATokenType[ANTLRv4Lexer.UNTERMINATED_CHAR_SET] = UNTERMINATED_CHAR_SET;
     	typeToIDEATokenType[ANTLRv4Lexer.BEGIN_ACTION] = BEGIN_ACTION;
     	ruleToIDEATokenType[0] = grammarSpec;
     	ruleToIDEATokenType[1] = grammarType;

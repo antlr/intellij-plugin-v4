@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.gen;
 
 import org.antlr.v4.Tool;
+import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.ast.GrammarRootAST;
@@ -34,7 +35,8 @@ public class Gen {
 		antlr.process(g, false);
 
 		ST st = getTokenTypeFile(lg, g);
-		System.out.println(st.render(80));
+		Utils.writeFile("/Volumes/SSD2/Users/parrt/antlr/code/intellij-plugin-v4/src/grammars/org/antlr/intellij/plugin/parser/ANTLRv4TokenTypes.java",
+						st.render(80));
 	}
 
 	public static ST getTokenTypeFile(LexerGrammar lg, Grammar g) {

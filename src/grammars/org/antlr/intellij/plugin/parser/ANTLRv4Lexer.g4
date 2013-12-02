@@ -299,6 +299,10 @@ mode Action;
             }
 		;
 
+	UNTERMINATED_ACTION
+		:	EOF							-> popMode
+		;
+
     ACTION_CHAR
         :   .                           -> more
         ;
@@ -314,5 +318,9 @@ mode LexerCharSet;
 
 	LEXER_CHAR_SET
 		:   ']'                         -> popMode
+		;
+
+	UNTERMINATED_CHAR_SET
+		:	EOF							-> popMode
 		;
 
