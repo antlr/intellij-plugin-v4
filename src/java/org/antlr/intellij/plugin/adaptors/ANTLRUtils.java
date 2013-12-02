@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
 
-public class Utils {
+public class ANTLRUtils {
 	/** My ANTLR parser wants to ignore bad token sequences which works but
 	 *  then all of the error red squigglies are shifted off target.
 	 *  Allow all tokens through and then strip bad tokens by adding them

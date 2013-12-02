@@ -7,8 +7,8 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.plugin.adaptors.ANTLRUtils;
 import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
-import org.antlr.intellij.plugin.adaptors.Utils;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
@@ -55,8 +55,8 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	public Lexer getHighlightingLexer() {
 		final ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
 		LexerATNSimulator sim =
-			Utils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
-									   lexer.getInterpreter().getSharedContextCache());
+			ANTLRUtils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
+											lexer.getInterpreter().getSharedContextCache());
 		lexer.setInterpreter(sim);
 		return new LexerAdaptor(lexer);
 	}

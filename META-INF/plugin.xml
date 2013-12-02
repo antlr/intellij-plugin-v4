@@ -42,6 +42,9 @@
 	  <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
 	  <lang.psiStructureViewFactory language="ANTLRv4"
 				implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
+
+	  <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
+
 	  <!--
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
   LanguageASTFactory

@@ -14,9 +14,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.antlr.intellij.plugin.adaptors.ANTLRUtils;
 import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
 import org.antlr.intellij.plugin.adaptors.ParserAdaptor;
-import org.antlr.intellij.plugin.adaptors.Utils;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
@@ -41,8 +41,8 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 		final ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
 
 		LexerATNSimulator sim =
-			Utils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
-									   lexer.getInterpreter().getSharedContextCache());
+			ANTLRUtils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
+											lexer.getInterpreter().getSharedContextCache());
 		lexer.setInterpreter(sim);
 		return new LexerAdaptor(lexer);
 	}

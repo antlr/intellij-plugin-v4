@@ -3,8 +3,6 @@ package org.antlr.intellij.plugin.psi;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceBase;
-import com.intellij.psi.util.PsiElementFilter;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,18 +25,6 @@ public class GrammarRuleRef extends PsiReferenceBase<ANTLRv4PSIElement> {
 	@Override
 	public PsiElement resolve() {
 		// root of all rules is RulesNode node so jump up and scan for ruleName
-		RulesNode rules = PsiTreeUtil.getContextOfType(getElement(), RulesNode.class);
-		PsiElementFilter defnode = new PsiElementFilter() {
-			@Override
-			public boolean isAccepted(PsiElement element) {
-				PsiElement nameNode = element.getFirstChild();
-				if ( nameNode==null ) return false;
-				return (element instanceof ParserRuleSpecNode || element instanceof LexerRuleSpecNode) &&
-					   nameNode.getText().equals(ruleName);
-			}
-		};
-		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(rules, defnode);
-		if ( ruleSpec.length>0 ) return ruleSpec[0];
-		return null;
+		return MyPsiUtils.findRuleSpecNodeAbove(getElement(), ruleName);
 	}
 }
