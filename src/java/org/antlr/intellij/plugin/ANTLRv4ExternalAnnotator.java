@@ -10,6 +10,7 @@ import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
+import org.antlr.v4.tool.ErrorSeverity;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarSemanticsMessage;
 import org.antlr.v4.tool.GrammarSyntaxMessage;
@@ -100,7 +101,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 					int startIndex = ct.getStartIndex();
 					int stopIndex = ct.getStopIndex();
 					TextRange range = new TextRange(startIndex, stopIndex);
-					holder.createErrorAnnotation(range, issue.annotation);
+					if ( issue.msg.getErrorType().severity == ErrorSeverity.ERROR ) {
+						holder.createErrorAnnotation(range, issue.annotation);
+					}
+					else {
+						holder.createWarningAnnotation(range, issue.annotation);
+					}
 				}
 			}
 		}

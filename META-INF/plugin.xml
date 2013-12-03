@@ -44,6 +44,12 @@
 				implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
 
 	  <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
+	  <lang.findUsagesProvider language="ANTLRv4"
+                implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
+	  <!-- i think language="ANTLRv4" is missing from doc:
+	    http://confluence.jetbrains.com/display/IntelliJIDEA/Reference+Contributor
+	    -->
+	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
 
 	  <!--
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
