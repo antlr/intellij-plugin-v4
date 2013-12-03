@@ -27,13 +27,18 @@ public class ParserErrorAdaptor extends BaseErrorListener {
 		// squiggly lines for errors are sometimes off because we don't
 		// IDEA does not pass white states to us and so I generate the error
 		// too soon.
+		// http://devnet.jetbrains.com/message/5504752#5504752
+		// Ter: The biggest problem is that WS is not sent to my parser
+		// and so it will likely always be out of sync, right?  The error
+		// is detected before I have consumed the invalid token (using
+		// lookahead in the ANTLR parser). I might have to get tricky
+		// by advance()ing until I see the offending token for no viable alts.
 
 		// I don't think IDEA is tracking line, column info, so just send message
 		Stack<PsiBuilder.Marker> markerStack = parser.markerStack;
 		if ( markerStack.size()>0 ) {
-//			PsiBuilder.Marker m = markerStack.peek();
-//			m.error(msg);  THIS Closes the marker so we can't use it
-			builder.error(msg);
+			PsiBuilder.Marker m = builder.mark();
+			m.error(msg);  // this closes the marker we just built
 		}
 		else {
 			builder.error(msg);
