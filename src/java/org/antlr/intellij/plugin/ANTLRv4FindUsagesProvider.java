@@ -20,7 +20,8 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 	@Nullable
 	@Override
 	public WordsScanner getWordsScanner() {
-		throw new RuntimeException("wtf?");
+		System.out.println("wtf?");
+		return null;
 		// not called!
 //		final ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
 //

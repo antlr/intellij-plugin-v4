@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.Parser;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ParserAdaptor implements PsiParser {
-	protected Parser parser;
+	protected AdaptorParserBase parser; // the ANTLR-generated parser is subclass of AdaptorParserBase
 
 	public ParserAdaptor(AdaptorParserBase parser) {
 		this.parser = parser;
@@ -27,7 +27,7 @@ public abstract class ParserAdaptor implements PsiParser {
 		IDEATokenSourceAdaptor src = new IDEATokenSourceAdaptor(builder);
 		CommonTokenStream tokens = new CommonTokenStream(src);
 
-		parser.addErrorListener(new ParserErrorAdaptor(builder));
+		parser.addErrorListener(new ParserErrorAdaptor(parser, builder));
 
 		parser.setTokenStream(tokens);
 		parser.setBuildParseTree(false); // don't waste time doing this

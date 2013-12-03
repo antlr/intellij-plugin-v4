@@ -33,7 +33,7 @@ public abstract class AdaptorParserBase extends Parser {
 	@Override
 	public Token consume() {
 		Token t = super.consume();
-//		System.out.println("consuming current token="+t); // print current token
+//		System.err.println("consuming current token="+t); // print current token
 		builder.advanceLexer();
 		return t;
 	}
@@ -46,7 +46,7 @@ public abstract class AdaptorParserBase extends Parser {
 		markerStack.push(builder.mark());
 		String currentRuleName = getRuleNames()[ruleIndex];
 		ruleIndexStack.push(ruleIndex);
-//		System.out.println("mark " + currentRuleName);
+//		System.err.println("mark " + currentRuleName);
 	}
 
 	// TODO: THIS won't compile w/o ANTLRv4TokenTypeAdaptor, which is genrated
@@ -56,7 +56,7 @@ public abstract class AdaptorParserBase extends Parser {
 	public void exitRule() {
 		super.exitRule();
 		Integer currentRuleIndex = ruleIndexStack.pop();
-//		System.out.println("done " + currentRuleName);
+//		System.err.println("done " + ANTLRv4TokenTypeAdaptor.ruleToIDEATokenType[currentRuleIndex]);
 		// consume any bad tokens so parser sees them in correct tree
 		PsiBuilder.Marker marker = markerStack.pop();
 		marker.done(ANTLRv4TokenTypeAdaptor.ruleToIDEATokenType[currentRuleIndex]);
