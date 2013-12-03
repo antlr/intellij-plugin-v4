@@ -5,6 +5,7 @@ import com.intellij.lang.cacheBuilder.DefaultWordsScanner;
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
@@ -16,6 +17,7 @@ import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
+import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
@@ -25,7 +27,9 @@ import org.jetbrains.annotations.Nullable;
 public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 	@Override
 	public boolean canFindUsagesFor(@NotNull PsiElement psiElement) {
-		return true;
+//		System.out.println("find usages for "+psiElement+": "+psiElement.getText());
+		return psiElement instanceof LexerRuleSpecNode ||
+			   psiElement instanceof ParserRuleSpecNode;
 //		return psiElement instanceof PsiNamedElement;
 	}
 
@@ -59,7 +63,13 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 	@NotNull
 	@Override
 	public String getType(@NotNull PsiElement element) {
-		return "rulellll";
+		if (element instanceof ParserRuleSpecNode) {
+			return "parser rule";
+		}
+		if (element instanceof LexerRuleSpecNode) {
+			return "lexer rule";
+		}
+		return "n/a";
 	}
 
 	@NotNull
