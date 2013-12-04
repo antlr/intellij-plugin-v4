@@ -6,10 +6,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.util.IncorrectOperationException;
 import org.antlr.intellij.plugin.ANTLRv4TokenType;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+/** Root of lexer, parser rule defs */
 public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNamedElement {
 	protected String name = null; // an override to input text ID
 
@@ -23,7 +23,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		return getId().getText();
 	}
 
-	public abstract RuleRefNode getId();
+	public abstract GrammarElementRefNode getId();
 
 	@Override
 	public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
@@ -36,7 +36,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		          extract the necessary node from it.
 		 */
 //		System.out.println("rename "+this+" to "+name);
-		RuleRefNode id = getId();
+		GrammarElementRefNode id = getId();
 		id.replace(MyPsiUtils.createLeafFromText(getProject(),
 												 getContext(),
 												 name, getRuleRefType()));
@@ -54,7 +54,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 
 	@Override
 	public int getTextOffset() {
-		RuleRefNode id = getId();
+		GrammarElementRefNode id = getId();
 		if ( id!=null ) return id.getTextOffset();
 		return super.getTextOffset();
 	}

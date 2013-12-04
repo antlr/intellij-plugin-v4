@@ -7,10 +7,10 @@ import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.util.ProcessingContext;
+import org.antlr.intellij.plugin.psi.GrammarElementRef;
+import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
-import org.antlr.intellij.plugin.psi.RuleRef;
-import org.antlr.intellij.plugin.psi.RuleRefNode;
 import org.jetbrains.annotations.NotNull;
 
 // thought this might help find usages. nope. not invoked. oh, duh. Dmitry
@@ -27,7 +27,7 @@ public class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
 														 @NotNull ProcessingContext context)
 			{
 				ParserRuleRefNode ruleRef = (ParserRuleRefNode)element;
-				RuleRef ref = new RuleRef((RuleRefNode)element, ruleRef.getText());
+				GrammarElementRef ref = new GrammarElementRef((GrammarElementRefNode)element, ruleRef.getText());
 				return new PsiReference[]{ref};
 			}
 		};
@@ -41,7 +41,7 @@ public class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
 														 @NotNull ProcessingContext context)
 			{
 				LexerRuleRefNode ruleRef = (LexerRuleRefNode)element;
-				RuleRef ref = new RuleRef((RuleRefNode)element, ruleRef.getText());
+				GrammarElementRef ref = new GrammarElementRef((GrammarElementRefNode)element, ruleRef.getText());
 				return new PsiReference[]{ref};
 			}
 		};

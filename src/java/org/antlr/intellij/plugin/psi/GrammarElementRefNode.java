@@ -10,11 +10,11 @@ import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-/** Root of all PSI nodes for ANTLRv4 language except for file root. */
-public abstract class RuleRefNode extends LeafPsiElement implements PsiNamedElement {
+/** Refs to tokens, rules */
+public abstract class GrammarElementRefNode extends LeafPsiElement implements PsiNamedElement {
 	protected String name = null; // an override to input text ID if we rename via intellij
 
-	public RuleRefNode(IElementType type, CharSequence text) {
+	public GrammarElementRefNode(IElementType type, CharSequence text) {
 		super(type, text);
 	}
 

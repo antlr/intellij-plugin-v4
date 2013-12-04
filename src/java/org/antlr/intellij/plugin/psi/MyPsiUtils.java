@@ -9,11 +9,9 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4Language;
-import org.antlr.intellij.plugin.ANTLRv4TokenType;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 
 public class MyPsiUtils {
-	public static PsiElement findRuleSpecNodeAbove(RuleRefNode element, final String ruleName) {
+	public static PsiElement findRuleSpecNodeAbove(GrammarElementRefNode element, final String ruleName) {
 		RulesNode rules = PsiTreeUtil.getContextOfType(element, RulesNode.class);
 		return findRuleSpecNode(ruleName, rules);
 	}
