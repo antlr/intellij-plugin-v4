@@ -4,10 +4,11 @@ import com.intellij.lang.ASTFactory;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.FileElement;
 import com.intellij.psi.impl.source.tree.LeafElement;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
-import org.antlr.intellij.plugin.psi.ANTLRv4PSIElement;
+import org.antlr.intellij.plugin.psi.RuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 
@@ -36,7 +37,7 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 			t = new LexerRuleRefNode(type, text);
 		}
 		else {
-			t = new ANTLRv4PSIElement(type, text);
+			t = new LeafPsiElement(type, text);
 		}
 //		System.out.println("createLeaf "+t+" from "+type+" "+text);
 		return t;

@@ -1,11 +1,19 @@
 package org.antlr.intellij.plugin.psi;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.impl.PsiFileFactoryImpl;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.antlr.intellij.plugin.ANTLRv4Language;
+import org.antlr.intellij.plugin.ANTLRv4TokenType;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 
 public class MyPsiUtils {
-	public static PsiElement findRuleSpecNodeAbove(ANTLRv4PSIElement element, final String ruleName) {
+	public static PsiElement findRuleSpecNodeAbove(RuleRefNode element, final String ruleName) {
 		RulesNode rules = PsiTreeUtil.getContextOfType(element, RulesNode.class);
 		return findRuleSpecNode(ruleName, rules);
 	}
@@ -23,5 +31,24 @@ public class MyPsiUtils {
 		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(rules, defnode);
 		if ( ruleSpec.length>0 ) return ruleSpec[0];
 		return null;
+	}
+
+	public static PsiElement createLeafFromText(Project project, PsiElement context,
+												String text, IElementType type)
+	{
+		PsiFileFactoryImpl factory = (PsiFileFactoryImpl)PsiFileFactory.getInstance(project);
+		PsiElement el = factory.createElementFromText(text,
+													  ANTLRv4Language.INSTANCE,
+													  type,
+													  context);
+		return PsiTreeUtil.getDeepestFirst(el); // forces parsing of file!!
+		// start rule depends on root passed in
+	}
+
+	public static PsiFile createFile(Project project, String text) {
+		String fileName = "a.g4"; // random name but must be .g4
+		PsiFileFactoryImpl factory = (PsiFileFactoryImpl)PsiFileFactory.getInstance(project);
+		return factory.createFileFromText(fileName, ANTLRv4Language.INSTANCE,
+										  text, false, false);
 	}
 }

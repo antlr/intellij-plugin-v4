@@ -52,9 +52,16 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 		ANTLRv4Parser parser = new ANTLRv4Parser(null);
 		return new ParserAdaptor(parser) {
 			@Override
-			public void parse(Parser parser, PsiBuilder builder) {
+			public void parse(Parser parser, IElementType root, PsiBuilder builder) {
 				((ANTLRv4Parser)parser).builder = builder;
-				((ANTLRv4Parser)parser).grammarSpec();
+				if ( root instanceof IFileElementType ) {
+ 					((ANTLRv4Parser)parser).grammarSpec();
+				}
+				else if ( root==ANTLRv4TokenTypes.TOKEN_REF ||
+						  root==ANTLRv4TokenTypes.RULE_REF )
+				{
+					((ANTLRv4Parser)parser).atom();
+				}
 			}
 		};
 	}

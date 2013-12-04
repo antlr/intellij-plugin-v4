@@ -9,6 +9,8 @@ Goal: syntax-aware editing, highlighting, structure view, goto-declaration,
 1.0a2:
 	goto-declaration
 	ANTLR itself processes grammar and semantic errors get highlighted.
+	find usages
+	rename tokens, rules
 
 1.0a1:
  	syntax-aware editing, highlighting, structure view

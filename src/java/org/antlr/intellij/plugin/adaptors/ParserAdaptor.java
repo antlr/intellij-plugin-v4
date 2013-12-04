@@ -40,7 +40,7 @@ public abstract class ParserAdaptor implements PsiParser {
 		rootMarker = builder.mark();
 
 		// call ANTLR parser now
-		parse(parser, builder);
+		parse(parser, root, builder);
 
 		if (root != null) {
 			rootMarker.done(root);
@@ -48,5 +48,5 @@ public abstract class ParserAdaptor implements PsiParser {
 		return builder.getTreeBuilt();
 	}
 
-	public abstract void parse(Parser parser, PsiBuilder builder);
+	public abstract void parse(Parser parser, IElementType root, PsiBuilder builder);
 }

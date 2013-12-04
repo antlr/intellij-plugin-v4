@@ -7,8 +7,8 @@ import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.util.ProcessingContext;
-import org.antlr.intellij.plugin.psi.ANTLRv4PSIElement;
-import org.antlr.intellij.plugin.psi.GrammarRuleRef;
+import org.antlr.intellij.plugin.psi.RuleRef;
+import org.antlr.intellij.plugin.psi.RuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ public class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
 														 @NotNull ProcessingContext context)
 			{
 				ParserRuleRefNode ruleRef = (ParserRuleRefNode)element;
-				GrammarRuleRef ref = new GrammarRuleRef((ANTLRv4PSIElement)element, ruleRef.getText());
+				RuleRef ref = new RuleRef((RuleRefNode)element, ruleRef.getText());
 				return new PsiReference[]{ref};
 			}
 		};
@@ -42,7 +42,7 @@ public class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
 														 @NotNull ProcessingContext context)
 			{
 				LexerRuleRefNode ruleRef = (LexerRuleRefNode)element;
-				GrammarRuleRef ref = new GrammarRuleRef((ANTLRv4PSIElement)element, ruleRef.getText());
+				RuleRef ref = new RuleRef((RuleRefNode)element, ruleRef.getText());
 				return new PsiReference[]{ref};
 			}
 		};

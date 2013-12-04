@@ -5,29 +5,22 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
+import org.antlr.intellij.plugin.ANTLRv4TokenType;
 import org.antlr.intellij.plugin.Icons;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class LexerRuleRefNode extends ANTLRv4PSIElement implements PsiNamedElement {
-	protected String name = null; // an override to input text ID
-
+public class LexerRuleRefNode extends RuleRefNode {
 	public LexerRuleRefNode(IElementType type, CharSequence text) {
 		super(type, text);
 	}
 
 	@Override
-	public String getName() {
-		if ( name!=null ) return name;
-		return getText();
-	}
-
-	@Override
-	public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-		this.name = name;
-		return this;
+	public ANTLRv4TokenType getRuleRefType() {
+		return ANTLRv4TokenTypes.TOKEN_REF;
 	}
 
 	@Override
@@ -37,6 +30,6 @@ public class LexerRuleRefNode extends ANTLRv4PSIElement implements PsiNamedEleme
 
 	@Override
 	public PsiReference getReference() {
-		return new GrammarRuleRef(this, getText());
+		return new RuleRef(this, getText());
 	}
 }

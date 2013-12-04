@@ -34,6 +34,12 @@ public class ParserErrorAdaptor extends BaseErrorListener {
 		// lookahead in the ANTLR parser). I might have to get tricky
 		// by advance()ing until I see the offending token for no viable alts.
 
+		/* Gregory: "You can get WS into the parser by returning empty
+		   TokenSet in your ParserDefinition#getWhitespaceTokens()
+		   (same applies to comments). Even when WS are skipped it is
+		   possible to use PsiBuilder#rawXXXX methods to handle specific cases."
+		*/
+
 		// I don't think IDEA is tracking line, column info, so just send message
 		Stack<PsiBuilder.Marker> markerStack = parser.markerStack;
 		if ( markerStack.size()>0 ) {

@@ -57,7 +57,7 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 	@Nullable
 	@Override
 	public String getHelpId(@NotNull PsiElement element) {
-		return HelpID.FIND_OTHER_USAGES;
+		return null;
 	}
 
 	@NotNull
