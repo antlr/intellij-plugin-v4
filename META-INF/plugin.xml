@@ -5,12 +5,13 @@
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
-      This plugin is for ANTLR v4 grammars. It does syntax highlighting and syntax
-      error checking. You get a navigation window too.
+      This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
+      syntax error checking, semantic error checking, navigation window,
+      goto-declaration, find usages, rename tokens, rename rules.
       ]]></description>
 
   <change-notes><![CDATA[
-      Initial release.
+      Alpha release..adding features.
       ]]>
   </change-notes>
 
