@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
@@ -21,11 +20,6 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
-import org.antlr.intellij.plugin.psi.GrammarSpecNode;
-import org.antlr.intellij.plugin.psi.IdRefNode;
-import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
-import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
-import org.antlr.intellij.plugin.psi.RulesNode;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.jetbrains.annotations.NotNull;
@@ -101,27 +95,6 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 	 */
 	@NotNull
 	public PsiElement createElement(ASTNode node) {
-		IElementType elementType = node.getElementType();
-		PsiElement t;
-		if ( elementType==ANTLRv4TokenTypes.rules ) {
-			t = new RulesNode(node);
-		}
-		else if ( elementType==ANTLRv4TokenTypes.parserRuleSpec ) {
-			t = new ParserRuleSpecNode(node);
-		}
-		else if ( elementType==ANTLRv4TokenTypes.lexerRule ) {
-			t = new LexerRuleSpecNode(node);
-		}
-		else if ( elementType==ANTLRv4TokenTypes.id ) {
-			t = new IdRefNode(node);
-		}
-		else if ( elementType==ANTLRv4TokenTypes.grammarSpec ) {
-			t = new GrammarSpecNode(node);
-		}
-		else {
-			t = new ASTWrapperPsiElement(node);
-		}
-//		System.out.println("PSI createElement "+t+" from "+elementType);
-		return t;
+		return ANTLRv4ASTFactory.createInternalParseTreeNode(node);
 	}
 }

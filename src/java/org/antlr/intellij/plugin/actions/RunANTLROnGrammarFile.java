@@ -13,10 +13,16 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.util.PsiElementFilter;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ExceptionUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.psi.AtAction;
+import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
@@ -26,9 +32,60 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Backgroundable {
+	class ExecANTLR implements Runnable {
+		@Override
+		public void run() {
+			PsiManager psiManager = PsiManager.getInstance(project);
+			for (VirtualFile file : files) {
+				PsiFile f = psiManager.findFile(file);
+				if ( !(f instanceof ANTLRv4FileRoot) ) continue;
+				ANTLRv4FileRoot gfile = (ANTLRv4FileRoot)f;
+
+				VirtualFile virtualFile = f.getVirtualFile();
+				String sourcePath =
+					virtualFile == null?
+						"" :
+						VfsUtil.virtualToIoFile(virtualFile).getParentFile().getAbsolutePath();
+
+				VirtualFile content = ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(file);
+				VirtualFile parentDir = content == null ? file.getParent() : content;
+				// create gen dir at root of project
+				String outputDirName = "gen";
+				String pack =findPackageIfAny(gfile);
+				if ( pack!=null ) {
+					outputDirName += File.separator+pack.replace('.',File.separatorChar);
+				}
+				File genDir = new File(VfsUtil.virtualToIoFile(parentDir), outputDirName);
+				String outputPath = genDir.getAbsolutePath();
+				generatedFiles.add(new File(outputPath));
+				String groupDisplayId = "ANTLR 4 Code Generation";
+				try {
+					generate(gfile, sourcePath, outputPath);
+					Notification notification =
+						new Notification(groupDisplayId,
+										 "parser for "+file.getName()+" generated",
+										 "to " + outputPath,
+										 NotificationType.INFORMATION);
+					Notifications.Bus.notify(notification, project);
+				}
+				catch (Exception ex) {
+					Notification notification =
+						new Notification(groupDisplayId,
+										 "generation of parser for "+file.getName()+" failed",
+										 ExceptionUtil.getUserStackTrace(ex, LOG),
+										 NotificationType.ERROR);
+					Notifications.Bus.notify(notification, project);
+					LOG.warn(ex);
+				}
+			}
+		}
+	}
+
 	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile");
 
 	Set<File> generatedFiles = new HashSet<File>();
@@ -56,40 +113,40 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
 	}
 
-	class ExecANTLR implements Runnable {
-		@Override
-		public void run() {
-			PsiManager psiManager = PsiManager.getInstance(project);
-			for (VirtualFile file : files) {
-				PsiFile f = psiManager.findFile(file);
-				if ( !(f instanceof ANTLRv4FileRoot) ) continue;
-				ANTLRv4FileRoot gfile = (ANTLRv4FileRoot)f;
-				VirtualFile virtualFile = f.getVirtualFile();
-				String sourcePath = virtualFile == null? "" : VfsUtil.virtualToIoFile(virtualFile).getParentFile().getAbsolutePath();
+	@Override
+	public void run(@NotNull ProgressIndicator indicator) {
+		indicator.setIndeterminate(true);
+		ApplicationManager.getApplication().runReadAction(new ExecANTLR());
+	}
 
-				VirtualFile content = ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(file);
-				VirtualFile parentDir = content == null ? file.getParent() : content;
-				// create gen dir at root of project
-				String outputPath = new File(VfsUtil.virtualToIoFile(parentDir), "gen").getAbsolutePath();
-				generatedFiles.add(new File(outputPath));
-				String groupDisplayId = "ANTLR 4 Code Generation";
-				try {
-					generate(gfile, sourcePath, outputPath);
-					Notification notification = new Notification(groupDisplayId,
-																 file.getName() + " parser generated", "to " + outputPath,
-																 NotificationType.INFORMATION);
-					Notifications.Bus.notify(notification, project);
+	public String findPackageIfAny(ANTLRv4FileRoot gfile) {
+		// Want to gen in package; look for:
+		// @header { package org.foo.x; } which is an AtAction
+		PsiElement[] hdrActions =
+			PsiTreeUtil.collectElements(gfile, new PsiElementFilter() {
+				@Override
+				public boolean isAccepted(PsiElement element) {
+					PsiElement p = element.getContext();
+					if (p != null) p = p.getContext();
+					return p instanceof AtAction &&
+						element instanceof ParserRuleRefNode &&
+						element.getText().equals("header");
 				}
-				catch (Exception ex) {
-					Notification notification = new Notification(groupDisplayId,
-																 file.getName() + " parser generation failed",
-																 ExceptionUtil.getUserStackTrace(ex, LOG),
-																 NotificationType.ERROR);
-					Notifications.Bus.notify(notification, project);
-					LOG.warn(ex);
-				}
+			});
+		if ( hdrActions.length>0 ) {
+			PsiElement h = hdrActions[0];
+			PsiElement p = h.getContext();
+			PsiElement action = p.getNextSibling();
+			if ( action instanceof PsiWhiteSpace) action = action.getNextSibling();
+			String text = action.getText();
+			Pattern pattern = Pattern.compile("\\{\\s*package\\s+(.*?);\\s*.*");
+			Matcher matcher = pattern.matcher(text);
+			if ( matcher.matches() ) {
+				String pack = matcher.group(1);
+				return pack;
 			}
 		}
+		return null;
 	}
 
 	public void generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
@@ -106,11 +163,5 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 			}
 		});
 		antlr.processGrammarsOnCommandLine();
-	}
-
-	@Override
-	public void run(@NotNull ProgressIndicator indicator) {
-		indicator.setIndeterminate(true);
-		ApplicationManager.getApplication().runReadAction(new ExecANTLR());
 	}
 }

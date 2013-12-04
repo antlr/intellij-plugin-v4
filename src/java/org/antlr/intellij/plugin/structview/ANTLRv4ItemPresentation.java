@@ -7,7 +7,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.Icons;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
-import org.antlr.intellij.plugin.psi.IdRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,10 +28,10 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
 	public String getPresentableText() {
 		if (element instanceof ANTLRv4FileRoot) {
 			GrammarSpecNode gnode = PsiTreeUtil.findChildOfType(element, GrammarSpecNode.class);
-			IdRefNode id = PsiTreeUtil.findChildOfType(gnode, IdRefNode.class);
-			if ( id!=null && id.getFirstChild()!=null ) {
-				return id.getFirstChild().getText();
-			}
+//			IdRefNode id = PsiTreeUtil.findChildOfType(gnode, IdRefNode.class);
+//			if ( id!=null && id.getFirstChild()!=null ) {
+//				return id.getFirstChild().getText();
+//			}
 			return "<n/a>";
 		}
 		ASTNode node = element.getNode();
