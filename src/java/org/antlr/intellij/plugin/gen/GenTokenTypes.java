@@ -13,15 +13,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Set;
 
-public class Gen {
+public class GenTokenTypes {
 	static STGroup tokenTypeFile;
 
-	public Gen() {
+	public GenTokenTypes() {
 		tokenTypeFile = new STGroupFile("org/antlr/intellij/plugin/gen/Java.stg");
 	}
 
 	public static void main(String[] args) throws IOException {
-		Gen gen = new Gen();
+		GenTokenTypes gen = new GenTokenTypes();
 		URL lexerurl = gen.getClass().getClassLoader().getResource("org/antlr/intellij/plugin/parser/ANTLRv4Lexer.g4");
 		URL parserurl = gen.getClass().getClassLoader().getResource("org/antlr/intellij/plugin/parser/ANTLRv4Parser.g4");
 

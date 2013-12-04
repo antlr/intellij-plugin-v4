@@ -33,7 +33,15 @@
   </project-components>
 
   <actions>
-    <!-- Add your actions here -->
+   <group id="grammar.file.group" popup="false">
+    <action id="grammar.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction" text="Generate ANTLR Recognizer">
+       <keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+    </action>
+    <separator/>
+    <add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+    <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+   </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -47,12 +55,8 @@
 	  <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
 	  <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
-	  <!-- i think language="ANTLRv4" is missing from doc:
-	    http://confluence.jetbrains.com/display/IntelliJIDEA/Reference+Contributor
-	    -->
-	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
-
 	  <!--
+	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
   LanguageASTFactory
 -->

@@ -7,17 +7,16 @@ import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.util.ProcessingContext;
-import org.antlr.intellij.plugin.psi.RuleRef;
-import org.antlr.intellij.plugin.psi.RuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.antlr.intellij.plugin.psi.RuleRef;
+import org.antlr.intellij.plugin.psi.RuleRefNode;
 import org.jetbrains.annotations.NotNull;
 
 // thought this might help find usages. nope. not invoked. oh, duh. Dmitry
 // says: "PsiReferenceContributor is supposed to be used for injecting references
 // into languages that you don't control (Java, XML etc.), or if you want other
-// people to be able to inject references into your language." WHY THE F*CK
-// isn't that in the comment.
+// people to be able to inject references into your language."
 public class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
 	@Override
 	public void registerReferenceProviders(PsiReferenceRegistrar registrar) {
