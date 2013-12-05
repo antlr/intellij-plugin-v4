@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.0a3</version>
+  <version>1.0a4</version>
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
