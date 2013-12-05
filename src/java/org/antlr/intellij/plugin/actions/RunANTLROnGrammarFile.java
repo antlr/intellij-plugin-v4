@@ -13,13 +13,11 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ExceptionUtil;
 import org.antlr.intellij.plugin.ANTLRv4ASTFactory;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
@@ -118,22 +116,9 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 	}
 
 	public void generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
-		// add -lib if we need .tokens file for stuff like:
-		// options { tokenVocab=ANTLRv4Lexer; superClass=Foo; }
-		PsiElement[] options = ANTLRv4ASTFactory.collectNodesWithName(file, "option");
-		String vocabName = null;
-		for (PsiElement o : options) {
-			PsiElement[] tokenVocab = ANTLRv4ASTFactory.collectChildrenWithText(o, "tokenVocab");
-			if ( tokenVocab.length>0 ) {
-				PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
-				PsiElement[] ids = ANTLRv4ASTFactory.collectChildrenOfType(optionNode, ANTLRv4TokenTypes.optionValue);
-				vocabName = ids[0].getText();
-			}
-		}
-
 		Tool antlr = new Tool(new String[] {
 			"-o", outputPath,
-			"-lib", sourcePath,
+			"-lib", sourcePath, // lets us see tokenVocab stuff
 			sourcePath+File.separator+file.getName()}
 		);
 		antlr.addListener(new ANTLRToolListener() {

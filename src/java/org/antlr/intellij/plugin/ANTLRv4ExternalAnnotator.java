@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import org.antlr.runtime.ANTLRReaderStream;
@@ -11,6 +12,7 @@ import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
 import org.antlr.v4.tool.ErrorSeverity;
+import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarSemanticsMessage;
 import org.antlr.v4.tool.GrammarSyntaxMessage;
@@ -37,6 +39,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
 	}
 
+	String vocabName;
 	PsiFile file;
 
 	/** Called first; return file text */
@@ -52,7 +55,25 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 	@Override
 	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(String fileContents) {
 		final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<Issue>();
-		Tool antlr = new Tool();
+		final Tool antlr = new Tool();
+		// getContainingDirectory() must be identified as a read operation on file system
+		ApplicationManager.getApplication().runReadAction(new Runnable() {
+			@Override
+			public void run() {
+				antlr.libDirectory = file.getContainingDirectory().toString();
+			}
+		});
+
+		ApplicationManager.getApplication().runReadAction(new Runnable() {
+			@Override
+			public void run() {
+				vocabName = ANTLRv4ASTFactory.findTokenVocabIfAny((ANTLRv4FileRoot)file);
+			}
+		});
+		if ( vocabName!=null ) { // need to generate other file?
+			// for now, just turn off undef token warnings
+		}
+
 		antlr.addListener(new ANTLRToolListener() {
 			@Override
 			public void info(String msg) {
@@ -63,7 +84,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 			}
 			@Override
 			public void warning(ANTLRMessage msg) {
-				issues.add(new Issue(msg));
+				if ( msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION ||
+					 vocabName==null )
+				{
+					issues.add(new Issue(msg));
+				}
 			}
 		});
 		try {

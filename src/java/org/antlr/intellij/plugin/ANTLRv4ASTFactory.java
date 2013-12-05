@@ -112,6 +112,22 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		return null;
 	}
 
+		// Look for stuff like: options { tokenVocab=ANTLRv4Lexer; superClass=Foo; }
+	public static String findTokenVocabIfAny(ANTLRv4FileRoot file) {
+		String vocabName = null;
+		PsiElement[] options = collectNodesWithName(file, "option");
+		for (PsiElement o : options) {
+			PsiElement[] tokenVocab = collectChildrenWithText(o, "tokenVocab");
+			if ( tokenVocab.length>0 ) {
+				PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
+				PsiElement[] ids = collectChildrenOfType(optionNode, ANTLRv4TokenTypes.optionValue);
+				vocabName = ids[0].getText();
+			}
+		}
+		return vocabName;
+	}
+
+
 	public static PsiElement[] collectAtActions(PsiElement root, final String tokenText) {
 		return PsiTreeUtil.collectElements(root, new PsiElementFilter() {
 			@Override
