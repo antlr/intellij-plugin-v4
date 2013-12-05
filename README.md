@@ -6,6 +6,11 @@ An Intellij 12.0.x plugin for ANTLR v4
 Goal: syntax-aware editing, highlighting, structure view, goto-declaration,
       find usages.
 
+1.0a4:
+	finds tokenVocab option for code gen
+	if there is a tokenVocab option, don't warn about implicit tokens.
+	shortcut conflicted with grammar-kit plugin.
+
 1.0a3:
 	generates code. Uses package dir if @header { package x.y.z; } action present.
 	generates in <root>/gen/package/YourGrammarRecognizer.java

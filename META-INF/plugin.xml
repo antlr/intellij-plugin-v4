@@ -11,7 +11,9 @@
       Generates code. Uses package dir if @header { package x.y.z; } action present.
 	  Generates in <root>/gen/package/YourGrammarRecognizer.java
 	  Shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu, popups.
-	  Code completion for tokens, rule names.
+	  Code completion for tokens, rule names. finds tokenVocab option for code gen
+	  	if there is a tokenVocab option, don't warn about implicit tokens.
+	  	shortcut conflicted with grammar-kit plugin.
       ]]></description>
 
   <change-notes><![CDATA[
