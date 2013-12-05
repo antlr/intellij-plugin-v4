@@ -16,13 +16,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.util.PsiElementFilter;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ExceptionUtil;
+import org.antlr.intellij.plugin.ANTLRv4ASTFactory;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.psi.AtAction;
-import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
@@ -32,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Backgroundable {
@@ -56,10 +51,13 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 				VirtualFile parentDir = content == null ? file.getParent() : content;
 				// create gen dir at root of project
 				String outputDirName = "gen";
-				String pack =findPackageIfAny(gfile);
+
+				// find package
+				String pack = ANTLRv4ASTFactory.findPackageIfAny(gfile);
 				if ( pack!=null ) {
 					outputDirName += File.separator+pack.replace('.',File.separatorChar);
 				}
+
 				File genDir = new File(VfsUtil.virtualToIoFile(parentDir), outputDirName);
 				String outputPath = genDir.getAbsolutePath();
 				generatedFiles.add(new File(outputPath));
@@ -119,38 +117,25 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		ApplicationManager.getApplication().runReadAction(new ExecANTLR());
 	}
 
-	public String findPackageIfAny(ANTLRv4FileRoot gfile) {
-		// Want to gen in package; look for:
-		// @header { package org.foo.x; } which is an AtAction
-		PsiElement[] hdrActions =
-			PsiTreeUtil.collectElements(gfile, new PsiElementFilter() {
-				@Override
-				public boolean isAccepted(PsiElement element) {
-					PsiElement p = element.getContext();
-					if (p != null) p = p.getContext();
-					return p instanceof AtAction &&
-						element instanceof ParserRuleRefNode &&
-						element.getText().equals("header");
-				}
-			});
-		if ( hdrActions.length>0 ) {
-			PsiElement h = hdrActions[0];
-			PsiElement p = h.getContext();
-			PsiElement action = p.getNextSibling();
-			if ( action instanceof PsiWhiteSpace) action = action.getNextSibling();
-			String text = action.getText();
-			Pattern pattern = Pattern.compile("\\{\\s*package\\s+(.*?);\\s*.*");
-			Matcher matcher = pattern.matcher(text);
-			if ( matcher.matches() ) {
-				String pack = matcher.group(1);
-				return pack;
+	public void generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
+		// add -lib if we need .tokens file for stuff like:
+		// options { tokenVocab=ANTLRv4Lexer; superClass=Foo; }
+		PsiElement[] options = ANTLRv4ASTFactory.collectNodesWithName(file, "option");
+		String vocabName = null;
+		for (PsiElement o : options) {
+			PsiElement[] tokenVocab = ANTLRv4ASTFactory.collectChildrenWithText(o, "tokenVocab");
+			if ( tokenVocab.length>0 ) {
+				PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
+				PsiElement[] ids = ANTLRv4ASTFactory.collectChildrenOfType(optionNode, ANTLRv4TokenTypes.optionValue);
+				vocabName = ids[0].getText();
 			}
 		}
-		return null;
-	}
 
-	public void generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
-		Tool antlr = new Tool(new String[] {"-o", outputPath, sourcePath+File.separator+file.getName()});
+		Tool antlr = new Tool(new String[] {
+			"-o", outputPath,
+			"-lib", sourcePath,
+			sourcePath+File.separator+file.getName()}
+		);
 		antlr.addListener(new ANTLRToolListener() {
 			@Override
 			public void info(String msg) {
