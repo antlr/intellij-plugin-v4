@@ -37,8 +37,8 @@
   </project-components>
 
   <actions>
-   <group id="grammar.file.group" popup="false">
-    <action id="grammar.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction" text="Generate ANTLR Recognizer">
+   <group id="antlr.file.group" popup="false">
+    <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction" text="Generate ANTLR Recognizer">
        <keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
     </action>
     <separator/>
