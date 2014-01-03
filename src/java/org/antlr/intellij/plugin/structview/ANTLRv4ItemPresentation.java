@@ -6,7 +6,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.Icons;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
+import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,20 +30,14 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
 	public String getPresentableText() {
 		if (element instanceof ANTLRv4FileRoot) {
 			GrammarSpecNode gnode = PsiTreeUtil.findChildOfType(element, GrammarSpecNode.class);
-//			IdRefNode id = PsiTreeUtil.findChildOfType(gnode, IdRefNode.class);
-//			if ( id!=null && id.getFirstChild()!=null ) {
-//				return id.getFirstChild().getText();
-//			}
+			PsiElement id = MyPsiUtils.findChildOfType(gnode, ANTLRv4TokenTypes.id);
+			if ( id!=null ) {
+				return id.getText();
+			}
 			return "<n/a>";
 		}
 		ASTNode node = element.getNode();
 		return node.getText();
-//		ANTLRv4TokenType psiNode = (ANTLRv4TokenType)node.getElementType();
-//		if ( psiNode == ANTLRv4TokenTypes.ruleSpec ) {
-//			RuleElement f = (RuleElement)element;
-//			return f.getName();
-//		}
-//		return psiNode.toString();
 	}
 
 	@Nullable
