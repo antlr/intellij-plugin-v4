@@ -95,7 +95,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 			StringReader sr = new StringReader(fileContents);
 			ANTLRReaderStream in = new ANTLRReaderStream(sr);
 			in.name = file.getName();
-			GrammarRootAST ast = antlr.load(file.getName(), in);
+			GrammarRootAST ast = antlr.parse(file.getName(), in);
 			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
 			Grammar g = antlr.createGrammar(ast);
 			antlr.process(g, false);

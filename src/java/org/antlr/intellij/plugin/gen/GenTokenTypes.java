@@ -26,11 +26,11 @@ public class GenTokenTypes {
 		URL parserurl = gen.getClass().getClassLoader().getResource("org/antlr/intellij/plugin/parser/ANTLRv4Parser.g4");
 
 		Tool antlr = new Tool();
-		GrammarRootAST ast = antlr.loadGrammar(lexerurl.getFile());
+		GrammarRootAST ast = antlr.parseGrammar(lexerurl.getFile());
 		LexerGrammar lg = (LexerGrammar)antlr.createGrammar(ast);
 		antlr.process(lg, false);
 
-		ast = antlr.loadGrammar(parserurl.getFile());
+		ast = antlr.parseGrammar(parserurl.getFile());
 		Grammar g = antlr.createGrammar(ast);
 		antlr.process(g, false);
 
