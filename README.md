@@ -5,6 +5,8 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 [Plugin page](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
 ## History
+* 1.0a5:
+	* Update to use latest ANTLR 4.2 from parrt/antlr4
 * 1.0a4:
 	* finds tokenVocab option for code gen
 	* if there is a tokenVocab option, don't warn about implicit tokens.
