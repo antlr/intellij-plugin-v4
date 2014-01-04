@@ -1,18 +1,67 @@
 package org.antlr.intellij.plugin.structview;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
+import com.intellij.ide.util.treeView.smartTree.ActionPresentation;
+import com.intellij.ide.util.treeView.smartTree.ActionPresentationData;
 import com.intellij.ide.util.treeView.smartTree.Sorter;
+import com.intellij.ide.util.treeView.smartTree.SorterUtil;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.jetbrains.annotations.NotNull;
 
-public class ANTLRv4StructureViewModel extends StructureViewModelBase
+import java.util.Comparator;
+
+public class ANTLRv4StructureViewModel
+	extends StructureViewModelBase
+//	extends TextEditorBasedStructureViewModel
 	implements StructureViewModel.ElementInfoProvider
 {
+	private static final Sorter PARSER_LEXER_RULE_SORTER = new Sorter() {
+		public Comparator getComparator() {
+			return new Comparator() {
+				public int compare(final Object o1, final Object o2) {
+					String s1 = SorterUtil.getStringPresentation(o1);
+					String s2 = SorterUtil.getStringPresentation(o2);
+					// flip case of char 0 so it puts parser rules first
+					if ( Character.isLowerCase(s1.charAt(0)) ) {
+						s1 = Character.toUpperCase(s1.charAt(0))+s1.substring(1);
+					}
+					else {
+						s1 = Character.toLowerCase(s1.charAt(0))+s1.substring(1);
+					}
+					if ( Character.isLowerCase(s2.charAt(0)) ) {
+						s2 = Character.toUpperCase(s2.charAt(0))+s2.substring(1);
+					}
+					else {
+						s2 = Character.toLowerCase(s2.charAt(0))+s2.substring(1);
+					}
+					return s1.compareTo(s2);
+				}
+			};
+		}
+
+		public boolean isVisible() {
+			return true;
+		}
+
+		@NotNull
+		public ActionPresentation getPresentation() {
+			// how it's described in sort by dropdown in nav window.
+			String name = "Sort by rule type";
+			return new ActionPresentationData(name, name, AllIcons.ObjectBrowser.SortByType);
+		}
+
+		@NotNull
+		public String getName() {
+			return "PARSER_LEXER_RULE_SORTER";
+		}
+	};
+
 	ANTLRv4FileRoot rootElement;
 
 	public ANTLRv4StructureViewModel(ANTLRv4FileRoot rootElement) {
@@ -23,7 +72,7 @@ public class ANTLRv4StructureViewModel extends StructureViewModelBase
 
 	@NotNull
 	public Sorter[] getSorters() {
-		return new Sorter[] {Sorter.ALPHA_SORTER};
+		return new Sorter[] {PARSER_LEXER_RULE_SORTER, Sorter.ALPHA_SORTER};
 	}
 
 	@Override
@@ -39,12 +88,14 @@ public class ANTLRv4StructureViewModel extends StructureViewModelBase
 
 	@Override
 	public boolean isAlwaysShowsPlus(StructureViewTreeElement element) {
-		return false;
+		Object value = element.getValue();
+  		return value instanceof ANTLRv4FileRoot;
 	}
 
 	@Override
 	public boolean isAlwaysLeaf(StructureViewTreeElement element) {
-		return element instanceof ANTLRv4FileRoot;
+		Object value = element.getValue();
+		return value instanceof ParserRuleSpecNode || value instanceof LexerRuleSpecNode;
 	}
 
 	/**

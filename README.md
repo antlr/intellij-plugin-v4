@@ -8,6 +8,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 * 1.0a5:
 	* Update to use latest ANTLR 4.2 from parrt/antlr4
 	* wasn't showing grammar name. weird.
+	* Added "sort by rule type" to put parser then lexer rules in nav window
 * 1.0a4:
 	* finds tokenVocab option for code gen
 	* if there is a tokenVocab option, don't warn about implicit tokens.

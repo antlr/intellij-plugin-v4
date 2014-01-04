@@ -76,4 +76,23 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 		}
 		return EMPTY_ARRAY;
 	}
+
+	// probably not critical
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		ANTLRv4StructureViewElement that = (ANTLRv4StructureViewElement)o;
+
+		if (element != null ? !element.equals(that.element) : that.element != null) return false;
+
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return element != null ? element.hashCode() : 0;
+	}
+
 }
