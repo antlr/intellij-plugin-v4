@@ -14,6 +14,7 @@ import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class GenerateAction extends AnAction implements DumbAware {
+	/** Only show if selection is a grammar */
 	@Override
 	public void update(AnActionEvent e) {
 		Project project = getEventProject(e);

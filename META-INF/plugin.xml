@@ -31,23 +31,27 @@
   -->
 
   <application-components>
-    <!-- Add your application components here -->
   </application-components>
 
   <project-components>
-    <!-- Add your project components here -->
+	<component>
+		<implementation-class>org.antlr.intellij.plugin.ANTLRv4ProjectComponent</implementation-class>
+	</component>
   </project-components>
 
   <actions>
-   <group id="antlr.file.group" popup="false">
-    <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction" text="Generate ANTLR Recognizer">
-       <keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
-    </action>
-    <separator/>
-    <add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
-    <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-    <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-   </group>
+    <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
+			text="Generate ANTLR Recognizer">
+    	<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+	</action>
+   	<action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
+			text="Test ANTLR Rule">
+	   <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
+	   <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+ 	</action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -61,6 +65,9 @@
 	  <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
 	  <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
+	  <toolWindow id="ANTLR Parse Tree" secondary="true" icon="/general/add.png"
+				  anchor="bottom" factoryClass="org.antlr.intellij.plugin.preview.ParseTreeWindowFactory">
+	  </toolWindow>
 	  <!--
 	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
