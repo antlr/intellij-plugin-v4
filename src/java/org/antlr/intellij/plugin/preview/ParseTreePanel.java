@@ -22,6 +22,8 @@ import java.util.Arrays;
 public class ParseTreePanel extends JPanel {
 	protected TreeViewer viewer;  // the antlr tree viewer component itself
 	protected JLabel startRuleLabel;
+	protected Editor editor;
+	protected JTextArea console;
 	protected String inputText = "";
 	protected String combinedGrammarFileName;
 	protected String startRule;
@@ -58,7 +60,7 @@ public class ParseTreePanel extends JPanel {
 
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(inputText);
-		Editor ed = factory.createEditor(doc);
+		editor = factory.createEditor(doc);
 
 		doc.addDocumentListener(new DocumentListener() {
 			@Override
@@ -72,10 +74,13 @@ public class ParseTreePanel extends JPanel {
 			}
 		});
 
+		console = new JTextArea();
+
 		JPanel editorPanel = new JPanel(new BorderLayout(0,0));
-		startRuleLabel = new JLabel("Start rule: <undefined>");
+		startRuleLabel = new JLabel("Start rule: <select from navigator or grammar>");
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
-		editorPanel.add(ed.getComponent(), BorderLayout.CENTER);
+		editorPanel.add(editor.getComponent(), BorderLayout.CENTER);
+		editorPanel.add(console, BorderLayout.SOUTH);
 
 		Splitter splitPane = new Splitter();
 		splitPane.setFirstComponent(editorPanel);
@@ -87,9 +92,13 @@ public class ParseTreePanel extends JPanel {
 	public void setStartRule(String startRule) {
 		this.startRule = startRule;
 		if ( startRule==null ) {
-			startRule = "<undefined>";
+			startRule = "<select from navigator or grammar>";
 		}
 		startRuleLabel.setText("Start rule: "+startRule);
+	}
+
+	public void refresh() {
+		setInputAndGrammar(inputText, combinedGrammarFileName, startRule);
 	}
 
 	public void setInput(String inputText) {
@@ -112,7 +121,8 @@ public class ParseTreePanel extends JPanel {
 		Parser parser = null;
 		try {
 			Object[] results =
-				ANTLRv4ProjectComponent.parseText(inputText,
+				ANTLRv4ProjectComponent.parseText(this,
+												  inputText,
 												  combinedGrammarFileName,
 												  startRule);
 			if ( results!=null ) {
@@ -144,5 +154,13 @@ public class ParseTreePanel extends JPanel {
 
 	public String getStartRule() {
 		return startRule;
+	}
+
+	public Editor getEditor() {
+		return editor;
+	}
+
+	public JTextArea getConsole() {
+		return console;
 	}
 }

@@ -3,8 +3,11 @@ package org.antlr.intellij.plugin;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
@@ -99,6 +102,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
 			Grammar g = antlr.createGrammar(ast);
 			antlr.process(g, false);
+
+			VirtualFile virtualFile = file.getVirtualFile();
+
+			Project project = ANTLRv4ProjectComponent.getProjectForFile(virtualFile);
+			ParseTreePanel viewerPanel = ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
+			viewerPanel.refresh();
 
 			for (int i = 0; i < issues.size(); i++) {
 				Issue issue = issues.get(i);

@@ -2,24 +2,50 @@ package org.antlr.intellij.plugin;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
+import org.antlr.v4.Tool;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.tool.ANTLRMessage;
+import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
+import org.stringtemplate.v4.ST;
 
+import javax.swing.*;
 import java.io.IOException;
 
 public class ANTLRv4ProjectComponent implements ProjectComponent {
 	public ParseTreePanel treePanel;
 
 	public static ANTLRv4ProjectComponent getInstance(Project project) {
-		return project.getComponent(ANTLRv4ProjectComponent.class);
+		ANTLRv4ProjectComponent pc = project.getComponent(ANTLRv4ProjectComponent.class);
+		return pc;
+	}
+
+	public static Project getProjectForFile(VirtualFile virtualFile) {
+		Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+		Project project = null;
+		for (int i = 0; i < openProjects.length; i++) {
+			Project p = openProjects[i];
+			ProjectFileIndex fileIndex = ProjectRootManager.getInstance(p).getFileIndex();
+			if ( fileIndex.isInContent(virtualFile) ) {
+				project = p;
+			}
+		}
+		return project;
 	}
 
 	public ParseTreePanel getViewerPanel() {
@@ -70,26 +96,66 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 //		return ToolWindowManager.getInstance(_project).getToolWindow(ID_TOOL_WINDOW) != null;
 //	}
 
-	public static Object[] parseText(String inputText,
+	public static Object[] parseText(ParseTreePanel parseTreePanel,
+									 String inputText,
 									 String combinedGrammarFileName,
 									 String startRule)
 		throws IOException
 	{
-		final Grammar g = Grammar.load(combinedGrammarFileName);
+		Tool antlr = new Tool();
+		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
+		antlr.addListener(listener);
+		Grammar g = antlr.loadGrammar(combinedGrammarFileName);
+		if ( listener.grammarErrorMessage!=null ) {
+			return null;
+		}
 		LexerInterpreter lexEngine = g.createLexerInterpreter(new ANTLRInputStream(inputText));
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = g.createParserInterpreter(tokens);
+		parser.removeErrorListeners();
+		MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
+		parser.addErrorListener(syntaxErrorListener);
+		JTextArea console = parseTreePanel.getConsole();
 		try {
 			ParseTree t = parser.parse(g.getRule(startRule).index);
 			System.out.println("parse tree: " + t.toStringTree(parser));
 //          ((ParserRuleContext)t).inspect(parser);
+			console.setText(syntaxErrorListener.syntaxError);
 			return new Object[] {parser, t};
 		}
 		catch (RecognitionException re) {
 			DefaultErrorStrategy strat = new DefaultErrorStrategy();
 			strat.reportError(parser, re);
+			console.setText(syntaxErrorListener.syntaxError);
 		}
 		return null;
 	}
 
+	static class MyANTLRToolListener extends DefaultToolListener {
+		public String grammarErrorMessage;
+		public MyANTLRToolListener(Tool tool) { super(tool); }
+
+		@Override
+		public void error(ANTLRMessage msg) {
+			super.error(msg);
+			ST msgST = tool.errMgr.getMessageTemplate(msg);
+			grammarErrorMessage = msgST.render();
+			if (tool.errMgr.formatWantsSingleLineMessage()) {
+				grammarErrorMessage = grammarErrorMessage.replace('\n', ' ');
+			}
+		}
+	}
+
+	static class MyConsoleErrorListener extends ConsoleErrorListener {
+		public String syntaxError="";
+		@Override
+		public void syntaxError(Recognizer<?, ?> recognizer,
+								@Nullable Object offendingSymbol,
+								int line, int charPositionInLine, String msg,
+								@Nullable RecognitionException e)
+		{
+			super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+			syntaxError = "line " + line + ":" + charPositionInLine + " " + msg;
+		}
+	}
 }

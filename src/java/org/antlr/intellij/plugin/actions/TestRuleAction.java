@@ -3,6 +3,8 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -42,6 +44,10 @@ public class TestRuleAction extends AnAction implements DumbAware {
 
 		VirtualFile file = getGrammarFile(e);
 		if ( file==null ) return; // no files?
+
+		FileDocumentManager docMgr = FileDocumentManager.getInstance();
+		Document doc = docMgr.getDocument(file);
+		docMgr.saveDocument(doc);
 
 		ParseTreePanel viewerPanel = ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
 		String inputText = viewerPanel.getInputText(); // reuse input if any is around already
