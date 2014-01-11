@@ -12,10 +12,13 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.intellij.plugin.preview.ParseTreeWindowFactory;
+import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 
 public class TestRuleAction extends AnAction implements DumbAware {
 	/** Only show if selection is a grammar */
@@ -40,7 +43,11 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		if ( project==null ) return; // whoa!
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
 		String ruleName = selectedPsiRuleNode.getText();
-		System.out.println(ruleName);
+		if ( selectedPsiRuleNode instanceof ParserRuleSpecNode ) {
+			ParserRuleRefNode r = PsiTreeUtil.findChildOfType(selectedPsiRuleNode,
+															  ParserRuleRefNode.class);
+			ruleName = r.getText();
+		}
 
 		VirtualFile file = getGrammarFile(e);
 		if ( file==null ) return; // no files?

@@ -118,7 +118,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		JTextArea console = parseTreePanel.getConsole();
 		try {
 			ParseTree t = parser.parse(g.getRule(startRule).index);
-			System.out.println("parse tree: " + t.toStringTree(parser));
+//			System.out.println("parse tree: " + t.toStringTree(parser));
 //          ((ParserRuleContext)t).inspect(parser);
 			console.setText(syntaxErrorListener.syntaxError);
 			return new Object[] {parser, t};
@@ -137,7 +137,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 		@Override
 		public void error(ANTLRMessage msg) {
-			super.error(msg);
+//			super.error(msg);
 			ST msgST = tool.errMgr.getMessageTemplate(msg);
 			grammarErrorMessage = msgST.render();
 			if (tool.errMgr.formatWantsSingleLineMessage()) {
@@ -154,7 +154,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 								int line, int charPositionInLine, String msg,
 								@Nullable RecognitionException e)
 		{
-			super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+//			super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
 			syntaxError = "line " + line + ":" + charPositionInLine + " " + msg;
 		}
 	}
