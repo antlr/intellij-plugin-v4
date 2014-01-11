@@ -15,7 +15,7 @@ import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
 import javax.swing.*;
 
 public class ParseTreeWindowFactory implements ToolWindowFactory {
-	public static final String ID = "antlr.ParseTreeView";
+	public static final String ID = "ANTLR Parse Tree";
 
 	protected ToolWindow myToolWindow;
 
