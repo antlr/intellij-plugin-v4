@@ -44,8 +44,8 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		if ( file==null ) return; // no files?
 
 		ParseTreePanel viewerPanel = ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
-
-		viewerPanel.resetTree("abc aaaaaaaa 34;", file.getPath(), ruleName);
+		String inputText = viewerPanel.getInputText(); // reuse input if any is around already
+		viewerPanel.setInputAndGrammar(inputText, file.getPath(), ruleName);
 
 		// make sure tool window is showing
 		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
