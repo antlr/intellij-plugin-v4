@@ -25,7 +25,10 @@ public class ParseTreePanel extends JPanel {
 	protected Editor editor;
 	protected JTextArea console;
 	protected String inputText = "";
-	protected String combinedGrammarFileName;
+	/** Either combined file or XParser or XLexer. If not combined, look for
+	 *  other with appropriate Parser or Lexer suffix.
+	 */
+	protected String grammarFileName;
 	protected String startRule;
 
 	public ParseTreePanel() {
@@ -98,22 +101,22 @@ public class ParseTreePanel extends JPanel {
 	}
 
 	public void refresh() {
-		setInputAndGrammar(inputText, combinedGrammarFileName, startRule);
+		setInputAndGrammar(inputText, grammarFileName, startRule);
 	}
 
 	public void setInput(String inputText) {
 		this.inputText = inputText;
-		setInputAndGrammar(inputText, combinedGrammarFileName, startRule);
+		setInputAndGrammar(inputText, grammarFileName, startRule);
 	}
 
 	public void setInputAndGrammar(String inputText,
-								   String combinedGrammarFileName,
+								   String grammarFileName,
 								   String startRule)
 	{
-		this.combinedGrammarFileName = combinedGrammarFileName;
+		this.grammarFileName = grammarFileName;
 		setStartRule(startRule);
 
-		if ( combinedGrammarFileName==null || startRule==null ) {
+		if ( grammarFileName==null || startRule==null ) {
 			return;
 		}
 
@@ -123,7 +126,7 @@ public class ParseTreePanel extends JPanel {
 			Object[] results =
 				ANTLRv4ProjectComponent.parseText(this,
 												  inputText,
-												  combinedGrammarFileName,
+												  grammarFileName,
 												  startRule);
 			if ( results!=null ) {
 				parser = (Parser)results[0];
@@ -144,8 +147,8 @@ public class ParseTreePanel extends JPanel {
 		return viewer;
 	}
 
-	public String getCombinedGrammarFileName() {
-		return combinedGrammarFileName;
+	public String getGrammarFileName() {
+		return grammarFileName;
 	}
 
 	public String getInputText() {

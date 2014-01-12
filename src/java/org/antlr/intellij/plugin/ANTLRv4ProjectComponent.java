@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
+import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
 
@@ -98,18 +99,56 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 	public static Object[] parseText(ParseTreePanel parseTreePanel,
 									 String inputText,
-									 String combinedGrammarFileName,
+									 String grammarFileName,
 									 String startRule)
 		throws IOException
 	{
 		Tool antlr = new Tool();
 		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
 		antlr.addListener(listener);
-		Grammar g = antlr.loadGrammar(combinedGrammarFileName);
-		if ( listener.grammarErrorMessage!=null ) {
-			return null;
+
+		String combinedGrammarFileName = null;
+		String lexerGrammarFileName = null;
+		String parserGrammarFileName = null;
+		if ( grammarFileName.contains("Lexer") ) {
+			lexerGrammarFileName = grammarFileName;
+			int i = grammarFileName.indexOf("Lexer");
+			parserGrammarFileName = grammarFileName.substring(0,i)+"Parser.g4";
 		}
-		LexerInterpreter lexEngine = g.createLexerInterpreter(new ANTLRInputStream(inputText));
+		else if ( grammarFileName.contains("Parser") ) {
+			parserGrammarFileName = grammarFileName;
+			int i = grammarFileName.indexOf("Parser");
+			lexerGrammarFileName = grammarFileName.substring(0,i)+"Lexer.g4";
+		}
+		else {
+			combinedGrammarFileName = grammarFileName;
+		}
+
+		ANTLRInputStream input = new ANTLRInputStream(inputText);
+		LexerInterpreter lexEngine;
+		Grammar g;
+		if ( combinedGrammarFileName!=null ) {
+			g = antlr.loadGrammar(grammarFileName);
+			if ( listener.grammarErrorMessage!=null ) {
+				return null;
+			}
+			lexEngine = g.createLexerInterpreter(input);
+		}
+		else {
+			LexerGrammar lg = null;
+			try {
+				lg = (LexerGrammar)Grammar.load(lexerGrammarFileName);
+			}
+			catch (ClassCastException cce) {
+				System.err.println("File "+lexerGrammarFileName+" isn't a lexer grammar");
+			}
+			if ( listener.grammarErrorMessage!=null ) {
+				return null;
+			}
+			g = Grammar.load(parserGrammarFileName, lg);
+			lexEngine = lg.createLexerInterpreter(input);
+		}
+
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = g.createParserInterpreter(tokens);
 		parser.removeErrorListeners();
