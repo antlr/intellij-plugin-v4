@@ -3,11 +3,9 @@ package org.antlr.intellij.plugin;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.runtime.ANTLRReaderStream;
@@ -36,7 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANTLRv4ExternalAnnotator.Issue>> {
+public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
 	public static class Issue {
 		String annotation;
 		List<Token> offendingTokens = new ArrayList<Token>();
@@ -44,21 +42,20 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
 	}
 
-	String vocabName;
-	PsiFile file;
+	// can't use instance var as only 1 instance
 
-	/** Called first; return file text */
+	/** Called first; return file */
 	@Nullable
 	@Override
-	public String collectionInformation(@NotNull PsiFile file) {
-		this.file = file;
-		return file.getText();
+	public PsiFile collectionInformation(@NotNull PsiFile file) {
+		return file;
 	}
 
-	/** Called 2nd; run antlr on text */
+	/** Called 2nd; run antlr on file */
 	@Nullable
 	@Override
-	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(String fileContents) {
+	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(final PsiFile file) {
+		String fileContents = file.getText();
 		final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<Issue>();
 		final Tool antlr = new Tool();
 		// getContainingDirectory() must be identified as a read operation on file system
@@ -69,13 +66,10 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 			}
 		});
 
-		ApplicationManager.getApplication().runReadAction(new Runnable() {
-			@Override
-			public void run() {
-				vocabName = ANTLRv4ASTFactory.findTokenVocabIfAny((ANTLRv4FileRoot)file);
-			}
-		});
-		if ( vocabName!=null ) { // need to generate other file?
+		String vocabName;
+		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
+		ApplicationManager.getApplication().runReadAction(findVocabAction);
+		if ( findVocabAction.vocabName!=null ) { // need to generate other file?
 			// for now, just turn off undef token warnings
 		}
 
@@ -90,7 +84,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 			@Override
 			public void warning(ANTLRMessage msg) {
 				if ( msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION ||
-					 vocabName==null )
+					findVocabAction.vocabName==null )
 				{
 					issues.add(new Issue(msg));
 				}
@@ -107,12 +101,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 
 			VirtualFile virtualFile = file.getVirtualFile();
 
-			// commit changes for this file
 			Project project = ANTLRv4ProjectComponent.getProjectForFile(virtualFile);
-			PsiDocumentManager docMgr = PsiDocumentManager.getInstance(project);
-			Document doc = docMgr.getDocument(file);
-			docMgr.commitDocument(doc);
-
 			ParseTreePanel viewerPanel =
 				ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
 			viewerPanel.refresh();
@@ -190,5 +179,19 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 		}
 		System.err.println(outputMsg);
 		issue.annotation = outputMsg;
+	}
+
+	protected static class FindVocabFileRunnable implements Runnable {
+		public String vocabName;
+		private final PsiFile file;
+
+		public FindVocabFileRunnable(PsiFile file) {
+			this.file = file;
+		}
+
+		@Override
+		public void run() {
+			vocabName = ANTLRv4ASTFactory.findTokenVocabIfAny((ANTLRv4FileRoot) file);
+		}
 	}
 }

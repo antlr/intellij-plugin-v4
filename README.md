@@ -11,6 +11,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 	* Added "sort by rule type" to put parser then lexer rules in nav window
 	* Added live parse tree preview; type text into left editor pane of
 	  tool window. Tree appears in right.
+	* Multiple grammar files got error messages mixed up between documents.
 * 1.0a4:
 	* finds tokenVocab option for code gen
 	* if there is a tokenVocab option, don't warn about implicit tokens.
