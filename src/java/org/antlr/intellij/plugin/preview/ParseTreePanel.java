@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -109,9 +110,9 @@ public class ParseTreePanel extends JPanel {
 		setInputAndGrammar(inputText, grammarFileName, startRule);
 	}
 
-	public void setInputAndGrammar(String inputText,
-								   String grammarFileName,
-								   String startRule)
+	public void setInputAndGrammar(final String inputText,
+								   final String grammarFileName,
+								   final String startRule)
 	{
 		this.grammarFileName = grammarFileName;
 		setStartRule(startRule);
@@ -120,27 +121,29 @@ public class ParseTreePanel extends JPanel {
 			return;
 		}
 
-		ParseTree root = null;
-		Parser parser = null;
-		try {
-			Object[] results =
-				ANTLRv4ProjectComponent.parseText(this,
-												  inputText,
-												  grammarFileName,
-												  startRule);
-			if ( results!=null ) {
-				parser = (Parser)results[0];
-				root = (ParseTree)results[1];
-				viewer.setRuleNames(Arrays.asList(parser.getRuleNames()));
-				viewer.setTree(root);
+		final ParseTreePanel self = this;
+		ApplicationManager.getApplication().invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Object[] results =
+						ANTLRv4ProjectComponent.parseText(self,
+														  inputText,
+														  grammarFileName,
+														  startRule);
+					if (results != null) {
+						Parser parser = (Parser) results[0];
+						ParseTree root = (ParseTree) results[1];
+						viewer.setRuleNames(Arrays.asList(parser.getRuleNames()));
+						viewer.setTree(root);
+					} else {
+						viewer.setTree(null);
+					}
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
 			}
-			else {
-				viewer.setTree(null);
-			}
-		}
-		catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
+		});
 	}
 
 	public TreeViewer getViewer() {

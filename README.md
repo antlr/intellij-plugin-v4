@@ -9,8 +9,10 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 	* Update to use latest ANTLR 4.2 from parrt/antlr4
 	* wasn't showing grammar name. weird.
 	* Added "sort by rule type" to put parser then lexer rules in nav window
-	* Added live parse tree preview; it's sort of out of sync with grammar
-	  if you don't save grammar doc before testing. Weird.
+	* Added live parse tree preview; type text into left editor pane of
+	  tool window. Tree appears in right. Right click on rule in grammar
+	  or navigator to "Test ANTLR Rule".  Changing grammar and saving, updates
+	  parse tree.
 * 1.0a4:
 	* finds tokenVocab option for code gen
 	* if there is a tokenVocab option, don't warn about implicit tokens.

@@ -3,9 +3,11 @@ package org.antlr.intellij.plugin;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.runtime.ANTLRReaderStream;
@@ -105,8 +107,14 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<String, List<ANT
 
 			VirtualFile virtualFile = file.getVirtualFile();
 
+			// commit changes for this file
 			Project project = ANTLRv4ProjectComponent.getProjectForFile(virtualFile);
-			ParseTreePanel viewerPanel = ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
+			PsiDocumentManager docMgr = PsiDocumentManager.getInstance(project);
+			Document doc = docMgr.getDocument(file);
+			docMgr.commitDocument(doc);
+
+			ParseTreePanel viewerPanel =
+				ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
 			viewerPanel.refresh();
 
 			for (int i = 0; i < issues.size(); i++) {
