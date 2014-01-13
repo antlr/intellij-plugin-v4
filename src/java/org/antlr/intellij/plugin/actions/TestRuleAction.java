@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
@@ -36,12 +37,14 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		boolean grammarFound = file!=null;
 
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
+		if ( selectedPsiRuleNode==null ) return; // we clicked somewhere outside text
 		String ruleName = selectedPsiRuleNode.getText();
 		boolean parserRuleFound = Character.isLowerCase(ruleName.charAt(0));
 
 		// enable action if we're looking at grammar file
-		e.getPresentation().setEnabled(grammarFound&&parserRuleFound);
-		e.getPresentation().setVisible(grammarFound); // grey out of lexer rule
+		Presentation presentation = e.getPresentation();
+		presentation.setEnabled(grammarFound && parserRuleFound);
+		presentation.setVisible(grammarFound); // grey out of lexer rule
 	}
 
 	@Override
@@ -50,6 +53,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		Project project = getEventProject(e);
 		if ( project==null ) return; // whoa!
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
+		if ( selectedPsiRuleNode==null ) return; // we clicked somewhere outside text
 		String ruleName = selectedPsiRuleNode.getText();
 		if ( selectedPsiRuleNode instanceof ParserRuleSpecNode ) {
 			ParserRuleRefNode r = PsiTreeUtil.findChildOfType(selectedPsiRuleNode,
@@ -73,7 +77,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			fileSaveListener = new BulkFileListener.Adapter() {
 				@Override
 				public void after(List<? extends VFileEvent> events) {
-					System.out.println("file changed");
+//					System.out.println("file changed");
 					viewerPanel.refresh();
 				}
 			};

@@ -10,9 +10,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 	* wasn't showing grammar name. weird.
 	* Added "sort by rule type" to put parser then lexer rules in nav window
 	* Added live parse tree preview; type text into left editor pane of
-	  tool window. Tree appears in right. Right click on rule in grammar
-	  or navigator to "Test ANTLR Rule".  Changing grammar and saving, updates
-	  parse tree.
+	  tool window. Tree appears in right.
 * 1.0a4:
 	* finds tokenVocab option for code gen
 	* if there is a tokenVocab option, don't warn about implicit tokens.
@@ -40,3 +38,17 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 
 ### Code completion
 ![Code completion](images/completion.png)
+
+### Live parse tree preview
+
+You can test any rule in the (parser) grammar.  Right click on rule in grammar
+or navigator to "Test ANTLR Rule".  Changing grammar and saving, updates
+parse tree. It works with combined grammars and separated but separated
+must be in same directory and named XParser.g4 and XLexer.g4.
+No raw Java actions are executed obviously during interpretation in
+live preview.
+
+![Live preview](images/live-preview.png)
+![Live preview](images/live-preview-error.png)
+
+
