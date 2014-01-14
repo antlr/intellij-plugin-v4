@@ -49,10 +49,7 @@ must be in same directory and named XParser.g4 and XLexer.g4.
 No raw Java actions are executed obviously during interpretation in
 live preview.
 
-
-
-<iframe width="420" height="315" src="//www.youtube.com/embed/h60VapD1rOo" frameborder="0" allowfullscreen>
-</iframe>
+[![Live parse preview](http://img.youtube.com/vi/h60VapD1rOo/0.jpg)](//www.youtube.com/embed/h60VapD1rOo)
 
 
 
