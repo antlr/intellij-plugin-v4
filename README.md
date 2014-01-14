@@ -6,7 +6,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https:
 
 ## History
 * 1.0a5:
-	* Update to use latest ANTLR 4.2 from parrt/antlr4
+	* Update to use latest ANTLR 4.2 from parrt/antlr4 (close to 4.2 final)
 	* wasn't showing grammar name. weird.
 	* Added "sort by rule type" to put parser then lexer rules in nav window
 	* Added live parse tree preview; type text into left editor pane of
@@ -48,6 +48,8 @@ parse tree. It works with combined grammars and separated but separated
 must be in same directory and named XParser.g4 and XLexer.g4.
 No raw Java actions are executed obviously during interpretation in
 live preview.
+
+<iframe width="420" height="315" src="//www.youtube.com/embed/h60VapD1rOo" frameborder="0" allowfullscreen></iframe>
 
 ![Live preview](images/live-preview.png)
 ![Live preview](images/live-preview-error.png)
