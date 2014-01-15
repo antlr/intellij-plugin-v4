@@ -22,6 +22,7 @@ import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
+import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
 
@@ -109,6 +110,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		throws IOException
 	{
 		Tool antlr = new Tool();
+		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
 		antlr.addListener(listener);
 
@@ -150,7 +152,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			if ( listener.grammarErrorMessage!=null ) {
 				return null;
 			}
-			g = Grammar.load(parserGrammarFileName, lg);
+			g = loadGrammar(antlr, parserGrammarFileName, lg);
 			lexEngine = lg.createLexerInterpreter(input);
 		}
 
@@ -176,6 +178,16 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			console.setText(syntaxErrorListener.syntaxError);
 		}
 		return null;
+	}
+
+	/** Same as loadGrammar(fileName) except import vocab from existing lexer */
+	public static Grammar loadGrammar(Tool tool, String fileName, LexerGrammar lexerGrammar) {
+		GrammarRootAST grammarRootAST = tool.parseGrammar(fileName);
+		final Grammar g = tool.createGrammar(grammarRootAST);
+		g.fileName = fileName;
+		g.importVocab(lexerGrammar);
+		tool.process(g, false);
+		return g;
 	}
 
 	static class MyANTLRToolListener extends DefaultToolListener {
