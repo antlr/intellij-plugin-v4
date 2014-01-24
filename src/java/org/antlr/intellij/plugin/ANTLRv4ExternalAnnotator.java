@@ -44,10 +44,14 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 	// can't use instance var as only 1 instance
 
-	/** Called first; return file */
+	/** Called first; return file; idea 12*/
 	@Nullable
-	@Override
 	public PsiFile collectionInformation(@NotNull PsiFile file) {
+		return file;
+	}
+
+	@Nullable
+	public PsiFile collectInformation(@NotNull PsiFile file) { // idea 13
 		return file;
 	}
 

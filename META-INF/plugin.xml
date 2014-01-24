@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.0a5</version>
+  <version>1.0</version>
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -13,7 +13,10 @@
 	  Shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu, popups.
 	  Code completion for tokens, rule names. finds tokenVocab option for code gen
 	  	if there is a tokenVocab option, don't warn about implicit tokens.
-	  	shortcut conflicted with grammar-kit plugin.
+	  	shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
+	  	for grammar preview. Right click on rule and say "Test ANTLR Rule".
+	  	Changes to grammar seen in parse tree upon save of grammar. Works with
+	  	Intellij 13 now.
       ]]></description>
 
   <change-notes><![CDATA[
