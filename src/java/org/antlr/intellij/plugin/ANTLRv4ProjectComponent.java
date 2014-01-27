@@ -166,9 +166,6 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			ParseTree t = parser.parse(g.getRule(startRule).index);
 //			System.out.println("parse tree: " + t.toStringTree(parser));
 //          ((ParserRuleContext)t).inspect(parser);
-			// TODO: ERROR: Access to realized (ever shown) UI components should
-			// be done only from the AWT event dispatch thread, revalidate(),
-			// invalidate() & repaint() is ok from any thread
 			console.setText(syntaxErrorListener.syntaxError);
 			return new Object[] {parser, t};
 		}
