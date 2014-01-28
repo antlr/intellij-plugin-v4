@@ -11,7 +11,6 @@ import org.antlr.v4.Tool;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
-import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
@@ -156,23 +155,18 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			lexEngine = lg.createLexerInterpreter(input);
 		}
 
+		final JTextArea console = parseTreePanel.getConsole();
+		final MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
+		Object[] result = new Object[2];
+
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = g.createParserInterpreter(tokens);
 		parser.removeErrorListeners();
-		MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
 		parser.addErrorListener(syntaxErrorListener);
-		JTextArea console = parseTreePanel.getConsole();
-		try {
-			ParseTree t = parser.parse(g.getRule(startRule).index);
-//			System.out.println("parse tree: " + t.toStringTree(parser));
-//          ((ParserRuleContext)t).inspect(parser);
-			console.setText(syntaxErrorListener.syntaxError);
+		ParseTree t = parser.parse(g.getRule(startRule).index);
+		console.setText(syntaxErrorListener.syntaxError);
+		if ( t!=null ) {
 			return new Object[] {parser, t};
-		}
-		catch (RecognitionException re) {
-			DefaultErrorStrategy strat = new DefaultErrorStrategy();
-			strat.reportError(parser, re);
-			console.setText(syntaxErrorListener.syntaxError);
 		}
 		return null;
 	}
