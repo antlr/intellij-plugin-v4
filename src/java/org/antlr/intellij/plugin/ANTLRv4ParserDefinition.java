@@ -1,7 +1,6 @@
 package org.antlr.intellij.plugin;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.Language;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.PsiParser;
 import com.intellij.lexer.Lexer;
@@ -20,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /** The general interface between IDEA and ANTLR. */
 public class ANTLRv4ParserDefinition implements ParserDefinition {
 	public static final IFileElementType FILE =
-		new IFileElementType(Language.<ANTLRv4Language>findInstance(ANTLRv4Language.class));
+		new IFileElementType(ANTLRv4Language.INSTANCE);
 
 	@NotNull
 	@Override
