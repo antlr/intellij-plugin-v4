@@ -7,8 +7,8 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.lexer.AntlrAdapter;
 import org.antlr.intellij.plugin.adaptors.ANTLRUtils;
-import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;
@@ -58,7 +58,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 			ANTLRUtils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
 											lexer.getInterpreter().getSharedContextCache());
 		lexer.setInterpreter(sim);
-		return new LexerAdaptor(lexer);
+		return new AntlrAdapter(ANTLRv4Language.INSTANCE, lexer);
 	}
 
 	@NotNull
@@ -69,22 +69,22 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 //		}
 //		else
 
-		if ( tokenType == ANTLRv4TokenTypes.TOKEN_REF ) {
+		if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ) {
 			return new TextAttributesKey[]{TOKENNAME};
 		}
-		else if ( tokenType == ANTLRv4TokenTypes.RULE_REF ) {
+		else if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF) ) {
 			return new TextAttributesKey[]{RULENAME};
 		}
-		else if (tokenType == ANTLRv4TokenTypes.STRING_LITERAL) {
+		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)) {
 			return STRING_KEYS;
 		}
-		else if (tokenType == ANTLRv4TokenTypes.BLOCK_COMMENT) {
+		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT)) {
 			return COMMENT_KEYS;
 		}
-		else if (tokenType == ANTLRv4TokenTypes.DOC_COMMENT) {
+		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.DOC_COMMENT)) {
 			return COMMENT_KEYS;
 		}
-		else if (tokenType == ANTLRv4TokenTypes.LINE_COMMENT) {
+		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT)) {
 			return COMMENT_KEYS;
 		}
 		else if (tokenType == ANTLRv4TokenTypes.BAD_TOKEN ) {

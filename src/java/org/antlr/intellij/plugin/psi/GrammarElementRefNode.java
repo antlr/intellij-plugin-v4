@@ -5,8 +5,6 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
-import org.antlr.intellij.plugin.ANTLRv4TokenType;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,12 +35,12 @@ public abstract class GrammarElementRefNode extends LeafPsiElement implements Ps
 //		System.out.println("rename "+this+" to "+name);
 		this.replace(MyPsiUtils.createLeafFromText(getProject(),
 												   getContext(),
-												   name, ANTLRv4TokenTypes.RULE_REF));
+												   name, getRuleRefType()));
 		this.name = name;
 		return this;
 	}
 
-	public abstract ANTLRv4TokenType getRuleRefType();
+	public abstract IElementType getRuleRefType();
 
 	@Override
 	public String toString() {

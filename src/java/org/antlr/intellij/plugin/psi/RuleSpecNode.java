@@ -4,8 +4,8 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
-import org.antlr.intellij.plugin.ANTLRv4TokenType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +44,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		return this;
 	}
 
-	public abstract ANTLRv4TokenType getRuleRefType();
+	public abstract IElementType getRuleRefType();
 
 	@Override
 	public void subtreeChanged() {

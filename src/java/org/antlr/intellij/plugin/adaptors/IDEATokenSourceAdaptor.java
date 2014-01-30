@@ -2,7 +2,7 @@ package org.antlr.intellij.plugin.adaptors;
 
 
 import com.intellij.lang.PsiBuilder;
-import org.antlr.intellij.plugin.ANTLRv4TokenType;
+import org.antlr.intellij.lexer.TokenElementType;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenFactory;
@@ -49,14 +49,14 @@ public class IDEATokenSourceAdaptor implements TokenSource {
 	 */
 	@Override
 	public Token nextToken() {
-		ANTLRv4TokenType ideaTType = (ANTLRv4TokenType)builder.getTokenType();
+		TokenElementType ideaTType = (TokenElementType)builder.getTokenType();
 		int ttype;
 		int channel = Token.DEFAULT_CHANNEL;
 		if ( ideaTType==null ) {
 			ttype = Token.EOF;
 		}
 		else {
-			ttype = ideaTType.ttype;
+			ttype = ideaTType.getType();
 		}
 		Pair<TokenSource, CharStream> source =
 			new Pair<TokenSource, CharStream>(this, null);

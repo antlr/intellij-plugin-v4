@@ -11,6 +11,8 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
+import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.psi.AtAction;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
@@ -28,13 +30,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
-	public static Map<ANTLRv4TokenType, Class> tokenTypeToPsiNode = new HashMap<ANTLRv4TokenType, Class>();
-	static { // later auto gen with tokens from some spec in grammar?
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.rules, RulesNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.parserRuleSpec, ParserRuleSpecNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.lexerRule, LexerRuleSpecNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.grammarSpec, GrammarSpecNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.action, AtAction.class);
+	public static Map<IElementType, Class> tokenTypeToPsiNode = new HashMap<IElementType, Class>();
+	static {
+		// later auto gen with tokens from some spec in grammar?
+		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.class);
+		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_parserRuleSpec), ParserRuleSpecNode.class);
+		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_lexerRule), LexerRuleSpecNode.class);
+		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_grammarSpec), GrammarSpecNode.class);
+		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.class);
 	}
 
 	/** Create a FileElement for root or a parse tree CompositeElement (not
@@ -54,10 +57,10 @@ public class ANTLRv4ASTFactory extends ASTFactory {
     @Override
     public LeafElement createLeaf(IElementType type, CharSequence text) {
 		LeafElement t;
-		if ( type == ANTLRv4TokenTypes.RULE_REF ) {
+		if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF) ) {
 			t = new ParserRuleRefNode(type, text);
 		}
-		else if ( type == ANTLRv4TokenTypes.TOKEN_REF ) {
+		else if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ) {
 			t = new LexerRuleRefNode(type, text);
 		}
 		else {
@@ -117,7 +120,7 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 			PsiElement[] tokenVocab = MyPsiUtils.collectChildrenWithText(o, "tokenVocab");
 			if ( tokenVocab.length>0 ) {
 				PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
-				PsiElement[] ids = MyPsiUtils.collectChildrenOfType(optionNode, ANTLRv4TokenTypes.optionValue);
+				PsiElement[] ids = MyPsiUtils.collectChildrenOfType(optionNode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue));
 				vocabName = ids[0].getText();
 			}
 		}

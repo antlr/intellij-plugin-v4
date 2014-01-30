@@ -9,7 +9,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4Language;
-import org.antlr.intellij.plugin.ANTLRv4TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +89,7 @@ public class MyPsiUtils {
 		});
 	}
 
-	public static PsiElement[] collectChildrenOfType(PsiElement root, final ANTLRv4TokenType tokenType) {
+	public static PsiElement[] collectChildrenOfType(PsiElement root, final IElementType tokenType) {
 		List<PsiElement> elems = new ArrayList<PsiElement>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getNode().getElementType() == tokenType ) {
@@ -100,7 +99,7 @@ public class MyPsiUtils {
 		return elems.toArray(new PsiElement[elems.size()]);
 	}
 
-	public static PsiElement findChildOfType(PsiElement root, final ANTLRv4TokenType tokenType) {
+	public static PsiElement findChildOfType(PsiElement root, final IElementType tokenType) {
 		List<PsiElement> elems = new ArrayList<PsiElement>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getNode().getElementType() == tokenType ) {
