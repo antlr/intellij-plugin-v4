@@ -11,6 +11,7 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
+import org.antlr.intellij.lang.ASTElementFactory;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
@@ -23,21 +24,20 @@ import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RulesNode;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
-	public static Map<IElementType, Class> tokenTypeToPsiNode = new HashMap<IElementType, Class>();
+	private static final Map<IElementType, ASTElementFactory> ruleElementTypeToPsiFactory = new HashMap<IElementType, ASTElementFactory>();
 	static {
 		// later auto gen with tokens from some spec in grammar?
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_parserRuleSpec), ParserRuleSpecNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_lexerRule), LexerRuleSpecNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_grammarSpec), GrammarSpecNode.class);
-		tokenTypeToPsiNode.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.class);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_parserRuleSpec), ParserRuleSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_lexerRule), LexerRuleSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_grammarSpec), GrammarSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.Factory.INSTANCE);
 	}
 
 	/** Create a FileElement for root or a parse tree CompositeElement (not
@@ -70,25 +70,17 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		return t;
     }
 
-	// refactored from ANTLRv4ParserDefinition
 	public static PsiElement createInternalParseTreeNode(ASTNode node) {
-		IElementType tokenType = node.getElementType();
-		Class clazz = tokenTypeToPsiNode.get(tokenType);
 		PsiElement t;
-		if ( clazz!=null ) {
-			try {
-				Constructor ctor = clazz.getConstructor(ASTNode.class);
-				t = (PsiElement)ctor.newInstance(node);
-			}
-			catch (Exception e) {
-				System.err.println("can't create psi node");
-				t = new ASTWrapperPsiElement(node);
-			}
+		IElementType tokenType = node.getElementType();
+		ASTElementFactory factory = ruleElementTypeToPsiFactory.get(tokenType);
+		if (factory != null) {
+			t = factory.createElement(node);
 		}
 		else {
 			t = new ASTWrapperPsiElement(node);
 		}
-//		System.out.println("PSI createElement "+t+" from "+elementType);
+
 		return t;
 	}
 
