@@ -7,8 +7,10 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.misc.IntegerStack;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 // super of generated parser
 public abstract class AdaptorParserBase extends Parser {
@@ -16,8 +18,8 @@ public abstract class AdaptorParserBase extends Parser {
 	public PsiBuilder builder;
 
 //	public Stack<String> ruleNameStack = new Stack<String>();
-	public Stack<Integer> ruleIndexStack = new Stack<Integer>();
-	public Stack<PsiBuilder.Marker> markerStack = new Stack<PsiBuilder.Marker>();
+	public IntegerStack ruleIndexStack = new IntegerStack();
+	public Deque<PsiBuilder.Marker> markerStack = new ArrayDeque<PsiBuilder.Marker>();
 
 	public AdaptorParserBase(TokenStream input) { // unused; just to compile
 		super(input);
