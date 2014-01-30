@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
 import java.util.List;
-import java.util.Stack;
+import java.util.Deque;
 
 public class ParserErrorAdaptor extends BaseErrorListener {
 	public AdaptorParserBase parser;
@@ -41,7 +41,7 @@ public class ParserErrorAdaptor extends BaseErrorListener {
 		*/
 
 		// I don't think IDEA is tracking line, column info, so just send message
-		Stack<PsiBuilder.Marker> markerStack = parser.markerStack;
+		Deque<PsiBuilder.Marker> markerStack = parser.markerStack;
 		if ( markerStack.size()>0 ) {
 			PsiBuilder.Marker m = builder.mark();
 			m.error(msg);  // this closes the marker we just built
