@@ -69,17 +69,26 @@
         <element name="args" optional="true"/>
         <sequential>
             <local name="package"/>
+            <local name="path.antlr4.local"/>
+            <local name="sources.antlr4.local"/>
             <pathconvert property="package" dirsep=".">
                 <path location="${src.grammars.dir}/@{srcpath}"/>
                 <map from="${src.grammars.dir}/" to=""/>
             </pathconvert>
-            <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" dir="${basedir}">
+            <path id="path.antlr4.local">
+                <fileset dir="${src.grammars.dir}/@{srcpath}" includes="*.g4"/>
+            </path>
+            <pathconvert pathsep=" " property="sources.antlr4.local" refid="path.antlr4.local">
+                <map from="${src.grammars.dir}/@{srcpath}/" to=""/>
+            </pathconvert>
+            <mkdir dir="${gen.antlr4.dir}/@{srcpath}"/>
+            <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" dir="${src.grammars.dir}/@{srcpath}">
                 <arg value="-o"/>
                 <arg value="${gen.antlr4.dir}/@{srcpath}"/>
                 <arg value="-package"/>
                 <arg value="${package}"/>
                 <args/>
-                <arg value="${src.grammars.dir}/@{srcpath}/*.g4"/>
+                <arg line="${sources.antlr4.local}"/>
                 <classpath>
                     <path refid="cp.antlr4"/>
                     <pathelement location="${java.class.path}"/>
