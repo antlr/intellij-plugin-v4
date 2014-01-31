@@ -124,11 +124,7 @@ public abstract class AbstractAntlrAdapter<State extends AntlrLexerState> extend
 
 	protected void applyLexerState(CharStream input, State state) {
 		lexer.setInputStream(input);
-		lexer._mode = state.getMode();
-		lexer._modeStack.clear();
-		if (state.getModeStack() != null) {
-			lexer._modeStack.addAll(state.getModeStack());
-		}
+		state.apply(lexer);
 	}
 
 	protected abstract State getInitialState();

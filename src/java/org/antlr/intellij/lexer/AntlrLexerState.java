@@ -1,5 +1,6 @@
 package org.antlr.intellij.lexer;
 
+import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.misc.IntegerStack;
 import org.antlr.v4.runtime.misc.MurmurHash;
 import org.antlr.v4.runtime.misc.ObjectEqualityComparator;
@@ -21,6 +22,14 @@ public class AntlrLexerState {
 
 	public int[] getModeStack() {
 		return modeStack;
+	}
+
+	public void apply(Lexer lexer) {
+		lexer._mode = getMode();
+		lexer._modeStack.clear();
+		if (getModeStack() != null) {
+			lexer._modeStack.addAll(getModeStack());
+		}
 	}
 
 	@Override
