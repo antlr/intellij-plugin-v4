@@ -60,6 +60,7 @@
   <extensions defaultExtensionNs="com.intellij">
 	  <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
 	  <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+	  <colorSettingsPage implementation="org.antlr.intellij.plugin.ANTLRv4ColorsPage"/>
 	  <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
 	  <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
 	  <lang.psiStructureViewFactory language="ANTLRv4"
