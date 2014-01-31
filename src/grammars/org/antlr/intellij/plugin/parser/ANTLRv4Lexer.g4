@@ -40,6 +40,14 @@ tokens {
 @members {
 	private int _ruleType;
 
+	public int getRuleType() {
+		return _ruleType;
+	}
+
+	public void setRuleType(int ruleType) {
+		this._ruleType = ruleType;
+	}
+
 	protected void handleBeginArgAction() {
 		if (inLexerRule()) {
 			pushMode(LexerCharSet);
