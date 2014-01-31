@@ -29,7 +29,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 //		KEYWORD_ATTRIBUTES.setFontType(Font.ITALIC);
 	}
 
-//	public static final TextAttributesKey KEYWORD = createTextAttributesKey("KEYWORD", KEYWORD_ATTRIBUTES);
+	public static final TextAttributesKey KEYWORD = createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
 	public static final TextAttributesKey RULENAME = createTextAttributesKey("RULENAME", RULE_ATTRIBUTES);
 	public static final TextAttributesKey TOKENNAME = createTextAttributesKey("TOKENNAME", TOKEN_ATTRIBUTES);
 	public static final TextAttributesKey STRING =
@@ -59,10 +59,9 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	@NotNull
 	@Override
 	public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
-//		if ( ANTLRv4TokenTypes.KEYWORDS.contains(tokenType) ){
-//			return new TextAttributesKey[]{KEYWORD};
-//		}
-//		else
+		if ( ANTLRv4TokenTypes.KEYWORDS.contains(tokenType) ){
+			return new TextAttributesKey[]{KEYWORD};
+		}
 
 		if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ) {
 			return new TextAttributesKey[]{TOKENNAME};
