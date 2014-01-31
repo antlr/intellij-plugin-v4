@@ -82,7 +82,7 @@ public abstract class AbstractAntlrAdapter<State extends AntlrLexerState> extend
 
 	@Override
 	public void advance() {
-		currentState = getLexerState();
+		currentState = getLexerState(lexer);
 		currentToken = lexer.nextToken();
 	}
 
@@ -129,7 +129,7 @@ public abstract class AbstractAntlrAdapter<State extends AntlrLexerState> extend
 
 	protected abstract State getInitialState();
 
-	protected abstract State getLexerState();
+	protected abstract State getLexerState(Lexer lexer);
 
 	protected State toLexerState(int state) {
 		return stateCache.get(state);

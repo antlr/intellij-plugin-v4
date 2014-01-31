@@ -20,12 +20,12 @@ public class AntlrAdapter extends AbstractAntlrAdapter<AntlrLexerState> {
 	}
 
 	@Override
-	protected AntlrLexerState getLexerState() {
-		if (getLexer()._modeStack.isEmpty()) {
-			return new AntlrLexerState(getLexer()._mode, null);
+	protected AntlrLexerState getLexerState(Lexer lexer) {
+		if (lexer._modeStack.isEmpty()) {
+			return new AntlrLexerState(lexer._mode, null);
 		}
 
-		return new AntlrLexerState(getLexer()._mode, getLexer()._modeStack);
+		return new AntlrLexerState(lexer._mode, lexer._modeStack);
 	}
 
 }
