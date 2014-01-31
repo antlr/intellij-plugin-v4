@@ -59,7 +59,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	@NotNull
 	@Override
 	public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
-//		if ( ANTLRv4TokenTypeAdaptor.KEYWORDS.contains(tokenType) ){
+//		if ( ANTLRv4TokenTypes.KEYWORDS.contains(tokenType) ){
 //			return new TextAttributesKey[]{KEYWORD};
 //		}
 //		else

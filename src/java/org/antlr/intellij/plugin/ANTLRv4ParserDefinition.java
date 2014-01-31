@@ -13,7 +13,6 @@ import com.intellij.psi.tree.TokenSet;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.adaptors.GrammarParser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
 import org.jetbrains.annotations.NotNull;
 
 /** The general interface between IDEA and ANTLR. */
@@ -35,12 +34,12 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 
 	@NotNull
 	public TokenSet getWhitespaceTokens() {
-		return ANTLRv4TokenTypeAdaptor.WHITE_SPACES;
+		return ANTLRv4TokenTypes.WHITESPACES;
 	}
 
 	@NotNull
 	public TokenSet getCommentTokens() {
-		return ANTLRv4TokenTypeAdaptor.COMMENTS;
+		return ANTLRv4TokenTypes.COMMENTS;
 	}
 
 	@NotNull
