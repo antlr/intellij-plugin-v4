@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="org.antlr.intellij" basedir=".">
+    <description>
+        Provides tasks for automatically downloading the correct version of ANTLR 4 and generating code from grammars
+        during the IntelliJ build. The tasks are triggered by the IntelliJ build system and not meant for direct
+        execution.
+    </description>
+
+    <property name="gen.antlr4.dir" value="${basedir}/gen/antlr4"/>
+    <property name="build.dir" value="${basedir}/out"/>
+    <property name="src.grammars.dir" value="${basedir}/src/grammars"/>
+
+    <target name="init-complete-artifact">
+
+        <property name="artifact.name" value="antlr"/>
+        <property name="artifact.version" value="4.2"/>
+        <property name="artifact.snapshot" value="-20140123"/> <!-- this could be empty for a final release -->
+        <property name="artifact.classifier" value="complete"/>
+
+        <property name="artifact.source.name" value="${artifact.name}-${artifact.version}${artifact.snapshot}-${artifact.classifier}.jar"/>
+        <property name="artifact.source.path" value="https://github.com/antlr/website-antlr4/raw/gh-pages/download/${artifact.source.name}"/>
+
+        <property name="lib.cache.dir" value="${basedir}/lib/cache"/>
+        <property name="artifact.intermediatefile" value="${lib.cache.dir}/${artifact.source.name}"/>
+        <property name="complete-artifact.file" value="${basedir}/lib/${artifact.name}-${artifact.version}-${artifact.classifier}.jar"/>
+    </target>
+
+    <target name="download-complete-artifact" depends="init-complete-artifact">
+        <mkdir dir="${lib.cache.dir}"/>
+        <get src="${artifact.source.path}"
+             dest="${artifact.intermediatefile}"
+             skipexisting="true"/>
+        <copy file="${artifact.intermediatefile}" tofile="${complete-artifact.file}"/>
+    </target>
+
+    <target name="clean-generated-sources">
+        <delete failonerror="true" includeemptydirs="true">
+            <fileset dir="${basedir}" includes="${gen.antlr4.dir}/**"/>
+        </delete>
+        <delete file="${antlr4.touch}"/>
+    </target>
+
+    <target name="clean" depends="init-complete-artifact,clean-generated-sources">
+        <delete file="${complete-artifact.file}"/>
+    </target>
+
+    <target name="antlr-init" depends="download-complete-artifact">
+        <property name="antlr4.complete.jar" value="${complete-artifact.file}"/>
+
+        <path id="cp.antlr4">
+            <pathelement location="${antlr4.complete.jar}"/>
+        </path>
+
+        <property name="antlr4.touch" value="${build.dir}/antlr4.touch" />
+    </target>
+
+    <target name="antlr4-up-to-date" depends="antlr-init">
+        <uptodate targetfile="${antlr4.touch}" property="is.antlr4.uptodate">
+            <!-- TODO: rebuild grammars if we switch to a new build of the tool -->
+            <srcfiles dir="${src.grammars.dir}">
+                <include name="**/*.g4"/>
+                <include name="**/*.tokens"/>
+            </srcfiles>
+        </uptodate>
+    </target>
+
+    <macrodef name="antlr4">
+        <attribute name="srcpath"/>
+        <element name="args" optional="true"/>
+        <sequential>
+            <local name="package"/>
+            <pathconvert property="package" dirsep=".">
+                <path location="${src.grammars.dir}/@{srcpath}"/>
+                <map from="${src.grammars.dir}/" to=""/>
+            </pathconvert>
+            <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" dir="${basedir}">
+                <arg value="-o"/>
+                <arg value="${gen.antlr4.dir}/@{srcpath}"/>
+                <arg value="-package"/>
+                <arg value="${package}"/>
+                <args/>
+                <arg value="${src.grammars.dir}/@{srcpath}/*.g4"/>
+                <classpath>
+                    <path refid="cp.antlr4"/>
+                    <pathelement location="${java.class.path}"/>
+                </classpath>
+            </java>
+        </sequential>
+    </macrodef>
+
+    <target name="antlr4" depends="antlr-init,antlr4-up-to-date" unless="is.antlr4.uptodate">
+        <path id="sources.antlr4">
+            <fileset dir="${src.grammars.dir}" includes="**/*.g4"/>
+        </path>
+        <pathconvert pathsep="${line.separator}  " property="echo.sources.antlr4" refid="sources.antlr4">
+            <map from="${src.grammars.dir}/" to=""/>
+        </pathconvert>
+        <echo message="Generating ANTLR 4 grammars:${line.separator}  ${echo.sources.antlr4}"/>
+
+        <parallel threadsperprocessor="1" failonany="true">
+            <antlr4 srcpath="org/antlr/intellij/plugin/parser">
+                <args>
+                    <arg value="-visitor"/>
+                </args>
+            </antlr4>
+        </parallel>
+
+        <touch file="${antlr4.touch}" mkdirs="true"/>
+    </target>
+
+</project>
