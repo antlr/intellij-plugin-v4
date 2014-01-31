@@ -88,7 +88,7 @@ public abstract class AbstractAntlrAdapter<State extends AntlrLexerState> extend
 
 	@Override
 	public int getState() {
-		State state = currentState != null ? currentState : getLexerState();
+		State state = currentState != null ? currentState : getInitialState();
 		Integer existing = stateCacheMap.get(state);
 		if (existing == null) {
 			existing = stateCache.size();
