@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin;
 
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
+import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
@@ -41,10 +42,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	public static final TextAttributesKey BLOCK_COMMENT =
 		createTextAttributesKey("BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
 
-	static final TextAttributesKey BAD_CHARACTER = createTextAttributesKey("SIMPLE_BAD_CHARACTER",
-																		   new TextAttributes(Color.RED, null, null, null, Font.BOLD));
-
-	private static final TextAttributesKey[] BAD_CHAR_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
+	private static final TextAttributesKey[] BAD_CHAR_KEYS = new TextAttributesKey[]{HighlighterColors.BAD_CHARACTER};
 	private static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
 	private static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{LINE_COMMENT, JAVADOC_COMMENT, BLOCK_COMMENT};
 	private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
