@@ -110,6 +110,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	{
 		Tool antlr = new Tool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
+		antlr.errMgr.setFormat("antlr");
 		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
 		antlr.addListener(listener);
 
