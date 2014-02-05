@@ -13,8 +13,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.adaptors.ANTLRUtils;
-import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
 import org.antlr.intellij.plugin.adaptors.ParserAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
@@ -38,7 +38,7 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 			ANTLRUtils.getLexerATNSimulator(lexer, ANTLRv4Lexer._ATN, lexer.getInterpreter().decisionToDFA,
 											lexer.getInterpreter().getSharedContextCache());
 		lexer.setInterpreter(sim);
-		return new LexerAdaptor(lexer);
+		return new ANTLRv4LexerAdaptor(ANTLRv4Language.INSTANCE, lexer);
 	}
 
 	@NotNull
@@ -51,8 +51,8 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 				if ( root instanceof IFileElementType ) {
  					((ANTLRv4Parser)parser).grammarSpec();
 				}
-				else if ( root==ANTLRv4TokenTypes.TOKEN_REF ||
-						  root==ANTLRv4TokenTypes.RULE_REF )
+				else if ( root==ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ||
+						  root== ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF) )
 				{
 					((ANTLRv4Parser)parser).atom();
 				}

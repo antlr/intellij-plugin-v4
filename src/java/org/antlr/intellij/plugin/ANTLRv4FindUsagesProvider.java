@@ -13,7 +13,6 @@ import com.intellij.psi.impl.search.ThrowSearchUtil;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.adaptors.ANTLRUtils;
-import org.antlr.intellij.plugin.adaptors.LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;

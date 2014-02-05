@@ -2,8 +2,8 @@ package org.antlr.intellij.plugin.psi;
 
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
-import org.antlr.intellij.plugin.ANTLRv4TokenType;
 import org.antlr.intellij.plugin.Icons;
+import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 
 import javax.swing.*;
@@ -14,8 +14,8 @@ public class ParserRuleRefNode extends GrammarElementRefNode {
 	}
 
 	@Override
-	public ANTLRv4TokenType getRuleRefType() {
-		return ANTLRv4TokenTypes.RULE_REF;
+	public IElementType getRuleRefType() {
+		return ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF);
 	}
 
 	@Override

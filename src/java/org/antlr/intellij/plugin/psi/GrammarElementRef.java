@@ -6,6 +6,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +79,7 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 		myElement.replace(MyPsiUtils.createLeafFromText(project,
 														myElement.getContext(),
 														newElementName,
-														ANTLRv4TokenTypes.TOKEN_REF));
+														ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF)));
 		return myElement;
 	}
 }

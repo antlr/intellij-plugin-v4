@@ -2,7 +2,7 @@ package org.antlr.intellij.plugin.adaptors;
 
 
 import com.intellij.lang.PsiBuilder;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypeAdaptor;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -61,6 +61,6 @@ public abstract class AdaptorParserBase extends Parser {
 //		System.err.println("done " + ANTLRv4TokenTypeAdaptor.ruleToIDEATokenType[currentRuleIndex]);
 		// consume any bad tokens so parser sees them in correct tree
 		PsiBuilder.Marker marker = markerStack.pop();
-		marker.done(ANTLRv4TokenTypeAdaptor.ruleToIDEATokenType[currentRuleIndex]);
+		marker.done(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(currentRuleIndex));
 	}
 }
