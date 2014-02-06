@@ -13,6 +13,7 @@ import com.intellij.psi.tree.TokenSet;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.adaptors.GrammarParser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NotNull;
 
 /** The general interface between IDEA and ANTLR. */
