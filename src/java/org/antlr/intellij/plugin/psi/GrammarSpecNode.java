@@ -3,7 +3,7 @@ package org.antlr.intellij.plugin.psi;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import org.antlr.intellij.lang.ASTElementFactory;
+import org.antlr.intellij.lang.PsiElementFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class GrammarSpecNode extends ASTWrapperPsiElement {
@@ -11,7 +11,7 @@ public class GrammarSpecNode extends ASTWrapperPsiElement {
 		super(node);
 	}
 
-	public static class Factory implements ASTElementFactory {
+	public static class Factory implements PsiElementFactory {
 		public static Factory INSTANCE = new Factory();
 
 		@Override

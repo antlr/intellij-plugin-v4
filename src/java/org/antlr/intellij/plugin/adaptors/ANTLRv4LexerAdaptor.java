@@ -1,11 +1,11 @@
 package org.antlr.intellij.plugin.adaptors;
 
 import com.intellij.lang.Language;
-import org.antlr.intellij.lexer.AbstractAntlrAdapter;
+import org.antlr.intellij.lexer.AntlrAdapter;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.v4.runtime.Lexer;
 
-public class ANTLRv4LexerAdaptor extends AbstractAntlrAdapter<ANTLRv4LexerState> {
+public class ANTLRv4LexerAdaptor extends AntlrAdapter<ANTLRv4LexerState> {
 	private static final ANTLRv4LexerState INITIAL_STATE = new ANTLRv4LexerState(Lexer.DEFAULT_MODE, null, 0);
 
 	public ANTLRv4LexerAdaptor(Language language, ANTLRv4Lexer lexer) {
