@@ -6,6 +6,6 @@ import com.intellij.psi.PsiElement;
 /**
  * This interface supports constructing a {@link PsiElement} from an {@link ASTNode}.
  */
-public interface ASTElementFactory {
+public interface PsiElementFactory {
 	PsiElement createElement(ASTNode node);
 }

@@ -11,7 +11,7 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
-import org.antlr.intellij.lang.ASTElementFactory;
+import org.antlr.intellij.lang.PsiElementFactory;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
-	private static final Map<IElementType, ASTElementFactory> ruleElementTypeToPsiFactory = new HashMap<IElementType, ASTElementFactory>();
+	private static final Map<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<IElementType, PsiElementFactory>();
 	static {
 		// later auto gen with tokens from some spec in grammar?
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.Factory.INSTANCE);
@@ -73,7 +73,7 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 	public static PsiElement createInternalParseTreeNode(ASTNode node) {
 		PsiElement t;
 		IElementType tokenType = node.getElementType();
-		ASTElementFactory factory = ruleElementTypeToPsiFactory.get(tokenType);
+		PsiElementFactory factory = ruleElementTypeToPsiFactory.get(tokenType);
 		if (factory != null) {
 			t = factory.createElement(node);
 		}
