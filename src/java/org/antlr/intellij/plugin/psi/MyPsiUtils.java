@@ -4,14 +4,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.PsiFileFactoryImpl;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4Language;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MyPsiUtils {
 	public static PsiElement findRuleSpecNodeAbove(GrammarElementRefNode element, final String ruleName) {
@@ -118,4 +124,41 @@ public class MyPsiUtils {
 		}
 		return elems.toArray(new PsiElement[elems.size()]);
 	}
+
+	public static String findPackageIfAny(ANTLRv4FileRoot gfile) {
+		// Want to gen in package; look for:
+		// @header { package org.foo.x; } which is an AtAction
+		PsiElement[] hdrActions = collectAtActions(gfile, "header");
+		if ( hdrActions.length>0 ) {
+			PsiElement h = hdrActions[0];
+			PsiElement p = h.getContext();
+			PsiElement action = p.getNextSibling();
+			if ( action instanceof PsiWhiteSpace) action = action.getNextSibling();
+			String text = action.getText();
+			Pattern pattern = Pattern.compile("\\{\\s*package\\s+(.*?);\\s*.*");
+			Matcher matcher = pattern.matcher(text);
+			if ( matcher.matches() ) {
+				String pack = matcher.group(1);
+				return pack;
+			}
+		}
+		return null;
+	}
+
+	// Look for stuff like: options { tokenVocab=ANTLRv4Lexer; superClass=Foo; }
+	public static String findTokenVocabIfAny(ANTLRv4FileRoot file) {
+		String vocabName = null;
+		PsiElement[] options = collectNodesWithName(file, "option");
+		for (PsiElement o : options) {
+			PsiElement[] tokenVocab = collectChildrenWithText(o, "tokenVocab");
+			if ( tokenVocab.length>0 ) {
+				PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
+				PsiElement[] ids = collectChildrenOfType(optionNode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue));
+				vocabName = ids[0].getText();
+			}
+		}
+		return vocabName;
+	}
+
+
 }

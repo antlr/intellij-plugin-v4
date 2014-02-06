@@ -7,6 +7,10 @@ import org.antlr.v4.runtime.Recognizer;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Traps errors from parsing language of plugin. E.g., for a Java plugin,
+ *  this would catch errors when people type invalid Java code into .java file.
+ *  For ANTLRv4 plugin, it traps errors for erroneous grammars.
+ */
 public class SyntaxErrorListener extends BaseErrorListener {
 	private final List<SyntaxError> syntaxErrors = new ArrayList<SyntaxError>();
 

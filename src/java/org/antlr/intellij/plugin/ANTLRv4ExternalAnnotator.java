@@ -8,6 +8,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
+import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
@@ -195,7 +196,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 		@Override
 		public void run() {
-			vocabName = ANTLRv4ASTFactory.findTokenVocabIfAny((ANTLRv4FileRoot) file);
+			vocabName = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) file);
 		}
 	}
 }
