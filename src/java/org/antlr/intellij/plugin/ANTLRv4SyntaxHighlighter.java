@@ -1,7 +1,8 @@
 package org.antlr.intellij.plugin;
 
 import com.intellij.lexer.Lexer;
-import com.intellij.openapi.editor.SyntaxHighlighterColors;
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
+import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
@@ -20,7 +21,7 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	public static final TextAttributes RULE_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES.getDefaultAttributes().clone();
 	public static final TextAttributes TOKEN_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES.getDefaultAttributes().clone();
-//	public static final TextAttributes KEYWORD_ATTRIBUTES = SyntaxHighlighterColors.KEYWORD.getDefaultAttributes().clone();
+//	public static final TextAttributes KEYWORD_ATTRIBUTES = DefaultLanguageHighlighterColors.KEYWORD.getDefaultAttributes().clone();
 	static{
 		RULE_ATTRIBUTES.setForegroundColor(new Color(102,100,191));
 //		TOKEN_ATTRIBUTES.setForegroundColor(new Color(98,60,150));
@@ -29,22 +30,19 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 //		KEYWORD_ATTRIBUTES.setFontType(Font.ITALIC);
 	}
 
-//	public static final TextAttributesKey KEYWORD = createTextAttributesKey("KEYWORD", KEYWORD_ATTRIBUTES);
+	public static final TextAttributesKey KEYWORD = createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
 	public static final TextAttributesKey RULENAME = createTextAttributesKey("RULENAME", RULE_ATTRIBUTES);
 	public static final TextAttributesKey TOKENNAME = createTextAttributesKey("TOKENNAME", TOKEN_ATTRIBUTES);
 	public static final TextAttributesKey STRING =
-		createTextAttributesKey("STRING", SyntaxHighlighterColors.STRING);
+		createTextAttributesKey("STRING", DefaultLanguageHighlighterColors.STRING);
 	public static final TextAttributesKey LINE_COMMENT =
-		createTextAttributesKey("LINE_COMMENT", SyntaxHighlighterColors.LINE_COMMENT);
+		createTextAttributesKey("LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
 	public static final TextAttributesKey JAVADOC_COMMENT =
-		createTextAttributesKey("JAVADOC_COMMENT", SyntaxHighlighterColors.JAVA_BLOCK_COMMENT);
+		createTextAttributesKey("JAVADOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
 	public static final TextAttributesKey BLOCK_COMMENT =
-		createTextAttributesKey("BLOCK_COMMENT", SyntaxHighlighterColors.JAVA_BLOCK_COMMENT);
+		createTextAttributesKey("BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
 
-	static final TextAttributesKey BAD_CHARACTER = createTextAttributesKey("SIMPLE_BAD_CHARACTER",
-																		   new TextAttributes(Color.RED, null, null, null, Font.BOLD));
-
-	private static final TextAttributesKey[] BAD_CHAR_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
+	private static final TextAttributesKey[] BAD_CHAR_KEYS = new TextAttributesKey[]{HighlighterColors.BAD_CHARACTER};
 	private static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
 	private static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{LINE_COMMENT, JAVADOC_COMMENT, BLOCK_COMMENT};
 	private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
@@ -59,10 +57,9 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	@NotNull
 	@Override
 	public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
-//		if ( ANTLRv4TokenTypeAdaptor.KEYWORDS.contains(tokenType) ){
-//			return new TextAttributesKey[]{KEYWORD};
-//		}
-//		else
+		if ( ANTLRv4TokenTypes.KEYWORDS.contains(tokenType) ){
+			return new TextAttributesKey[]{KEYWORD};
+		}
 
 		if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ) {
 			return new TextAttributesKey[]{TOKENNAME};
