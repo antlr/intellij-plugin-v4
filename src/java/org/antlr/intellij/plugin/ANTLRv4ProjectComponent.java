@@ -197,6 +197,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		}
 	}
 
+	/** Traps parser interpreter syntax errors */
 	static class MyConsoleErrorListener extends ConsoleErrorListener {
 		public String syntaxError="";
 		@Override

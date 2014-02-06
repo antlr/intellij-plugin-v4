@@ -4,7 +4,6 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTFactory;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.FileElement;
 import com.intellij.psi.impl.source.tree.LeafElement;
@@ -19,15 +18,12 @@ import org.antlr.intellij.plugin.psi.AtAction;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
-import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RulesNode;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
 	private static final Map<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<IElementType, PsiElementFactory>();
@@ -83,41 +79,5 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 
 		return t;
 	}
-
-	public static String findPackageIfAny(ANTLRv4FileRoot gfile) {
-		// Want to gen in package; look for:
-		// @header { package org.foo.x; } which is an AtAction
-		PsiElement[] hdrActions = MyPsiUtils.collectAtActions(gfile, "header");
-		if ( hdrActions.length>0 ) {
-			PsiElement h = hdrActions[0];
-			PsiElement p = h.getContext();
-			PsiElement action = p.getNextSibling();
-			if ( action instanceof PsiWhiteSpace) action = action.getNextSibling();
-			String text = action.getText();
-			Pattern pattern = Pattern.compile("\\{\\s*package\\s+(.*?);\\s*.*");
-			Matcher matcher = pattern.matcher(text);
-			if ( matcher.matches() ) {
-				String pack = matcher.group(1);
-				return pack;
-			}
-		}
-		return null;
-	}
-
-		// Look for stuff like: options { tokenVocab=ANTLRv4Lexer; superClass=Foo; }
-	public static String findTokenVocabIfAny(ANTLRv4FileRoot file) {
-		String vocabName = null;
-		PsiElement[] options = MyPsiUtils.collectNodesWithName(file, "option");
-		for (PsiElement o : options) {
-			PsiElement[] tokenVocab = MyPsiUtils.collectChildrenWithText(o, "tokenVocab");
-			if ( tokenVocab.length>0 ) {
-				PsiElement optionNode = tokenVocab[0].getParent();// tokenVocab[0] is id node
-				PsiElement[] ids = MyPsiUtils.collectChildrenOfType(optionNode, ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_optionValue));
-				vocabName = ids[0].getText();
-			}
-		}
-		return vocabName;
-	}
-
 
 }
