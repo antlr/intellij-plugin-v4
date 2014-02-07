@@ -8,6 +8,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.v4.Tool;
+import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
@@ -117,25 +118,30 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		String combinedGrammarFileName = null;
 		String lexerGrammarFileName = null;
 		String parserGrammarFileName = null;
-		if ( grammarFileName.contains("Lexer") ) {
-			lexerGrammarFileName = grammarFileName;
-			int i = grammarFileName.indexOf("Lexer");
-			parserGrammarFileName = grammarFileName.substring(0,i)+"Parser.g4";
-		}
-		else if ( grammarFileName.contains("Parser") ) {
-			parserGrammarFileName = grammarFileName;
-			int i = grammarFileName.indexOf("Parser");
-			lexerGrammarFileName = grammarFileName.substring(0,i)+"Lexer.g4";
-		}
-		else {
-			combinedGrammarFileName = grammarFileName;
+
+		Grammar g = antlr.loadGrammar(grammarFileName); // load to examine it
+		// examine's Grammar AST from v4 itself;
+		// hence use ANTLRParser.X not ANTLRv4Parser from this plugin
+		switch ( g.getType() ) {
+			case ANTLRParser.PARSER :
+				parserGrammarFileName = grammarFileName;
+				int i = grammarFileName.indexOf("Parser");
+				lexerGrammarFileName = grammarFileName.substring(0,i)+"Lexer.g4";
+				break;
+			case ANTLRParser.LEXER :
+				lexerGrammarFileName = grammarFileName;
+				int i2 = grammarFileName.indexOf("Lexer");
+				parserGrammarFileName = grammarFileName.substring(0,i2)+"Parser.g4";
+				break;
+			case ANTLRParser.COMBINED :
+				combinedGrammarFileName = grammarFileName;
+				break;
 		}
 
 		ANTLRInputStream input = new ANTLRInputStream(inputText);
 		LexerInterpreter lexEngine;
-		Grammar g;
 		if ( combinedGrammarFileName!=null ) {
-			g = antlr.loadGrammar(grammarFileName);
+			// already loaded above
 			if ( listener.grammarErrorMessage!=null ) {
 				return null;
 			}
