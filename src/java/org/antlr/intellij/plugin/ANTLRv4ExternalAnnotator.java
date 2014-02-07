@@ -136,12 +136,24 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 					CommonToken ct = (CommonToken)t;
 					int startIndex = ct.getStartIndex();
 					int stopIndex = ct.getStopIndex();
-					TextRange range = new TextRange(startIndex, stopIndex);
-					if ( issue.msg.getErrorType().severity == ErrorSeverity.ERROR ) {
+					TextRange range = new TextRange(startIndex, stopIndex + 1);
+					switch (issue.msg.getErrorType().severity) {
+					case ERROR:
+					case ERROR_ONE_OFF:
+					case FATAL:
 						holder.createErrorAnnotation(range, issue.annotation);
-					}
-					else {
+						break;
+
+					case WARNING:
 						holder.createWarningAnnotation(range, issue.annotation);
+						break;
+
+					case WARNING_ONE_OFF:
+					case INFO:
+						holder.createWeakWarningAnnotation(range, issue.annotation);
+
+					default:
+						break;
 					}
 				}
 			}
