@@ -1,13 +1,13 @@
 # IntelliJ Idea Plugin for ANTLR v4
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 12.x plugin for [ANTLR v4](https://github.com/antlr/antlr4).
+An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for [ANTLR v4](https://github.com/antlr/antlr4).
 
 [Plugin page](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
 ## History
 * 1.0
     * Has ANTLR 4.2 release
-    * Works with Intellij 13
+    * Works with Intellij 13.x, 12.1.x (no longer works with 12.0.x)
 * 1.0a5:
 	* Update to use latest ANTLR 4.2 from parrt/antlr4 (close to 4.2 final)
 	* wasn't showing grammar name. weird.

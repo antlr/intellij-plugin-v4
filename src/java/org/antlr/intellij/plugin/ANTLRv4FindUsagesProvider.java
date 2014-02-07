@@ -1,24 +1,13 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.find.impl.HelpID;
-import com.intellij.lang.cacheBuilder.DefaultWordsScanner;
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.impl.search.ThrowSearchUtil;
-import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
-import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

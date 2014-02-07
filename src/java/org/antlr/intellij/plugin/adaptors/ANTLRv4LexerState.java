@@ -1,28 +1,31 @@
 package org.antlr.intellij.plugin.adaptors;
 
-import org.antlr.intellij.lexer.AntlrLexerState;
+import org.antlr.intellij.adaptor.lexer.AntlrLexerState;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.misc.IntegerStack;
 import org.antlr.v4.runtime.misc.MurmurHash;
 
 public class ANTLRv4LexerState extends AntlrLexerState {
-	private final int ruleType;
+	/** Tracks whether we are in a lexer rule, a parser rule or neither;
+	 *  managed by the ANTLRv4Lexer grammar.
+	 */
+	private final int currentRuleType;
 
-	public ANTLRv4LexerState(int mode, IntegerStack modeStack, int ruleType) {
+	public ANTLRv4LexerState(int mode, IntegerStack modeStack, int currentRuleType) {
 		super(mode, modeStack);
-		this.ruleType = ruleType;
+		this.currentRuleType = currentRuleType;
 	}
 
-	public int getRuleType() {
-		return ruleType;
+	public int getCurrentRuleType() {
+		return currentRuleType;
 	}
 
 	@Override
 	public void apply(Lexer lexer) {
 		super.apply(lexer);
 		if (lexer instanceof ANTLRv4Lexer) {
-			((ANTLRv4Lexer)lexer).setRuleType(getRuleType());
+			((ANTLRv4Lexer)lexer).setCurrentRuleType(getCurrentRuleType());
 		}
 	}
 
@@ -31,7 +34,7 @@ public class ANTLRv4LexerState extends AntlrLexerState {
 		int hash = MurmurHash.initialize();
 		hash = MurmurHash.update(hash, getMode());
 		hash = MurmurHash.update(hash, getModeStack());
-		hash = MurmurHash.update(hash, getRuleType());
+		hash = MurmurHash.update(hash, getCurrentRuleType());
 		return MurmurHash.finish(hash, 3);
 	}
 
@@ -50,6 +53,6 @@ public class ANTLRv4LexerState extends AntlrLexerState {
 		}
 
 		ANTLRv4LexerState other = (ANTLRv4LexerState)obj;
-		return this.getRuleType() == other.getRuleType();
+		return this.getCurrentRuleType() == other.getCurrentRuleType();
 	}
 }

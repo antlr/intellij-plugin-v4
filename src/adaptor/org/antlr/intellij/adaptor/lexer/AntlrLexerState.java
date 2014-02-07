@@ -1,4 +1,4 @@
-package org.antlr.intellij.lexer;
+package org.antlr.intellij.adaptor.lexer;
 
 import net.jcip.annotations.Immutable;
 import org.antlr.v4.runtime.Lexer;

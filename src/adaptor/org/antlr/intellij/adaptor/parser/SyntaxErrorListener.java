@@ -1,4 +1,4 @@
-package org.antlr.intellij.lang;
+package org.antlr.intellij.adaptor.parser;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
@@ -10,6 +10,8 @@ import java.util.List;
 /** Traps errors from parsing language of plugin. E.g., for a Java plugin,
  *  this would catch errors when people type invalid Java code into .java file.
  *  For ANTLRv4 plugin, it traps errors for erroneous grammars.
+ *
+ *  Instance created by GrammarParser.createParserImpl().
  */
 public class SyntaxErrorListener extends BaseErrorListener {
 	private final List<SyntaxError> syntaxErrors = new ArrayList<SyntaxError>();

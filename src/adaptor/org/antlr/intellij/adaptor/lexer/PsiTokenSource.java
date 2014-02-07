@@ -1,7 +1,6 @@
-package org.antlr.intellij.lang;
+package org.antlr.intellij.adaptor.lexer;
 
 import com.intellij.lang.PsiBuilder;
-import org.antlr.intellij.lexer.TokenElementType;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenFactory;
 import org.antlr.v4.runtime.Token;

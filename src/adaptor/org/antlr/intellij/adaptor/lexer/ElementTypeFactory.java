@@ -1,4 +1,4 @@
-package org.antlr.intellij.lexer;
+package org.antlr.intellij.adaptor.lexer;
 
 import com.intellij.lang.Language;
 import com.intellij.psi.tree.IElementType;
@@ -12,9 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 public class ElementTypeFactory {
-	private static final Map<Language, List<TokenElementType>> tokenElementTypesCache = new HashMap<Language, List<TokenElementType>>();
-	private static final Map<Language, List<RuleElementType>> ruleElementTypesCache = new HashMap<Language, List<RuleElementType>>();
-	private static final Map<Language, TokenElementType> eofElementTypesCache = new HashMap<Language, TokenElementType>();
+	private static final Map<Language, List<TokenElementType>> tokenElementTypesCache =
+		new HashMap<Language, List<TokenElementType>>();
+	private static final Map<Language, List<RuleElementType>> ruleElementTypesCache =
+		new HashMap<Language, List<RuleElementType>>();
+	private static final Map<Language, TokenElementType> eofElementTypesCache =
+		new HashMap<Language, TokenElementType>();
 
 	private ElementTypeFactory() {
 	}

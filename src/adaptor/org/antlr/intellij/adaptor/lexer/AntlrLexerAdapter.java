@@ -1,4 +1,4 @@
-package org.antlr.intellij.lexer;
+package org.antlr.intellij.adaptor.lexer;
 
 import com.intellij.lang.Language;
 import com.intellij.psi.tree.IElementType;
@@ -24,7 +24,7 @@ import java.util.Map;
  *
  * @author Sam Harwell
  */
-public abstract class AntlrAdapter<State extends AntlrLexerState> extends com.intellij.lexer.LexerBase {
+public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends com.intellij.lexer.LexerBase {
 	/**
 	 * Gets the {@link Language} supported by this lexer. This value is passed to {@link ElementTypeFactory} to ensure
 	 * the correct collection of {@link IElementType} is used for assigning element types to tokens in
@@ -85,13 +85,13 @@ public abstract class AntlrAdapter<State extends AntlrLexerState> extends com.in
 	private Token currentToken;
 
 	/**
-	 * Constructs a new instance of {@link AntlrAdapter} with the specified {@link Language} and underlying
+	 * Constructs a new instance of {@link AntlrLexerAdapter} with the specified {@link Language} and underlying
 	 * ANTLR {@link Lexer}.
 	 *
 	 * @param language The language.
 	 * @param lexer The underlying ANTLR lexer.
 	 */
-	public AntlrAdapter(Language language, Lexer lexer) {
+	public AntlrLexerAdapter(Language language, Lexer lexer) {
 		this.language = language;
 		this.tokenElementTypes = ElementTypeFactory.getTokenElementTypes(language, Arrays.asList(lexer.getTokenNames()));
 		this.lexer = lexer;
