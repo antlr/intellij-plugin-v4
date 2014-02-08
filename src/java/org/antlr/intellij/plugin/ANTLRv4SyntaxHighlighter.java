@@ -65,7 +65,8 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 		else if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF) ) {
 			return new TextAttributesKey[]{RULENAME};
 		}
-		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)) {
+		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL)
+			|| tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.UNTERMINATED_STRING_LITERAL)) {
 			return STRING_KEYS;
 		}
 		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.BLOCK_COMMENT)) {
