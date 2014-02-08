@@ -114,10 +114,6 @@ LINE_COMMENT
 	:	'//' ~[\r\n]*  -> channel(HIDDEN)
 	;
 
-DOUBLE_QUOTE_STRING_LITERAL
-	:	'"' ('\\' . | ~'"' )*? ('"' | EOF)
-	;
-
 BEGIN_ARG_ACTION
 	:	'[' {handleBeginArgAction();}
 	;
