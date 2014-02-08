@@ -53,7 +53,7 @@ public class AstBuilderListener implements ParseTreeListener {
 
 			@Override
 			public int compare(SyntaxError o1, SyntaxError o2) {
-				return Integer.compare(getStart(o1), getStart(o2));
+				return Integer.valueOf(getStart(o1)).compareTo(getStart(o2));
 			}
 		});
 	}
