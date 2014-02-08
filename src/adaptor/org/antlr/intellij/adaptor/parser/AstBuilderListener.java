@@ -1,10 +1,10 @@
-package org.antlr.intellij.lang;
+package org.antlr.intellij.adaptor.parser;
 
 import com.intellij.lang.Language;
 import com.intellij.lang.PsiBuilder;
-import org.antlr.intellij.lexer.ElementTypeFactory;
-import org.antlr.intellij.lexer.RuleElementType;
-import org.antlr.intellij.lexer.TokenElementType;
+import org.antlr.intellij.adaptor.lexer.ElementTypeFactory;
+import org.antlr.intellij.adaptor.lexer.RuleElementType;
+import org.antlr.intellij.adaptor.lexer.TokenElementType;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -21,6 +21,10 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 
+/** This is how we build an intellij PSI parse tree (which they erroneously call
+ *  an AST).  We let the ANTLR parser build its kind of ParseTree and then
+ *  we convert to a PSI tree in one go using a standard ANTLR ParseTreeListener.
+ */
 public class AstBuilderListener implements ParseTreeListener {
 	private final Language language;
 	private final PsiBuilder builder;

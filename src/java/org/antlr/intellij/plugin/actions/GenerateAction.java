@@ -12,7 +12,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 
-// learned how to do from Grammar-Kit by Gregory Shrago
+/** Generate parser from ANTLR grammar;
+ *  learned how to do from Grammar-Kit by Gregory Shrago.
+ */
 public class GenerateAction extends AnAction implements DumbAware {
 	/** Only show if selection is a grammar */
 	@Override
@@ -24,7 +26,6 @@ public class GenerateAction extends AnAction implements DumbAware {
 		boolean grammarFound = false;
 		PsiManager manager = PsiManager.getInstance(project);
 		for (VirtualFile file : files) {
-//			System.out.println(file);
 			if ( manager.findFile(file) instanceof ANTLRv4FileRoot ) {
 				grammarFound = true;
 				break;
@@ -36,7 +37,6 @@ public class GenerateAction extends AnAction implements DumbAware {
 
 	@Override
 	public void actionPerformed(final AnActionEvent e) {
-//		System.out.println("exec "+e);
 		Project project = getEventProject(e);
 		if ( project==null ) return; // whoa!
 		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());

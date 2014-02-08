@@ -1,10 +1,11 @@
-package org.antlr.intellij.lang;
+package org.antlr.intellij.adaptor.parser;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.adaptor.lexer.PsiTokenSource;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.TokenSource;
@@ -13,6 +14,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.jetbrains.annotations.NotNull;
 
+/** An adaptor that makes an ANTLR parser look like a PsiParser */
 public abstract class AntlrParser<TParser extends Parser> implements PsiParser {
 	private final Language language;
 
@@ -62,6 +64,7 @@ public abstract class AntlrParser<TParser extends Parser> implements PsiParser {
 		return new AstBuilderListener(language, parser, builder);
 	}
 
+	/** Convert ANTLR parse tree to PSI tree. */
 	protected void walkParseTree(ParseTree parseTree, AstBuilderListener listener, IElementType root, PsiBuilder builder) {
 		PsiBuilder.Marker rootMarker = builder.mark();
 		ParseTreeWalker.DEFAULT.walk(listener, parseTree);

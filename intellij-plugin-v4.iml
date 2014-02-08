@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/templates" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gen/antlr4" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/adaptor" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

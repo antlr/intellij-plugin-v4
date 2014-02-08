@@ -10,10 +10,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.antlr.intellij.plugin.adaptors.ANTLRv4GrammarParser;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
-import org.antlr.intellij.plugin.adaptors.GrammarParser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NotNull;
 
 /** The general interface between IDEA and ANTLR. */
@@ -30,7 +29,7 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 
 	@NotNull
 	public PsiParser createParser(final Project project) {
-		return new GrammarParser();
+		return new ANTLRv4GrammarParser();
 	}
 
 	@NotNull

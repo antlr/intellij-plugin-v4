@@ -1,4 +1,4 @@
-package org.antlr.intellij.lang;
+package org.antlr.intellij.adaptor.parser;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;

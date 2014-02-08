@@ -1,14 +1,14 @@
-package org.antlr.intellij.lexer;
+package org.antlr.intellij.adaptor.lexer;
 
 import com.intellij.lang.Language;
 import org.antlr.v4.runtime.Lexer;
 
 /**
- * This default implementation of {@link AntlrAdapter} supports any ANTLR 4 lexer that does not store extra
+ * This default implementation of {@link AntlrLexerAdapter} supports any ANTLR 4 lexer that does not store extra
  * information for use in custom actions. The state is maintained in {@link AntlrLexerState} which supports single- as
  * well as multi-mode lexers.
  */
-public class SimpleAntlrAdapter extends AntlrAdapter<AntlrLexerState> {
+public class SimpleAntlrAdapter extends AntlrLexerAdapter<AntlrLexerState> {
 
 	public SimpleAntlrAdapter(Language language, Lexer lexer) {
 		super(language, lexer);

@@ -1,8 +1,11 @@
-package org.antlr.intellij.lang;
+package org.antlr.intellij.adaptor.parser;
 
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
+/** A syntax error from parsing language of plugin. These are
+ *  created by SyntaxErrorListener.
+ */
 public class SyntaxError {
 	private final Recognizer<?, ?> recognizer;
 	private final Object offendingSymbol;

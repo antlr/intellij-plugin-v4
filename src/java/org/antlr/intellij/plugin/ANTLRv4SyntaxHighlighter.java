@@ -10,8 +10,6 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
-import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

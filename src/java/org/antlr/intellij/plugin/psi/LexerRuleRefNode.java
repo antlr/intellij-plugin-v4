@@ -2,9 +2,9 @@ package org.antlr.intellij.plugin.psi;
 
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.Icons;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 
 import javax.swing.*;
 

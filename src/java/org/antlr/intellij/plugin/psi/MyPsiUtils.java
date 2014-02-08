@@ -11,8 +11,8 @@ import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4Language;
+import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.intellij.plugin.parser.ANTLRv4TokenTypes;
 
 import java.util.ArrayList;
 import java.util.List;
