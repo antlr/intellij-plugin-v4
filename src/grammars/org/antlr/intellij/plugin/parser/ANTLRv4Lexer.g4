@@ -103,19 +103,19 @@ tokens {
 }
 
 DOC_COMMENT
-	:	'/**' .*? '*/'
+	:	'/**' .*? ('*/' | EOF)
 	;
 
 BLOCK_COMMENT
-	:	'/*' .*? '*/'  //-> channel(HIDDEN)
+	:	'/*' .*? ('*/' | EOF)  -> channel(HIDDEN)
 	;
 
 LINE_COMMENT
-	:	'//' ~[\r\n]*  // -> channel(HIDDEN)
+	:	'//' ~[\r\n]*  -> channel(HIDDEN)
 	;
 
 DOUBLE_QUOTE_STRING_LITERAL
-	:	'"' ('\\' . | ~'"' )*? '"'
+	:	'"' ('\\' . | ~'"' )*? ('"' | EOF)
 	;
 
 BEGIN_ARG_ACTION
@@ -209,7 +209,11 @@ INT	: [0-9]+
 // may contain unicode escape sequences of the form \uxxxx, where x
 // is a valid hexadecimal number (as per Java basically).
 STRING_LITERAL
-	:  '\'' (ESC_SEQ | ~['\\])* '\''
+	:  '\'' (ESC_SEQ | ~['\r\n\\])* '\''
+	;
+
+UNTERMINATED_STRING_LITERAL
+	:  '\'' (ESC_SEQ | ~['\r\n\\])*
 	;
 
 // Any kind of escaped character that we can embed within ANTLR
@@ -221,6 +225,10 @@ ESC_SEQ
 			[btnfr"'\\]
 		|	// A Java style Unicode escape sequence
 			UNICODE_ESC
+		|	// Invalid escape
+			.
+		|	// Invalid escape at end of file
+			EOF
 		)
 	;
 
