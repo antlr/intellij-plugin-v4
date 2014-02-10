@@ -8,6 +8,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for [ANTLR v4
 * 1.0
     * Has ANTLR 4.2 release
     * Works with Intellij 13.x, 12.1.x (no longer works with 12.0.x)
+    * Color preferences pane
 * 1.0a5:
 	* Update to use latest ANTLR 4.2 from parrt/antlr4 (close to 4.2 final)
 	* wasn't showing grammar name. weird.
@@ -54,9 +55,10 @@ live preview.
 
 [![Live parse preview](http://img.youtube.com/vi/h60VapD1rOo/0.jpg)](//www.youtube.com/embed/h60VapD1rOo)
 
-
-
 ![Live preview](images/live-preview.png)
 ![Live preview](images/live-preview-error.png)
 
+### Color preferences
+
+![Live preview](images/color-prefs.png)
 
