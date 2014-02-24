@@ -6,7 +6,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for ANTLR v4 
 
 ## History
 * 1.0.1:
-    * Fixed [#42](https://github.com/antlr/intellij-plugin-v4/issues/42)
+    * Fixed [#40](https://github.com/antlr/intellij-plugin-v4/issues/42)
     * Fixed [#36](https://github.com/antlr/intellij-plugin-v4/issues/42)
 * 1.0
     * Has ANTLR 4.2 release
