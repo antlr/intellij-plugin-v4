@@ -106,7 +106,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 			VirtualFile virtualFile = file.getVirtualFile();
 
-			Project project = ANTLRv4ProjectComponent.getProjectForFile(virtualFile);
+			Project project = file.getProject();
 			ParseTreePanel viewerPanel =
 				ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
 			viewerPanel.refresh();
