@@ -1,8 +1,8 @@
 # IntelliJ Idea Plugin for ANTLR v4
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for [ANTLR v4](https://github.com/antlr/antlr4).
+An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
 
-[Plugin page](http://plugins.jetbrains.com/plugin/7358?pr=idea)
+[Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
 ## History
 * 1.0
