@@ -28,5 +28,9 @@
       </library>
     </orderEntry>
   </component>
+  <component name="PluginUploader.PluginUploadConfigurable">
+    <option name="ARCHIVE_PATH" />
+    <option name="PLUGIN_ID" />
+  </component>
 </module>
 
