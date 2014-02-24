@@ -42,6 +42,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		return pc;
 	}
 
+/* doesn't work if file is not in a source dir of a project i think.
 	public static Project getProjectForFile(VirtualFile virtualFile) {
 		Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
 		Project project = null;
@@ -54,6 +55,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		}
 		return project;
 	}
+	 */
 
 	public ParseTreePanel getViewerPanel() {
 		return treePanel;
