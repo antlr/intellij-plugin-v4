@@ -2,10 +2,6 @@ package org.antlr.intellij.plugin;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
@@ -22,6 +18,7 @@ import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
+import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
@@ -172,7 +169,11 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		ParserInterpreter parser = g.createParserInterpreter(tokens);
 		parser.removeErrorListeners();
 		parser.addErrorListener(syntaxErrorListener);
-		ParseTree t = parser.parse(g.getRule(startRule).index);
+		Rule start = g.getRule(startRule);
+		if ( start==null ) {
+			return null; // can't find start rule
+		}
+		ParseTree t = parser.parse(start.index);
 
 		// this loop works around a bug in ANTLR 4.2
 		// https://github.com/antlr/antlr4/issues/461

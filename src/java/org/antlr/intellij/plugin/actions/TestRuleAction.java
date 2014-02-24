@@ -39,10 +39,13 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
 		if ( selectedPsiRuleNode==null ) return; // we clicked somewhere outside text
 		String ruleName = selectedPsiRuleNode.getText();
+		boolean parserRuleFound;
 		if ( ruleName==null ) {
-			System.err.println("Can't find ");
+			parserRuleFound = false;
 		}
-		boolean parserRuleFound = Character.isLowerCase(ruleName.charAt(0));
+		else {
+			parserRuleFound = Character.isLowerCase(ruleName.charAt(0));
+		}
 
 		// enable action if we're looking at grammar file
 		Presentation presentation = e.getPresentation();
