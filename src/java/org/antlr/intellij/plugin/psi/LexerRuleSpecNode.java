@@ -21,7 +21,11 @@ public class LexerRuleSpecNode extends RuleSpecNode {
 
 	@Override
 	public GrammarElementRefNode getId() {
-		return PsiTreeUtil.getChildOfType(this, LexerRuleRefNode.class);
+		GrammarElementRefNode tr = PsiTreeUtil.getChildOfType(this, LexerRuleRefNode.class);
+		if ( tr==null ) {
+			System.err.println("can't find LexerRuleRefNode child of "+this.getText());
+		}
+		return tr;
 	}
 
 	public static class Factory implements PsiElementFactory {

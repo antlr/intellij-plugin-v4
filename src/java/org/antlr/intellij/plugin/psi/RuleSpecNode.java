@@ -20,7 +20,11 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 	@Override
 	public String getName() {
 		if ( name!=null ) return name;
-		return getId().getText();
+		GrammarElementRefNode id = getId();
+		if ( id!=null ) {
+			return id.getText();
+		}
+		return "unknown-name";
 	}
 
 	public abstract GrammarElementRefNode getId();

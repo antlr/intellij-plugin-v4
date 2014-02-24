@@ -23,7 +23,7 @@ public class ParserRuleSpecNode extends RuleSpecNode {
 	public GrammarElementRefNode getId() {
 		GrammarElementRefNode rr = PsiTreeUtil.getChildOfType(this, ParserRuleRefNode.class);
 		if ( rr==null ) {
-			System.err.println("null");
+			System.err.println("can't find ParserRuleRefNode child of "+this.getText());
 		}
 		return rr;
 	}
