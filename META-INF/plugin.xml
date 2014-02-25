@@ -22,7 +22,7 @@
       ]]></description>
 
   <change-notes><![CDATA[
-      Main release associated with ANTLR 4.2. Improved parse tree creation.
+      Bug fixes.
       ]]>
   </change-notes>
 
