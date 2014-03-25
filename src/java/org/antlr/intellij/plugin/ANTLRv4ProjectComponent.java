@@ -175,13 +175,6 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		}
 		ParseTree t = parser.parse(start.index);
 
-		// this loop works around a bug in ANTLR 4.2
-		// https://github.com/antlr/antlr4/issues/461
-		// https://github.com/antlr/intellij-plugin-v4/issues/23
-		while (t.getParent() != null) {
-			t = t.getParent();
-		}
-
 		console.setText(syntaxErrorListener.syntaxError);
 		if ( t!=null ) {
 			return new Object[] {parser, t};
