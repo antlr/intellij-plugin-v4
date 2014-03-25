@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 
 public class ANTLRv4ProjectComponent implements ProjectComponent {
@@ -108,6 +109,10 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 									 String startRule)
 		throws IOException
 	{
+		if (!new File(grammarFileName).exists()) {
+			return null;
+		}
+
 		Tool antlr = new Tool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
