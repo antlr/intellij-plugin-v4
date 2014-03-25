@@ -5,6 +5,8 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for ANTLR v4 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
 ## History
+* 1.0.2:
+    * Update to 4.2.1 ANTLR and rm hack needed for bug in 4.2
 * 1.0.1:
     * Fixed [#40](https://github.com/antlr/intellij-plugin-v4/issues/40)
     * Fixed [#36](https://github.com/antlr/intellij-plugin-v4/issues/36)
