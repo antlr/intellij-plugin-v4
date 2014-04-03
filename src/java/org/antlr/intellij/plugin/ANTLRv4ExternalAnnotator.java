@@ -5,7 +5,6 @@ import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
@@ -15,7 +14,6 @@ import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
-import org.antlr.v4.tool.ErrorSeverity;
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarSemanticsMessage;
@@ -84,15 +82,16 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			}
 			@Override
 			public void error(ANTLRMessage msg) {
-				issues.add(new Issue(msg));
-			}
-			@Override
-			public void warning(ANTLRMessage msg) {
-				if ( msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION ||
+				if ( (msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION&&
+					  msg.getErrorType()!=ErrorType.IMPLICIT_STRING_DEFINITION) ||
 					findVocabAction.vocabName==null )
 				{
 					issues.add(new Issue(msg));
 				}
+			}
+			@Override
+			public void warning(ANTLRMessage msg) {
+				issues.add(new Issue(msg));
 			}
 		});
 		try {
@@ -103,8 +102,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
 			Grammar g = antlr.createGrammar(ast);
 			antlr.process(g, false);
-
-			VirtualFile virtualFile = file.getVirtualFile();
 
 			Project project = file.getProject();
 			ParseTreePanel viewerPanel =
