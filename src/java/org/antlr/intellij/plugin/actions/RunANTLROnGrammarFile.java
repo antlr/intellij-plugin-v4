@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.actions;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -121,9 +122,15 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 //				LOG.error(ie);
 //			}
 //		}
+
+        boolean generate_listener = PropertiesComponent.getInstance(project).getBoolean("antlr4-generate-listener", false);
+        boolean generate_visitor = PropertiesComponent.getInstance(project).getBoolean("antlr4-generate-visitor", false);
+        
 		Tool antlr = new Tool(new String[] {
 			"-o", outputPath,
 			"-lib", sourcePath, // lets us see tokenVocab stuff
+            generate_listener ? "-listener" : "-no-listener",
+            generate_visitor ? "-visitor" : "-no-visitor",
 			sourcePath+File.separator+file.getName()}
 		);
 		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();

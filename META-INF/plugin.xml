@@ -77,6 +77,8 @@
 	  <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
 				  anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">
 	  </toolWindow>
+      
+      <projectConfigurable implementation="org.antlr.intellij.plugin.ANTLRv4SettingsConfigurable"/>
 	  <!--
 	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
