@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
@@ -34,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
+	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator");
+
 	public static class Issue {
 		String annotation;
 		List<Token> offendingTokens = new ArrayList<Token>();
@@ -105,7 +108,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 			Project project = file.getProject();
 			ParseTreePanel viewerPanel =
-				ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
+				ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
 			viewerPanel.refresh();
 
 			for (int i = 0; i < issues.size(); i++) {
@@ -114,7 +117,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			}
 		}
 		catch (IOException ioe) {
-			System.err.println("antlr can't process "+file.getName());
+			LOG.error("antlr can't process "+file.getName(), ioe);
 		}
 		return issues;
 	}
@@ -191,7 +194,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		if (antlr.errMgr.formatWantsSingleLineMessage()) {
 			outputMsg = outputMsg.replace('\n', ' ');
 		}
-		System.err.println(outputMsg);
 		issue.annotation = outputMsg;
 	}
 
