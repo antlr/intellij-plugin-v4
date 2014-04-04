@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin;
 
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.v4.Tool;
@@ -30,6 +31,8 @@ import java.io.IOException;
 public class ANTLRv4ProjectComponent implements ProjectComponent {
 	public ParseTreePanel treePanel;
 	public Project project;
+
+	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
 
 	public ANTLRv4ProjectComponent(Project project) {
 		this.project = project;
@@ -130,16 +133,29 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			case ANTLRParser.PARSER :
 				parserGrammarFileName = grammarFileName;
 				int i = grammarFileName.indexOf("Parser");
-				lexerGrammarFileName = grammarFileName.substring(0,i)+"Lexer.g4";
+				if ( i>=0 ) {
+					lexerGrammarFileName = grammarFileName.substring(0, i) + "Lexer.g4";
+				}
 				break;
 			case ANTLRParser.LEXER :
 				lexerGrammarFileName = grammarFileName;
 				int i2 = grammarFileName.indexOf("Lexer");
-				parserGrammarFileName = grammarFileName.substring(0,i2)+"Parser.g4";
+				if ( i2>=0 ) {
+					parserGrammarFileName = grammarFileName.substring(0, i2) + "Parser.g4";
+				}
 				break;
 			case ANTLRParser.COMBINED :
 				combinedGrammarFileName = grammarFileName;
 				break;
+		}
+
+		if ( lexerGrammarFileName==null ) {
+			LOG.error("Can't compute lexer file name from "+grammarFileName, (Throwable)null);
+			return null;
+		}
+		if ( parserGrammarFileName==null ) {
+			LOG.error("Can't compute parser file name from "+grammarFileName, (Throwable)null);
+			return null;
 		}
 
 		ANTLRInputStream input = new ANTLRInputStream(inputText);
