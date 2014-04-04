@@ -254,7 +254,12 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 
 		@Override
 		public String getText(@NotNull Interval interval) {
-			return buffer.subSequence(interval.a, interval.b + 1).toString();
+			int start = interval.a;
+			int stop = interval.b;
+			int n = buffer.length();
+			if ( stop >= n ) stop = n-1;
+			if ( start >= n ) return "";
+			return buffer.subSequence(start, stop + 1).toString();
 		}
 
 		@Override
