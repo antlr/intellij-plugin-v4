@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class ANTLRv4ProjectComponent implements ProjectComponent {
-	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
 	public ParseTreePanel treePanel;
 	public ConsoleView console;
 	public Project project;
