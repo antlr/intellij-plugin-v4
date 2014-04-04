@@ -75,7 +75,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		docMgr.saveDocument(doc);
 
 		final ParseTreePanel viewerPanel =
-			ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
+			ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
 		String inputText = viewerPanel.getInputText(); // reuse input if any is around already
 		viewerPanel.setInputAndGrammar(inputText, file.getPath(), ruleName);
 

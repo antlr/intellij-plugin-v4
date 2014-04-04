@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.actions;
 
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -13,14 +14,16 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ExceptionUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
+import org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory;
 import org.antlr.v4.Tool;
-import org.antlr.v4.tool.ANTLRMessage;
-import org.antlr.v4.tool.ANTLRToolListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,13 +64,15 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 				generatedFiles.add(new File(outputPath));
 				String groupDisplayId = "ANTLR 4 Code Generation";
 				try {
-					generate(gfile, sourcePath, outputPath);
-					Notification notification =
-						new Notification(groupDisplayId,
-										 "parser for "+file.getName()+" generated",
-										 "to " + outputPath,
-										 NotificationType.INFORMATION);
-					Notifications.Bus.notify(notification, project);
+					boolean success = generate(gfile, sourcePath, outputPath);
+					if ( success ) {
+						Notification notification =
+							new Notification(groupDisplayId,
+											 "parser for " + file.getName() + " generated",
+											 "to " + outputPath,
+											 NotificationType.INFORMATION);
+						Notifications.Bus.notify(notification, project);
+					}
 				}
 				catch (Exception ex) {
 					Notification notification =
@@ -115,23 +120,31 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		ApplicationManager.getApplication().runReadAction(new ExecANTLR());
 	}
 
-	public void generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
+	// return success/failure
+	public boolean generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
 		Tool antlr = new Tool(new String[] {
 			"-o", outputPath,
 			"-lib", sourcePath, // lets us see tokenVocab stuff
 			sourcePath+File.separator+file.getName()}
 		);
-		antlr.addListener(new ANTLRToolListener() {
-			@Override
-			public void info(String msg) {
-			}
-			@Override
-			public void error(ANTLRMessage msg) {
-			}
-			@Override
-			public void warning(ANTLRMessage msg) {
-			}
-		});
+		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
+		console.clear();
+		antlr.removeListeners();
+		RunANTLRListener listener = new RunANTLRListener(antlr, console);
+		antlr.addListener(listener);
 		antlr.processGrammarsOnCommandLine();
+		if ( listener.hasOutput ) {
+			ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+			final ToolWindow toolWindow = toolWindowManager.getToolWindow(ToolOutputWindowFactory.ID);
+			ApplicationManager.getApplication().invokeLater(
+				new Runnable() {
+					@Override
+					public void run() {
+						toolWindow.show(null);
+					}
+				}
+			);
+		}
+		return !listener.hasOutput;
 	}
 }
