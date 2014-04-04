@@ -3,12 +3,14 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiManager;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 
@@ -43,11 +45,17 @@ public class GenerateAction extends AnAction implements DumbAware {
 		if ( files==null ) return; // no files?
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
-		Task.Backgroundable gen = new RunANTLROnGrammarFile(files,
-															project,
-															title,
-															canBeCancelled,
-															new BackgroundFromStartOption());
+
+		// commit changes to PSI and file system
+		PsiDocumentManager.getInstance(project).commitAllDocuments();
+		FileDocumentManager.getInstance().saveAllDocuments();
+
+		Task.Backgroundable gen =
+			new RunANTLROnGrammarFile(files,
+									  project,
+									  title,
+									  canBeCancelled,
+									  new BackgroundFromStartOption());
 		ProgressManager.getInstance().run(gen);
 	}
 }

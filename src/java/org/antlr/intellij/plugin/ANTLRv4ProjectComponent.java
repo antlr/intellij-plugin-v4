@@ -158,6 +158,8 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 				break;
 			case ANTLRParser.COMBINED :
 				combinedGrammarFileName = grammarFileName;
+				lexerGrammarFileName = grammarFileName+"Lexer";
+				parserGrammarFileName = grammarFileName+"Parser";
 				break;
 		}
 
