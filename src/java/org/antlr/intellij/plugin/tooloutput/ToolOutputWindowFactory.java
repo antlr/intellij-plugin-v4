@@ -1,5 +1,6 @@
-package org.antlr.intellij.plugin.preview;
+package org.antlr.intellij.plugin.tooloutput;
 
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -14,20 +15,29 @@ import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
 
 import javax.swing.*;
 
-public class ParseTreeWindowFactory implements ToolWindowFactory {
-	public static final String ID = "ANTLR Parse Tree";
+public class ToolOutputWindowFactory  implements ToolWindowFactory {
+	public static final String ID = "ANTLR Tool Output";
 
 	protected ToolWindow myToolWindow;
 
 	// Create the tool window content.
 	public void createToolWindowContent(Project project, ToolWindow toolWindow) {
 		myToolWindow = toolWindow;
-		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
 
-		JPanel pane = ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
-		Content content = contentFactory.createContent(pane, "", false);
+		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
+		JComponent consoleComponent = console.getComponent();
+		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+		Content content = contentFactory.createContent(consoleComponent, "", false);
 		toolWindow.getContentManager().addContent(content);
 	}
+/*
+	ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+
+	JPanel pane = ANTLRv4ProjectComponent.getInstance(project).getViewerPanel();
+	Content content = contentFactory.createContent(pane, "", false);
+	toolWindow.getContentManager().addContent(content);
+}
+*/
 
 	// 	Get filename:
 	// 	http://stackoverflow.com/questions/17915688/intellij-plugin-get-code-from-current-open-file
