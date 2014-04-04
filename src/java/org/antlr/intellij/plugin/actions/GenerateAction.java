@@ -18,23 +18,9 @@ import org.antlr.intellij.plugin.ANTLRv4FileRoot;
  *  learned how to do from Grammar-Kit by Gregory Shrago.
  */
 public class GenerateAction extends AnAction implements DumbAware {
-	/** Only show if selection is a grammar */
 	@Override
 	public void update(AnActionEvent e) {
-		Project project = getEventProject(e);
-		if ( project==null ) return; // whoa!
-		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
-		if ( files==null ) return; // no files?
-		boolean grammarFound = false;
-		PsiManager manager = PsiManager.getInstance(project);
-		for (VirtualFile file : files) {
-			if ( manager.findFile(file) instanceof ANTLRv4FileRoot ) {
-				grammarFound = true;
-				break;
-			}
-		}
-		e.getPresentation().setEnabled(grammarFound); // enable action if we're looking at grammar file
-		e.getPresentation().setVisible(grammarFound);
+		selectedFileIsGrammar(e);
 	}
 
 	@Override
@@ -58,4 +44,23 @@ public class GenerateAction extends AnAction implements DumbAware {
 									  new BackgroundFromStartOption());
 		ProgressManager.getInstance().run(gen);
 	}
+
+	// TODO:Put this in a better location
+	public static void selectedFileIsGrammar(AnActionEvent e) {
+		Project project = getEventProject(e);
+		if ( project==null ) return; // whoa!
+		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
+		if ( files==null ) return; // no files?
+		boolean grammarFound = false;
+		PsiManager manager = PsiManager.getInstance(project);
+		for (VirtualFile file : files) {
+			if ( manager.findFile(file) instanceof ANTLRv4FileRoot) {
+				grammarFound = true;
+				break;
+			}
+		}
+		e.getPresentation().setEnabled(grammarFound); // enable action if we're looking at grammar file
+		e.getPresentation().setVisible(grammarFound);
+	}
+
 }
