@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.psi;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -10,6 +11,7 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
 
 public class ParserRuleSpecNode extends RuleSpecNode {
+	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.psi.ParserRuleSpecNode");
 	public ParserRuleSpecNode(@NotNull ASTNode node) {
 		super(node);
 	}
@@ -23,7 +25,7 @@ public class ParserRuleSpecNode extends RuleSpecNode {
 	public GrammarElementRefNode getId() {
 		GrammarElementRefNode rr = PsiTreeUtil.getChildOfType(this, ParserRuleRefNode.class);
 		if ( rr==null ) {
-			System.err.println("can't find ParserRuleRefNode child of "+this.getText());
+			LOG.error("can't find ParserRuleRefNode child of "+this.getText(), (Throwable)null);
 		}
 		return rr;
 	}

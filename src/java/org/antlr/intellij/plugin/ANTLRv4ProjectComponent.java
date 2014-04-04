@@ -1,6 +1,10 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.v4.Tool;
@@ -28,7 +32,9 @@ import java.io.File;
 import java.io.IOException;
 
 public class ANTLRv4ProjectComponent implements ProjectComponent {
+	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
 	public ParseTreePanel treePanel;
+	public ConsoleView console;
 	public Project project;
 
 	public ANTLRv4ProjectComponent(Project project) {
@@ -55,8 +61,12 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 	 */
 
-	public ParseTreePanel getViewerPanel() {
+	public ParseTreePanel getTreeViewPanel() {
 		return treePanel;
+	}
+
+	public ConsoleView getConsole() {
+		return console;
 	}
 
 	// -------------------------------------
@@ -68,6 +78,10 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	@Override
 	public void projectOpened() {
 		treePanel = new ParseTreePanel();
+		TextConsoleBuilderFactory consoleBuidlerFactory = TextConsoleBuilderFactory.getInstance();
+		TextConsoleBuilder consoleBuilder = consoleBuidlerFactory.createBuilder(project);
+
+		console = consoleBuilder.getConsole();
 	}
 
 	@Override
@@ -157,7 +171,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 				lg = (LexerGrammar)Grammar.load(lexerGrammarFileName);
 			}
 			catch (ClassCastException cce) {
-				System.err.println("File "+lexerGrammarFileName+" isn't a lexer grammar");
+				LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
 			}
 			if ( listener.grammarErrorMessage!=null ) {
 				return null;
