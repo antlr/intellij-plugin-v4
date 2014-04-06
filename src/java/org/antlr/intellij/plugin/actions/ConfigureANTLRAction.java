@@ -7,7 +7,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.antlr.intellij.plugin.dialogs.ConfigANTLRPerGrammar;
+import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 
 public class ConfigureANTLRAction extends AnAction implements DumbAware {
 	@Override

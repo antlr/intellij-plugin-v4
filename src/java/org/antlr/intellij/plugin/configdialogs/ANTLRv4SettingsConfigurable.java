@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.options.Configurable;
