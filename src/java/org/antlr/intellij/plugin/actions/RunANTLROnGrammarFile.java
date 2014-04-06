@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.actions;
 
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -12,15 +13,14 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.ExceptionUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.dialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory;
 import org.antlr.v4.Tool;
@@ -28,18 +28,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnable {
+	public static final String OUTPUT_DIR_NAME = "gen" ;
+	public static final String MISSING = "";
+
 	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile");
 
-	Set<File> generatedFiles = new HashSet<File>();
 	VirtualFile[] files;
 	Project project;
-	/** We use invokeLater to save file changes; must wait til done before invoking antlr */
-	boolean docSaved;
+
+	PropertiesComponent props;
 
 	public RunANTLROnGrammarFile(VirtualFile[] files,
 								 @Nullable final Project project,
@@ -50,6 +54,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		super(project, title, canBeCancelled, backgroundOption);
 		this.files = files;
 		this.project = project;
+		props = PropertiesComponent.getInstance(project);
 	}
 
 	@Override
@@ -65,67 +70,63 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 			PsiFile f = psiManager.findFile(file);
 			if ( !(f instanceof ANTLRv4FileRoot) ) continue; // not grammar file
 
-			ANTLRv4FileRoot gfile = (ANTLRv4FileRoot)f;
-			VirtualFile virtualFile = f.getVirtualFile();
-			String sourcePath =
-				virtualFile == null?
-					"" :
-					VfsUtil.virtualToIoFile(virtualFile).getParentFile().getAbsolutePath();
-
-			VirtualFile content = ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(file);
-			VirtualFile parentDir = content == null ? file.getParent() : content;
-			// create gen dir at root of project
-			String outputDirName = "gen";
-
-			// find package
-			String pack = MyPsiUtils.findPackageIfAny(gfile);
-			if ( pack!=null ) {
-				outputDirName += File.separator+pack.replace('.',File.separatorChar);
-			}
-
-			File genDir = new File(VfsUtil.virtualToIoFile(parentDir), outputDirName);
-			String outputPath = genDir.getAbsolutePath();
-			generatedFiles.add(new File(outputPath));
-			String groupDisplayId = "ANTLR 4 Code Generation";
-			try {
-				boolean success = generate(gfile, sourcePath, outputPath);
-				if ( success ) {
-					LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
-					Notification notification =
-						new Notification(groupDisplayId,
-										 "parser for " + file.getName() + " generated",
-										 "to " + outputPath,
-										 NotificationType.INFORMATION);
-					Notifications.Bus.notify(notification, project);
-				}
-			}
-			catch (Exception ex) {
-				Notification notification =
-					new Notification(groupDisplayId,
-									 "generation of parser for "+file.getName()+" failed",
-									 ExceptionUtil.getUserStackTrace(ex, RunANTLROnGrammarFile.LOG),
-									 NotificationType.ERROR);
-				Notifications.Bus.notify(notification, project);
-				RunANTLROnGrammarFile.LOG.warn(ex);
-			}
+			antlr((ANTLRv4FileRoot)f);
 		}
 	}
 
-	// return success/failure
-	public boolean generate(ANTLRv4FileRoot file, String sourcePath, String outputPath) {
-//		// wait until we've saved the grammar file.
-//		while ( !docSaved ) {
-//			System.out.println("waiting for save");
-//			try { Thread.sleep(500); }
-//			catch (InterruptedException ie) {
-//				LOG.error(ie);
-//			}
-//		}
-		Tool antlr = new Tool(new String[] {
-			"-o", outputPath,
-			"-lib", sourcePath, // lets us see tokenVocab stuff
-			sourcePath+File.separator+file.getName()}
-		);
+	/** Run ANTLR tool on file according to preferences in intellij for this file.
+	 *  Returns set of generated files or empty set if error.
+ 	 */
+	public void antlr(ANTLRv4FileRoot file) {
+		VirtualFile vfile = file.getVirtualFile();
+		if ( vfile==null ) return;
+
+		List<String> args = new ArrayList<String>();
+
+		String qualFileName = vfile.getPresentableName();
+		String sourcePath = getParentDir(vfile);
+		VirtualFile contentRoot = getContentRoot(vfile);
+
+		// create gen dir at root of project by default
+		String outputDirName = contentRoot.getPath()+File.separator+OUTPUT_DIR_NAME;
+		// find package if none in prefs
+		String pack = MyPsiUtils.findPackageIfAny(file);
+		if ( pack!=null ) {
+			outputDirName += File.separator+pack.replace('.',File.separatorChar);
+		}
+		args.add("-o");
+		outputDirName = getProp(qualFileName, "output-dir", outputDirName);
+		args.add(outputDirName);
+
+		args.add("-lib");
+		sourcePath = getProp(qualFileName, "lib-dir", sourcePath);
+		args.add(sourcePath);
+
+		String encoding = getProp(qualFileName, "encoding", MISSING);
+		if ( encoding!=MISSING ) {
+			args.add("-encoding");
+			args.add(encoding);
+		}
+
+		if ( getBooleanProp(qualFileName, "gen-listener", true) ) {
+			args.add("-listener");
+		}
+		else {
+			args.add("-no-listener");
+		}
+		if ( getBooleanProp(qualFileName, "gen-visitor", true) ) {
+			args.add("-visitor");
+		}
+		else {
+			args.add("-no-visitor");
+		}
+
+		args.add(sourcePath+File.separator+vfile.getName()); // add grammar file last
+
+		System.out.println("args="+args);
+
+		Tool antlr = new Tool(args.toArray(new String[args.size()]));
+
 		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
 		console.clear();
 		antlr.removeListeners();
@@ -144,6 +145,42 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 				}
 			);
 		}
-		return !listener.hasOutput;
+
+		String groupDisplayId = "ANTLR 4 Parser Generation";
+		if ( antlr.getNumErrors()==0 ) {
+			// refresh from disk to see new files
+			Set<File> generatedFiles = new HashSet<File>();
+			generatedFiles.add(new File(outputDirName));
+			LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
+			// pop up a notification
+			Notification notification =
+				new Notification(groupDisplayId,
+								 "parser for " + file.getName() + " generated",
+								 "to " + outputDirName,
+								 NotificationType.INFORMATION);
+			Notifications.Bus.notify(notification, project);
+		}
+	}
+
+	public String getProp(String qualFileName, String name, String defaultValue) {
+		String v = props.getValue(ConfigANTLRPerGrammar.getPropNameForFile(qualFileName, name));
+		if ( v==null || v.trim().length()==0 ) return defaultValue;
+		return v;
+	}
+
+	public boolean getBooleanProp(String qualFileName, String name, boolean defaultValue) {
+		return props.getBoolean(ConfigANTLRPerGrammar.getPropNameForFile(qualFileName, name), defaultValue);
+	}
+
+	public String getParentDir(VirtualFile vfile) {
+		return vfile.getParent().getPath();
+	}
+
+	public VirtualFile getContentRoot(VirtualFile vfile) {
+		VirtualFile root =
+			ProjectRootManager.getInstance(project)
+				.getFileIndex().getContentRootForFile(vfile);
+		if ( root!=null ) return root;
+		return vfile.getParent();
 	}
 }

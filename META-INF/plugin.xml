@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.0.3-dev</version>
+  <version>1.1-dev</version>
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -46,8 +46,14 @@
 
   <actions>
     <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
-			text="Generate ANTLR Recognizer">
-    	<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+		text="Generate ANTLR Recognizer">
+		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+		</action>
+	<action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction"
+		text="Configure ANTLR...">
 		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
 		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
 		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
