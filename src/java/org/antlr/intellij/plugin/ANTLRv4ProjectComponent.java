@@ -26,6 +26,7 @@ import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.Nullable;
+import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
@@ -39,6 +40,8 @@ import org.stringtemplate.v4.ST;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ANTLRv4ProjectComponent implements ProjectComponent {
 	public ParseTreePanel treePanel;
@@ -100,7 +103,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 				final VirtualFile vfile = event.getFile();
 				if ( !vfile.getName().endsWith(".g4") ) return;
 
-				System.out.println("save "+vfile.getName());
+				//System.out.println("save "+vfile.getName());
 				ApplicationManager.getApplication().invokeLater(
 					new Runnable() {
 						@Override
@@ -235,19 +238,20 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 		final JTextArea console = parseTreePanel.getConsole();
 		final MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
-		Object[] result = new Object[2];
 
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = g.createParserInterpreter(tokens);
 		parser.removeErrorListeners();
 		parser.addErrorListener(syntaxErrorListener);
+		lexEngine.removeErrorListeners();
+		lexEngine.addErrorListener(syntaxErrorListener);
 		Rule start = g.getRule(startRule);
 		if ( start==null ) {
 			return null; // can't find start rule
 		}
 		ParseTree t = parser.parse(start.index);
 
-		console.setText(syntaxErrorListener.syntaxError);
+		console.setText(Utils.join(syntaxErrorListener.syntaxErrors.iterator(), "\n"));
 		if ( t!=null ) {
 			return new Object[] {parser, t};
 		}
@@ -281,7 +285,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 	/** Traps parser interpreter syntax errors */
 	static class MyConsoleErrorListener extends ConsoleErrorListener {
-		public String syntaxError="";
+		public List<String> syntaxErrors = new ArrayList<String>();
 		@Override
 		public void syntaxError(Recognizer<?, ?> recognizer,
 								@Nullable Object offendingSymbol,
@@ -289,7 +293,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 								@Nullable RecognitionException e)
 		{
 //			super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
-			syntaxError = "line " + line + ":" + charPositionInLine + " " + msg;
+			syntaxErrors.add("line " + line + ":" + charPositionInLine + " " + msg);
 		}
 	}
 }
