@@ -3,9 +3,18 @@ package org.antlr.intellij.plugin;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileAdapter;
+import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.ParseTreePanel;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
@@ -83,6 +92,34 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		TextConsoleBuilder consoleBuilder = consoleBuidlerFactory.createBuilder(project);
 
 		console = consoleBuilder.getConsole();
+
+		VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
+
+			@Override
+			public void contentsChanged(VirtualFileEvent event) {
+				final VirtualFile vfile = event.getFile();
+				if ( !vfile.getName().endsWith(".g4") ) return;
+
+				System.out.println("save "+vfile.getName());
+				ApplicationManager.getApplication().invokeLater(
+					new Runnable() {
+						@Override
+						public void run() {
+							String title = "ANTLR Code Generation";
+							boolean canBeCancelled = true;
+							Task.Backgroundable gen =
+								new RunANTLROnGrammarFile(new VirtualFile[]{vfile},
+														  project,
+														  title,
+														  canBeCancelled,
+														  new BackgroundFromStartOption());
+							ProgressManager.getInstance().run(gen);
+
+						}
+					}
+															   );
+			}
+		});
 	}
 
 	@Override

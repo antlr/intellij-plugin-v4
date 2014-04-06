@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.actions;
 
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -26,9 +27,12 @@ import org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory;
 import org.antlr.v4.Tool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.stringtemplate.v4.misc.Misc;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -128,7 +132,8 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
 		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
-		console.clear();
+		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.NORMAL_OUTPUT);
 		antlr.removeListeners();
 		RunANTLRListener listener = new RunANTLRListener(antlr, console);
 		antlr.addListener(listener);
