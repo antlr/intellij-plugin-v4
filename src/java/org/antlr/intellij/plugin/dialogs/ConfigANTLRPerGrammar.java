@@ -1,29 +1,95 @@
 package org.antlr.intellij.plugin.dialogs;
 
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class ConfigANTLRPerGrammar extends DialogWrapper {
 	private JPanel dialogContents;
-	private JTextField textField1;
-	private JTextField textField2;
-	private JTextField textField3;
-	private JCheckBox checkBox1;
-	private JCheckBox checkBox2;
-	private JTable argsTable;
+	private JCheckBox generateParseTreeListenerCheckBox;
+	private JCheckBox generateParseTreeVisitorCheckBox;
+	private JTextField packageField;
+	private TextFieldWithBrowseButton outputDirField;
+	private TextFieldWithBrowseButton libDirField;
+	private JTextField fileEncodingField;
 
-	public ConfigANTLRPerGrammar(Project project) {
+	public ConfigANTLRPerGrammar(final Project project, String qualFileName) {
 		super(project, false);
 		init();
 
-		setTitle("ANTLR Tool Config");
-		getContentPane().setMinimumSize(new Dimension(400, 300));
+		FileChooserDescriptor dirChooser =
+		        FileChooserDescriptorFactory.createSingleFolderDescriptor();
+		outputDirField.addBrowseFolderListener("Select output dir", null, project, dirChooser);
+		outputDirField.setTextFieldPreferredWidth(50);
+
+		dirChooser =
+		        FileChooserDescriptorFactory.createSingleFolderDescriptor();
+		libDirField.addBrowseFolderListener("Select lib dir", null, project, dirChooser);
+		libDirField.setTextFieldPreferredWidth(50);
+
+		loadValues(project, qualFileName);
 	}
 
+	public void loadValues(Project project, String qualFileName) {
+		PropertiesComponent props = PropertiesComponent.getInstance(project);
+		String s;
+		s =	props.getValue(getPropNameForFile(qualFileName, "output-dir"));
+		if ( s!=null ) outputDirField.setText(s);
+		s =	props.getValue(getPropNameForFile(qualFileName, "lib-dir"));
+		if ( s!=null ) libDirField.setText(s);
+		s =	props.getValue(getPropNameForFile(qualFileName, "encoding"));
+		if ( s!=null ) fileEncodingField.setText(s);
+
+		boolean b;
+		b = props.getBoolean(getPropNameForFile(qualFileName, "gen-listener"), true);
+		generateParseTreeListenerCheckBox.setSelected(b);
+		b =	props.getBoolean(getPropNameForFile(qualFileName, "gen-visitor"), false);
+		generateParseTreeVisitorCheckBox.setSelected(b);
+	}
+
+	public void saveValues(Project project, String qualFileName) {
+		String v;
+		PropertiesComponent props = PropertiesComponent.getInstance(project);
+
+		v = outputDirField.getText();
+		if ( v.trim().length()>0 ) {
+			props.setValue(getPropNameForFile(qualFileName, "output-dir"), v);
+		}
+		else {
+			props.unsetValue(getPropNameForFile(qualFileName,"output-dir"));
+		}
+
+		v = libDirField.getText();
+		if ( v.trim().length()>0 ) {
+			props.setValue(getPropNameForFile(qualFileName,"lib-dir"), v);
+		}
+		else {
+			props.unsetValue(getPropNameForFile(qualFileName,"lib-dir"));
+		}
+
+		v = fileEncodingField.getText();
+		if ( v.trim().length()>0 ) {
+			props.setValue(getPropNameForFile(qualFileName,"encoding"), v);
+		}
+		else {
+			props.unsetValue(getPropNameForFile(qualFileName,"encoding"));
+		}
+
+		props.setValue(getPropNameForFile(qualFileName, "gen-listener"),
+					   String.valueOf(generateParseTreeListenerCheckBox.isSelected()));
+		props.setValue(getPropNameForFile(qualFileName,"gen-visitor"),
+					   String.valueOf(generateParseTreeVisitorCheckBox.isSelected()));
+	}
+
+	public static String getPropNameForFile(String qualFileName, String prop) {
+		return qualFileName + "::/"+prop;
+	}
 
 	@Nullable
 	@Override
@@ -33,11 +99,18 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 	private void createUIComponents() {
 		// TODO: place custom component creation code here
-		String[] columnNames = {"First Name", "Last Name"};
-		Object[][] data = {{"Kathy", "Smith"},{"John", "Doe"}};
-		argsTable = new JTable(data, columnNames);
-		if ( argsTable!=null ) {
-			argsTable.add(new JButton("flflf"));
-		}
+	}
+
+
+	@Override
+	public String toString() {
+		return "ConfigANTLRPerGrammar{" +
+			"textField3=" +
+			", generateParseTreeListenerCheckBox=" + generateParseTreeListenerCheckBox +
+			", generateParseTreeVisitorCheckBox=" + generateParseTreeVisitorCheckBox +
+			", packageField=" + packageField +
+			", outputDirField=" + outputDirField +
+			", libDirField=" + libDirField +
+			'}';
 	}
 }
