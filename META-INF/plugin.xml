@@ -45,18 +45,24 @@
   </project-components>
 
   <actions>
-    <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
-            text="Generate ANTLR Recognizer">
-        <keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
-        <add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
-        <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-    </action>
-       <action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
-            text="Test ANTLR Rule">
-       <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
-       <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-     </action>
+	<action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
+		text="Generate ANTLR Recognizer">
+		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+	</action>
+	<action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction"
+		text="Configure ANTLR...">
+		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+	</action>
+	<action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
+		text="Test ANTLR Rule">
+		<add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
+		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+	</action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -77,7 +83,5 @@
       <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
                   anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">
       </toolWindow>
-
-      <projectConfigurable implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4SettingsConfigurable"/>
   </extensions>
 </idea-plugin>
