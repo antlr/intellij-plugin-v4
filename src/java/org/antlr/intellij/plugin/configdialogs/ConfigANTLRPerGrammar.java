@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin.dialogs;
+package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -83,7 +83,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 		props.setValue(getPropNameForFile(qualFileName, "gen-listener"),
 					   String.valueOf(generateParseTreeListenerCheckBox.isSelected()));
-		props.setValue(getPropNameForFile(qualFileName,"gen-visitor"),
+		props.setValue(getPropNameForFile(qualFileName, "gen-visitor"),
 					   String.valueOf(generateParseTreeVisitorCheckBox.isSelected()));
 	}
 

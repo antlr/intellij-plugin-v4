@@ -1,14 +1,16 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.options.colors.AttributesDescriptor;
 import com.intellij.openapi.options.colors.ColorDescriptor;
 import com.intellij.openapi.options.colors.ColorSettingsPage;
+import org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighter;
+import org.antlr.intellij.plugin.Icons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.Icon;
+import javax.swing.*;
 import java.util.Map;
 
 public class ANTLRv4ColorsPage implements ColorSettingsPage {

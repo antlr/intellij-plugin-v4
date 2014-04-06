@@ -9,16 +9,16 @@
       syntax error checking, semantic error checking, navigation window,
       goto-declaration, find usages, rename tokens, rename rules.
       Generates code. Uses package dir if @header { package x.y.z; } action present.
-	  Generates in <root>/gen/package/YourGrammarRecognizer.java
-	  Shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu, popups.
-	  Code completion for tokens, rule names. finds tokenVocab option for code gen
-	  	if there is a tokenVocab option, don't warn about implicit tokens.
-	  	shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
-	  	for grammar preview. Right click on rule and say "Test ANTLR Rule".
-	  	Changes to grammar seen in parse tree upon save of grammar. Works with
-	  	Intellij 13.x and requires 12.1.x.
+      Generates in <root>/gen/package/YourGrammarRecognizer.java
+      Shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu, popups.
+      Code completion for tokens, rule names. finds tokenVocab option for code gen
+          if there is a tokenVocab option, don't warn about implicit tokens.
+          shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
+          for grammar preview. Right click on rule and say "Test ANTLR Rule".
+          Changes to grammar seen in parse tree upon save of grammar. Works with
+          Intellij 13.x and requires 12.1.x.
 
-	  	<a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
+          <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 
   <change-notes><![CDATA[
@@ -39,54 +39,49 @@
   </application-components>
 
   <project-components>
-	<component>
-		<implementation-class>org.antlr.intellij.plugin.ANTLRv4ProjectComponent</implementation-class>
-	</component>
+    <component>
+        <implementation-class>org.antlr.intellij.plugin.ANTLRv4ProjectComponent</implementation-class>
+    </component>
   </project-components>
 
   <actions>
-    <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
+	<action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
 		text="Generate ANTLR Recognizer">
 		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
 		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
 		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
 		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-		</action>
+	</action>
 	<action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction"
 		text="Configure ANTLR...">
 		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
 		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
 		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
 	</action>
-   	<action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
-			text="Test ANTLR Rule">
-	   <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
-	   <add-to-group group-id="EditorPopupMenu" anchor="last"/>
- 	</action>
+	<action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
+		text="Test ANTLR Rule">
+		<add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
+		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+	</action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-	  <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
-	  <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
-	  <colorSettingsPage implementation="org.antlr.intellij.plugin.ANTLRv4ColorsPage"/>
-	  <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
-	  <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
-	  <lang.psiStructureViewFactory language="ANTLRv4"
-				implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
+      <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
+      <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+      <colorSettingsPage implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4ColorsPage"/>
+      <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
+      <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
+      <lang.psiStructureViewFactory language="ANTLRv4"
+                implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
 
-	  <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
-	  <lang.findUsagesProvider language="ANTLRv4"
+      <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
+      <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
-	  <toolWindow id="ANTLR Parse Tree" secondary="true" icon="/general/add.png"
-				  anchor="bottom" factoryClass="org.antlr.intellij.plugin.preview.ParseTreeWindowFactory">
-	  </toolWindow>
-	  <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
-				  anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">
-	  </toolWindow>
-	  <!--
-	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
-   <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
-  LanguageASTFactory
--->
+      <toolWindow id="ANTLR Parse Tree" secondary="true" icon="/general/add.png"
+                  anchor="bottom" factoryClass="org.antlr.intellij.plugin.preview.ParseTreeWindowFactory">
+      </toolWindow>
+      <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
+                  anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">
+      </toolWindow>
   </extensions>
 </idea-plugin>
