@@ -1,14 +1,14 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.1-dev</version>
+  <version>1.0.3-dev</version>
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
-      This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
-      syntax error checking, semantic error checking, navigation window,
-      goto-declaration, find usages, rename tokens, rename rules.
-      Generates code. Uses package dir if @header { package x.y.z; } action present.
+	  This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
+	  syntax error checking, semantic error checking, navigation window,
+	  goto-declaration, find usages, rename tokens, rename rules.
+	  Generates code. Uses package dir if @header { package x.y.z; } action present.
 	  Generates in <root>/gen/package/YourGrammarRecognizer.java
 	  Shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu, popups.
 	  Code completion for tokens, rule names. finds tokenVocab option for code gen
@@ -19,18 +19,18 @@
 	  	Intellij 13.x and requires 12.1.x.
 
 	  	<a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
-      ]]></description>
+	  ]]></description>
 
   <change-notes><![CDATA[
-      Bug fixes.
-      ]]>
+	  Bug fixes.
+	  ]]>
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
   <idea-version since-build="123.72"/>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
-       on how to target different products -->
+	   on how to target different products -->
   <!-- uncomment to enable plugin in all products
   <depends>com.intellij.modules.lang</depends>
   -->
@@ -45,15 +45,9 @@
   </project-components>
 
   <actions>
-    <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
-		text="Generate ANTLR Recognizer">
+	<action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
+			text="Generate ANTLR Recognizer">
 		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
-		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
-		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
-		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-		</action>
-	<action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction"
-		text="Configure ANTLR...">
 		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
 		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
 		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
@@ -76,13 +70,15 @@
 
 	  <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
 	  <lang.findUsagesProvider language="ANTLRv4"
-                implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
+				implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
 	  <toolWindow id="ANTLR Parse Tree" secondary="true" icon="/general/add.png"
 				  anchor="bottom" factoryClass="org.antlr.intellij.plugin.preview.ParseTreeWindowFactory">
 	  </toolWindow>
 	  <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
 				  anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">
 	  </toolWindow>
+	  
+	  <projectConfigurable implementation="org.antlr.intellij.plugin.ANTLRv4SettingsConfigurable"/>
 	  <!--
 	  <psi.referenceContributor language="ANTLRv4" implementation="org.antlr.intellij.plugin.ANTLRv4ReferenceContributor"/>
    <colorSettingsPage implementation="com.simpleplugin.SimpleColorSettingsPage"/>
