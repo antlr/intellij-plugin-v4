@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.1-dev</version>
+  <version>1.1</version>
   <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -18,11 +18,18 @@
           Changes to grammar seen in parse tree upon save of grammar. Works with
           Intellij 13.x and requires 12.1.x.
 
+          You can configure the ANTLR tool options per grammar file; right-click
+          in a grammar or on a grammar element within the structured view.
+          When you change and save a grammar, it automatically builds with ANTLR
+          in the background according to the preferences you have set.  ANTLR
+          tool errors appear in a console you can opened by clicking on a button
+          in the bottom tab.
+
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 
   <change-notes><![CDATA[
-      Bug fixes.
+      Improved ANTLR config/build, bug fixes. See github for complete list.
       ]]>
   </change-notes>
 
