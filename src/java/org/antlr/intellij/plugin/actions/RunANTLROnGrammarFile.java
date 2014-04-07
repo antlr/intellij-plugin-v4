@@ -127,13 +127,13 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 
 		args.add(sourcePath+File.separator+vfile.getName()); // add grammar file last
 
-		System.out.println("args="+args);
+		//System.out.println("args="+args);
 
 		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
 		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.NORMAL_OUTPUT);
+		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 		antlr.removeListeners();
 		RunANTLRListener listener = new RunANTLRListener(antlr, console);
 		antlr.addListener(listener);

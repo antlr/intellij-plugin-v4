@@ -258,7 +258,7 @@ altList
 	;
 
 alternative
-	:	elements
+	:	elementOptions? elements
 	|	// empty alt
 	;
 
