@@ -13,7 +13,7 @@
     <target name="init-complete-artifact">
 
         <property name="artifact.name" value="antlr"/>
-        <property name="artifact.version" value="4.2"/>
+        <property name="artifact.version" value="4.2.2"/>
         <property name="artifact.snapshot" value=""/> <!-- this could be empty for a final release -->
         <property name="artifact.classifier" value="complete"/>
 
