@@ -6,6 +6,9 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -14,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.v4.Tool;
@@ -94,36 +98,11 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 		console = consoleBuilder.getConsole();
 
-		VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
-			@Override
-			public void contentsChanged(VirtualFileEvent event) {
-				final VirtualFile vfile = event.getFile();
-				if ( !vfile.getName().endsWith(".g4") ) return;
-
-				//System.out.println("save "+vfile.getName());
-				ApplicationManager.getApplication().invokeLater(
-					new Runnable() {
-						@Override
-						public void run() {
-							String title = "ANTLR Code Generation";
-							boolean canBeCancelled = true;
-							Task.Backgroundable gen =
-								new RunANTLROnGrammarFile(new VirtualFile[]{vfile},
-														  project,
-														  title,
-														  canBeCancelled,
-														  new BackgroundFromStartOption());
-							ProgressManager.getInstance().run(gen);
-
-						}
-					}
-															   );
-			}
-		});
 	}
 
 	@Override
 	public void projectOpened() {
+		installListeners();
 	}
 
 	@Override
@@ -138,6 +117,59 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	@Override
 	public String getComponentName() {
 		return "antlr.ProjectComponent";
+	}
+
+	// ------------------------------
+
+	public void installListeners() {
+		// Listen for .g4 file saves
+		VirtualFileManager.getInstance().addVirtualFileListener(
+			new VirtualFileAdapter() {
+				@Override
+				public void contentsChanged(VirtualFileEvent event) {
+					final VirtualFile vfile = event.getFile();
+					if ( !vfile.getName().endsWith(".g4") ) return;
+					grammarFileSaveEvent(vfile);
+				}
+		});
+
+		// Listen for editor window changes
+		MessageBusConnection msgBus = project.getMessageBus().connect(project);
+		msgBus.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
+						 new FileEditorManagerAdapter() {
+							 @Override
+							 public void selectionChanged(FileEditorManagerEvent event) {
+								 final VirtualFile vfile = event.getNewFile();
+								 if ( !vfile.getName().endsWith(".g4") ) return;
+								 grammarFileChanged(event.getOldFile(), event.getNewFile());
+							 }
+						 });
+	}
+
+	public void grammarFileSaveEvent(VirtualFile vfile) {
+		runANTLRTool(vfile);
+	}
+
+	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
+	}
+
+	public void runANTLRTool(final VirtualFile vfile) {
+		ApplicationManager.getApplication().invokeLater(
+			new Runnable() {
+				@Override
+				public void run() {
+					String title = "ANTLR Code Generation";
+					boolean canBeCancelled = true;
+					Task.Backgroundable gen =
+						new RunANTLROnGrammarFile(new VirtualFile[]{vfile},
+												  project,
+												  title,
+												  canBeCancelled,
+												  new BackgroundFromStartOption());
+					ProgressManager.getInstance().run(gen);
+				}
+			}
+													   );
 	}
 
 	public static Object[] parseText(PreviewPanel PreviewPanel,
