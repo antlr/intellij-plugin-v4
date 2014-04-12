@@ -121,7 +121,7 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 		this.buffer = buffer;
 		this.endOffset = endOffset;
 
-		CharStream in = new CharSequenceCharStream(buffer, IntStream.UNKNOWN_SOURCE_NAME);
+		CharStream in = new CharSequenceCharStream(buffer, endOffset, IntStream.UNKNOWN_SOURCE_NAME);
 		in.seek(startOffset);
 
 		State state;
@@ -231,12 +231,18 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 	 */
 	protected static class CharSequenceCharStream implements CharStream {
 		private final CharSequence buffer;
+		/**
+		 * If greater than or equal to 0, this value overrides the value returned by
+		 * {@link #buffer}{@code .}{@link CharSequence#length()}.
+		 */
+		private final int endOffset;
 		private final String sourceName;
 
 		private int position;
 
-		public CharSequenceCharStream(CharSequence buffer, String sourceName) {
+		public CharSequenceCharStream(CharSequence buffer, int endOffset, String sourceName) {
 			this.buffer = buffer;
+			this.endOffset = endOffset;
 			this.sourceName = sourceName;
 		}
 
@@ -256,7 +262,7 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 		public String getText(@NotNull Interval interval) {
 			int start = interval.a;
 			int stop = interval.b;
-			int n = buffer.length();
+			int n = size();
 			if ( stop >= n ) stop = n-1;
 			if ( start >= n ) return "";
 			return buffer.subSequence(start, stop + 1).toString();
@@ -264,7 +270,7 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 
 		@Override
 		public void consume() {
-			if (position == buffer.length()) {
+			if (position == size()) {
 				throw new IllegalStateException("attempted to consume EOF");
 			}
 
@@ -275,7 +281,7 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 		public int LA(int i) {
 			if (i > 0) {
 				int index = position + i - 1;
-				if (index >= buffer.length()) {
+				if (index >= size()) {
 					return IntStream.EOF;
 				}
 
@@ -314,12 +320,16 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 				throw new IllegalArgumentException("index cannot be negative");
 			}
 
-			index = Math.min(index, buffer.length());
+			index = Math.min(index, size());
 			position = index;
 		}
 
 		@Override
 		public int size() {
+			if (endOffset >= 0) {
+				return endOffset;
+			}
+
 			return buffer.length();
 		}
 
