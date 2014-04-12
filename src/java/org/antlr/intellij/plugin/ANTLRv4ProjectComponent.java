@@ -139,25 +139,6 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		return "antlr.ProjectComponent";
 	}
 
-//	private ToolWindow getToolWindow()
-//	{
-//		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(_project);
-//		ToolWindow toolWindow = toolWindowManager.getToolWindow(ParseTreeWindowFactory.ID);
-//		if ( toolWindow!=null ) {
-//			return toolWindow;
-//		}
-//		else {
-//			return toolWindowManager.registerToolWindow(ID_TOOL_WINDOW,
-//														_viewerPanel,
-//														ToolWindowAnchor.RIGHT);
-//		}
-//	}
-//
-//	private boolean isToolWindowRegistered()
-//	{
-//		return ToolWindowManager.getInstance(_project).getToolWindow(ID_TOOL_WINDOW) != null;
-//	}
-
 	public static Object[] parseText(ParseTreePanel parseTreePanel,
 									 String inputText,
 									 String grammarFileName,
@@ -256,6 +237,78 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			return new Object[] {parser, t};
 		}
 		return null;
+	}
+
+	/** Get lexer and parser grammars */
+	public static Grammar[] loadGrammars(String grammarFileName) {
+		Tool antlr = new Tool();
+		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
+		antlr.errMgr.setFormat("antlr");
+		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
+		antlr.addListener(listener);
+
+		String combinedGrammarFileName = null;
+		String lexerGrammarFileName = null;
+		String parserGrammarFileName = null;
+
+		Grammar g = antlr.loadGrammar(grammarFileName); // load to examine it
+		// examine's Grammar AST from v4 itself;
+		// hence use ANTLRParser.X not ANTLRv4Parser from this plugin
+		switch ( g.getType() ) {
+			case ANTLRParser.PARSER :
+				parserGrammarFileName = grammarFileName;
+				int i = grammarFileName.indexOf("Parser");
+				if ( i>=0 ) {
+					lexerGrammarFileName = grammarFileName.substring(0, i) + "Lexer.g4";
+				}
+				break;
+			case ANTLRParser.LEXER :
+				lexerGrammarFileName = grammarFileName;
+				int i2 = grammarFileName.indexOf("Lexer");
+				if ( i2>=0 ) {
+					parserGrammarFileName = grammarFileName.substring(0, i2) + "Parser.g4";
+				}
+				break;
+			case ANTLRParser.COMBINED :
+				combinedGrammarFileName = grammarFileName;
+				lexerGrammarFileName = grammarFileName+"Lexer";
+				parserGrammarFileName = grammarFileName+"Parser";
+				break;
+		}
+
+		if ( lexerGrammarFileName==null ) {
+			LOG.error("Can't compute lexer file name from "+grammarFileName, (Throwable)null);
+			return null;
+		}
+		if ( parserGrammarFileName==null ) {
+			LOG.error("Can't compute parser file name from "+grammarFileName, (Throwable)null);
+			return null;
+		}
+
+		LexerGrammar lg = null;
+
+		if ( combinedGrammarFileName!=null ) {
+			// already loaded above
+			lg = g.getImplicitLexer();
+			if ( listener.grammarErrorMessage!=null ) {
+				g = null;
+			}
+		}
+		else {
+			try {
+				lg = (LexerGrammar)Grammar.load(lexerGrammarFileName);
+			}
+			catch (ClassCastException cce) {
+				LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
+				lg = null;
+			}
+			if ( listener.grammarErrorMessage!=null ) {
+				lg = null;
+			}
+			g = loadGrammar(antlr, parserGrammarFileName, lg);
+		}
+
+		return new Grammar[] {lg, g};
 	}
 
 	/** Same as loadGrammar(fileName) except import vocab from existing lexer */

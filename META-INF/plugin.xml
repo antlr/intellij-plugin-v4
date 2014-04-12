@@ -90,5 +90,10 @@
       <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
                   anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">
       </toolWindow>
+
+	  <lang.parserDefinition language="PreviewParserInput"
+							 implementationClass="org.antlr.intellij.plugin.preview.PreviewParserDefinition"/>
+
+	  <!--<documentationProvider  implementation="org.antlr.intellij.plugin.preview.InputWindowDocumentationProvider"/>-->
   </extensions>
 </idea-plugin>
