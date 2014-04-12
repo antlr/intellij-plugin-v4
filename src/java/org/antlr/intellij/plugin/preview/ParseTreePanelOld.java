@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.preview;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -8,19 +7,14 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBScrollPane;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.io.IOException;
-import java.util.Arrays;
 
-public class ParseTreePanel extends JPanel {
+public class ParseTreePanelOld extends JPanel {
 	protected TreeViewer viewer;  // the antlr tree viewer component itself
 	protected JLabel startRuleLabel;
 	protected Editor editor;
@@ -32,7 +26,7 @@ public class ParseTreePanel extends JPanel {
 	protected String grammarFileName;
 	protected String startRule;
 
-	public ParseTreePanel() {
+	public ParseTreePanelOld() {
 		buildGUI();
 	}
 
@@ -121,29 +115,29 @@ public class ParseTreePanel extends JPanel {
 			return;
 		}
 
-		final ParseTreePanel self = this;
-		ApplicationManager.getApplication().invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Object[] results =
-						ANTLRv4ProjectComponent.parseText(self,
-														  inputText,
-														  grammarFileName,
-														  startRule);
-					if (results != null) {
-						Parser parser = (Parser) results[0];
-						ParseTree root = (ParseTree) results[1];
-						viewer.setRuleNames(Arrays.asList(parser.getRuleNames()));
-						viewer.setTree(root);
-					} else {
-						viewer.setTree(null);
-					}
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-				}
-			}
-		});
+//		final PreviewPanel self = this;
+//		ApplicationManager.getApplication().invokeLater(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					Object[] results =
+//						ANTLRv4ProjectComponent.parseText(self,
+//														  inputText,
+//														  grammarFileName,
+//														  startRule);
+//					if (results != null) {
+//						Parser parser = (Parser) results[0];
+//						ParseTree root = (ParseTree) results[1];
+//						viewer.setRuleNames(Arrays.asList(parser.getRuleNames()));
+//						viewer.setTree(root);
+//					} else {
+//						viewer.setTree(null);
+//					}
+//				} catch (IOException ioe) {
+//					ioe.printStackTrace();
+//				}
+//			}
+//		});
 	}
 
 	public TreeViewer getViewer() {

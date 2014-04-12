@@ -85,7 +85,7 @@
       <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
       <toolWindow id="ANTLR Parse Tree" secondary="true" icon="/general/add.png"
-                  anchor="bottom" factoryClass="org.antlr.intellij.plugin.preview.ParseTreeWindowFactory">
+                  anchor="bottom" factoryClass="org.antlr.intellij.plugin.preview.PreviewWindowFactory">
       </toolWindow>
       <toolWindow id="ANTLR Tool Output" secondary="true" icon="/general/add.png"
                   anchor="bottom" factoryClass="org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory">

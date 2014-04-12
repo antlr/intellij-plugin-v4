@@ -9,23 +9,13 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
-import org.antlr.intellij.plugin.preview.ParseTreePanel;
-import org.antlr.intellij.plugin.preview.ParseTreeWindowFactory;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
-
-import java.util.List;
 
 public class TestRuleAction extends AnAction implements DumbAware {
 	BulkFileListener.Adapter fileSaveListener;
@@ -74,26 +64,26 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		Document doc = docMgr.getDocument(file);
 		docMgr.saveDocument(doc);
 
-		final ParseTreePanel viewerPanel =
-			ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
-		String inputText = viewerPanel.getInputText(); // reuse input if any is around already
-		viewerPanel.setInputAndGrammar(inputText, file.getPath(), ruleName);
-
-		if ( fileSaveListener==null ) {
-			fileSaveListener = new BulkFileListener.Adapter() {
-				@Override
-				public void after(List<? extends VFileEvent> events) {
-//					System.out.println("file changed");
-					viewerPanel.refresh();
-				}
-			};
-			MessageBusConnection msgBus = project.getMessageBus().connect(project);
-			msgBus.subscribe(VirtualFileManager.VFS_CHANGES, fileSaveListener);
-		}
-
-		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-		ToolWindow toolWindow = toolWindowManager.getToolWindow(ParseTreeWindowFactory.ID);
-		toolWindow.show(null);
+//		final ParseTreePanel viewerPanel =
+//			ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
+//		String inputText = viewerPanel.getInputText(); // reuse input if any is around already
+//		viewerPanel.setInputAndGrammar(inputText, file.getPath(), ruleName);
+//
+//		if ( fileSaveListener==null ) {
+//			fileSaveListener = new BulkFileListener.Adapter() {
+//				@Override
+//				public void after(List<? extends VFileEvent> events) {
+////					System.out.println("file changed");
+//					viewerPanel.refresh();
+//				}
+//			};
+//			MessageBusConnection msgBus = project.getMessageBus().connect(project);
+//			msgBus.subscribe(VirtualFileManager.VFS_CHANGES, fileSaveListener);
+//		}
+////
+//		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+//		ToolWindow toolWindow = toolWindowManager.getToolWindow(PreviewWindowFactory.ID);
+//		toolWindow.show(null);
 	}
 
 	public VirtualFile getGrammarFile(AnActionEvent e) {

@@ -15,40 +15,42 @@ import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
-import org.antlr.intellij.plugin.preview.ParseTreePanel;
+import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.LexerInterpreter;
-import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.Nullable;
-import org.antlr.v4.runtime.misc.Utils;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
-import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/** This object acts like the controller for the ANTLR plug-in. It receives
+ *  events and can send them on to its contained components. For example,
+ *  saving the grammar editor or flipping to a new grammar sends an event
+ *  to this object, which forwards on update events to the preview tool window.
+ *
+ *  The main components are a console tool window forever output and
+ *  the main panel of the preview tool window.
+ */
 public class ANTLRv4ProjectComponent implements ProjectComponent {
-	public ParseTreePanel treePanel;
-	public ConsoleView console;
-	public Project project;
-
 	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
+
+	public Project project;
+	public PreviewPanel previewPanel;
+	public ConsoleView console;
 
 	public ANTLRv4ProjectComponent(Project project) {
 		this.project = project;
@@ -74,8 +76,8 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 	 */
 
-	public ParseTreePanel getTreeViewPanel() {
-		return treePanel;
+	public PreviewPanel getTreeViewPanel() {
+		return previewPanel;
 	}
 
 	public ConsoleView getConsole() {
@@ -86,18 +88,13 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 	@Override
 	public void initComponent() {
-	}
-
-	@Override
-	public void projectOpened() {
-		treePanel = new ParseTreePanel();
+		previewPanel = new PreviewPanel();
 		TextConsoleBuilderFactory consoleBuidlerFactory = TextConsoleBuilderFactory.getInstance();
 		TextConsoleBuilder consoleBuilder = consoleBuidlerFactory.createBuilder(project);
 
 		console = consoleBuilder.getConsole();
 
 		VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
-
 			@Override
 			public void contentsChanged(VirtualFileEvent event) {
 				final VirtualFile vfile = event.getFile();
@@ -126,6 +123,10 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 
 	@Override
+	public void projectOpened() {
+	}
+
+	@Override
 	public void projectClosed() {
 	}
 
@@ -139,7 +140,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		return "antlr.ProjectComponent";
 	}
 
-	public static Object[] parseText(ParseTreePanel parseTreePanel,
+	public static Object[] parseText(PreviewPanel PreviewPanel,
 									 String inputText,
 									 String grammarFileName,
 									 String startRule)
@@ -217,25 +218,25 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 			lexEngine = lg.createLexerInterpreter(input);
 		}
 
-		final JTextArea console = parseTreePanel.getConsole();
-		final MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
-
-		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
-		ParserInterpreter parser = g.createParserInterpreter(tokens);
-		parser.removeErrorListeners();
-		parser.addErrorListener(syntaxErrorListener);
-		lexEngine.removeErrorListeners();
-		lexEngine.addErrorListener(syntaxErrorListener);
-		Rule start = g.getRule(startRule);
-		if ( start==null ) {
-			return null; // can't find start rule
-		}
-		ParseTree t = parser.parse(start.index);
-
-		console.setText(Utils.join(syntaxErrorListener.syntaxErrors.iterator(), "\n"));
-		if ( t!=null ) {
-			return new Object[] {parser, t};
-		}
+//		final JTextArea console = PreviewPanel.getConsole();
+//		final MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
+//
+//		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
+//		ParserInterpreter parser = g.createParserInterpreter(tokens);
+//		parser.removeErrorListeners();
+//		parser.addErrorListener(syntaxErrorListener);
+//		lexEngine.removeErrorListeners();
+//		lexEngine.addErrorListener(syntaxErrorListener);
+//		Rule start = g.getRule(startRule);
+//		if ( start==null ) {
+//			return null; // can't find start rule
+//		}
+//		ParseTree t = parser.parse(start.index);
+//
+//		console.setText(Utils.join(syntaxErrorListener.syntaxErrors.iterator(), "\n"));
+//		if ( t!=null ) {
+//			return new Object[] {parser, t};
+//		}
 		return null;
 	}
 
