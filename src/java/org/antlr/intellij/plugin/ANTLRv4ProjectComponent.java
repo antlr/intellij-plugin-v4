@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -15,6 +17,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
@@ -34,6 +41,7 @@ import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,10 +57,15 @@ import java.util.List;
  */
 public class ANTLRv4ProjectComponent implements ProjectComponent {
 	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
+	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
+	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
 	public Project project;
 	public PreviewPanel previewPanel;
 	public ConsoleView console;
+
+	public ToolWindow consoleWindow;
+	public ToolWindow previewWindow;
 
 	public ANTLRv4ProjectComponent(Project project) {
 		this.project = project;
@@ -69,7 +82,32 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 	@Override
 	public void projectOpened() {
+		// make sure the tool windows are created early
+		createToolWindows();
 		installListeners();
+	}
+
+	public void createToolWindows() {
+		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+
+		previewPanel = new PreviewPanel(project);
+
+		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+		Content content = contentFactory.createContent(previewPanel, "", false);
+
+		previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+		previewWindow.getContentManager().addContent(content);
+
+		TextConsoleBuilderFactory factory = TextConsoleBuilderFactory.getInstance();
+		TextConsoleBuilder consoleBuilder = factory.createBuilder(project);
+		ConsoleView console = consoleBuilder.getConsole();
+		ANTLRv4ProjectComponent.getInstance(project).setConsole(console);
+
+		JComponent consoleComponent = console.getComponent();
+		content = contentFactory.createContent(consoleComponent, "", false);
+
+		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+		consoleWindow.getContentManager().addContent(content);
 	}
 
 	@Override
@@ -341,6 +379,22 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 	public void setConsole(ConsoleView console) {
 		this.console = console;
+	}
+
+	public ToolWindow getConsoleWindow() {
+		return consoleWindow;
+	}
+
+	public ToolWindow getPreviewWindow() {
+		return previewWindow;
+	}
+
+	public void setConsoleWindow(ToolWindow consoleWindow) {
+		this.consoleWindow = consoleWindow;
+	}
+
+	public void setPreviewWindow(ToolWindow previewWindow) {
+		this.previewWindow = previewWindow;
 	}
 
 	static class MyANTLRToolListener extends DefaultToolListener {

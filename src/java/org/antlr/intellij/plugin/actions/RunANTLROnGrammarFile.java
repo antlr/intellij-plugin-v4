@@ -15,15 +15,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
-import org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory;
 import org.antlr.v4.Tool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,13 +136,11 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		antlr.addListener(listener);
 		antlr.processGrammarsOnCommandLine();
 		if ( listener.hasOutput ) {
-			ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-			final ToolWindow toolWindow = toolWindowManager.getToolWindow(ToolOutputWindowFactory.ID);
 			ApplicationManager.getApplication().invokeLater(
 				new Runnable() {
 					@Override
 					public void run() {
-						toolWindow.show(null);
+						ANTLRv4ProjectComponent.getInstance(project).getConsoleWindow().show(null);
 					}
 				}
 			);

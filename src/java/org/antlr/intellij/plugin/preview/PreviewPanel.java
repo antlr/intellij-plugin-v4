@@ -28,8 +28,12 @@ public class PreviewPanel extends JPanel {
 	Project project;
 	Grammar lg;
 	Grammar g;
+	String startRuleName;
+
 	Editor editor;
 	JPanel editorPanel;
+
+	JLabel startRuleLabel;
 
 	public PreviewPanel(Project project) {
 		this.project = project;
@@ -43,7 +47,7 @@ public class PreviewPanel extends JPanel {
 		JTextArea console = new JTextArea();
 
 		editorPanel = new JPanel(new BorderLayout(0,0));
-		JLabel startRuleLabel = new JLabel("Start rule: <select from navigator or grammar>");
+		startRuleLabel = new JLabel("Start rule: <select from navigator or grammar>");
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
 		editorPanel.add(placeHolder, BorderLayout.CENTER);
 		editorPanel.add(console, BorderLayout.SOUTH);
@@ -75,6 +79,11 @@ public class PreviewPanel extends JPanel {
 		lg = grammars[0];
 		g = grammars[1];
 		this.editor = createEditor("");
+	}
+
+	public void setStartRuleName(String startRuleName) {
+		this.startRuleName = startRuleName;
+		startRuleLabel.setText("Start rule: "+startRuleName);
 	}
 
 	public Editor createEditor(String inputText) {

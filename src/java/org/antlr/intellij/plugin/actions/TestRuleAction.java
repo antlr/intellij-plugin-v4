@@ -14,6 +14,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 
@@ -81,9 +83,13 @@ public class TestRuleAction extends AnAction implements DumbAware {
 //			msgBus.subscribe(VirtualFileManager.VFS_CHANGES, fileSaveListener);
 //		}
 ////
-//		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-//		ToolWindow toolWindow = toolWindowManager.getToolWindow(PreviewWindowFactory.ID);
-//		toolWindow.show(null);
+
+		ANTLRv4ProjectComponent.getInstance(project).getPreviewWindow().show(null);
+
+		PreviewPanel previewPanel =
+			ANTLRv4ProjectComponent.getInstance(project).getPreviewPanel();
+		previewPanel.setStartRuleName(ruleName);
+		previewPanel.grammarFileSaved(file);
 	}
 
 	public VirtualFile getGrammarFile(AnActionEvent e) {
