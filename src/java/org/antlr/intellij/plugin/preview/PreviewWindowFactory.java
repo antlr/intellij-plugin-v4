@@ -12,7 +12,7 @@ public class PreviewWindowFactory implements ToolWindowFactory {
 
 	// Create the tool window content.
 	public void createToolWindowContent(Project project, ToolWindow toolWindow) {
-		PreviewPanel previewPanel = new PreviewPanel();
+		PreviewPanel previewPanel = new PreviewPanel(project);
 		ANTLRv4ProjectComponent.getInstance(project).setPreviewPanel(previewPanel);
 
 		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();

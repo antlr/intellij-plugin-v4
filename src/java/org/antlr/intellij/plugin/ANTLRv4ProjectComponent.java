@@ -117,7 +117,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(vfile);
 		}
-		runANTLRTool(vfile);
+		//runANTLRTool(vfile);
 	}
 
 	public void grammarFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
