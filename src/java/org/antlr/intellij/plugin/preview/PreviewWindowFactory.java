@@ -7,17 +7,16 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
 
-import javax.swing.*;
-
 public class PreviewWindowFactory implements ToolWindowFactory {
 	public static final String ID = "ANTLR Preview";
 
 	// Create the tool window content.
 	public void createToolWindowContent(Project project, ToolWindow toolWindow) {
-		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+		PreviewPanel previewPanel = new PreviewPanel();
+		ANTLRv4ProjectComponent.getInstance(project).setPreviewPanel(previewPanel);
 
-		JPanel pane = ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
-		Content content = contentFactory.createContent(pane, "", false);
+		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+		Content content = contentFactory.createContent(previewPanel, "", false);
 		toolWindow.getContentManager().addContent(content);
 	}
 }

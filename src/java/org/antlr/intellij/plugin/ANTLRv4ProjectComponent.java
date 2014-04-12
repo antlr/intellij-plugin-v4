@@ -1,7 +1,5 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.execution.filters.TextConsoleBuilder;
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -65,39 +63,8 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		return pc;
 	}
 
-/* doesn't work if file is not in a source dir of a project i think.
-	public static Project getProjectForFile(VirtualFile virtualFile) {
-		Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-		Project project = null;
-		for (int i = 0; i < openProjects.length; i++) {
-			Project p = openProjects[i];
-			ProjectFileIndex fileIndex = ProjectRootManager.getInstance(p).getFileIndex();
-			if ( fileIndex.isInContent(virtualFile) ) {
-				project = p;
-			}
-		}
-		return project;
-	}
-	 */
-
-	public PreviewPanel getTreeViewPanel() {
-		return previewPanel;
-	}
-
-	public ConsoleView getConsole() {
-		return console;
-	}
-
-	// -------------------------------------
-
 	@Override
 	public void initComponent() {
-		previewPanel = new PreviewPanel();
-		TextConsoleBuilderFactory consoleBuidlerFactory = TextConsoleBuilderFactory.getInstance();
-		TextConsoleBuilder consoleBuilder = consoleBuidlerFactory.createBuilder(project);
-
-		console = consoleBuilder.getConsole();
-
 	}
 
 	@Override
@@ -129,7 +96,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 				public void contentsChanged(VirtualFileEvent event) {
 					final VirtualFile vfile = event.getFile();
 					if ( !vfile.getName().endsWith(".g4") ) return;
-					grammarFileSaveEvent(vfile);
+					grammarFileSavedEvent(vfile);
 				}
 		});
 
@@ -140,17 +107,23 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 							 @Override
 							 public void selectionChanged(FileEditorManagerEvent event) {
 								 final VirtualFile vfile = event.getNewFile();
-								 if ( !vfile.getName().endsWith(".g4") ) return;
-								 grammarFileChanged(event.getOldFile(), event.getNewFile());
+								 if ( vfile==null || !vfile.getName().endsWith(".g4") ) return;
+								 grammarFileChangedEvent(event.getOldFile(), event.getNewFile());
 							 }
 						 });
 	}
 
-	public void grammarFileSaveEvent(VirtualFile vfile) {
+	public void grammarFileSavedEvent(VirtualFile vfile) {
+		if ( previewPanel!=null ) {
+			previewPanel.grammarFileSaved(vfile);
+		}
 		runANTLRTool(vfile);
 	}
 
-	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
+	public void grammarFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
+		if ( previewPanel!=null ) {
+			previewPanel.grammarFileChanged(oldFile, newFile);
+		}
 	}
 
 	public void runANTLRTool(final VirtualFile vfile) {
@@ -169,7 +142,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 					ProgressManager.getInstance().run(gen);
 				}
 			}
-													   );
+	   );
 	}
 
 	public static Object[] parseText(PreviewPanel PreviewPanel,
@@ -352,6 +325,22 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		g.importVocab(lexerGrammar);
 		tool.process(g, false);
 		return g;
+	}
+
+	public PreviewPanel getPreviewPanel() {
+		return previewPanel;
+	}
+
+	public void setPreviewPanel(PreviewPanel previewPanel) {
+		this.previewPanel = previewPanel;
+	}
+
+	public ConsoleView getConsole() {
+		return console;
+	}
+
+	public void setConsole(ConsoleView console) {
+		this.console = console;
 	}
 
 	static class MyANTLRToolListener extends DefaultToolListener {
