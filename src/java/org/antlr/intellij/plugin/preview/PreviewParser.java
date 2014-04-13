@@ -2,7 +2,6 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import org.antlr.intellij.adaptor.parser.AntlrParser;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
@@ -25,8 +24,7 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 
 	@Override
 	protected ParserInterpreter createParserImpl(TokenStream tokenStream, IElementType root, PsiBuilder builder) {
-		VirtualFile currentFile = null; //ANTLRv4ProjectComponent.getCurrentEditorFile(project);
-		String grammarFileName = currentFile.getPath();
+		String grammarFileName = ANTLRv4ProjectComponent.getInstance(project).getGrammarFileName();
 		System.out.println("create parse for "+grammarFileName);
 		if ( !grammarFileName.endsWith(".g4") ) {
 			System.err.println("not a grammar!!!!!!");

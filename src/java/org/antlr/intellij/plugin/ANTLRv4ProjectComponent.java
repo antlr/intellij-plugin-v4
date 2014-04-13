@@ -67,6 +67,10 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	public ToolWindow consoleWindow;
 	public ToolWindow previewWindow;
 
+	public String grammarFileName;
+	public Grammar g;
+	public Grammar lg;
+
 	public ANTLRv4ProjectComponent(Project project) {
 		this.project = project;
 	}
@@ -152,6 +156,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 
 	public void grammarFileSavedEvent(VirtualFile vfile) {
+		switchToGrammar(vfile.getPath());
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(vfile);
 		}
@@ -159,9 +164,17 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 
 	public void grammarFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
+		switchToGrammar(newFile.getPath());
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
 		}
+	}
+
+	public void switchToGrammar(String grammarFileName) {
+		this.grammarFileName = grammarFileName;
+		Grammar[] grammars = ANTLRv4ProjectComponent.loadGrammars(grammarFileName);
+		lg = grammars[0];
+		g = grammars[1];
 	}
 
 	public void runANTLRTool(final VirtualFile vfile) {
@@ -395,6 +408,23 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 	public void setPreviewWindow(ToolWindow previewWindow) {
 		this.previewWindow = previewWindow;
+	}
+
+	public Grammar getParserGrammar() {
+		return g;
+	}
+
+	public Grammar getLexerGrammar() {
+		return lg;
+	}
+
+	public String getGrammarFileName() {
+		return grammarFileName;
+	}
+
+	public String getInputText() {
+		if ( previewPanel==null ) return "";
+		return previewPanel.editor.getDocument().getText();
 	}
 
 	static class MyANTLRToolListener extends DefaultToolListener {

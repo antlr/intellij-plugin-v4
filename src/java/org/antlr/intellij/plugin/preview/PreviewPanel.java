@@ -30,7 +30,7 @@ public class PreviewPanel extends JPanel {
 	Grammar g;
 	String startRuleName;
 
-	Editor editor;
+	public Editor editor;
 	JPanel editorPanel;
 
 	JLabel startRuleLabel;
