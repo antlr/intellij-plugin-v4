@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.Grammar;
 
+import java.util.Arrays;
+
 public class PreviewParser extends AntlrParser<ParserInterpreter> {
 	public Project project;
 	public int ruleIndex;
@@ -30,9 +32,7 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 			System.err.println("not a grammar!!!!!!");
 		}
 
-		Grammar[] grammars = ANTLRv4ProjectComponent.loadGrammars(grammarFileName);
-		Grammar lg = grammars[0];
-		Grammar g = grammars[1];
+		Grammar g = ANTLRv4ProjectComponent.getInstance(project).getParserGrammar();
 
 		ParserInterpreter parser = g.createParserInterpreter(tokenStream);
 		parser.removeErrorListeners();
@@ -47,6 +47,7 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 			System.err.println("errors="+errListener.getSyntaxErrors());
 		}
 		System.out.println("parse tree: "+t.toStringTree(parser));
+		ANTLRv4ProjectComponent.getInstance(project).getPreviewPanel().setParseTree(Arrays.asList(parser.getRuleNames()), t);
 		return t;
 	}
 }

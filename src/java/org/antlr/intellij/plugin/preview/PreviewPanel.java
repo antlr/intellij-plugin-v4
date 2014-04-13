@@ -10,12 +10,18 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Grammar;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.IOException;
+import java.util.List;
 
 /** The top level contents of the preview tool window created by
  *  intellij automatically. Since we need grammars to interpret,
@@ -34,29 +40,57 @@ public class PreviewPanel extends JPanel {
 	JPanel editorPanel;
 
 	JLabel startRuleLabel;
+	TreeViewer treeViewer;
 
 	public PreviewPanel(Project project) {
 		this.project = project;
-		buildGUI();
+		createGUI();
 	}
 
-	public void buildGUI() {
+	public void createGUI() {
 		this.setLayout(new BorderLayout());
-		this.add(new JLabel("testing"), BorderLayout.CENTER);
 
+		Splitter splitPane = new Splitter();
+		splitPane.setFirstComponent(createEditorPanel());
+		splitPane.setSecondComponent(createParseTreePanel());
+
+		this.add(splitPane, BorderLayout.CENTER);
+	}
+
+	public JPanel createEditorPanel() {
 		JTextArea console = new JTextArea();
-
 		editorPanel = new JPanel(new BorderLayout(0,0));
 		startRuleLabel = new JLabel("Start rule: <select from navigator or grammar>");
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
 		editorPanel.add(placeHolder, BorderLayout.CENTER);
 		editorPanel.add(console, BorderLayout.SOUTH);
+		return editorPanel;
+	}
 
-		Splitter splitPane = new Splitter();
-		splitPane.setFirstComponent(editorPanel);
-		splitPane.setSecondComponent(new JLabel("tree"));
+	public JPanel createParseTreePanel() {
+		// wrap tree and slider in panel
+		JPanel treePanel = new JPanel(new BorderLayout(0,0));
+		treePanel.setBackground(Color.white);
+		// Wrap tree viewer component in scroll pane
+		treeViewer = new TreeViewer(null, null);
+		JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
+		treePanel.add(scrollPane, BorderLayout.CENTER);
 
-		this.add(splitPane, BorderLayout.CENTER);
+		// Add scale slider to bottom, under tree view scroll panel
+		int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
+		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
+										  -999,1000,sliderValue);
+		scaleSlider.addChangeListener(
+			new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					int v = scaleSlider.getValue();
+					treeViewer.setScale(v / 1000.0 + 1.0);
+				}
+			}
+									 );
+		treePanel.add(scaleSlider, BorderLayout.SOUTH);
+		return treePanel;
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
@@ -79,6 +113,11 @@ public class PreviewPanel extends JPanel {
 		lg = grammars[0];
 		g = grammars[1];
 		this.editor = createEditor("");
+	}
+
+	public void setParseTree(List<String> ruleNames, ParseTree tree) {
+		treeViewer.setRuleNames(ruleNames);
+		treeViewer.setTree(tree);
 	}
 
 	public void setStartRuleName(String startRuleName) {
