@@ -6,6 +6,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -25,6 +26,7 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
+import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -45,38 +47,46 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/** This object acts like the controller for the ANTLR plug-in. It receives
+/** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
  *  saving the grammar editor or flipping to a new grammar sends an event
  *  to this object, which forwards on update events to the preview tool window.
  *
- *  The main components are a console tool window forever output and
+ *  The main components are related to the console tool window forever output and
  *  the main panel of the preview tool window.
+ *
+ *  This controller also manages the cache of grammar/editor combinations
+ *  needed for the preview window. Updates must be made atomically so that
+ *  the grammars and editors are consistently associated with the same window.
  */
-public class ANTLRv4ProjectComponent implements ProjectComponent {
+public class ANTLRv4PluginController implements ProjectComponent {
 	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
+	private final Object previewStateLock = new Object();
+
 	public Project project;
-	public PreviewPanel previewPanel;
 	public ConsoleView console;
-
 	public ToolWindow consoleWindow;
-	public ToolWindow previewWindow;
 
-	public String grammarFileName;
-	public Grammar g;
-	public Grammar lg;
+	public String grammarFileName;		// Indicates the current grammar editor window
+	public Map<String, PreviewState> grammarToPreviewState =
+		Collections.synchronizedMap(new HashMap<String, PreviewState>());
+	public ToolWindow previewWindow;	// same for all grammar editor
+	public PreviewPanel previewPanel;	// same for all grammar editor
 
-	public ANTLRv4ProjectComponent(Project project) {
+	public ANTLRv4PluginController(Project project) {
 		this.project = project;
 	}
 
-	public static ANTLRv4ProjectComponent getInstance(Project project) {
-		ANTLRv4ProjectComponent pc = project.getComponent(ANTLRv4ProjectComponent.class);
+	public static ANTLRv4PluginController getInstance(Project project) {
+		ANTLRv4PluginController pc = project.getComponent(ANTLRv4PluginController.class);
 		return pc;
 	}
 
@@ -104,8 +114,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 
 		TextConsoleBuilderFactory factory = TextConsoleBuilderFactory.getInstance();
 		TextConsoleBuilder consoleBuilder = factory.createBuilder(project);
-		ConsoleView console = consoleBuilder.getConsole();
-		ANTLRv4ProjectComponent.getInstance(project).setConsole(console);
+		this.console = consoleBuilder.getConsole();
 
 		JComponent consoleComponent = console.getComponent();
 		content = contentFactory.createContent(consoleComponent, "", false);
@@ -155,8 +164,28 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 						 });
 	}
 
+	/** The test ANTLR rule action triggers this event. This can occur
+	 *  only occur when the current editor the showing a grammar, because
+	 *  that is the only time that the action is enabled. We will see
+	 *  a file changed event when the project loads the first grammar file.
+	 */
+	public void setStartRuleNameEvent(String startRuleName) {
+		System.out.println("setStartRuleNameEvent "+startRuleName);
+		PreviewState previewState = grammarToPreviewState.get(grammarFileName);
+		assert previewState!=null;
+//		if ( previewState==null ) {
+//			// If the project opens looking at a grammar, we need to simulate a
+//			// grammar save event
+//			grammarFileSavedEvent(getCurrentEditorFile(project));
+//		}
+		assert previewState!=null;
+		previewState.startRuleName = startRuleName;
+		previewPanel.setStartRuleName(startRuleName); // notify the view
+	}
+
 	public void grammarFileSavedEvent(VirtualFile vfile) {
-		switchToGrammar(vfile.getPath());
+		System.out.println("grammarFileSavedEvent "+vfile.getName());
+		updateGrammar(vfile.getPath());
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(vfile);
 		}
@@ -164,6 +193,7 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 
 	public void grammarFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
+		System.out.println("grammarFileChangedEvent "+newFile.getName());
 		switchToGrammar(newFile.getPath());
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
@@ -171,10 +201,44 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 	}
 
 	public void switchToGrammar(String grammarFileName) {
-		this.grammarFileName = grammarFileName;
-		Grammar[] grammars = ANTLRv4ProjectComponent.loadGrammars(grammarFileName);
-		lg = grammars[0];
-		g = grammars[1];
+		synchronized ( previewStateLock ) { // build atomically
+			this.grammarFileName = grammarFileName; // switch to grammarFileName
+			PreviewState previewState = grammarToPreviewState.get(grammarFileName);
+			if (previewState != null) {
+				// we have already seen this grammar; state object already built
+				return;
+			}
+			previewState = new PreviewState();
+			grammarToPreviewState.put(grammarFileName, previewState);
+			previewState.grammarFileName = grammarFileName;
+			/* run later */ Grammar[] grammars = ANTLRv4PluginController.loadGrammars(grammarFileName);
+			previewState.lg = grammars[0];
+			previewState.g = grammars[1];
+		}
+	}
+
+	/** Look for state information concerning this grammar file and update
+	 *  the Grammar objects.  This does not necessarily update the grammar file
+	 *  in the current editor window, so do not switch to this grammar file.
+	 *  Either we are already looking at this grammar or we will get a
+	 *  grammar file changed event.
+	 */
+	public void updateGrammar(String grammarFileName) {
+		synchronized ( previewStateLock ) { // build atomically
+			PreviewState previewState = grammarToPreviewState.get(grammarFileName);
+			if (previewState == null) {
+				// if we have not seen this grammar before, we create
+				// a new state object and update that
+				previewState = new PreviewState();
+				grammarToPreviewState.put(grammarFileName, previewState);
+				previewState.grammarFileName = grammarFileName;
+			}
+			// we have the previous or a properly constructed new state object;
+			// update grammars.
+			Grammar[] grammars = ANTLRv4PluginController.loadGrammars(grammarFileName);
+			previewState.lg = grammars[0];
+			previewState.g = grammars[1];
+		}
 	}
 
 	public void runANTLRTool(final VirtualFile vfile) {
@@ -382,16 +446,8 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		return previewPanel;
 	}
 
-	public void setPreviewPanel(PreviewPanel previewPanel) {
-		this.previewPanel = previewPanel;
-	}
-
 	public ConsoleView getConsole() {
 		return console;
-	}
-
-	public void setConsole(ConsoleView console) {
-		this.console = console;
 	}
 
 	public ToolWindow getConsoleWindow() {
@@ -402,29 +458,22 @@ public class ANTLRv4ProjectComponent implements ProjectComponent {
 		return previewWindow;
 	}
 
-	public void setConsoleWindow(ToolWindow consoleWindow) {
-		this.consoleWindow = consoleWindow;
-	}
-
-	public void setPreviewWindow(ToolWindow previewWindow) {
-		this.previewWindow = previewWindow;
-	}
-
-	public Grammar getParserGrammar() {
-		return g;
-	}
-
-	public Grammar getLexerGrammar() {
-		return lg;
-	}
-
-	public String getGrammarFileName() {
-		return grammarFileName;
-	}
-
 	public String getInputText() {
 		if ( previewPanel==null ) return "";
-		return previewPanel.editor.getDocument().getText();
+		return getPreviewState().editor.getDocument().getText();
+	}
+
+	public PreviewState getPreviewState() {
+		if ( grammarFileName!=null ) {
+			return grammarToPreviewState.get(grammarFileName);
+		}
+		return null;
+	}
+
+	public static VirtualFile getCurrentEditorFile(Project project) {
+		FileEditorManager fmgr = FileEditorManager.getInstance(project);
+		VirtualFile files[] = fmgr.getSelectedFiles();
+		return files[0];
 	}
 
 	static class MyANTLRToolListener extends DefaultToolListener {

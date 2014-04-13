@@ -1,15 +1,15 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.lang.PsiBuilder;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.tree.IElementType;
 import org.antlr.intellij.adaptor.parser.AntlrParser;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.tool.Grammar;
 
 import java.util.Arrays;
 
@@ -26,28 +26,34 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 
 	@Override
 	protected ParserInterpreter createParserImpl(TokenStream tokenStream, IElementType root, PsiBuilder builder) {
-		String grammarFileName = ANTLRv4ProjectComponent.getInstance(project).getGrammarFileName();
-		System.out.println("create parse for "+grammarFileName);
-		if ( !grammarFileName.endsWith(".g4") ) {
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+		System.out.println("create parse for "+previewState.grammarFileName);
+		if ( !previewState.grammarFileName.endsWith(".g4") ) {
 			System.err.println("not a grammar!!!!!!");
 		}
 
-		Grammar g = ANTLRv4ProjectComponent.getInstance(project).getParserGrammar();
-
-		ParserInterpreter parser = g.createParserInterpreter(tokenStream);
+		ParserInterpreter parser = previewState.g.createParserInterpreter(tokenStream);
 		parser.removeErrorListeners();
 		parser.addErrorListener(errListener);
 		return parser;
 	}
 
 	@Override
-	protected ParseTree parseImpl(ParserInterpreter parser, IElementType root, PsiBuilder builder) {
-		ParseTree t = parser.parse(ruleIndex);
+	protected ParseTree parseImpl(final ParserInterpreter parser, IElementType root, PsiBuilder builder) {
+		final ParseTree t = parser.parse(ruleIndex);
 		if ( errListener.getSyntaxErrors().size()>0 ) {
 			System.err.println("errors="+errListener.getSyntaxErrors());
 		}
-		System.out.println("parse tree: "+t.toStringTree(parser));
-		ANTLRv4ProjectComponent.getInstance(project).getPreviewPanel().setParseTree(Arrays.asList(parser.getRuleNames()), t);
+		System.out.println("parse tree: " + t.toStringTree(parser));
+		ApplicationManager.getApplication().invokeLater(
+			new Runnable() {
+				@Override
+				public void run() {
+					ANTLRv4PluginController.getInstance(project).getPreviewPanel()
+						.setParseTree(Arrays.asList(parser.getRuleNames()), t);
+				}
+			}
+													   );
 		return t;
 	}
 }

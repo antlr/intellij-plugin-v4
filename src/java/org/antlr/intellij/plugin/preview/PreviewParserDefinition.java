@@ -11,7 +11,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
 import org.antlr.v4.Tool;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -19,10 +19,18 @@ import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
 
+/*  Actually, I just realized that we have a problem. The parser definition
+ *  object is not controlled by me and the create lexer and parser methods
+ *  might be called by different threads. I'm assuming that only one instance
+ *  of that definition object is created or I can't rely on being
+ *  different objects per grammar. Ok, I will assume that it is not possible
+ *  to switch grammars fast enough that intellij will ask for a lexer,
+ *  a new grammar appears, and then it asks for a parser but gets one
+ *  for a different grammar.
+ */
 public class PreviewParserDefinition implements ParserDefinition {
 	public static final IFileElementType FILE =
 		new IFileElementType(PreviewLanguage.INSTANCE);
@@ -37,12 +45,12 @@ public class PreviewParserDefinition implements ParserDefinition {
 //			new ANTLRv4ProjectComponent.MyANTLRToolListener(antlr);
 //		antlr.addListener(listener);
 
-		String inputText = ANTLRv4ProjectComponent.getInstance(project).getInputText();
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+
+		String inputText = ANTLRv4PluginController.getInstance(project).getInputText();
 		ANTLRInputStream input = new ANTLRInputStream(inputText);
 
-		String grammarFileName = ANTLRv4ProjectComponent.getInstance(project).getGrammarFileName();
-
-		System.out.println("parsing with "+grammarFileName);
+		System.out.println("parsing with "+previewState.grammarFileName);
 
 //		if ( grammarFileName==null ) {
 //			// they haven't done "test ANTLR rule" event yet so we don't know which grammar to use for input.
@@ -52,8 +60,7 @@ public class PreviewParserDefinition implements ParserDefinition {
 //			return new AbstractCustomLexer(p);
 //		}
 
-		Grammar lg = ANTLRv4ProjectComponent.getInstance(project).getLexerGrammar();
-		LexerInterpreter lexEngine = lg.createLexerInterpreter(input);
+		LexerInterpreter lexEngine = previewState.lg.createLexerInterpreter(input);
 		final ConsoleErrorListener syntaxErrorListener = new ConsoleErrorListener() {
 			@Override
 			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
@@ -68,9 +75,8 @@ public class PreviewParserDefinition implements ParserDefinition {
 
 	@Override
 	public PsiParser createParser(Project project) {
-		Grammar g = ANTLRv4ProjectComponent.getInstance(project).getParserGrammar();
-		PreviewPanel previewPanel = ANTLRv4ProjectComponent.getInstance(project).getPreviewPanel();
-		Rule start = g.getRule(previewPanel.startRuleName);
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+		Rule start = previewState.g.getRule(previewState.startRuleName);
 		return new PreviewParser(project, start.index);
 	}
 

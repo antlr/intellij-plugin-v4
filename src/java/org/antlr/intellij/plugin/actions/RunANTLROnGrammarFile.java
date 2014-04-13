@@ -18,7 +18,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.v4.Tool;
@@ -128,7 +128,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 
 		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
-		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
+		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 		antlr.removeListeners();
@@ -140,7 +140,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 				new Runnable() {
 					@Override
 					public void run() {
-						ANTLRv4ProjectComponent.getInstance(project).getConsoleWindow().show(null);
+						ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
 					}
 				}
 			);

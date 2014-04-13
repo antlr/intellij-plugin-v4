@@ -11,16 +11,16 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.components.JBScrollPane;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
-import org.antlr.v4.tool.Grammar;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /** The top level contents of the preview tool window created by
@@ -30,13 +30,10 @@ import java.util.List;
  */
 public class PreviewPanel extends JPanel {
 	public static final JLabel placeHolder = new JLabel("Open a grammar (.g4) file and select a start rule");
+	public static final String missingRuleText = "<select from navigator or grammar>";
 
 	Project project;
-	Grammar lg;
-	Grammar g;
-	String startRuleName;
 
-	public Editor editor;
 	JPanel editorPanel;
 
 	JLabel startRuleLabel;
@@ -60,7 +57,7 @@ public class PreviewPanel extends JPanel {
 	public JPanel createEditorPanel() {
 		JTextArea console = new JTextArea();
 		editorPanel = new JPanel(new BorderLayout(0,0));
-		startRuleLabel = new JLabel("Start rule: <select from navigator or grammar>");
+		startRuleLabel = new JLabel("Start rule: "+missingRuleText);
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
 		editorPanel.add(placeHolder, BorderLayout.CENTER);
 		editorPanel.add(console, BorderLayout.SOUTH);
@@ -102,17 +99,46 @@ public class PreviewPanel extends JPanel {
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
-		System.out.println("grammar changed to "+newFile.getName());
 		String grammarFileName = newFile.getPath();
 		switchToGrammar(grammarFileName);
 	}
 
-	/** Load grammars and set editor component */
+	/** Load grammars and set editor component. Guaranteed to be called only
+	 *  after the state object is created in the controller and we
+	 *  have already switched to this grammar file. So we can set
+	 *  the editor without fear.
+	 */
 	public void switchToGrammar(String grammarFileName) {
-		Grammar[] grammars = ANTLRv4ProjectComponent.loadGrammars(grammarFileName);
-		lg = grammars[0];
-		g = grammars[1];
-		this.editor = createEditor("");
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+
+		if ( previewState.editor==null ) { // this grammar is new; no editor yet
+			previewState.editor = createEditor(""); // nothing there, create
+		}
+
+		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
+		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
+		// Remove whatever is in editor spot of layout (placeholder or previous editor)
+		System.out.println("removing previous " + editorSpotComp);
+		editorPanel.remove(editorSpotComp);
+
+		// Do not add until we set rulename otherwise it starts parsing
+		if ( previewState.startRuleName!=null ) {
+			// trigger parse tree refresh by poking text buffer (overwrite itself)
+			final Document doc = previewState.editor.getDocument();
+			ApplicationManager.getApplication()
+				.runWriteAction(new Runnable() {
+					@Override
+					public void run() {
+						doc.setText(doc.getCharsSequence());
+					}
+				});
+			editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
+		}
+		else {
+			editorPanel.add(placeHolder, BorderLayout.CENTER); // nothing to show in editor
+			setParseTree(Arrays.asList(previewState.g.getRuleNames()), null); // blank tree
+			setStartRuleName(missingRuleText);
+		}
 	}
 
 	public void setParseTree(List<String> ruleNames, ParseTree tree) {
@@ -121,13 +147,13 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void setStartRuleName(String startRuleName) {
-		this.startRuleName = startRuleName;
 		startRuleLabel.setText("Start rule: "+startRuleName);
 	}
 
 	public Editor createEditor(String inputText) {
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 		LightVirtualFile vf =
-			new LightVirtualFile(g.name + ".input",
+			new LightVirtualFile(previewState.g.name + ".input",
 								 PreviewFileType.INSTANCE,
 								 inputText);
 		return createEditor(vf);
@@ -152,12 +178,9 @@ public class PreviewPanel extends JPanel {
 				return factory.createEditor(doc, project, PreviewFileType.INSTANCE, false);
 			}
 		};
-		this.editor = ApplicationManager.getApplication().runReadAction(c);
+		Editor editor = ApplicationManager.getApplication().runReadAction(c);
 
 		FileDocumentManagerImpl.registerDocument(doc, vfile);
-
-		editorPanel.remove(placeHolder);
-		editorPanel.add(editor.getComponent(), BorderLayout.CENTER);
 
 		return editor;
 	}

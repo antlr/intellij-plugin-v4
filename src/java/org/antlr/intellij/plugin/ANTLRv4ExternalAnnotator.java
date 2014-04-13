@@ -70,7 +70,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			}
 		});
 
-		String vocabName;
 		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
 		ApplicationManager.getApplication().runReadAction(findVocabAction);
 		if ( findVocabAction.vocabName!=null ) { // need to generate other file?
