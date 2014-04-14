@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,6 +118,16 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 	@Override
 	public void start(CharSequence buffer, int startOffset, int endOffset, int initialState) {
 		this.buffer = buffer;
+
+//		// adjust endOffset to ignore dummy id from intellij
+//		CharSequence input = buffer.subSequence(0, endOffset);
+//		String s = input.toString();
+//		if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ) {
+//			endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER.length();
+//		}
+//		else if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED) ) {
+//			endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED.length();
+//		}
 		this.endOffset = endOffset;
 
 		CharStream in = new CharSequenceCharStream(buffer, endOffset, IntStream.UNKNOWN_SOURCE_NAME);
@@ -178,6 +187,7 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 
 	@Override
 	public CharSequence getBufferSequence() {
+//		return buffer.subSequence(0, endOffset);
 		return buffer;
 	}
 
@@ -226,116 +236,4 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 		return stateCache.get(state);
 	}
 
-	/**
-	 * This class provides a basic implementation of {@link CharStream} backed by an arbitrary {@link CharSequence}.
-	 */
-	protected static class CharSequenceCharStream implements CharStream {
-		private final CharSequence buffer;
-		/**
-		 * If greater than or equal to 0, this value overrides the value returned by
-		 * {@link #buffer}{@code .}{@link CharSequence#length()}.
-		 */
-		private final int endOffset;
-		private final String sourceName;
-
-		private int position;
-
-		public CharSequenceCharStream(CharSequence buffer, int endOffset, String sourceName) {
-			this.buffer = buffer;
-			this.endOffset = endOffset;
-			this.sourceName = sourceName;
-		}
-
-		protected final CharSequence getBuffer() {
-			return buffer;
-		}
-
-		protected final int getPosition() {
-			return position;
-		}
-
-		protected final void setPosition(int position) {
-			this.position = position;
-		}
-
-		@Override
-		public String getText(@NotNull Interval interval) {
-			int start = interval.a;
-			int stop = interval.b;
-			int n = size();
-			if ( stop >= n ) stop = n-1;
-			if ( start >= n ) return "";
-			return buffer.subSequence(start, stop + 1).toString();
-		}
-
-		@Override
-		public void consume() {
-			if (position == size()) {
-				throw new IllegalStateException("attempted to consume EOF");
-			}
-
-			position++;
-		}
-
-		@Override
-		public int LA(int i) {
-			if (i > 0) {
-				int index = position + i - 1;
-				if (index >= size()) {
-					return IntStream.EOF;
-				}
-
-				return buffer.charAt(index);
-			}
-			else if (i < 0) {
-				int index = position + i;
-				if (index < 0) {
-					return 0;
-				}
-
-				return buffer.charAt(index);
-			}
-			else {
-				return 0;
-			}
-		}
-
-		@Override
-		public int mark() {
-			return 0;
-		}
-
-		@Override
-		public void release(int marker) {
-		}
-
-		@Override
-		public int index() {
-			return position;
-		}
-
-		@Override
-		public void seek(int index) {
-			if (index < 0) {
-				throw new IllegalArgumentException("index cannot be negative");
-			}
-
-			index = Math.min(index, size());
-			position = index;
-		}
-
-		@Override
-		public int size() {
-			if (endOffset >= 0) {
-				return endOffset;
-			}
-
-			return buffer.length();
-		}
-
-		@Override
-		public String getSourceName() {
-			return sourceName;
-		}
-	}
 }
