@@ -69,7 +69,7 @@ class CharSequenceCharStream implements CharStream {
 	public int LA(int i) {
 		if (i > 0) {
 			int index = position + i - 1;
-			if (index >= size()) {
+			if (index >= size() || buffer.charAt(index)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
 				return IntStream.EOF;
 			}
 
@@ -115,10 +115,17 @@ class CharSequenceCharStream implements CharStream {
 	@Override
 	public int size() {
 		if (endOffset >= 0) {
+			if ( endOffset>0 && buffer.charAt(endOffset-1)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
+				return endOffset-1;
+			}
 			return endOffset;
 		}
 
-		return buffer.length();
+		int n = buffer.length();
+		if ( buffer.charAt(n-1)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
+			return n-1;
+		}
+		return n;
 	}
 
 	@Override
