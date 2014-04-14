@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/lib/antlr-4.2.2-complete.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$USER_HOME$/antlr/code/antlr4/runtime/Java/src" />
+    </SOURCES>
   </library>
 </component>

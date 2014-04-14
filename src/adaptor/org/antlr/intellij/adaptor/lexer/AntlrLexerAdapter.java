@@ -118,16 +118,6 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 	@Override
 	public void start(CharSequence buffer, int startOffset, int endOffset, int initialState) {
 		this.buffer = buffer;
-
-//		// adjust endOffset to ignore dummy id from intellij
-//		CharSequence input = buffer.subSequence(0, endOffset);
-//		String s = input.toString();
-//		if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ) {
-//			endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER.length();
-//		}
-//		else if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED) ) {
-//			endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED.length();
-//		}
 		this.endOffset = endOffset;
 
 		CharStream in = new CharSequenceCharStream(buffer, endOffset, IntStream.UNKNOWN_SOURCE_NAME);

@@ -1,5 +1,6 @@
 package org.antlr.intellij.adaptor.lexer;
 
+import org.antlr.intellij.plugin.preview.PreviewCompletionContributor;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.misc.Interval;
@@ -58,6 +59,10 @@ class CharSequenceCharStream implements CharStream {
 		}
 
 		position++;
+		// if next is dummy char (we're forced to use by intellij), skip over it.
+		if ( position<size() && buffer.charAt(position)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
+			position++;
+		}
 	}
 
 	@Override
