@@ -14,12 +14,14 @@ public class PreviewTokenRef extends PsiReferenceBase<PreviewTokenNode> {
 	@Nullable
 	@Override
 	public PsiElement resolve() {
-		return getElement(); // return same thing
+		return getElement(); // return same node
 	}
 
 	@NotNull
 	@Override
 	public Object[] getVariants() {
+//		return new PsiElement[] {getElement()};
+//		return new String[] {"hi","mom"};
 		return new Object[0];
 	}
 }

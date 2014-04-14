@@ -85,6 +85,7 @@
       <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
 
+	  <lang.ast.factory language="PreviewParserInput" implementationClass="org.antlr.intellij.plugin.preview.PreviewASTFactory"/>
 	  <lang.parserDefinition language="PreviewParserInput"
 							 implementationClass="org.antlr.intellij.plugin.preview.PreviewParserDefinition"/>
 

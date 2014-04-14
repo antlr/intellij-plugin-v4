@@ -27,7 +27,6 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 	@Override
 	public Object[] getVariants() {
 		String prefix = myElement.getText();
-		System.out.println(prefix);
 		RulesNode rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
 		// find all rule defs (token, parser)
 		Collection<? extends RuleSpecNode> ruleSpecNodes =
