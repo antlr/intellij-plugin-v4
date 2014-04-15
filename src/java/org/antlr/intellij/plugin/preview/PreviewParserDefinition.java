@@ -52,14 +52,6 @@ public class PreviewParserDefinition implements ParserDefinition {
 
 		System.out.println("parsing with "+previewState.grammarFileName);
 
-//		if ( grammarFileName==null ) {
-//			// they haven't done "test ANTLR rule" event yet so we don't know which grammar to use for input.
-//			// just send back any lexer.
-//			List<TokenParser> p = new ArrayList<TokenParser>();
-//			p.add(new WhitespaceParser());
-//			return new AbstractCustomLexer(p);
-//		}
-
 		LexerInterpreter lexEngine = previewState.lg.createLexerInterpreter(input);
 		final ConsoleErrorListener syntaxErrorListener = new ConsoleErrorListener() {
 			@Override

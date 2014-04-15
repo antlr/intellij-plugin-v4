@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -45,15 +46,20 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 			System.err.println("errors="+errListener.getSyntaxErrors());
 		}
 		System.out.println("parse tree: " + t.toStringTree(parser));
-		ApplicationManager.getApplication().invokeLater(
-			new Runnable() {
-				@Override
-				public void run() {
-					ANTLRv4PluginController.getInstance(project).getPreviewPanel()
-						.setParseTree(Arrays.asList(parser.getRuleNames()), t);
+		String input = builder.getOriginalText().toString();
+		if ( !(input.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ||
+			   input.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED)) )
+		{
+			ApplicationManager.getApplication().invokeLater(
+				new Runnable() {
+					@Override
+					public void run() {
+						ANTLRv4PluginController.getInstance(project).getPreviewPanel()
+							.setParseTree(Arrays.asList(parser.getRuleNames()), t);
+					}
 				}
-			}
-													   );
+														   );
+		}
 		return t;
 	}
 }

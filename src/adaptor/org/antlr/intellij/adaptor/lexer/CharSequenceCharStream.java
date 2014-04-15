@@ -1,6 +1,6 @@
 package org.antlr.intellij.adaptor.lexer;
 
-import org.antlr.intellij.plugin.preview.PreviewCompletionContributor;
+import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.misc.Interval;
@@ -26,8 +26,20 @@ class CharSequenceCharStream implements CharStream {
 
 	public CharSequenceCharStream(CharSequence buffer, int endOffset, String sourceName) {
 		this.buffer = buffer;
-		this.endOffset = endOffset;
 		this.sourceName = sourceName;
+
+		// Make lexer ignore the dummy ID so no errors.
+		CharSequence input = buffer.subSequence(0, endOffset);
+		String s = input.toString();
+		if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ) {
+			this.endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER.length();
+		}
+		else if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED) ) {
+			this.endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED.length();
+		}
+		else {
+			this.endOffset = endOffset;
+		}
 	}
 
 	protected final CharSequence getBuffer() {
@@ -59,17 +71,13 @@ class CharSequenceCharStream implements CharStream {
 		}
 
 		position++;
-		// if next is dummy char (we're forced to use by intellij), skip over it.
-		if ( position<size() && buffer.charAt(position)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
-			position++;
-		}
 	}
 
 	@Override
 	public int LA(int i) {
 		if (i > 0) {
 			int index = position + i - 1;
-			if (index >= size() || buffer.charAt(index)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
+			if (index >= size() ) {
 				return IntStream.EOF;
 			}
 
@@ -115,16 +123,10 @@ class CharSequenceCharStream implements CharStream {
 	@Override
 	public int size() {
 		if (endOffset >= 0) {
-			if ( endOffset>0 && buffer.charAt(endOffset-1)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
-				return endOffset-1;
-			}
 			return endOffset;
 		}
 
 		int n = buffer.length();
-		if ( buffer.charAt(n-1)==PreviewCompletionContributor.DUMMY_IDENTIFIER ) {
-			return n-1;
-		}
 		return n;
 	}
 

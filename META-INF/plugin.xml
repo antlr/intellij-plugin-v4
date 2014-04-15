@@ -89,10 +89,11 @@
 						implementationClass="org.antlr.intellij.plugin.preview.PreviewASTFactory"/>
 	  <lang.parserDefinition language="PreviewParserInput"
 						implementationClass="org.antlr.intellij.plugin.preview.PreviewParserDefinition"/>
-	  <completion.contributor language="PreviewParserInput"
-						implementationClass="org.antlr.intellij.plugin.preview.PreviewCompletionContributor"/>
-
+<!--
 	  <lang.documentationProvider language="PreviewParserInput"
 						implementationClass="org.antlr.intellij.plugin.preview.InputWindowDocumentationProvider"/>
+	  <completion.contributor language="PreviewParserInput"
+						implementationClass="org.antlr.intellij.plugin.preview.PreviewCompletionContributor"/>
+-->
   </extensions>
 </idea-plugin>
