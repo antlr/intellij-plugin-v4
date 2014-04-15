@@ -50,11 +50,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		return file;
 	}
 
-	@Nullable
-	public PsiFile collectInformation(@NotNull PsiFile file) { // idea 13
-		return file;
-	}
-
 	/** Called 2nd; run antlr on file */
 	@Nullable
 	@Override
@@ -102,11 +97,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
 			Grammar g = antlr.createGrammar(ast);
 			antlr.process(g, false);
-
-//			Project project = file.getProject();
-//			ParseTreePanel viewerPanel =
-//				ANTLRv4ProjectComponent.getInstance(project).getTreeViewPanel();
-//			viewerPanel.refresh();
 
 			for (int i = 0; i < issues.size(); i++) {
 				Issue issue = issues.get(i);

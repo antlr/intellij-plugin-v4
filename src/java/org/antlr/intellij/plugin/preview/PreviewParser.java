@@ -17,12 +17,13 @@ import java.util.Arrays;
 public class PreviewParser extends AntlrParser<ParserInterpreter> {
 	public Project project;
 	public int ruleIndex;
-	public SyntaxErrorListener errListener = new SyntaxErrorListener();
+	public SyntaxErrorListener errListener;
 
-	public PreviewParser(Project project, int ruleIndex) {
+	public PreviewParser(Project project, int ruleIndex, SyntaxErrorListener errListener) {
 		super(PreviewLanguage.INSTANCE);
 		this.project = project;
 		this.ruleIndex = ruleIndex;
+		this.errListener = errListener;
 	}
 
 	@Override
@@ -42,9 +43,6 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 	@Override
 	protected ParseTree parseImpl(final ParserInterpreter parser, IElementType root, PsiBuilder builder) {
 		final ParseTree t = parser.parse(ruleIndex);
-		if ( errListener.getSyntaxErrors().size()>0 ) {
-			System.err.println("errors="+errListener.getSyntaxErrors());
-		}
 		System.out.println("parse tree: " + t.toStringTree(parser));
 		String input = builder.getOriginalText().toString();
 		if ( !(input.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ||

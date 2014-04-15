@@ -11,11 +11,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
-import org.antlr.v4.Tool;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -32,19 +30,17 @@ import org.jetbrains.annotations.NotNull;
  *  for a different grammar.
  */
 public class PreviewParserDefinition implements ParserDefinition {
-	public static final IFileElementType FILE =
-		new IFileElementType(PreviewLanguage.INSTANCE);
+	public static final IFileElementType FILE =	new IFileElementType(PreviewLanguage.INSTANCE);
+
+	SyntaxErrorListener syntaxErrorListener = null;
 
 	@NotNull
 	@Override
-	public Lexer createLexer(Project project) {
-		Tool antlr = new Tool();
-		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
-		antlr.errMgr.setFormat("antlr");
-//		ANTLRv4ProjectComponent.MyANTLRToolListener listener =
-//			new ANTLRv4ProjectComponent.MyANTLRToolListener(antlr);
-//		antlr.addListener(listener);
-
+	public Lexer createLexer(final Project project) {
+		if ( syntaxErrorListener==null ) {
+			setErrorListener(project);
+		}
+		syntaxErrorListener.getSyntaxErrors().clear();
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 
 		String inputText = ANTLRv4PluginController.getInstance(project).getInputText();
@@ -53,12 +49,6 @@ public class PreviewParserDefinition implements ParserDefinition {
 		System.out.println("parsing with "+previewState.grammarFileName);
 
 		LexerInterpreter lexEngine = previewState.lg.createLexerInterpreter(input);
-		final ConsoleErrorListener syntaxErrorListener = new ConsoleErrorListener() {
-			@Override
-			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-				super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
-			}
-		};
 		lexEngine.removeErrorListeners();
 		lexEngine.addErrorListener(syntaxErrorListener);
 
@@ -67,9 +57,25 @@ public class PreviewParserDefinition implements ParserDefinition {
 
 	@Override
 	public PsiParser createParser(Project project) {
+		if ( syntaxErrorListener==null ) {
+			setErrorListener(project);
+		}
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 		Rule start = previewState.g.getRule(previewState.startRuleName);
-		return new PreviewParser(project, start.index);
+		return new PreviewParser(project, start.index, syntaxErrorListener);
+	}
+
+	public void setErrorListener(final Project project) {
+		syntaxErrorListener = new SyntaxErrorListener(project) {
+			@Override
+			public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+									int line, int charPositionInLine,
+									String msg, RecognitionException e) {
+				msg = "line " + line + ":" + charPositionInLine + " " + msg + "\n";
+				ANTLRv4PluginController.getInstance(project).getPreviewPanel().parseError(msg);
+				super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+			}
+		};
 	}
 
 	@Override

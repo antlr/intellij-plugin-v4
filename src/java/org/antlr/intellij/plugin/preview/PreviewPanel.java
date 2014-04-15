@@ -4,6 +4,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.DocumentAdapter;
+import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
@@ -35,6 +37,7 @@ public class PreviewPanel extends JPanel {
 	Project project;
 
 	JPanel editorPanel;
+	JTextArea editorConsole;
 
 	JLabel startRuleLabel;
 	TreeViewer treeViewer;
@@ -55,12 +58,16 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public JPanel createEditorPanel() {
-		JTextArea console = new JTextArea();
+		editorConsole = new JTextArea();
+		editorConsole.setRows(2);
+		editorConsole.setEditable(false);
+		JBScrollPane spane = new JBScrollPane(editorConsole); // wrap in scroller
+		spane.createVerticalScrollBar();
 		editorPanel = new JPanel(new BorderLayout(0,0));
 		startRuleLabel = new JLabel("Start rule: "+missingRuleText);
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
 		editorPanel.add(placeHolder, BorderLayout.CENTER);
-		editorPanel.add(console, BorderLayout.SOUTH);
+		editorPanel.add(spane, BorderLayout.SOUTH);
 		return editorPanel;
 	}
 
@@ -183,8 +190,28 @@ public class PreviewPanel extends JPanel {
 		};
 		Editor editor = ApplicationManager.getApplication().runReadAction(c);
 
+		doc.addDocumentListener(
+			new DocumentAdapter() {
+				@Override
+				public void documentChanged(DocumentEvent e) {
+					editorConsole.setText("");
+				}
+			}
+		);
+
 		FileDocumentManagerImpl.registerDocument(doc, vfile);
 
 		return editor;
+	}
+
+	public void parseError(final String msg) {
+		ApplicationManager.getApplication().invokeLater(
+			new Runnable() {
+				@Override
+				public void run() {
+					editorConsole.insert(msg, editorConsole.getText().length());
+				}
+			}
+													   );
 	}
 }
