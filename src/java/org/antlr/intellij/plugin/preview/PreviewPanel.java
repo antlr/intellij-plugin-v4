@@ -59,10 +59,10 @@ public class PreviewPanel extends JPanel {
 
 	public JPanel createEditorPanel() {
 		editorConsole = new JTextArea();
-		editorConsole.setRows(2);
+		editorConsole.setRows(3);
 		editorConsole.setEditable(false);
+		editorConsole.setLineWrap(true);
 		JBScrollPane spane = new JBScrollPane(editorConsole); // wrap in scroller
-		spane.createVerticalScrollBar();
 		editorPanel = new JPanel(new BorderLayout(0,0));
 		startRuleLabel = new JLabel("Start rule: "+missingRuleText);
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
