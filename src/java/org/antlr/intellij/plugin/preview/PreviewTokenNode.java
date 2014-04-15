@@ -26,6 +26,11 @@ public class PreviewTokenNode extends LeafPsiElement implements PsiNamedElement 
 	}
 
 	@Override
+	public boolean canNavigate() {
+		return true;
+	}
+
+	@Override
 	public PsiReference getReference() {
 		return new PreviewTokenRef(this, new TextRange(0, getText().length()));
 	}

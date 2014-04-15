@@ -20,7 +20,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /** The top level contents of the preview tool window created by
@@ -122,7 +122,11 @@ public class PreviewPanel extends JPanel {
 		editorPanel.remove(editorSpotComp);
 
 		// Do not add until we set rulename otherwise it starts parsing
-		if ( previewState.startRuleName!=null ) {
+		if ( previewState.startRuleName!=null &&
+			 previewState.g!=null &&
+			 previewState.lg!=null )
+		{
+			editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
 			// trigger parse tree refresh by poking text buffer (overwrite itself)
 			final Document doc = previewState.editor.getDocument();
 			ApplicationManager.getApplication()
@@ -132,11 +136,10 @@ public class PreviewPanel extends JPanel {
 						doc.setText(doc.getCharsSequence());
 					}
 				});
-			editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
 		}
 		else {
 			editorPanel.add(placeHolder, BorderLayout.CENTER); // nothing to show in editor
-			setParseTree(Arrays.asList(previewState.g.getRuleNames()), null); // blank tree
+			setParseTree(Collections.<String>emptyList(), null); // blank tree
 			setStartRuleName(missingRuleText);
 		}
 	}
