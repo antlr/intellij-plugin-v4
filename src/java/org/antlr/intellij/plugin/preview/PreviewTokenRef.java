@@ -7,6 +7,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PreviewTokenRef extends PsiReferenceBase<PreviewTokenNode> {
+//	public static final IElementType dummyType = new IElementType("DummyType", PreviewLanguage.INSTANCE);
+//	public static class DummyNode extends LeafPsiElement implements PsiNamedElement {
+//		public DummyNode(IElementType type, CharSequence text) {
+//			super(type, text);
+//		}
+//		@Override
+//		public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+//			throw new IncorrectOperationException();
+//		}
+//	}
+
 	public PreviewTokenRef(PreviewTokenNode element, TextRange range) {
 		super(element, range);
 	}
@@ -14,14 +25,17 @@ public class PreviewTokenRef extends PsiReferenceBase<PreviewTokenNode> {
 	@Nullable
 	@Override
 	public PsiElement resolve() {
-		return getElement(); // return same node
+//		DummyNode dummy = new DummyNode(dummyType, "dummy");
+		return getElement().getParent().getParent();
+//		return getElement(); // return same node
 	}
+
 
 	@NotNull
 	@Override
 	public Object[] getVariants() {
-//		return new PsiElement[] {getElement()};
+		return new PsiElement[] {getElement()};
 //		return new String[] {"hi","mom"};
-		return new Object[0];
+//		return new Object[0];
 	}
 }
