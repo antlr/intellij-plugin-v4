@@ -6,12 +6,9 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -21,7 +18,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -161,35 +157,8 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public Editor createEditor(String inputText) {
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-		LightVirtualFile vf =
-			new LightVirtualFile(previewState.g.name + ".input",
-								 PreviewFileType.INSTANCE,
-								 inputText);
-		return createEditor(vf);
-	}
-
-	public Editor createEditor(VirtualFile vfile) {
 		final EditorFactory factory = EditorFactory.getInstance();
-		String inputText = null;
-		try {
-			inputText = new String(vfile.contentsToByteArray());
-		}
-		catch (IOException ioe) {
-			System.err.println("Can't get contents of vfile?");
-			return null;
-		}
-		final Document doc = factory.createDocument(inputText);
-		// create editor in read action
-
-		Computable<Editor> c = new Computable<Editor>() {
-			@Override
-			public Editor compute() {
-				return factory.createEditor(doc, project, PreviewFileType.INSTANCE, false);
-			}
-		};
-		Editor editor = ApplicationManager.getApplication().runReadAction(c);
-
+		Document doc = factory.createDocument(inputText);
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
@@ -198,10 +167,7 @@ public class PreviewPanel extends JPanel {
 				}
 			}
 		);
-
-		FileDocumentManagerImpl.registerDocument(doc, vfile);
-
-		return editor;
+		return factory.createEditor(doc);
 	}
 
 	public void parseError(final String msg) {

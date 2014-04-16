@@ -13,7 +13,6 @@ import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4Language;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.intellij.plugin.preview.PreviewTokenNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -180,9 +179,9 @@ public class MyPsiUtils {
 							   ", class="+p.getClass().getSimpleName()+
 							   ", text="+p.getNode().getText()+
 							   ", node range="+p.getTextRange());
-		if ( p.getTextRange().contains(offset) && p instanceof PreviewTokenNode) {
-			return p;
-		}
+//		if ( p.getTextRange().contains(offset) && p instanceof PreviewTokenNode) {
+//			return p;
+//		}
 		PsiElement c = p.getFirstChild();
 		while ( c!=null ) {
 			//			System.out.println("visit child "+c+", text="+c.getNode().getText());
