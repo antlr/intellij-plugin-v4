@@ -89,9 +89,9 @@
 						implementationClass="org.antlr.intellij.plugin.preview.PreviewASTFactory"/>
 	  <lang.parserDefinition language="PreviewParserInput"
 						implementationClass="org.antlr.intellij.plugin.preview.PreviewParserDefinition"/>
+	  <!--
 	  <lang.syntaxHighlighterFactory key="PreviewParserInput"
 						implementationClass="org.antlr.intellij.plugin.preview.PreviewSyntaxHighlighterFactory"/>
-<!--
 	  <lang.documentationProvider language="PreviewParserInput"
 						implementationClass="org.antlr.intellij.plugin.preview.InputWindowDocumentationProvider"/>
 	  <completion.contributor language="PreviewParserInput"
