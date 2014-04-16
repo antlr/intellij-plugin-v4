@@ -29,6 +29,8 @@ class CharSequenceCharStream implements CharStream {
 		this.sourceName = sourceName;
 
 		// Make lexer ignore the dummy ID so no errors.
+		// It's always on the end and we are still returning a token, which
+		// will make intellij think that we have matched the whole thing.
 		CharSequence input = buffer.subSequence(0, endOffset);
 		String s = input.toString();
 		if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ) {

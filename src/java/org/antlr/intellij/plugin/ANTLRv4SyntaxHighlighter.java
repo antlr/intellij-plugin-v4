@@ -78,7 +78,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 		else if (tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.LINE_COMMENT)) {
 			return COMMENT_KEYS;
 		}
-		else if (tokenType == ANTLRv4TokenTypes.BAD_TOKEN ) {
+		else if (tokenType == ANTLRv4TokenTypes.BAD_TOKEN_TYPE) {
 			return BAD_CHAR_KEYS;
 		}
 		else {

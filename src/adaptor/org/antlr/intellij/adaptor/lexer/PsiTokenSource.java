@@ -23,11 +23,11 @@ public class PsiTokenSource implements TokenSource {
 	  after lots of trial and error I finally just put the BAD_TOKEN
 	  into the white space class so that they do not come to the parser
 	  but that IDEA still knows about them.
+	  parrt: this seems no longer to be true after Sam's re-factoring
 	 */
 	@Override
 	public Token nextToken() {
 		TokenElementType ideaTType = (TokenElementType)builder.getTokenType();
-		int channel = Token.DEFAULT_CHANNEL;
 		int type;
 		if ( ideaTType==null ) {
 			type = Token.EOF;
@@ -36,6 +36,10 @@ public class PsiTokenSource implements TokenSource {
 			type = ideaTType.getType();
 		}
 
+		int channel = Token.DEFAULT_CHANNEL;
+		if ( type==TokenElementType.BAD_TOKEN ) {
+			channel = Token.HIDDEN_CHANNEL;
+		}
 		Pair<TokenSource, CharStream> source = new Pair<TokenSource, CharStream>(this, null);
 		String text = builder.getTokenText();
 		int start = builder.getCurrentOffset();
@@ -46,7 +50,7 @@ public class PsiTokenSource implements TokenSource {
 		int charPositionInLine = 0;
 		Token t = factory.create(source, type, text, channel, start, stop, line, charPositionInLine);
 		builder.advanceLexer();
-//		System.out.println("TOKEN: "+t);
+		System.out.println("TOKEN: "+t);
 		return t;
 	}
 

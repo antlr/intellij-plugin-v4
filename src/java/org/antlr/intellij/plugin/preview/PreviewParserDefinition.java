@@ -13,12 +13,19 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.LexerInterpreter;
+import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.atn.ATN;
+import org.antlr.v4.runtime.atn.ATNDeserializer;
+import org.antlr.v4.runtime.atn.ATNSerializer;
+import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
 
 /*  Actually, I just realized that we have a problem. The parser definition
  *  object is not controlled by me and the create lexer and parser methods
@@ -43,16 +50,31 @@ public class PreviewParserDefinition implements ParserDefinition {
 		syntaxErrorListener.getSyntaxErrors().clear();
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 
-		String inputText = ANTLRv4PluginController.getInstance(project).getInputText();
-		ANTLRInputStream input = new ANTLRInputStream(inputText);
+//		String inputText = ANTLRv4PluginController.getInstance(project).getInputText();
+//		ANTLRInputStream input = new ANTLRInputStream(inputText);
 
 		System.out.println("parsing with "+previewState.grammarFileName);
 
-		LexerInterpreter lexEngine = previewState.lg.createLexerInterpreter(input);
+//		LexerInterpreter lexEngine = previewState.lg.createLexerInterpreter(input);
+		char[] serializedAtn = ATNSerializer.getSerializedAsChars(previewState.lg.atn);
+		ATN deserialized = new ATNDeserializer().deserialize(serializedAtn);
+		CharStream input = null;
+		LexerInterpreter lexEngine =
+			new LexerInterpreter(previewState.lg.fileName, Arrays.asList(previewState.lg.getTokenNames()),
+								 Arrays.asList(previewState.lg.getRuleNames()),
+								 ((LexerGrammar)previewState.lg).modes.keySet(), deserialized, input) {
+				@Override
+				public void recover(LexerNoViableAltException e) {
+					super.recover(e);
+					throw e;
+				}
+			};
 		lexEngine.removeErrorListeners();
 		lexEngine.addErrorListener(syntaxErrorListener);
 
-		return new PreviewLexer(PreviewLanguage.INSTANCE, lexEngine);
+		PreviewLexer previewLexer = new PreviewLexer(PreviewLanguage.INSTANCE, lexEngine);
+		previewLexer.setReturnBadCharToken(true);
+		return previewLexer;
 	}
 
 	@Override

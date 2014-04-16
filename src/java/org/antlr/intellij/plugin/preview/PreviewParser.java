@@ -5,6 +5,7 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.adaptor.lexer.AntlrLexerAdapter;
 import org.antlr.intellij.adaptor.parser.AntlrParser;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -42,6 +43,10 @@ public class PreviewParser extends AntlrParser<ParserInterpreter> {
 
 	@Override
 	protected ParseTree parseImpl(final ParserInterpreter parser, IElementType root, PsiBuilder builder) {
+		if ( AntlrLexerAdapter.isAutoCompleteWeirdString(builder.getOriginalText().toString()) ) {
+			parser.removeErrorListeners();
+		}
+
 		final ParseTree t = parser.parse(ruleIndex);
 		System.out.println("parse tree: " + t.toStringTree(parser));
 		String input = builder.getOriginalText().toString();

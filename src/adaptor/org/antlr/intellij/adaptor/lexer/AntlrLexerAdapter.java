@@ -1,12 +1,17 @@
 package org.antlr.intellij.adaptor.lexer;
 
+import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import com.intellij.lang.Language;
 import com.intellij.psi.tree.IElementType;
 import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.antlr.v4.runtime.misc.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -83,6 +88,11 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 	 */
 	private Token currentToken;
 
+	/** When non-null, advance() creates and returns this bad token, but only if
+	 *  recover() has been overridden to re-throw the LexerNoViableAltException.
+	 */
+	private boolean returnBadCharToken;
+
 	/**
 	 * Constructs a new instance of {@link AntlrLexerAdapter} with the specified {@link Language} and underlying
 	 * ANTLR {@link Lexer}.
@@ -142,14 +152,27 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 			// return null when lexing is finished
 			return null;
 		}
-
+		if ( type== TokenElementType.BAD_TOKEN ) {
+			return TokenElementType.BAD_TOKEN_TYPE;
+		}
 		return tokenElementTypes.get(type);
 	}
 
 	@Override
 	public void advance() {
 		currentState = getLexerState(lexer);
-		currentToken = lexer.nextToken();
+		try {
+			currentToken = lexer.nextToken();
+		}
+		catch (LexerNoViableAltException e) {
+			if ( returnBadCharToken ) {
+				currentToken = new CommonToken(new Pair<TokenSource, CharStream>(lexer,lexer.getInputStream()),
+											   TokenElementType.BAD_TOKEN,
+											   Token.HIDDEN_CHANNEL,
+											   lexer.getCharIndex()-1,
+											   lexer.getCharIndex());
+			}
+		}
 	}
 
 	@Override
@@ -184,6 +207,10 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 	@Override
 	public int getBufferEnd() {
 		return endOffset;
+	}
+
+	public void setReturnBadCharToken(boolean returnBadCharToken) {
+		this.returnBadCharToken = returnBadCharToken;
 	}
 
 	/**
@@ -226,4 +253,8 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 		return stateCache.get(state);
 	}
 
+	public static boolean isAutoCompleteWeirdString(String input) {
+		return input.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ||
+			   input.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED);
+	}
 }

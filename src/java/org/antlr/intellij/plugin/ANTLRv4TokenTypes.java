@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ANTLRv4TokenTypes {
-	public static IElementType BAD_TOKEN = new IElementType("BAD_TOKEN", ANTLRv4Language.INSTANCE);
+	public static IElementType BAD_TOKEN_TYPE = new IElementType("BAD_TOKEN", ANTLRv4Language.INSTANCE);
 
 	public static final List<TokenElementType> TOKEN_ELEMENT_TYPES =
 		ElementTypeFactory.getTokenElementTypes(ANTLRv4Language.INSTANCE,
