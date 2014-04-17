@@ -17,6 +17,9 @@ import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -41,6 +44,41 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 			above.translate(0, -editor.getLineHeight());
 			RelativePoint where = new RelativePoint(mouseEvent.getComponent(), above);
 
+			PreviewState previewState =
+				ANTLRv4PluginController.getInstance(editor.getProject()).getPreviewState();
+
+			CommonTokenStream tokenStream = (CommonTokenStream)previewState.tokenStream;
+
+
+			Token tokenUnderCursor = null;
+			for (Token t : tokenStream.getTokens()) {
+				int begin = t.getStartIndex();
+				int end = t.getStopIndex();
+//				System.out.println("test "+t+" for "+offset);
+				if ( offset >= begin && offset <= end ) {
+					tokenUnderCursor = t;
+					break;
+				}
+			}
+			if ( tokenUnderCursor==null ) {
+				return;
+			}
+
+//			System.out.println("token = "+tokenUnderCursor);
+			String channelInfo = "";
+			int channel = tokenUnderCursor.getChannel();
+			if ( channel!=Token.DEFAULT_CHANNEL ) {
+				String chNum = channel==Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
+				channelInfo = ", Channel "+ chNum;
+			}
+			String tokenInfo =
+				String.format("Type %s, Line %d:%d, Index %d%s",
+							  previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
+							  tokenUnderCursor.getLine(),
+							  tokenUnderCursor.getCharPositionInLine(),
+							  tokenUnderCursor.getTokenIndex(),
+							  channelInfo
+				);
 
 //						highlighter.setErrorStripeTooltip(highlightInfo);
 //			ToolTipManager toolTipManager=ToolTipManager.sharedInstance();
@@ -64,11 +102,15 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 				attr.setEffectColor(JBColor.BLUE);
 				attr.setEffectType(EffectType.LINE_UNDERSCORE);
 				RangeHighlighter rangehighlighter=
-					markupModel.addRangeHighlighter(offset,offset+1,0,attr, HighlighterTargetArea.EXACT_RANGE);
+					markupModel.addRangeHighlighter(tokenUnderCursor.getStartIndex(),
+													tokenUnderCursor.getStopIndex()+1,
+													0, // layer
+													attr,
+													HighlighterTargetArea.EXACT_RANGE);
 
 				// try HINT
-				caretModel.moveToOffset(offset);
-				HintManager.getInstance().showInformationHint(editor, "fooooo");
+				caretModel.moveToOffset(offset); // tooltip only shows at cursor :(
+				HintManager.getInstance().showInformationHint(editor, tokenInfo);
 //				HintManager.getInstance().showQuestionHint(editor, "Type: foo\\nick: 8", offset, offset+1,
 //														   new QuestionAction() {
 //															   @Override

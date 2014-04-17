@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.tool.Grammar;
 
 /** Track everything associated with the state of the preview window.
@@ -16,14 +17,17 @@ import org.antlr.v4.tool.Grammar;
  *  around together as a unit instead of asking the controller for the
  *  elements piecemeal. That could get g and lg for different grammar files,
  *  for example.
- *
- *  See comment on PreviewParserDefinition.
  */
 public class PreviewState {
 	public String grammarFileName;
 	public Grammar g;
 	public Grammar lg;
 	public String startRuleName;
+
+	/** Upon successful parse of the input inside the preview editor,
+	 *  keep track of the token stream so that we can do token highlighting.
+	 */
+	public TokenStream tokenStream;
 
 	public Editor editor;
 }

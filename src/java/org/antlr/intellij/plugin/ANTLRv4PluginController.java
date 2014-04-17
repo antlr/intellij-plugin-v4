@@ -247,7 +247,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void runANTLRTool(final VirtualFile vfile) {
-		ApplicationManager.getApplication().invokeLater(
+		ApplicationManager.getApplication().invokeLater( // todo runReadAction?
 			new Runnable() {
 				@Override
 				public void run() {

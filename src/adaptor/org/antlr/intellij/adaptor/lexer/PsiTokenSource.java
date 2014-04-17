@@ -50,7 +50,7 @@ public class PsiTokenSource implements TokenSource {
 		int charPositionInLine = 0;
 		Token t = factory.create(source, type, text, channel, start, stop, line, charPositionInLine);
 		builder.advanceLexer();
-		System.out.println("TOKEN: "+t);
+//		System.out.println("TOKEN: "+t);
 		return t;
 	}
 

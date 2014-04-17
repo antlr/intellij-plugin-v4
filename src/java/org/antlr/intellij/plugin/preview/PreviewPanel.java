@@ -7,13 +7,16 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.editor.event.EditorMouseAdapter;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
+import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -43,7 +46,14 @@ public class PreviewPanel extends JPanel {
 	JLabel startRuleLabel;
 	TreeViewer treeViewer;
 
-	EditorMouseMotionAdapter editorMouseListener = new PreviewEditorMouseListener();
+	EditorMouseMotionAdapter editorMouseMoveListener = new PreviewEditorMouseListener();
+	EditorMouseAdapter editorMouseListener = new EditorMouseAdapter() {
+		@Override
+		public void mouseExited(EditorMouseEvent e) {
+			MarkupModel markupModel = e.getEditor().getMarkupModel();
+			markupModel.removeAllHighlighters();
+		}
+	};
 
 	public PreviewPanel(Project project) {
 		this.project = project;
@@ -179,24 +189,21 @@ public class PreviewPanel extends JPanel {
 					editorConsole.setText("");
 				}
 			}
-							   );
+		);
 		doc.addDocumentListener(
-			new DocumentListener() {
-				@Override
-				public void beforeDocumentChange(DocumentEvent event) {}
+			new DocumentAdapter() {
 				@Override
 				public void documentChanged(DocumentEvent event) {
 					Document doc = event.getDocument();
-					String newText = doc.getText();
-//				System.out.println("CHANGED: " + newText);
-					setInput(newText);
+					setInput(doc.getText());
 				}
 			});
-		Editor editor = factory.createEditor(doc);
+		final Editor editor = factory.createEditor(doc, project);
 		EditorSettings settings = editor.getSettings();
 		settings.setWhitespacesShown(true); // hmm...doesn't work.  maybe show when showing token tooltip?
 
-		editor.addEditorMouseMotionListener(editorMouseListener);
+		editor.addEditorMouseMotionListener(editorMouseMoveListener);
+		editor.addEditorMouseListener(editorMouseListener);
 
 		return editor;
 	}
@@ -204,10 +211,12 @@ public class PreviewPanel extends JPanel {
 	public void setInput(final String inputText) {
 		try {
 			PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+			previewState.tokenStream = null;
 			Object[] results =
-				ANTLRv4PluginController.getInstance(project)
-					.parseText(inputText);
+				ANTLRv4PluginController.getInstance(project).parseText(inputText);
 			if (results != null) {
+				Parser parser = (Parser) results[0];
+				previewState.tokenStream = parser.getInputStream();
 				ParseTree root = (ParseTree) results[1];
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
 			}
