@@ -15,15 +15,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.ANTLRv4ProjectComponent;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
-import org.antlr.intellij.plugin.tooloutput.ToolOutputWindowFactory;
 import org.antlr.v4.Tool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -131,7 +128,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 
 		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
-		ConsoleView console = ANTLRv4ProjectComponent.getInstance(project).getConsole();
+		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 		antlr.removeListeners();
@@ -139,13 +136,11 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		antlr.addListener(listener);
 		antlr.processGrammarsOnCommandLine();
 		if ( listener.hasOutput ) {
-			ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-			final ToolWindow toolWindow = toolWindowManager.getToolWindow(ToolOutputWindowFactory.ID);
 			ApplicationManager.getApplication().invokeLater(
 				new Runnable() {
 					@Override
 					public void run() {
-						toolWindow.show(null);
+						ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
 					}
 				}
 			);

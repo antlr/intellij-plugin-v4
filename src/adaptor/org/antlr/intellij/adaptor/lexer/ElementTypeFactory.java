@@ -37,7 +37,9 @@ public class ElementTypeFactory {
 		if (result == null) {
 			TokenElementType[] elementTypes = new TokenElementType[tokenNames.size()];
 			for (int i = 0; i < tokenNames.size(); i++) {
-				elementTypes[i] = new TokenElementType(i, tokenNames.get(i), language);
+				if ( tokenNames.get(i)!=null ) {
+					elementTypes[i] = new TokenElementType(i, tokenNames.get(i), language);
+				}
 			}
 
 			result = Collections.unmodifiableList(Arrays.asList(elementTypes));
