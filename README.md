@@ -33,6 +33,10 @@ live preview.
 ![Live preview](images/live-preview.png)
 ![Live preview](images/live-preview-error.png)
 
+You can also use the meta key while moving the mouse in preview window to get token info.
+
+![Live preview](images/token-tooltips.png)
+
 ### Per file ANTLR configuration
 
 ![Configuration](images/per-file-config.png)
