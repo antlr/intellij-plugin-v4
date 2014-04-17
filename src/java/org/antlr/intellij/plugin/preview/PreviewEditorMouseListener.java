@@ -33,7 +33,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 			Editor editor=e.getEditor();
 			LogicalPosition pos=editor.xyToLogicalPosition(point);
 			int offset=editor.logicalPositionToOffset(pos);
-			System.out.println("offset="+offset);
+//			System.out.println("offset="+offset);
 			int selStart=editor.getSelectionModel().getSelectionStart();
 			int selEnd=editor.getSelectionModel().getSelectionEnd();
 			int caret = editor.getCaretModel().getOffset();

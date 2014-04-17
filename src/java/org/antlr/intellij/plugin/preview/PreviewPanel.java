@@ -4,9 +4,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,6 +43,8 @@ public class PreviewPanel extends JPanel {
 	JLabel startRuleLabel;
 	TreeViewer treeViewer;
 
+	EditorMouseMotionAdapter editorMouseListener = new PreviewEditorMouseListener();
+
 	public PreviewPanel(Project project) {
 		this.project = project;
 		createGUI();
@@ -67,6 +71,7 @@ public class PreviewPanel extends JPanel {
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
 		editorPanel.add(placeHolder, BorderLayout.CENTER);
 		editorPanel.add(spane, BorderLayout.SOUTH);
+
 		return editorPanel;
 	}
 
@@ -187,7 +192,13 @@ public class PreviewPanel extends JPanel {
 					setInput(newText);
 				}
 			});
-		return factory.createEditor(doc);
+		Editor editor = factory.createEditor(doc);
+		EditorSettings settings = editor.getSettings();
+		settings.setWhitespacesShown(true); // hmm...doesn't work.  maybe show when showing token tooltip?
+
+		editor.addEditorMouseMotionListener(editorMouseListener);
+
+		return editor;
 	}
 
 	public void setInput(final String inputText) {
