@@ -1,6 +1,5 @@
 package org.antlr.intellij.adaptor.lexer;
 
-import com.intellij.codeInsight.completion.CompletionInitializationContext;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.misc.Interval;
@@ -27,21 +26,7 @@ class CharSequenceCharStream implements CharStream {
 	public CharSequenceCharStream(CharSequence buffer, int endOffset, String sourceName) {
 		this.buffer = buffer;
 		this.sourceName = sourceName;
-
-		// Make lexer ignore the dummy ID so no errors.
-		// It's always on the end and we are still returning a token, which
-		// will make intellij think that we have matched the whole thing.
-		CharSequence input = buffer.subSequence(0, endOffset);
-		String s = input.toString();
-		if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER) ) {
-			this.endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER.length();
-		}
-		else if ( s.endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED) ) {
-			this.endOffset = endOffset - CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED.length();
-		}
-		else {
-			this.endOffset = endOffset;
-		}
+		this.endOffset = endOffset;
 	}
 
 	protected final CharSequence getBuffer() {

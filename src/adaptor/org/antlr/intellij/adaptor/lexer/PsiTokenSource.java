@@ -37,9 +37,6 @@ public class PsiTokenSource implements TokenSource {
 		}
 
 		int channel = Token.DEFAULT_CHANNEL;
-		if ( type==TokenElementType.BAD_TOKEN ) {
-			channel = Token.HIDDEN_CHANNEL;
-		}
 		Pair<TokenSource, CharStream> source = new Pair<TokenSource, CharStream>(this, null);
 		String text = builder.getTokenText();
 		int start = builder.getCurrentOffset();
