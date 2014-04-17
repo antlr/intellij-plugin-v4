@@ -30,15 +30,20 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.LexerInterpreter;
+import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.Nullable;
+import org.antlr.v4.runtime.misc.Utils;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
+import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 import org.stringtemplate.v4.ST;
@@ -260,103 +265,42 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	   );
 	}
 
-	public static Object[] parseText(PreviewPanel PreviewPanel,
-									 String inputText,
-									 String grammarFileName,
-									 String startRule)
-		throws IOException
-	{
+	public Object[] parseText(String inputText) throws IOException {
+		PreviewState previewState = getPreviewState();
+		String grammarFileName = previewState.grammarFileName;
 		if (!new File(grammarFileName).exists()) {
 			return null;
 		}
 
-		Tool antlr = new Tool();
-		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
-		antlr.errMgr.setFormat("antlr");
-		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
-		antlr.addListener(listener);
-
-		String combinedGrammarFileName = null;
-		String lexerGrammarFileName = null;
-		String parserGrammarFileName = null;
-
-		Grammar g = antlr.loadGrammar(grammarFileName); // load to examine it
-		// examine's Grammar AST from v4 itself;
-		// hence use ANTLRParser.X not ANTLRv4Parser from this plugin
-		switch ( g.getType() ) {
-			case ANTLRParser.PARSER :
-				parserGrammarFileName = grammarFileName;
-				int i = grammarFileName.indexOf("Parser");
-				if ( i>=0 ) {
-					lexerGrammarFileName = grammarFileName.substring(0, i) + "Lexer.g4";
-				}
-				break;
-			case ANTLRParser.LEXER :
-				lexerGrammarFileName = grammarFileName;
-				int i2 = grammarFileName.indexOf("Lexer");
-				if ( i2>=0 ) {
-					parserGrammarFileName = grammarFileName.substring(0, i2) + "Parser.g4";
-				}
-				break;
-			case ANTLRParser.COMBINED :
-				combinedGrammarFileName = grammarFileName;
-				lexerGrammarFileName = grammarFileName+"Lexer";
-				parserGrammarFileName = grammarFileName+"Parser";
-				break;
-		}
-
-		if ( lexerGrammarFileName==null ) {
-			LOG.error("Can't compute lexer file name from "+grammarFileName, (Throwable)null);
-			return null;
-		}
-		if ( parserGrammarFileName==null ) {
-			LOG.error("Can't compute parser file name from "+grammarFileName, (Throwable)null);
-			return null;
-		}
+		previewPanel.clearParseErrors();
 
 		ANTLRInputStream input = new ANTLRInputStream(inputText);
 		LexerInterpreter lexEngine;
-		if ( combinedGrammarFileName!=null ) {
-			// already loaded above
-			if ( listener.grammarErrorMessage!=null ) {
-				return null;
-			}
-			lexEngine = g.createLexerInterpreter(input);
-		}
-		else {
-			LexerGrammar lg = null;
-			try {
-				lg = (LexerGrammar)Grammar.load(lexerGrammarFileName);
-			}
-			catch (ClassCastException cce) {
-				LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
-			}
-			if ( listener.grammarErrorMessage!=null ) {
-				return null;
-			}
-			g = loadGrammar(antlr, parserGrammarFileName, lg);
-			lexEngine = lg.createLexerInterpreter(input);
-		}
+		lexEngine = previewState.lg.createLexerInterpreter(input);
 
-//		final JTextArea console = PreviewPanel.getConsole();
-//		final MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
-//
-//		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
-//		ParserInterpreter parser = g.createParserInterpreter(tokens);
-//		parser.removeErrorListeners();
-//		parser.addErrorListener(syntaxErrorListener);
-//		lexEngine.removeErrorListeners();
-//		lexEngine.addErrorListener(syntaxErrorListener);
-//		Rule start = g.getRule(startRule);
-//		if ( start==null ) {
-//			return null; // can't find start rule
-//		}
-//		ParseTree t = parser.parse(start.index);
-//
-//		console.setText(Utils.join(syntaxErrorListener.syntaxErrors.iterator(), "\n"));
-//		if ( t!=null ) {
-//			return new Object[] {parser, t};
-//		}
+
+		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
+		ParserInterpreter parser = previewState.g.createParserInterpreter(tokens);
+
+		MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
+		parser.removeErrorListeners();
+		parser.addErrorListener(syntaxErrorListener);
+		lexEngine.removeErrorListeners();
+		lexEngine.addErrorListener(syntaxErrorListener);
+
+		Rule start = previewState.g.getRule(previewState.startRuleName);
+		if ( start==null ) {
+			return null; // can't find start rule
+		}
+		ParseTree t = parser.parse(start.index);
+
+		previewPanel.parseError(
+			Utils.join(syntaxErrorListener.syntaxErrors.iterator(), "\n")
+		);
+
+		if ( t!=null ) {
+			return new Object[] {parser, t};
+		}
 		return null;
 	}
 

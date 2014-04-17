@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -18,6 +19,8 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -96,14 +99,12 @@ public class PreviewPanel extends JPanel {
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile vfile) {
 		System.out.println("grammar saved "+vfile.getName());
-		String grammarFileName = vfile.getPath();
-		switchToGrammar(grammarFileName);
+		switchToGrammarInCurrentState();
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
-		String grammarFileName = newFile.getPath();
-		switchToGrammar(grammarFileName);
+		switchToGrammarInCurrentState();
 	}
 
 	/** Load grammars and set editor component. Guaranteed to be called only
@@ -111,7 +112,7 @@ public class PreviewPanel extends JPanel {
 	 *  have already switched to this grammar file. So we can set
 	 *  the editor without fear.
 	 */
-	public void switchToGrammar(String grammarFileName) {
+	public void switchToGrammarInCurrentState() {
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 
 		if ( previewState.editor==null ) { // this grammar is new; no editor yet
@@ -147,9 +148,16 @@ public class PreviewPanel extends JPanel {
 		}
 	}
 
-	public void setParseTree(List<String> ruleNames, ParseTree tree) {
-		treeViewer.setRuleNames(ruleNames);
-		treeViewer.setTree(tree);
+	public void setParseTree(final List<String> ruleNames, final ParseTree tree) {
+		ApplicationManager.getApplication().invokeLater(
+			new Runnable() {
+				@Override
+				public void run() {
+					treeViewer.setRuleNames(ruleNames);
+					treeViewer.setTree(tree);
+				}
+			}
+		);
 	}
 
 	public void setStartRuleName(String startRuleName) {
@@ -166,8 +174,51 @@ public class PreviewPanel extends JPanel {
 					editorConsole.setText("");
 				}
 			}
-		);
+							   );
+		doc.addDocumentListener(
+			new DocumentListener() {
+				@Override
+				public void beforeDocumentChange(DocumentEvent event) {}
+				@Override
+				public void documentChanged(DocumentEvent event) {
+					Document doc = event.getDocument();
+					String newText = doc.getText();
+//				System.out.println("CHANGED: " + newText);
+					setInput(newText);
+				}
+			});
 		return factory.createEditor(doc);
+	}
+
+	public void setInput(final String inputText) {
+		try {
+			PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+			Object[] results =
+				ANTLRv4PluginController.getInstance(project)
+					.parseText(inputText);
+			if (results != null) {
+				ParseTree root = (ParseTree) results[1];
+				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
+			}
+			else {
+				setParseTree(Arrays.asList(previewState.g.getRuleNames()), null);
+			}
+		}
+		catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+	}
+
+	public void clearParseErrors() {
+		editorConsole.setText("");
+//		ApplicationManager.getApplication().invokeLater(
+//			new Runnable() {
+//				@Override
+//				public void run() {
+//					editorConsole.setText("");
+//				}
+//			}
+//		);
 	}
 
 	public void parseError(final String msg) {
@@ -178,6 +229,6 @@ public class PreviewPanel extends JPanel {
 					editorConsole.insert(msg, editorConsole.getText().length());
 				}
 			}
-													   );
+		);
 	}
 }
