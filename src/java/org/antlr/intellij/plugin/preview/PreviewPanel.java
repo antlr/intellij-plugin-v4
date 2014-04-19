@@ -46,8 +46,8 @@ public class PreviewPanel extends JPanel {
 
 	Project project;
 
-	JPanel editorPanel;
-	JTextArea editorConsole;
+	public JPanel editorPanel;
+	public JTextArea editorConsole;
 
 	JLabel startRuleLabel;
 	TreeViewer treeViewer;

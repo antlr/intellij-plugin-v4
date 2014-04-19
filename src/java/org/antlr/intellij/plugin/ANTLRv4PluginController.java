@@ -5,6 +5,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -129,6 +130,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void projectClosed() {
+		console.dispose();
+		for (PreviewState it : grammarToPreviewState.values() ) {
+			final EditorFactory factory = EditorFactory.getInstance();
+			factory.releaseEditor(it.editor);
+		}
 	}
 
 	@Override
