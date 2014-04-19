@@ -1,7 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
-import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.tool.Grammar;
 
 /** Track everything associated with the state of the preview window.
@@ -24,10 +24,16 @@ public class PreviewState {
 	public Grammar lg;
 	public String startRuleName;
 
+	public Parser parser;
+
 	/** Upon successful parse of the input inside the preview editor,
 	 *  keep track of the token stream so that we can do token highlighting.
 	 */
-	public TokenStream tokenStream;
+//	public TokenStream tokenStream;
 
 	public Editor editor;
+
+	public PreviewState(String grammarFileName) {
+		this.grammarFileName = grammarFileName;
+	}
 }

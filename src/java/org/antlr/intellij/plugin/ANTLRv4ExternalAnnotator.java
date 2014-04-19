@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
-	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator");
+	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4ExternalAnnotator");
 
 	public static class Issue {
 		String annotation;

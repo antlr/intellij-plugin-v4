@@ -11,9 +11,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
@@ -24,11 +22,9 @@ public class TestRuleAction extends AnAction implements DumbAware {
 	/** Only show if selection is a grammar */
 	@Override
 	public void update(AnActionEvent e) {
-		VirtualFile file = getGrammarFile(e);
-		boolean grammarFound = file!=null;
-
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
 		if ( selectedPsiRuleNode==null ) return; // we clicked somewhere outside text
+
 		String ruleName = selectedPsiRuleNode.getText();
 		boolean parserRuleFound;
 		if ( ruleName==null ) {
@@ -38,10 +34,13 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			parserRuleFound = Character.isLowerCase(ruleName.charAt(0));
 		}
 
-		// enable action if we're looking at grammar file
+		// enable action if we're looking at grammar file and we got a good rule name
+		VirtualFile file = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
+		boolean grammarFound = file!=null;
+
 		Presentation presentation = e.getPresentation();
 		presentation.setEnabled(grammarFound && parserRuleFound);
-		presentation.setVisible(grammarFound); // grey out of lexer rule
+		presentation.setVisible(grammarFound);
 	}
 
 	@Override
@@ -58,8 +57,8 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			ruleName = r.getText();
 		}
 
-		VirtualFile file = getGrammarFile(e);
-		if ( file==null ) return; // no files?
+		VirtualFile file = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
+		if ( file==null ) return;
 
 		FileDocumentManager docMgr = FileDocumentManager.getInstance();
 		Document doc = docMgr.getDocument(file);
@@ -84,24 +83,22 @@ public class TestRuleAction extends AnAction implements DumbAware {
 ////
 
 		ANTLRv4PluginController.getInstance(project).getPreviewWindow().show(null);
-
 		ANTLRv4PluginController.getInstance(project).setStartRuleNameEvent(ruleName);
-		ANTLRv4PluginController.getInstance(project).grammarFileSavedEvent(file);
 	}
 
-	public VirtualFile getGrammarFile(AnActionEvent e) {
-		Project project = getEventProject(e);
-		if ( project==null ) return null; // whoa!
-		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
-		if ( files==null ) return null; // no files?
-		PsiManager manager = PsiManager.getInstance(project);
-		for (VirtualFile file : files) {
-//			System.out.println(file);
-			if ( manager.findFile(file) instanceof ANTLRv4FileRoot) {
-				return file;
-			}
-		}
-		return null;
-	}
+//	public VirtualFile getGrammarFile(AnActionEvent e) {
+//		Project project = getEventProject(e);
+//		if ( project==null ) return null; // whoa!
+//		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
+//		if ( files==null ) return null; // no files?
+//		PsiManager manager = PsiManager.getInstance(project);
+//		for (VirtualFile file : files) {
+////			System.out.println(file);
+//			if ( manager.findFile(file) instanceof ANTLRv4FileRoot) {
+//				return file;
+//			}
+//		}
+//		return null;
+//	}
 
 }

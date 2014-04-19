@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -14,6 +15,7 @@ import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.Parser;
@@ -35,13 +37,17 @@ import java.util.List;
  *  each grammar file it gets notified about.
  */
 public class PreviewPanel extends JPanel {
-	public static final JLabel placeHolder = new JLabel("Open a grammar (.g4) file and select a start rule");
-	public static final String missingRuleText = "<select from navigator or grammar>";
+	public static final Logger LOG = Logger.getInstance("ANTLR PreviewPanel");
+
+	public static final JLabel placeHolder = new JLabel("");
+	public static final String missingStartRuleLabelText =
+		"Start rule: <select from navigator or grammar>";
+	public static final String startRuleLabelText =	"Start rule: ";
 
 	Project project;
 
-	JPanel editorPanel;
-	JTextArea editorConsole;
+	public JPanel editorPanel;
+	public JTextArea editorConsole;
 
 	JLabel startRuleLabel;
 	TreeViewer treeViewer;
@@ -71,13 +77,15 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public JPanel createEditorPanel() {
+		LOG.info("createEditorPanel");
 		editorConsole = new JTextArea();
 		editorConsole.setRows(3);
 		editorConsole.setEditable(false);
 		editorConsole.setLineWrap(true);
 		JBScrollPane spane = new JBScrollPane(editorConsole); // wrap in scroller
 		editorPanel = new JPanel(new BorderLayout(0,0));
-		startRuleLabel = new JLabel("Start rule: "+missingRuleText);
+		startRuleLabel = new JLabel(missingStartRuleLabelText);
+		startRuleLabel.setForeground(JBColor.RED);
 		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
 		editorPanel.add(placeHolder, BorderLayout.CENTER);
 		editorPanel.add(spane, BorderLayout.SOUTH);
@@ -86,9 +94,10 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public JPanel createParseTreePanel() {
+		LOG.info("createParseTreePanel");
 		// wrap tree and slider in panel
 		JPanel treePanel = new JPanel(new BorderLayout(0,0));
-		treePanel.setBackground(Color.white);
+		treePanel.setBackground(JBColor.white);
 		// Wrap tree viewer component in scroll pane
 		treeViewer = new TreeViewer(null, null);
 		JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
@@ -113,53 +122,49 @@ public class PreviewPanel extends JPanel {
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile vfile) {
-		System.out.println("grammar saved "+vfile.getName());
-		switchToGrammarInCurrentState();
+		switchToGrammar(vfile);
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
-		switchToGrammarInCurrentState();
+		switchToGrammar(newFile);
 	}
 
-	/** Load grammars and set editor component. Guaranteed to be called only
-	 *  after the state object is created in the controller and we
-	 *  have already switched to this grammar file. So we can set
-	 *  the editor without fear.
-	 */
-	public void switchToGrammarInCurrentState() {
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+	public void setStartRuleName(String startRuleName) {
+		startRuleLabel.setText(startRuleLabelText + startRuleName);
+		startRuleLabel.setForeground(JBColor.BLACK);
+		// Might have text already, parse it.
+		updateParseTreeFromDoc();
+	}
+
+	public void resetStartRuleLabel() {
+		startRuleLabel.setText(missingStartRuleLabelText); // reset
+		startRuleLabel.setForeground(JBColor.RED);
+	}
+
+	/** Load grammars and set editor component. */
+	public void switchToGrammar(VirtualFile vfile) {
+		LOG.info("switchToGrammar " + vfile.getPath());
+		String grammarFileName = vfile.getPath();
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
 
 		if ( previewState.editor==null ) { // this grammar is new; no editor yet
+			LOG.info("switchToGrammar: create new editor for "+previewState.grammarFileName);
 			previewState.editor = createEditor(""); // nothing there, create
 		}
 
 		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
 		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
-		// Remove whatever is in editor spot of layout (placeholder or previous editor)
-		System.out.println("removing previous " + editorSpotComp);
 		editorPanel.remove(editorSpotComp);
+		editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
 
-		// Do not add until we set rulename otherwise it starts parsing
-		if ( previewState.startRuleName!=null &&
-			 previewState.g!=null &&
-			 previewState.lg!=null )
-		{
-			editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
-			// trigger parse tree refresh by poking text buffer (overwrite itself)
-			final Document doc = previewState.editor.getDocument();
-			ApplicationManager.getApplication()
-				.runWriteAction(new Runnable() {
-					@Override
-					public void run() {
-						doc.setText(doc.getCharsSequence());
-					}
-				});
+		if ( previewState.startRuleName!=null ) {
+			setStartRuleName(previewState.startRuleName);
+			updateParseTreeFromDoc();
 		}
 		else {
-			editorPanel.add(placeHolder, BorderLayout.CENTER); // nothing to show in editor
+			resetStartRuleLabel();
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
-			setStartRuleName(missingRuleText);
 		}
 	}
 
@@ -173,10 +178,6 @@ public class PreviewPanel extends JPanel {
 				}
 			}
 		);
-	}
-
-	public void setStartRuleName(String startRuleName) {
-		startRuleLabel.setText("Start rule: "+startRuleName);
 	}
 
 	public Editor createEditor(String inputText) {
@@ -194,8 +195,7 @@ public class PreviewPanel extends JPanel {
 			new DocumentAdapter() {
 				@Override
 				public void documentChanged(DocumentEvent event) {
-					Document doc = event.getDocument();
-					setInput(doc.getText());
+					updateParseTreeFromDoc();
 				}
 			});
 		final Editor editor = factory.createEditor(doc, project);
@@ -208,20 +208,26 @@ public class PreviewPanel extends JPanel {
 		return editor;
 	}
 
-	public void setInput(final String inputText) {
+	public void updateParseTreeFromDoc() {
 		try {
 			PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-			previewState.tokenStream = null;
+			if ( previewState==null ) {
+				LOG.error("updateParseTreeFromDoc no state for "+
+							  ANTLRv4PluginController.getCurrentEditorFile(project).getPath());
+				setParseTree(Arrays.asList(new String[0]), null);
+				return;
+			}
+			final String inputText = previewState.editor.getDocument().getText();
 			Object[] results =
 				ANTLRv4PluginController.getInstance(project).parseText(inputText);
 			if (results != null) {
 				Parser parser = (Parser) results[0];
-				previewState.tokenStream = parser.getInputStream();
+				previewState.parser = parser;
 				ParseTree root = (ParseTree) results[1];
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
 			}
 			else {
-				setParseTree(Arrays.asList(previewState.g.getRuleNames()), null);
+				setParseTree(Arrays.asList(new String[0]), null);
 			}
 		}
 		catch (IOException ioe) {

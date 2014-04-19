@@ -47,7 +47,8 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 			PreviewState previewState =
 				ANTLRv4PluginController.getInstance(editor.getProject()).getPreviewState();
 
-			CommonTokenStream tokenStream = (CommonTokenStream)previewState.tokenStream;
+			CommonTokenStream tokenStream =
+				(CommonTokenStream)previewState.parser.getInputStream();
 
 
 			Token tokenUnderCursor = null;
