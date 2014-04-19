@@ -70,6 +70,9 @@ import java.util.Map;
  *  the grammars and editors are consistently associated with the same window.
  */
 public class ANTLRv4PluginController implements ProjectComponent {
+	public Grammar BAD_PARSER_GRAMMAR;
+	public LexerGrammar BAD_LEXER_GRAMMAR;
+
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
@@ -96,6 +99,15 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void initComponent() {
+		try {
+			BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
+			BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
+			BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
+			BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
+		}
+		catch (org.antlr.runtime.RecognitionException re) {
+			LOG.error("can't init bad grammar markers");
+		}
 	}
 
 	@Override
@@ -209,7 +221,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
-		LOG.info("currentEditorFileChangedEvent "+(oldFile!=null?oldFile.getPath():"none")+" -> "+newFile.getPath());
+		LOG.info("currentEditorFileChangedEvent "+(oldFile!=null?oldFile.getPath():"none")+
+				 " -> "+(newFile!=null?newFile.getPath():"none"));
+		if ( newFile==null ) { // all files must be closed I guess
+			return;
+		}
 		if ( !newFile.getName().endsWith(".g4") ) {
 			previewWindow.hide(null);
 			return;
@@ -245,7 +261,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public void updateGrammarObjectsFromFile(String grammarFileName) {
 		synchronized ( previewStateLock ) { // build atomically
 			PreviewState previewState = getPreviewState(grammarFileName);
-			/* run later */ Grammar[] grammars = ANTLRv4PluginController.loadGrammars(grammarFileName);
+			/* run later */ Grammar[] grammars = loadGrammars(grammarFileName);
 			previewState.lg = grammars[0];
 			previewState.g = grammars[1];
 		}
@@ -253,18 +269,30 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public Object[] parseText(String inputText) throws IOException {
 		// TODO:Try to reuse the same parser and lexer.
-		PreviewState previewState = getPreviewState();
-		String grammarFileName = previewState.grammarFileName;
+		if ( getCurrentGrammarFile()==null ) {
+			LOG.error("parseText current editor not grammar " + getCurrentEditorFile(project));
+			return null; // weird. not at a grammar file.
+		}
+
+		VirtualFile currentGrammarFile = getCurrentGrammarFile();
+		String grammarFileName = currentGrammarFile.getPath();
+		PreviewState previewState = getPreviewState(grammarFileName);
 		if (!new File(grammarFileName).exists()) {
+			LOG.error("parseText grammar doesn't exit " + grammarFileName);
 			return null;
 		}
 
 		previewPanel.clearParseErrors();
 
+		if ( previewState.g == BAD_PARSER_GRAMMAR ||
+			 previewState.lg == BAD_LEXER_GRAMMAR )
+		{
+			return null;
+		}
+
 		ANTLRInputStream input = new ANTLRInputStream(inputText);
 		LexerInterpreter lexEngine;
 		lexEngine = previewState.lg.createLexerInterpreter(input);
-
 
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = previewState.g.createParserInterpreter(tokens);
@@ -292,7 +320,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	/** Get lexer and parser grammars */
-	public static Grammar[] loadGrammars(String grammarFileName) {
+	public Grammar[] loadGrammars(String grammarFileName) {
 		Tool antlr = new Tool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
@@ -360,9 +388,18 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			g = loadGrammar(antlr, parserGrammarFileName, lg);
 		}
 
+		if ( g==null ) {
+			LOG.info("loadGrammars parser "+parserGrammarFileName+" has errors");
+			g = BAD_PARSER_GRAMMAR;
+		}
+		if ( lg==null ) {
+			LOG.info("loadGrammars lexer "+lexerGrammarFileName+" has errors");
+			lg = BAD_LEXER_GRAMMAR;
+		}
 		LOG.info("loadGrammars "+lg.getRecognizerName()+", "+g.getRecognizerName());
 		return new Grammar[] {lg, g};
 	}
+
 
 	/** Same as loadGrammar(fileName) except import vocab from existing lexer */
 	public static Grammar loadGrammar(Tool tool, String fileName, LexerGrammar lexerGrammar) {
@@ -435,6 +472,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public static VirtualFile getCurrentGrammarFile(Project project) {
 		VirtualFile f = getCurrentEditorFile(project);
+		if ( f==null ) {
+			return null;
+		}
 		if ( f.getName().endsWith(".g4") ) return f;
 		return null;
 	}
