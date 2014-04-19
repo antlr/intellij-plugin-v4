@@ -3,7 +3,6 @@ package org.antlr.intellij.plugin;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -70,7 +69,7 @@ import java.util.Map;
  *  the grammars and editors are consistently associated with the same window.
  */
 public class ANTLRv4PluginController implements ProjectComponent {
-	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.ANTLRv4ProjectComponent");
+	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
@@ -80,7 +79,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public ConsoleView console;
 	public ToolWindow consoleWindow;
 
-	public String grammarFileName;		// Indicates the current grammar editor window
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<String, PreviewState>());
 	public ToolWindow previewWindow;	// same for all grammar editor
@@ -107,6 +105,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void createToolWindows() {
+		LOG.info("createToolWindows");
 		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
 
 		previewPanel = new PreviewPanel(project);
@@ -145,6 +144,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	// ------------------------------
 
 	public void installListeners() {
+		LOG.info("installListeners");
 		// Listen for .g4 file saves
 		VirtualFileManager.getInstance().addVirtualFileListener(
 			new VirtualFileAdapter() {
@@ -162,11 +162,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 						 new FileEditorManagerAdapter() {
 							 @Override
 							 public void selectionChanged(FileEditorManagerEvent event) {
-								 final VirtualFile vfile = event.getNewFile();
-								 if ( vfile==null || !vfile.getName().endsWith(".g4") ) return;
-								 grammarFileChangedEvent(event.getOldFile(), event.getNewFile());
+								 currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
 							 }
-						 });
+						 }
+		);
 	}
 
 	/** The test ANTLR rule action triggers this event. This can occur
@@ -175,97 +174,79 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  a file changed event when the project loads the first grammar file.
 	 */
 	public void setStartRuleNameEvent(String startRuleName) {
-		System.out.println("setStartRuleNameEvent "+startRuleName);
-		PreviewState previewState = grammarToPreviewState.get(grammarFileName);
-		assert previewState!=null;
-//		if ( previewState==null ) {
-//			// If the project opens looking at a grammar, we need to simulate a
-//			// grammar save event
-//			grammarFileSavedEvent(getCurrentEditorFile(project));
-//		}
-		assert previewState!=null;
+		LOG.info("setStartRuleNameEvent " + startRuleName);
+		PreviewState previewState = getPreviewState();
+		if ( previewState==null ) {
+			LOG.error("setStartRuleNameEvent called without grammar in current editor; current file="+
+						  getCurrentEditorFile(project));
+			return;
+		}
 		previewState.startRuleName = startRuleName;
-		previewPanel.setStartRuleName(startRuleName); // notify the view
+		if ( previewPanel!=null ) {
+			previewPanel.setStartRuleName(startRuleName); // notify the view
+		}
+		else {
+			LOG.error("setStartRuleNameEvent called before preview panel created");
+		}
 	}
 
 	public void grammarFileSavedEvent(VirtualFile vfile) {
-		System.out.println("grammarFileSavedEvent "+vfile.getName());
-		updateGrammar(vfile.getPath());
+		LOG.info("grammarFileSavedEvent "+vfile.getPath());
+		updateGrammarObjectsFromFile(vfile.getPath()); // force reload
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(vfile);
 		}
-		//runANTLRTool(vfile);
+		else {
+			LOG.error("grammarFileSavedEvent called before preview panel created");
+		}
+		runANTLRTool(vfile);
 	}
 
-	public void grammarFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
-		System.out.println("grammarFileChangedEvent "+newFile.getName());
-		switchToGrammar(newFile.getPath());
+	public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
+		LOG.info("currentEditorFileChangedEvent "+(oldFile!=null?oldFile.getPath():"none")+" -> "+newFile.getPath());
+		if ( !newFile.getName().endsWith(".g4") ) {
+			previewWindow.hide(null);
+			return;
+		}
+		PreviewState previewState = getPreviewState(newFile.getPath());
+		if ( previewState.g==null ) { // only load grammars if not there
+			updateGrammarObjectsFromFile(newFile.getPath());
+		}
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
 		}
 	}
 
-	public void switchToGrammar(String grammarFileName) {
+	public void runANTLRTool(final VirtualFile vfile) {
+		LOG.info("runANTLRTool launch on "+vfile.getPath());
+		String title = "ANTLR Code Generation";
+		boolean canBeCancelled = true;
+		Task.Backgroundable gen =
+			new RunANTLROnGrammarFile(new VirtualFile[]{vfile},
+									  project,
+									  title,
+									  canBeCancelled,
+									  new BackgroundFromStartOption());
+		ProgressManager.getInstance().run(gen);
+	}
+
+	/** Look for state information concerning this grammar file and update
+	 *  the Grammar objects.  This does not necessarily update the grammar file
+	 *  in the current editor window.  Either we are already looking at
+	 *  this grammar or we will have seen a grammar file changed event.
+	 *  (I hope!)
+	 */
+	public void updateGrammarObjectsFromFile(String grammarFileName) {
 		synchronized ( previewStateLock ) { // build atomically
-			this.grammarFileName = grammarFileName; // switch to grammarFileName
-			PreviewState previewState = grammarToPreviewState.get(grammarFileName);
-			if (previewState != null) {
-				// we have already seen this grammar; state object already built
-				return;
-			}
-			previewState = new PreviewState();
-			grammarToPreviewState.put(grammarFileName, previewState);
-			previewState.grammarFileName = grammarFileName;
+			PreviewState previewState = getPreviewState(grammarFileName);
 			/* run later */ Grammar[] grammars = ANTLRv4PluginController.loadGrammars(grammarFileName);
 			previewState.lg = grammars[0];
 			previewState.g = grammars[1];
 		}
 	}
 
-	/** Look for state information concerning this grammar file and update
-	 *  the Grammar objects.  This does not necessarily update the grammar file
-	 *  in the current editor window, so do not switch to this grammar file.
-	 *  Either we are already looking at this grammar or we will get a
-	 *  grammar file changed event.
-	 */
-	public void updateGrammar(String grammarFileName) {
-		synchronized ( previewStateLock ) { // build atomically
-			PreviewState previewState = grammarToPreviewState.get(grammarFileName);
-			if (previewState == null) {
-				// if we have not seen this grammar before, we create
-				// a new state object and update that
-				previewState = new PreviewState();
-				grammarToPreviewState.put(grammarFileName, previewState);
-				previewState.grammarFileName = grammarFileName;
-			}
-			// we have the previous or a properly constructed new state object;
-			// update grammars.
-			Grammar[] grammars = ANTLRv4PluginController.loadGrammars(grammarFileName);
-			previewState.lg = grammars[0];
-			previewState.g = grammars[1];
-		}
-	}
-
-	public void runANTLRTool(final VirtualFile vfile) {
-		ApplicationManager.getApplication().invokeLater( // todo runReadAction?
-			new Runnable() {
-				@Override
-				public void run() {
-					String title = "ANTLR Code Generation";
-					boolean canBeCancelled = true;
-					Task.Backgroundable gen =
-						new RunANTLROnGrammarFile(new VirtualFile[]{vfile},
-												  project,
-												  title,
-												  canBeCancelled,
-												  new BackgroundFromStartOption());
-					ProgressManager.getInstance().run(gen);
-				}
-			}
-	   );
-	}
-
 	public Object[] parseText(String inputText) throws IOException {
+		// TODO:Try to reuse the same parser and lexer.
 		PreviewState previewState = getPreviewState();
 		String grammarFileName = previewState.grammarFileName;
 		if (!new File(grammarFileName).exists()) {
@@ -373,6 +354,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			g = loadGrammar(antlr, parserGrammarFileName, lg);
 		}
 
+		LOG.info("loadGrammars "+lg.getRecognizerName()+", "+g.getRecognizerName());
 		return new Grammar[] {lg, g};
 	}
 
@@ -407,17 +389,48 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return getPreviewState().editor.getDocument().getText();
 	}
 
-	public PreviewState getPreviewState() {
-		if ( grammarFileName!=null ) {
-			return grammarToPreviewState.get(grammarFileName);
+	public @NotNull PreviewState getPreviewState(String grammarFileName) {
+		// Have we seen this grammar before?
+		PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
+		if ( stateForCurrentGrammar!=null ) {
+			return stateForCurrentGrammar; // seen this before
 		}
-		return null;
+
+		// not seen, must create state
+		stateForCurrentGrammar = new PreviewState(grammarFileName);
+		grammarToPreviewState.put(grammarFileName, stateForCurrentGrammar);
+
+		return stateForCurrentGrammar;
+	}
+
+	/** Get the state information associated with the grammar in the current
+	 *  editor window. If there is no grammar in the editor window, return null.
+	 *  If there is a grammar, return any existing preview state else
+	 *  create a new one in store in the map.
+	 */
+	public @org.jetbrains.annotations.Nullable PreviewState getPreviewState() {
+		VirtualFile currentGrammarFile = getCurrentGrammarFile();
+		String currentGrammarFileName = currentGrammarFile.getPath();
+		if ( currentGrammarFileName==null ) {
+			return null; // we are not looking at a grammar file
+		}
+		return getPreviewState(currentGrammarFileName);
 	}
 
 	public static VirtualFile getCurrentEditorFile(Project project) {
 		FileEditorManager fmgr = FileEditorManager.getInstance(project);
 		VirtualFile files[] = fmgr.getSelectedFiles();
 		return files[0];
+	}
+
+	public VirtualFile getCurrentGrammarFile() {
+		return getCurrentGrammarFile(project);
+	}
+
+	public static VirtualFile getCurrentGrammarFile(Project project) {
+		VirtualFile f = getCurrentEditorFile(project);
+		if ( f.getName().endsWith(".g4") ) return f;
+		return null;
 	}
 
 	static class MyANTLRToolListener extends DefaultToolListener {
