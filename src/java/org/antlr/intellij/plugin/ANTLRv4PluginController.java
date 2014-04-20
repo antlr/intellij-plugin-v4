@@ -24,6 +24,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
+import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
@@ -31,13 +32,8 @@ import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.ParserInterpreter;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.misc.Nullable;
-import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.DefaultToolListener;
@@ -51,10 +47,8 @@ import org.stringtemplate.v4.ST;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /** This object is the controller for the ANTLR plug-in. It receives
@@ -282,6 +276,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			return null;
 		}
 
+		// Wipes out the console and also any error annotations
 		previewPanel.clearParseErrors();
 
 		if ( previewState.g == BAD_PARSER_GRAMMAR ||
@@ -296,12 +291,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = previewState.g.createParserInterpreter(tokens);
+		previewState.parser = parser;
 
-		MyConsoleErrorListener syntaxErrorListener = new MyConsoleErrorListener();
+		previewState.syntaxErrorListener = new SyntaxErrorListener();
 		parser.removeErrorListeners();
-		parser.addErrorListener(syntaxErrorListener);
+		parser.addErrorListener(previewState.syntaxErrorListener);
 		lexEngine.removeErrorListeners();
-		lexEngine.addErrorListener(syntaxErrorListener);
+		lexEngine.addErrorListener(previewState.syntaxErrorListener);
 
 		Rule start = previewState.g.getRule(previewState.startRuleName);
 		if ( start==null ) {
@@ -309,9 +305,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		ParseTree t = parser.parse(start.index);
 
-		previewPanel.parseError(
-			Utils.join(syntaxErrorListener.syntaxErrors.iterator(), "\n")
-		);
+		previewPanel.showParseErrors(previewState.syntaxErrorListener.getSyntaxErrors());
 
 		if ( t!=null ) {
 			return new Object[] {parser, t};
@@ -491,20 +485,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			if (tool.errMgr.formatWantsSingleLineMessage()) {
 				grammarErrorMessage = grammarErrorMessage.replace('\n', ' ');
 			}
-		}
-	}
-
-	/** Traps parser interpreter syntax errors */
-	static class MyConsoleErrorListener extends ConsoleErrorListener {
-		public List<String> syntaxErrors = new ArrayList<String>();
-		@Override
-		public void syntaxError(Recognizer<?, ?> recognizer,
-								@Nullable Object offendingSymbol,
-								int line, int charPositionInLine, String msg,
-								@Nullable RecognitionException e)
-		{
-//			super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
-			syntaxErrors.add("line " + line + ":" + charPositionInLine + " " + msg);
 		}
 	}
 }

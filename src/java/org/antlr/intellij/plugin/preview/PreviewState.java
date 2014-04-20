@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
+import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.tool.Grammar;
 
@@ -25,6 +26,7 @@ public class PreviewState {
 	public String startRuleName;
 
 	public Parser parser;
+	public SyntaxErrorListener syntaxErrorListener;
 
 	/** Upon successful parse of the input inside the preview editor,
 	 *  keep track of the token stream so that we can do token highlighting.

@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -11,14 +12,21 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -56,8 +64,7 @@ public class PreviewPanel extends JPanel {
 	EditorMouseAdapter editorMouseListener = new EditorMouseAdapter() {
 		@Override
 		public void mouseExited(EditorMouseEvent e) {
-			MarkupModel markupModel = e.getEditor().getMarkupModel();
-			markupModel.removeAllHighlighters();
+			removeTokenInfoHighlighters(e.getEditor());
 		}
 	};
 
@@ -186,14 +193,6 @@ public class PreviewPanel extends JPanel {
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
-				public void documentChanged(DocumentEvent e) {
-					editorConsole.setText("");
-				}
-			}
-		);
-		doc.addDocumentListener(
-			new DocumentAdapter() {
-				@Override
 				public void documentChanged(DocumentEvent event) {
 					updateParseTreeFromDoc();
 				}
@@ -221,8 +220,6 @@ public class PreviewPanel extends JPanel {
 			Object[] results =
 				ANTLRv4PluginController.getInstance(project).parseText(inputText);
 			if (results != null) {
-				Parser parser = (Parser) results[0];
-				previewState.parser = parser;
 				ParseTree root = (ParseTree) results[1];
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
 			}
@@ -236,25 +233,100 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void clearParseErrors() {
-		editorConsole.setText("");
-//		ApplicationManager.getApplication().invokeLater(
-//			new Runnable() {
-//				@Override
-//				public void run() {
-//					editorConsole.setText("");
-//				}
-//			}
-//		);
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+		if ( previewState==null ) {
+			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
+					  ANTLRv4PluginController.getCurrentEditorFile(project));
+			return;
+		}
+		Editor editor = previewState.editor;
+		MarkupModel markupModel = editor.getMarkupModel();
+		markupModel.removeAllHighlighters();
+
+		HintManager.getInstance().hideAllHints();
+
+		editorConsole.setText(""); // clear error console
 	}
 
-	public void parseError(final String msg) {
+	/** Display error messages to the console and also add annotations
+	 *  to the preview input window.
+	 */
+	public void showParseErrors(final List<SyntaxError> errors) {
 		ApplicationManager.getApplication().invokeLater(
 			new Runnable() {
 				@Override
 				public void run() {
-					editorConsole.insert(msg, editorConsole.getText().length());
+					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+					if ( previewState==null ) {
+						LOG.error("showParseErrors current editor is not a grammar: "+
+								  ANTLRv4PluginController.getCurrentEditorFile(project));
+						return;
+					}
+					MarkupModel markupModel = previewState.editor.getMarkupModel();
+					if ( errors.size()==0 ) {
+						markupModel.removeAllHighlighters();
+						return;
+					}
+					for (SyntaxError e : errors) {
+						annotateErrorsInPreviewInputEditor(e);
+						displayErrorInParseErrorConsole(e);
+					}
 				}
 			}
 		);
+	}
+
+	public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+		if ( previewState==null ) {
+			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
+					  ANTLRv4PluginController.getCurrentEditorFile(project));
+			return;
+		}
+		Editor editor = previewState.editor;
+		MarkupModel markupModel = editor.getMarkupModel();
+
+		int a,b; // Start and stop index
+		RecognitionException cause = e.getException();
+		if ( cause instanceof LexerNoViableAltException ) {
+			a = ((LexerNoViableAltException) cause).getStartIndex();
+			b = ((LexerNoViableAltException) cause).getStartIndex()+1;
+		}
+		else {
+			Token offendingToken = (Token)e.getOffendingSymbol();
+			a = offendingToken.getStartIndex();
+			b = offendingToken.getStopIndex()+1;
+		}
+		final TextAttributes attr=new TextAttributes();
+		attr.setForegroundColor(JBColor.RED);
+		attr.setEffectColor(JBColor.RED);
+		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
+		RangeHighlighter rangehighlighter=
+			markupModel.addRangeHighlighter(a,
+											b,
+											0, // layer
+											attr,
+											HighlighterTargetArea.EXACT_RANGE);
+	}
+
+	public void displayErrorInParseErrorConsole(SyntaxError e) {
+		String msg = getErrorDisplayString(e);
+		editorConsole.insert(msg+'\n', editorConsole.getText().length());
+	}
+
+	public String getErrorDisplayString(SyntaxError e) {
+		return "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
+	}
+
+	public static MarkupModel removeTokenInfoHighlighters(Editor editor) {
+		// Remove any previous underlining, but not anything else like errors
+		MarkupModel markupModel=editor.getMarkupModel();
+		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+			TextAttributes attr = r.getTextAttributes();
+			if ( attr!=null && attr.getEffectType() == EffectType.LINE_UNDERSCORE ) {
+				markupModel.removeHighlighter(r);
+			}
+		}
+		return markupModel;
 	}
 }
