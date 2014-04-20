@@ -84,7 +84,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 
 		List<String> args = new ArrayList<String>();
 
-		String qualFileName = vfile.getCanonicalPath();
+		String qualFileName = vfile.getPath();
 		String sourcePath = getParentDir(vfile);
 		VirtualFile contentRoot = getContentRoot(vfile);
 
