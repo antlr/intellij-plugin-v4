@@ -23,7 +23,7 @@ public class ConfigureANTLRAction extends AnAction implements DumbAware {
 		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
 		if ( files==null || files[0]==null ) return; // no files?
 
-		String name = files[0].getPath();
+		String name = files[0].getCanonicalPath();
 		ConfigANTLRPerGrammar configDialog = new ConfigANTLRPerGrammar(project, name);
 		String fileName = files[0].getName();
 		configDialog.getPeer().setTitle("Configure ANTLR for "+ fileName);

@@ -84,7 +84,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 
 		List<String> args = new ArrayList<String>();
 
-		String qualFileName = vfile.getPresentableName();
+		String qualFileName = vfile.getCanonicalPath();
 		String sourcePath = getParentDir(vfile);
 		VirtualFile contentRoot = getContentRoot(vfile);
 
@@ -107,6 +107,12 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		if ( encoding!=MISSING ) {
 			args.add("-encoding");
 			args.add(encoding);
+		}
+
+		String package_ = getProp(qualFileName, "package", MISSING);
+		if ( package_!=MISSING) {
+			args.add("-package");
+			args.add(package_);
 		}
 
 		if ( getBooleanProp(qualFileName, "gen-listener", true) ) {
