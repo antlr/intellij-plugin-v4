@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -24,7 +25,6 @@ import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.LexerNoViableAltException;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -230,8 +230,6 @@ public class PreviewPanel extends JPanel {
 			Object[] results =
 				ANTLRv4PluginController.getInstance(project).parseText(inputText);
 			if (results != null) {
-				Parser parser = (Parser) results[0];
-				previewState.parser = parser;
 				ParseTree root = (ParseTree) results[1];
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
 			}
@@ -251,6 +249,8 @@ public class PreviewPanel extends JPanel {
 						  ANTLRv4PluginController.getCurrentEditorFile(project));
 			return;
 		}
+		HintManager.getInstance().hideAllHints();
+
 //		previewState.editor.getMarkupModel().removeAllHighlighters();
 //		editorConsole.setText("");
 //		ApplicationManager.getApplication().invokeLater(
@@ -298,7 +298,8 @@ public class PreviewPanel extends JPanel {
 					  ANTLRv4PluginController.getCurrentEditorFile(project));
 			return;
 		}
-		MarkupModel markupModel = previewState.editor.getMarkupModel();
+		Editor editor = previewState.editor;
+		MarkupModel markupModel = editor.getMarkupModel();
 
 		int a,b; // Start and stop index
 		RecognitionException cause = e.getException();
@@ -324,7 +325,11 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void displayErrorInParseErrorConsole(SyntaxError e) {
-		String msg = "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
+		String msg = getErrorDisplayString(e);
 		editorConsole.insert(msg+'\n', editorConsole.getText().length());
+	}
+
+	public String getErrorDisplayString(SyntaxError e) {
+		return "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
 	}
 }

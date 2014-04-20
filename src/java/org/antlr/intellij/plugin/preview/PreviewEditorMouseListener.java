@@ -5,16 +5,13 @@ import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.ui.popup.Balloon;
-import com.intellij.openapi.ui.popup.BalloonBuilder;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -30,15 +27,58 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 
 	@Override
 	public void mouseMoved(EditorMouseEvent e){
-		MouseEvent mouseEvent=e.getMouseEvent();
-		if ( !mouseEvent.isMetaDown() ) {
+		if ( e.getArea()!=EditorMouseEventArea.EDITING_AREA ) {
 			return;
 		}
 
-		Point point=new Point(mouseEvent.getPoint());
+		MouseEvent mouseEvent=e.getMouseEvent();
 		Editor editor=e.getEditor();
+		Point point=new Point(mouseEvent.getPoint());
 		LogicalPosition pos=editor.xyToLogicalPosition(point);
 		int offset=editor.logicalPositionToOffset(pos);
+
+		if ( offset >= editor.getDocument().getTextLength() ) {
+			return;
+		}
+
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(editor.getProject());
+		PreviewState previewState =	controller.getPreviewState();
+		if ( previewState==null ) {
+			return;
+		}
+
+		if ( !mouseEvent.isMetaDown() ) { // just moving around, show any errors
+			MarkupModel markupModel=editor.getMarkupModel();
+			for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+				int a = r.getStartOffset();
+				int b = r.getEndOffset();
+				if ( offset >= a && offset <= b ) { // cursor is over some kind of highlighting
+					TextAttributes attr = r.getTextAttributes();
+					if ( attr != null && attr.getEffectType() == EffectType.WAVE_UNDERSCORE ) {
+						// error tool tips
+						// add tooltip for msg
+						String errorDisplayString = "foo";
+//							controller.getPreviewPanel().getErrorDisplayString(previewState.syntaxErrorListener);
+						int flags =
+							HintManager.HIDE_BY_ANY_KEY |
+								HintManager.HIDE_BY_TEXT_CHANGE |
+								HintManager.HIDE_BY_SCROLLING;
+						int timeout = 000; // 1s?
+						HintManager.getInstance().showErrorHint(editor, errorDisplayString,
+																offset, offset+1,
+																HintManager.ABOVE, flags, timeout);
+						return;
+					}
+				}
+				else {
+					// Turn off any tooltips if none under the cursor
+					HintManager.getInstance().hideAllHints();
+				}
+			}
+
+			return;
+		}
+
 //			System.out.println("offset="+offset);
 		int selStart=editor.getSelectionModel().getSelectionStart();
 		int selEnd=editor.getSelectionModel().getSelectionEnd();
@@ -47,12 +87,8 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		above.translate(0, -editor.getLineHeight());
 		RelativePoint where = new RelativePoint(mouseEvent.getComponent(), above);
 
-		PreviewState previewState =
-			ANTLRv4PluginController.getInstance(editor.getProject()).getPreviewState();
-
 		CommonTokenStream tokenStream =
 			(CommonTokenStream)previewState.parser.getInputStream();
-
 
 		Token tokenUnderCursor = null;
 		for (Token t : tokenStream.getTokens()) {
@@ -100,7 +136,6 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		}
 
 		CaretModel caretModel = editor.getCaretModel();
-		if ( offset >= editor.getDocument().getTextLength() ) return;
 
 		// Underline
 		final TextAttributes attr=new TextAttributes();
@@ -144,9 +179,9 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 
 //				HighlightInfo.Builder highlightInfo = HighlightInfo.newHighlightInfo(HighlightInfoType.WARNING);
 //				highlighter.setErrorStripeTooltip(highlightInfo);
-		BalloonBuilder builder =
-			JBPopupFactory.getInstance().createHtmlTextBalloonBuilder("hello", MessageType.INFO, null);
-		Balloon balloon = builder.createBalloon();
+//		BalloonBuilder builder =
+//			JBPopupFactory.getInstance().createHtmlTextBalloonBuilder("hello", MessageType.INFO, null);
+//		Balloon balloon = builder.createBalloon();
 		//balloon.show(where, Balloon.Position.above);
 //				lastBalloon = balloon;
 		lastPoint = point;

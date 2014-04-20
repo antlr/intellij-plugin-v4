@@ -291,12 +291,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		ParserInterpreter parser = previewState.g.createParserInterpreter(tokens);
+		previewState.parser = parser;
 
-		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
+		previewState.syntaxErrorListener = new SyntaxErrorListener();
 		parser.removeErrorListeners();
-		parser.addErrorListener(syntaxErrorListener);
+		parser.addErrorListener(previewState.syntaxErrorListener);
 		lexEngine.removeErrorListeners();
-		lexEngine.addErrorListener(syntaxErrorListener);
+		lexEngine.addErrorListener(previewState.syntaxErrorListener);
 
 		Rule start = previewState.g.getRule(previewState.startRuleName);
 		if ( start==null ) {
@@ -304,7 +305,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		ParseTree t = parser.parse(start.index);
 
-		previewPanel.showParseErrors(syntaxErrorListener.getSyntaxErrors());
+		previewPanel.showParseErrors(previewState.syntaxErrorListener.getSyntaxErrors());
 
 		if ( t!=null ) {
 			return new Object[] {parser, t};
