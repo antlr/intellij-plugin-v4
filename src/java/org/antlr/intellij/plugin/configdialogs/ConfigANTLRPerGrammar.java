@@ -39,12 +39,14 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	public void loadValues(Project project, String qualFileName) {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		String s;
-		s =	props.getValue(getPropNameForFile(qualFileName, "output-dir"));
-		if ( s!=null ) outputDirField.setText(s);
-		s =	props.getValue(getPropNameForFile(qualFileName, "lib-dir"));
-		if ( s!=null ) libDirField.setText(s);
-		s =	props.getValue(getPropNameForFile(qualFileName, "encoding"));
-		if ( s!=null ) fileEncodingField.setText(s);
+		s = props.getValue(getPropNameForFile(qualFileName, "output-dir"), "");
+		outputDirField.setText(s);
+		s = props.getValue(getPropNameForFile(qualFileName, "lib-dir"), "");
+		libDirField.setText(s);
+		s = props.getValue(getPropNameForFile(qualFileName, "encoding"), "");
+		fileEncodingField.setText(s);
+		s = props.getValue(getPropNameForFile(qualFileName, "package"), "");
+		packageField.setText(s);
 
 		boolean b;
 		b = props.getBoolean(getPropNameForFile(qualFileName, "gen-listener"), true);
@@ -58,27 +60,35 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 
 		v = outputDirField.getText();
-		if ( v.trim().length()>0 ) {
+		if ( v.trim().length() > 0 ) {
 			props.setValue(getPropNameForFile(qualFileName, "output-dir"), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName,"output-dir"));
+			props.unsetValue(getPropNameForFile(qualFileName, "output-dir"));
 		}
 
 		v = libDirField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName,"lib-dir"), v);
+		if ( v.trim().length() > 0 ) {
+			props.setValue(getPropNameForFile(qualFileName, "lib-dir"), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName,"lib-dir"));
+			props.unsetValue(getPropNameForFile(qualFileName, "lib-dir"));
 		}
 
 		v = fileEncodingField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName,"encoding"), v);
+		if ( v.trim().length() > 0 ) {
+			props.setValue(getPropNameForFile(qualFileName, "encoding"), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName,"encoding"));
+			props.unsetValue(getPropNameForFile(qualFileName, "encoding"));
+		}
+
+		v = packageField.getText();
+		if ( v.trim().length() > 0 ) {
+			props.setValue(getPropNameForFile(qualFileName, "package"), v);
+		}
+		else {
+			props.unsetValue(getPropNameForFile(qualFileName, "package"));
 		}
 
 		props.setValue(getPropNameForFile(qualFileName, "gen-listener"),
