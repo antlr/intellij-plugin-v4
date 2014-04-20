@@ -14,8 +14,11 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
+import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 
 import java.awt.*;
@@ -57,17 +60,21 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 					if ( attr != null && attr.getEffectType() == EffectType.WAVE_UNDERSCORE ) {
 						// error tool tips
 						// add tooltip for msg
-						String errorDisplayString = "foo";
-//							controller.getPreviewPanel().getErrorDisplayString(previewState.syntaxErrorListener);
-						int flags =
-							HintManager.HIDE_BY_ANY_KEY |
-								HintManager.HIDE_BY_TEXT_CHANGE |
-								HintManager.HIDE_BY_SCROLLING;
-						int timeout = 000; // 1s?
-						HintManager.getInstance().showErrorHint(editor, errorDisplayString,
-																offset, offset+1,
-																HintManager.ABOVE, flags, timeout);
-						return;
+						SyntaxError errorUnderCursor =
+							getErrorUnderCursor(previewState.syntaxErrorListener.getSyntaxErrors(), offset);
+						if ( errorUnderCursor!=null ) {
+							String errorDisplayString =
+								controller.getPreviewPanel().getErrorDisplayString(errorUnderCursor);
+							int flags =
+								HintManager.HIDE_BY_ANY_KEY |
+									HintManager.HIDE_BY_TEXT_CHANGE |
+									HintManager.HIDE_BY_SCROLLING;
+							int timeout = 0; // default?
+							HintManager.getInstance().showErrorHint(editor, errorDisplayString,
+																	offset, offset + 1,
+																	HintManager.ABOVE, flags, timeout);
+							return;
+						}
 					}
 				}
 				else {
@@ -90,16 +97,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		CommonTokenStream tokenStream =
 			(CommonTokenStream)previewState.parser.getInputStream();
 
-		Token tokenUnderCursor = null;
-		for (Token t : tokenStream.getTokens()) {
-			int begin = t.getStartIndex();
-			int end = t.getStopIndex();
-//				System.out.println("test "+t+" for "+offset);
-			if ( offset >= begin && offset <= end ) {
-				tokenUnderCursor = t;
-				break;
-			}
-		}
+		Token tokenUnderCursor = getTokenUnderCursor(offset, tokenStream);
 		if ( tokenUnderCursor==null ) {
 			return;
 		}
@@ -185,5 +183,39 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		//balloon.show(where, Balloon.Position.above);
 //				lastBalloon = balloon;
 		lastPoint = point;
+	}
+
+	public Token getTokenUnderCursor(int offset, CommonTokenStream tokenStream) {
+		Token tokenUnderCursor = null;
+		for (Token t : tokenStream.getTokens()) {
+			int begin = t.getStartIndex();
+			int end = t.getStopIndex();
+//				System.out.println("test "+t+" for "+offset);
+			if ( offset >= begin && offset <= end ) {
+				tokenUnderCursor = t;
+				break;
+			}
+		}
+		return tokenUnderCursor;
+	}
+
+	public SyntaxError getErrorUnderCursor(java.util.List<SyntaxError> errors, int offset) {
+		for (SyntaxError e : errors) {
+			int a, b;
+			RecognitionException cause = e.getException();
+			if ( cause instanceof LexerNoViableAltException) {
+				a = ((LexerNoViableAltException) cause).getStartIndex();
+				b = ((LexerNoViableAltException) cause).getStartIndex()+1;
+			}
+			else {
+				Token offendingToken = (Token)e.getOffendingSymbol();
+				a = offendingToken.getStartIndex();
+				b = offendingToken.getStopIndex()+1;
+			}
+			if ( offset >= a && offset <= b ) { // cursor is over some kind of error
+				return e;
+			}
+		}
+		return null;
 	}
 }
