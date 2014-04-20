@@ -1,6 +1,5 @@
 package org.antlr.intellij.adaptor.parser;
 
-import com.intellij.openapi.project.Project;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -15,14 +14,9 @@ import java.util.List;
  *  Instance created by GrammarParser.createParserImpl().
  */
 public class SyntaxErrorListener extends BaseErrorListener {
-	private Project project;
 	private final List<SyntaxError> syntaxErrors = new ArrayList<SyntaxError>();
 
 	public SyntaxErrorListener() {
-	}
-
-	public SyntaxErrorListener(Project project) {
-		this.project = project;
 	}
 
 	public List<SyntaxError> getSyntaxErrors() {

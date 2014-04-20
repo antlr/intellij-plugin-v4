@@ -11,14 +11,22 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -60,6 +68,7 @@ public class PreviewPanel extends JPanel {
 			markupModel.removeAllHighlighters();
 		}
 	};
+
 
 	public PreviewPanel(Project project) {
 		this.project = project;
@@ -203,7 +212,7 @@ public class PreviewPanel extends JPanel {
 		settings.setWhitespacesShown(true); // hmm...doesn't work.  maybe show when showing token tooltip?
 
 		editor.addEditorMouseMotionListener(editorMouseMoveListener);
-		editor.addEditorMouseListener(editorMouseListener);
+//		editor.addEditorMouseListener(editorMouseListener);
 
 		return editor;
 	}
@@ -236,7 +245,14 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void clearParseErrors() {
-		editorConsole.setText("");
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+		if ( previewState==null ) {
+			LOG.error("clearParseErrors current editor is not a grammar: "+
+						  ANTLRv4PluginController.getCurrentEditorFile(project));
+			return;
+		}
+//		previewState.editor.getMarkupModel().removeAllHighlighters();
+//		editorConsole.setText("");
 //		ApplicationManager.getApplication().invokeLater(
 //			new Runnable() {
 //				@Override
@@ -247,14 +263,68 @@ public class PreviewPanel extends JPanel {
 //		);
 	}
 
-	public void parseError(final String msg) {
+	/** Display error messages to the console and also add annotations
+	 *  to the preview input window.
+	 */
+	public void showParseErrors(final List<SyntaxError> errors) {
 		ApplicationManager.getApplication().invokeLater(
 			new Runnable() {
 				@Override
 				public void run() {
-					editorConsole.insert(msg, editorConsole.getText().length());
+					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+					if ( previewState==null ) {
+						LOG.error("showParseErrors current editor is not a grammar: "+
+								  ANTLRv4PluginController.getCurrentEditorFile(project));
+						return;
+					}
+					MarkupModel markupModel = previewState.editor.getMarkupModel();
+					if ( errors.size()==0 ) {
+						markupModel.removeAllHighlighters();
+						return;
+					}
+					for (SyntaxError e : errors) {
+						annotatePreviewInputEditor(e);
+						displayErrorInParseErrorConsole(e);
+					}
 				}
 			}
 		);
+	}
+
+	public void annotatePreviewInputEditor(SyntaxError e) {
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+		if ( previewState==null ) {
+			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
+					  ANTLRv4PluginController.getCurrentEditorFile(project));
+			return;
+		}
+		MarkupModel markupModel = previewState.editor.getMarkupModel();
+
+		int a,b; // Start and stop index
+		RecognitionException cause = e.getException();
+		if ( cause instanceof LexerNoViableAltException ) {
+			a = ((LexerNoViableAltException) cause).getStartIndex();
+			b = ((LexerNoViableAltException) cause).getStartIndex()+1;
+		}
+		else {
+			Token offendingToken = (Token)e.getOffendingSymbol();
+			a = offendingToken.getStartIndex();
+			b = offendingToken.getStopIndex()+1;
+		}
+		final TextAttributes attr=new TextAttributes();
+		attr.setForegroundColor(JBColor.RED);
+		attr.setEffectColor(JBColor.RED);
+		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
+		RangeHighlighter rangehighlighter=
+			markupModel.addRangeHighlighter(a,
+											b,
+											0, // layer
+											attr,
+											HighlighterTargetArea.EXACT_RANGE);
+	}
+
+	public void displayErrorInParseErrorConsole(SyntaxError e) {
+		String msg = "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
+		editorConsole.insert(msg+'\n', editorConsole.getText().length());
 	}
 }
