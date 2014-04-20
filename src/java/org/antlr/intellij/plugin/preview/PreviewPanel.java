@@ -64,11 +64,9 @@ public class PreviewPanel extends JPanel {
 	EditorMouseAdapter editorMouseListener = new EditorMouseAdapter() {
 		@Override
 		public void mouseExited(EditorMouseEvent e) {
-			MarkupModel markupModel = e.getEditor().getMarkupModel();
-			markupModel.removeAllHighlighters();
+			removeTokenInfoHighlighters(e.getEditor());
 		}
 	};
-
 
 	public PreviewPanel(Project project) {
 		this.project = project;
@@ -195,14 +193,6 @@ public class PreviewPanel extends JPanel {
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
-				public void documentChanged(DocumentEvent e) {
-					editorConsole.setText("");
-				}
-			}
-		);
-		doc.addDocumentListener(
-			new DocumentAdapter() {
-				@Override
 				public void documentChanged(DocumentEvent event) {
 					updateParseTreeFromDoc();
 				}
@@ -212,7 +202,7 @@ public class PreviewPanel extends JPanel {
 		settings.setWhitespacesShown(true); // hmm...doesn't work.  maybe show when showing token tooltip?
 
 		editor.addEditorMouseMotionListener(editorMouseMoveListener);
-//		editor.addEditorMouseListener(editorMouseListener);
+		editor.addEditorMouseListener(editorMouseListener);
 
 		return editor;
 	}
@@ -245,22 +235,17 @@ public class PreviewPanel extends JPanel {
 	public void clearParseErrors() {
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 		if ( previewState==null ) {
-			LOG.error("clearParseErrors current editor is not a grammar: "+
-						  ANTLRv4PluginController.getCurrentEditorFile(project));
+			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
+					  ANTLRv4PluginController.getCurrentEditorFile(project));
 			return;
 		}
+		Editor editor = previewState.editor;
+		MarkupModel markupModel = editor.getMarkupModel();
+		markupModel.removeAllHighlighters();
+
 		HintManager.getInstance().hideAllHints();
 
-//		previewState.editor.getMarkupModel().removeAllHighlighters();
-//		editorConsole.setText("");
-//		ApplicationManager.getApplication().invokeLater(
-//			new Runnable() {
-//				@Override
-//				public void run() {
-//					editorConsole.setText("");
-//				}
-//			}
-//		);
+		editorConsole.setText(""); // clear error console
 	}
 
 	/** Display error messages to the console and also add annotations
@@ -283,7 +268,7 @@ public class PreviewPanel extends JPanel {
 						return;
 					}
 					for (SyntaxError e : errors) {
-						annotatePreviewInputEditor(e);
+						annotateErrorsInPreviewInputEditor(e);
 						displayErrorInParseErrorConsole(e);
 					}
 				}
@@ -291,7 +276,7 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
-	public void annotatePreviewInputEditor(SyntaxError e) {
+	public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 		if ( previewState==null ) {
 			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
@@ -331,5 +316,17 @@ public class PreviewPanel extends JPanel {
 
 	public String getErrorDisplayString(SyntaxError e) {
 		return "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
+	}
+
+	public static MarkupModel removeTokenInfoHighlighters(Editor editor) {
+		// Remove any previous underlining, but not anything else like errors
+		MarkupModel markupModel=editor.getMarkupModel();
+		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+			TextAttributes attr = r.getTextAttributes();
+			if ( attr!=null && attr.getEffectType() == EffectType.LINE_UNDERSCORE ) {
+				markupModel.removeHighlighter(r);
+			}
+		}
+		return markupModel;
 	}
 }
