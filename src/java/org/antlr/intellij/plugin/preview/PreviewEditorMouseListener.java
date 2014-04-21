@@ -95,7 +95,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		attr.setEffectType(EffectType.LINE_UNDERSCORE);
 		markupModel.addRangeHighlighter(tokenUnderCursor.getStartIndex(),
 										tokenUnderCursor.getStopIndex()+1,
-										0, // layer
+										PreviewPanel.TOKEN_INFO_LAYER, // layer
 										attr,
 										HighlighterTargetArea.EXACT_RANGE);
 

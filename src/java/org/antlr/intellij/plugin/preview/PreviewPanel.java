@@ -13,6 +13,7 @@ import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
 import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
@@ -46,6 +47,8 @@ import java.util.List;
  */
 public class PreviewPanel extends JPanel {
 	public static final Logger LOG = Logger.getInstance("ANTLR PreviewPanel");
+	public static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
+	public static final int ERROR_LAYER = HighlighterLayer.ERROR;
 
 	public static final JLabel placeHolder = new JLabel("");
 	public static final String missingStartRuleLabelText =
@@ -304,7 +307,7 @@ public class PreviewPanel extends JPanel {
 		RangeHighlighter rangehighlighter=
 			markupModel.addRangeHighlighter(a,
 											b,
-											0, // layer
+											ERROR_LAYER, // layer
 											attr,
 											HighlighterTargetArea.EXACT_RANGE);
 	}
