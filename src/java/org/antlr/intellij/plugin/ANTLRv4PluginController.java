@@ -285,8 +285,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		synchronized ( previewStateLock ) { // build atomically
 			PreviewState previewState = getPreviewState(grammarFileName);
 			/* run later */ Grammar[] grammars = loadGrammars(grammarFileName);
-			previewState.lg = grammars[0];
-			previewState.g = grammars[1];
+			if ( grammars!=null ) {
+				previewState.lg = grammars[0];
+				previewState.g = grammars[1];
+			}
 		}
 	}
 
@@ -355,7 +357,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		String lexerGrammarFileName = null;
 		String parserGrammarFileName = null;
 
-		Grammar g = antlr.loadGrammar(grammarFileName); // load to examine it
+		// basically here I am importing the loadGrammar() method from Tool
+		// so that I can check for an empty AST coming back.
+		GrammarRootAST grammarRootAST = antlr.parseGrammar(grammarFileName);
+		if ( grammarRootAST==null ) {
+			LOG.info("Empty or bad grammar "+grammarFileName);
+			return null;
+		}
+		Grammar g = antlr.createGrammar(grammarRootAST);
+		g.fileName = grammarFileName;
+		antlr.process(g, false);
+
 		// examine's Grammar AST from v4 itself;
 		// hence use ANTLRParser.X not ANTLRv4Parser from this plugin
 		switch ( g.getType() ) {
