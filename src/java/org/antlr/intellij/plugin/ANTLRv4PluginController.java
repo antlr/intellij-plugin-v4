@@ -5,7 +5,6 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -137,10 +136,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	@Override
 	public void projectClosed() {
 		console.dispose();
-		for (PreviewState it : grammarToPreviewState.values() ) {
-			final EditorFactory factory = EditorFactory.getInstance();
-			factory.releaseEditor(it.editor);
-		}
 	}
 
 	@Override
@@ -176,6 +171,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 							 public void selectionChanged(FileEditorManagerEvent event) {
 								 currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
 							 }
+
+							 @Override
+							 public void fileClosed(FileEditorManager source, VirtualFile file) {
+								 currentEditorFileClosedEvent(file);
+							 }
 						 }
 		);
 	}
@@ -196,6 +196,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewState.startRuleName = startRuleName;
 		if ( previewPanel!=null ) {
 			previewPanel.setStartRuleName(startRuleName); // notify the view
+			previewPanel.updateParseTreeFromDoc();
 		}
 		else {
 			LOG.error("setStartRuleNameEvent called before preview panel created");
@@ -220,6 +221,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		if ( newFile==null ) { // all files must be closed I guess
 			return;
 		}
+		if ( newFile.getName().endsWith(".g") ) {
+			LOG.info("currentEditorFileChangedEvent ANTLR 4 cannot handle .g files, only .g4");
+			previewWindow.hide(null);
+			return;
+		}
 		if ( !newFile.getName().endsWith(".g4") ) {
 			previewWindow.hide(null);
 			return;
@@ -231,6 +237,29 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
 		}
+	}
+
+	public void currentEditorFileClosedEvent(VirtualFile vfile) {
+		String grammarFileName = vfile.getPath();
+		LOG.info("currentEditorFileClosedEvent "+ grammarFileName);
+		if ( !vfile.getName().endsWith(".g4") ) {
+			previewWindow.hide(null);
+			return;
+		}
+
+		// Dispose of state, editor, and such for this file
+		PreviewState previewState = grammarToPreviewState.get(grammarFileName);
+		if ( previewState==null ) {
+			LOG.error("currentEditorFileClosedEvent no state for "+ grammarFileName);
+			return;
+		}
+
+		previewPanel.closeGrammar(vfile);
+
+		grammarToPreviewState.remove(grammarFileName);
+
+		// close tool window
+		previewWindow.hide(null);
 	}
 
 	public void runANTLRTool(final VirtualFile vfile) {
@@ -315,6 +344,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	/** Get lexer and parser grammars */
 	public Grammar[] loadGrammars(String grammarFileName) {
+		LOG.info("loadGrammars open "+grammarFileName);
 		Tool antlr = new Tool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
@@ -447,6 +477,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 */
 	public @org.jetbrains.annotations.Nullable PreviewState getPreviewState() {
 		VirtualFile currentGrammarFile = getCurrentGrammarFile();
+		if ( currentGrammarFile==null ) {
+			return null;
+		}
 		String currentGrammarFileName = currentGrammarFile.getPath();
 		if ( currentGrammarFileName==null ) {
 			return null; // we are not looking at a grammar file
@@ -457,6 +490,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static VirtualFile getCurrentEditorFile(Project project) {
 		FileEditorManager fmgr = FileEditorManager.getInstance(project);
 		VirtualFile files[] = fmgr.getSelectedFiles();
+		if ( files.length == 0 ) {
+			return null;
+		}
 		return files[0];
 	}
 
