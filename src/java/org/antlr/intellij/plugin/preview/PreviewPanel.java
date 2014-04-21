@@ -185,9 +185,17 @@ public class PreviewPanel extends JPanel {
 		setParseTree(Arrays.asList(new String[0]), null); // wipe tree
 
 		// release the editor
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFileName);
 		final EditorFactory factory = EditorFactory.getInstance();
-		factory.releaseEditor(previewState.editor);
+		synchronized ( controller.previewStateLock ) {
+			// It would appear that the project closed event occurs before these close grammars. Very strange.
+			// check for null editor.
+			if ( previewState.editor!=null ) {
+				factory.releaseEditor(previewState.editor);
+				previewState.editor = null;
+			}
+		}
 
 		// restore the GUI
 		BorderLayout layout = (BorderLayout)editorPanel.getLayout();

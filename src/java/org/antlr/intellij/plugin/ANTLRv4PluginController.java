@@ -5,6 +5,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -70,7 +71,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
-	private final Object previewStateLock = new Object();
+	public final Object previewStateLock = new Object();
 
 	public Project project;
 	public ConsoleView console;
@@ -136,6 +137,19 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	@Override
 	public void projectClosed() {
 		console.dispose();
+
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		for (PreviewState it : grammarToPreviewState.values() ) {
+			LOG.info("projectClosed still has state " + it.grammarFileName);
+			synchronized (controller.previewStateLock) {
+				if (it.editor != null) {
+					LOG.info("projectClosed still has editor " + it.grammarFileName);
+					final EditorFactory factory = EditorFactory.getInstance();
+					factory.releaseEditor(it.editor);
+					it.editor = null;
+				}
+			}
+		}
 	}
 
 	@Override
