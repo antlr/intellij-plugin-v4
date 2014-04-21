@@ -5,6 +5,7 @@ import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.runtime.ANTLRReaderStream;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.ST;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +47,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	/** Called first; return file; idea 12*/
 	@Nullable
 	public PsiFile collectionInformation(@NotNull PsiFile file) {
+		LOG.info("collectionInformation "+file.getVirtualFile());
 		return file;
 	}
 
@@ -96,15 +97,20 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			GrammarRootAST ast = antlr.parse(file.getName(), in);
 			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
 			Grammar g = antlr.createGrammar(ast);
+			VirtualFile vfile = file.getVirtualFile();
+			if ( vfile==null ) {
+				LOG.error("doAnnotate no virtual file for "+file);
+				return issues;
+			}
+			g.fileName = vfile.getPath();
 			antlr.process(g, false);
 
-			for (int i = 0; i < issues.size(); i++) {
-				Issue issue = issues.get(i);
+			for (Issue issue : issues) {
 				processIssue(issue);
 			}
 		}
-		catch (IOException ioe) {
-			LOG.error("antlr can't process "+file.getName(), ioe);
+		catch (Exception e) {
+			LOG.error("antlr can't process "+file.getName(), e);
 		}
 		return issues;
 	}
