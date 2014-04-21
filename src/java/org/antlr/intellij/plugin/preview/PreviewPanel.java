@@ -143,8 +143,6 @@ public class PreviewPanel extends JPanel {
 	public void setStartRuleName(String startRuleName) {
 		startRuleLabel.setText(startRuleLabelText + startRuleName);
 		startRuleLabel.setForeground(JBColor.BLACK);
-		// Might have text already, parse it.
-		updateParseTreeFromDoc();
 	}
 
 	public void resetStartRuleLabel() {
@@ -154,19 +152,19 @@ public class PreviewPanel extends JPanel {
 
 	/** Load grammars and set editor component. */
 	public void switchToGrammar(VirtualFile vfile) {
-		LOG.info("switchToGrammar " + vfile.getPath());
 		String grammarFileName = vfile.getPath();
+		LOG.info("switchToGrammar " + grammarFileName);
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
 
 		if ( previewState.editor==null ) { // this grammar is new; no editor yet
-			LOG.info("switchToGrammar: create new editor for "+previewState.grammarFileName);
-			previewState.editor = createEditor(""); // nothing there, create
+			previewState.editor = createEditor(vfile, ""); // nothing there, create
 		}
 
 		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
 		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
 		editorPanel.remove(editorSpotComp);
 		editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
+		clearParseErrors();
 
 		if ( previewState.startRuleName!=null ) {
 			setStartRuleName(previewState.startRuleName);
@@ -176,6 +174,26 @@ public class PreviewPanel extends JPanel {
 			resetStartRuleLabel();
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
 		}
+	}
+
+	public void closeGrammar(VirtualFile vfile) {
+		String grammarFileName = vfile.getPath();
+		LOG.info("closeGrammar "+grammarFileName);
+
+		resetStartRuleLabel();
+		editorConsole.setText(""); // clear error console
+		setParseTree(Arrays.asList(new String[0]), null); // wipe tree
+
+		// release the editor
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		final EditorFactory factory = EditorFactory.getInstance();
+		factory.releaseEditor(previewState.editor);
+
+		// restore the GUI
+		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
+		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
+		editorPanel.remove(editorSpotComp);
+		editorPanel.add(placeHolder, BorderLayout.CENTER); // put placeholder back after we remove the editor component.
 	}
 
 	public void setParseTree(final List<String> ruleNames, final ParseTree tree) {
@@ -190,7 +208,8 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
-	public Editor createEditor(String inputText) {
+	public Editor createEditor(VirtualFile vfile, String inputText) {
+		LOG.info("createEditor: create new editor for "+vfile.getPath());
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(inputText);
 		doc.addDocumentListener(
@@ -214,8 +233,14 @@ public class PreviewPanel extends JPanel {
 		try {
 			PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 			if ( previewState==null ) {
-				LOG.error("updateParseTreeFromDoc no state for "+
-							  ANTLRv4PluginController.getCurrentEditorFile(project).getPath());
+				VirtualFile currentEditorFile = ANTLRv4PluginController.getCurrentEditorFile(project);
+				if ( currentEditorFile==null ) {
+					LOG.error("updateParseTreeFromDoc no open editor");
+				}
+				else {
+					LOG.error("updateParseTreeFromDoc no state for " +
+								  currentEditorFile.getPath());
+				}
 				setParseTree(Arrays.asList(new String[0]), null);
 				return;
 			}
