@@ -21,8 +21,13 @@ public class TestRuleAction extends AnAction implements DumbAware {
 	/** Only show if selection is a grammar */
 	@Override
 	public void update(AnActionEvent e) {
+		Presentation presentation = e.getPresentation();
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
-		if ( selectedPsiRuleNode==null ) return; // we clicked somewhere outside text
+		if ( selectedPsiRuleNode==null ) { // we clicked somewhere outside text
+			presentation.setEnabled(false);
+			presentation.setVisible(false);
+			return;
+		}
 
 		String ruleName = selectedPsiRuleNode.getText();
 		boolean parserRuleFound;
@@ -37,7 +42,6 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		VirtualFile file = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
 		boolean grammarFound = file!=null;
 
-		Presentation presentation = e.getPresentation();
 		presentation.setEnabled(grammarFound && parserRuleFound);
 		presentation.setVisible(grammarFound);
 	}
