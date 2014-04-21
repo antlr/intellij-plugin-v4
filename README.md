@@ -37,6 +37,10 @@ You can also use the meta key while moving the mouse in preview window to get to
 
 ![Live preview](images/token-tooltips.png)
 
+When there are errors, you will see the output in the small console under the input editor in case you need to cut and paste. But, for general viewing you can however the cursor over an underlined error and it will show you the message in a pop-up. Basically the input window behaves like a regular editor window except that it is subject to the grammar in your other editor.
+
+![error-popup.png](images/error-popup.png)
+
 ### Per file ANTLR configuration
 
 ![Configuration](images/per-file-config.png)
