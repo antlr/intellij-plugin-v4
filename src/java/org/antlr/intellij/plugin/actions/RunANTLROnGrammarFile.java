@@ -15,12 +15,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
-import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.v4.Tool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,11 +31,10 @@ import java.util.List;
 import java.util.Set;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
-public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnable {
+public class RunANTLROnGrammarFile extends Task.Backgroundable {
+	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile");
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String MISSING = "";
-
-	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile");
 
 	VirtualFile[] files;
 	Project project;
@@ -61,25 +56,14 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 	@Override
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
-		ApplicationManager.getApplication().runReadAction(this);
-	}
-
-	@Override
-	public void run() {
-		PsiManager psiManager = PsiManager.getInstance(project);
-		for (VirtualFile file : files) {
-			PsiFile f = psiManager.findFile(file);
-			if ( !(f instanceof ANTLRv4FileRoot) ) continue; // not grammar file
-
-			antlr((ANTLRv4FileRoot)f);
-		}
+		VirtualFile currentGrammarFile = ANTLRv4PluginController.getCurrentGrammarFile(project);
+		antlr(currentGrammarFile);
 	}
 
 	/** Run ANTLR tool on file according to preferences in intellij for this file.
 	 *  Returns set of generated files or empty set if error.
  	 */
-	public void antlr(ANTLRv4FileRoot file) {
-		VirtualFile vfile = file.getVirtualFile();
+	public void antlr(VirtualFile vfile) {
 		if ( vfile==null ) return;
 
 		List<String> args = new ArrayList<String>();
@@ -88,15 +72,19 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		String sourcePath = getParentDir(vfile);
 		VirtualFile contentRoot = getContentRoot(vfile);
 
-		// create gen dir at root of project by default
-		String outputDirName = contentRoot.getPath()+File.separator+OUTPUT_DIR_NAME;
-		// find package if none in prefs
-		String pack = MyPsiUtils.findPackageIfAny(file);
-		if ( pack!=null ) {
-			outputDirName += File.separator+pack.replace('.',File.separatorChar);
+		String package_ = getProp(qualFileName, "package", MISSING);
+		if ( package_!=MISSING) {
+			args.add("-package");
+			args.add(package_);
 		}
+
+		// create gen dir at root of project by default, but add in package if any
+		String outputDirName = contentRoot.getPath()+File.separator+OUTPUT_DIR_NAME;
 		args.add("-o");
 		outputDirName = getProp(qualFileName, "output-dir", outputDirName);
+		if ( package_!=MISSING ) {
+			outputDirName += File.separator+package_.replace('.',File.separatorChar);
+		}
 		args.add(outputDirName);
 
 		args.add("-lib");
@@ -107,12 +95,6 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 		if ( encoding!=MISSING ) {
 			args.add("-encoding");
 			args.add(encoding);
-		}
-
-		String package_ = getProp(qualFileName, "package", MISSING);
-		if ( package_!=MISSING) {
-			args.add("-package");
-			args.add(package_);
 		}
 
 		if ( getBooleanProp(qualFileName, "gen-listener", true) ) {
@@ -161,7 +143,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable implements Runnab
 			// pop up a notification
 			Notification notification =
 				new Notification(groupDisplayId,
-								 "parser for " + file.getName() + " generated",
+								 "parser for " + vfile.getName() + " generated",
 								 "to " + outputDirName,
 								 NotificationType.INFORMATION);
 			Notifications.Bus.notify(notification, project);
