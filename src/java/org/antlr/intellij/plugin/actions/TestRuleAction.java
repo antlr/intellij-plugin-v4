@@ -39,8 +39,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		}
 
 		// enable action if we're looking at grammar file and we got a good rule name
-		VirtualFile file = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
-		boolean grammarFound = file!=null;
+		boolean grammarFound = MyActionUtils.getGrammarFileFromEvent(e) != null;
 
 		presentation.setEnabled(grammarFound && parserRuleFound);
 		presentation.setVisible(grammarFound);
@@ -52,8 +51,10 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			LOG.error("actionPerformed no project for "+e);
 			return; // whoa!
 		}
-		VirtualFile currentGrammarFile = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
-		LOG.info("actionPerformed "+currentGrammarFile);
+		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
+		if ( grammarFile==null ) return;
+
+		LOG.info("actionPerformed "+grammarFile);
 		PsiElement selectedPsiRuleNode = e.getData(LangDataKeys.PSI_ELEMENT);
 		if ( selectedPsiRuleNode==null ) return; // we clicked somewhere outside text
 		String ruleName = selectedPsiRuleNode.getText();
@@ -63,18 +64,15 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			ruleName = r.getText();
 		}
 
-		VirtualFile file = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
-		if ( file==null ) return;
-
 		FileDocumentManager docMgr = FileDocumentManager.getInstance();
-		Document doc = docMgr.getDocument(file);
+		Document doc = docMgr.getDocument(grammarFile);
 		if ( doc!=null ) {
 			docMgr.saveDocument(doc);
 		}
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(e.getProject());
 		controller.getPreviewWindow().show(null);
-		controller.setStartRuleNameEvent(ruleName);
+		controller.setStartRuleNameEvent(grammarFile, ruleName);
 	}
 
 }

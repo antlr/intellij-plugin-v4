@@ -7,11 +7,11 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.TreeBasedStructureViewBuilder;
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase;
 import com.intellij.lang.PsiStructureViewFactory;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,9 +44,9 @@ public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
         return new TreeBasedStructureViewBuilder() {
             @NotNull
             @Override
-            public StructureViewModel createStructureViewModel() {
-				Project project = psiFile.getProject();
-				if ( ANTLRv4PluginController.getCurrentGrammarFile(project)==null ) {
+            public StructureViewModel createStructureViewModel(Editor editor) {
+				VirtualFile grammarFile = psiFile.getVirtualFile();
+				if ( !grammarFile.getName().endsWith(".g4") ) {
 					return new StructureViewModelBase(psiFile, new DummyViewTreeElement(psiFile));
 				}
                 return new ANTLRv4StructureViewModel((ANTLRv4FileRoot)psiFile);

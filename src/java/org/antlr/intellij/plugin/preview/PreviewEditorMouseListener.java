@@ -41,6 +41,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 			return;
 		}
 
+		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(editor.getProject());
 		PreviewState previewState =	controller.getPreviewState();
 		if ( previewState==null ) {

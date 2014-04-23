@@ -2,7 +2,6 @@ package org.antlr.intellij.plugin.actions;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -11,7 +10,6 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import org.antlr.intellij.plugin.ANTLRv4PluginController;
 
 /** Generate parser from ANTLR grammar;
  *  learned how to do from Grammar-Kit by Gregory Shrago.
@@ -21,7 +19,7 @@ public class GenerateAction extends AnAction implements DumbAware {
 
 	@Override
 	public void update(AnActionEvent e) {
-		selectedFileIsGrammar(e);
+		MyActionUtils.selectedFileIsGrammar(e);
 	}
 
 	@Override
@@ -30,10 +28,9 @@ public class GenerateAction extends AnAction implements DumbAware {
 			LOG.error("actionPerformed no project for "+e);
 			return; // whoa!
 		}
-		VirtualFile currentGrammarFile = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
-		LOG.info("actionPerformed "+currentGrammarFile);
-		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
-		if ( files==null ) return; // no files?
+		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
+		if ( grammarFile==null ) return;
+		LOG.info("actionPerformed "+grammarFile);
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
 
@@ -42,18 +39,11 @@ public class GenerateAction extends AnAction implements DumbAware {
 		FileDocumentManager.getInstance().saveAllDocuments();
 
 		Task.Backgroundable gen =
-			new RunANTLROnGrammarFile(files,
+			new RunANTLROnGrammarFile(grammarFile,
 									  e.getProject(),
 									  title,
 									  canBeCancelled,
 									  new BackgroundFromStartOption());
 		ProgressManager.getInstance().run(gen);
-	}
-
-	public static void selectedFileIsGrammar(AnActionEvent e) {
-		VirtualFile currentGrammarFile = ANTLRv4PluginController.getCurrentGrammarFile(e.getProject());
-		boolean grammarFound = currentGrammarFile!=null;
-		e.getPresentation().setEnabled(grammarFound); // enable action if we're looking at grammar file
-		e.getPresentation().setVisible(grammarFound);
 	}
 }

@@ -87,7 +87,7 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public JPanel createEditorPanel() {
-		LOG.info("createEditorPanel");
+		LOG.info("createEditorPanel"+" "+project.getName());
 		editorConsole = new JTextArea();
 		editorConsole.setRows(3);
 		editorConsole.setEditable(false);
@@ -104,7 +104,7 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public JPanel createParseTreePanel() {
-		LOG.info("createParseTreePanel");
+		LOG.info("createParseTreePanel"+" "+project.getName());
 		// wrap tree and slider in panel
 		JPanel treePanel = new JPanel(new BorderLayout(0,0));
 		treePanel.setBackground(JBColor.white);
@@ -131,8 +131,8 @@ public class PreviewPanel extends JPanel {
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
-	public void grammarFileSaved(VirtualFile vfile) {
-		switchToGrammar(vfile);
+	public void grammarFileSaved(VirtualFile grammarFile) {
+		switchToGrammar(grammarFile);
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
@@ -140,7 +140,7 @@ public class PreviewPanel extends JPanel {
 		switchToGrammar(newFile);
 	}
 
-	public void setStartRuleName(String startRuleName) {
+	public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
 		startRuleLabel.setText(startRuleLabelText + startRuleName);
 		startRuleLabel.setForeground(JBColor.BLACK);
 	}
@@ -151,24 +151,29 @@ public class PreviewPanel extends JPanel {
 	}
 
 	/** Load grammars and set editor component. */
-	public void switchToGrammar(VirtualFile vfile) {
-		String grammarFileName = vfile.getPath();
-		LOG.info("switchToGrammar " + grammarFileName);
+	public void switchToGrammar(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
+		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
 
 		if ( previewState.editor==null ) { // this grammar is new; no editor yet
-			previewState.editor = createEditor(vfile, ""); // nothing there, create
+			previewState.editor = createEditor(grammarFile, ""); // nothing there, create
 		}
 
 		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
 		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
-		editorPanel.remove(editorSpotComp);
+		if ( editorSpotComp!=null ) {
+			editorPanel.remove(editorSpotComp); // remove old editor if it's there
+		}
+		else {
+			LOG.error("switchToGrammar no CENTER component in editorPanel"+" "+project.getName());
+		}
 		editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
-		clearParseErrors();
+		clearParseErrors(grammarFile);
 
 		if ( previewState.startRuleName!=null ) {
-			setStartRuleName(previewState.startRuleName);
-			updateParseTreeFromDoc();
+			setStartRuleName(grammarFile, previewState.startRuleName);
+			updateParseTreeFromDoc(grammarFile);
 		}
 		else {
 			resetStartRuleLabel();
@@ -176,9 +181,9 @@ public class PreviewPanel extends JPanel {
 		}
 	}
 
-	public void closeGrammar(VirtualFile vfile) {
-		String grammarFileName = vfile.getPath();
-		LOG.info("closeGrammar "+grammarFileName);
+	public void closeGrammar(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
+		LOG.info("closeGrammar "+grammarFileName+" "+project.getName());
 
 		resetStartRuleLabel();
 		editorConsole.setText(""); // clear error console
@@ -216,15 +221,15 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
-	public Editor createEditor(VirtualFile vfile, String inputText) {
-		LOG.info("createEditor: create new editor for "+vfile.getPath());
+	public Editor createEditor(final VirtualFile grammarFile, String inputText) {
+		LOG.info("createEditor: create new editor for "+grammarFile.getPath()+" "+project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(inputText);
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
 				public void documentChanged(DocumentEvent event) {
-					updateParseTreeFromDoc();
+					updateParseTreeFromDoc(grammarFile);
 				}
 			});
 		final Editor editor = factory.createEditor(doc, project);
@@ -237,24 +242,13 @@ public class PreviewPanel extends JPanel {
 		return editor;
 	}
 
-	public void updateParseTreeFromDoc() {
+	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
 		try {
-			PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-			if ( previewState==null ) {
-				VirtualFile currentEditorFile = ANTLRv4PluginController.getCurrentEditorFile(project);
-				if ( currentEditorFile==null ) {
-					LOG.error("updateParseTreeFromDoc no open editor");
-				}
-				else {
-					LOG.error("updateParseTreeFromDoc no state for " +
-								  currentEditorFile.getPath());
-				}
-				setParseTree(Arrays.asList(new String[0]), null);
-				return;
-			}
+			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+			PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 			final String inputText = previewState.editor.getDocument().getText();
 			Object[] results =
-				ANTLRv4PluginController.getInstance(project).parseText(inputText);
+				controller.parseText(grammarFile, inputText);
 			if (results != null) {
 				ParseTree root = (ParseTree) results[1];
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
@@ -268,13 +262,9 @@ public class PreviewPanel extends JPanel {
 		}
 	}
 
-	public void clearParseErrors() {
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-		if ( previewState==null ) {
-			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
-					  ANTLRv4PluginController.getCurrentEditorFile(project));
-			return;
-		}
+	public void clearParseErrors(VirtualFile grammarFile) {
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 		Editor editor = previewState.editor;
 		MarkupModel markupModel = editor.getMarkupModel();
 		markupModel.removeAllHighlighters();
@@ -287,24 +277,20 @@ public class PreviewPanel extends JPanel {
 	/** Display error messages to the console and also add annotations
 	 *  to the preview input window.
 	 */
-	public void showParseErrors(final List<SyntaxError> errors) {
+	public void showParseErrors(final VirtualFile grammarFile, final List<SyntaxError> errors) {
 		ApplicationManager.getApplication().invokeLater(
 			new Runnable() {
 				@Override
 				public void run() {
-					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-					if ( previewState==null ) {
-						LOG.error("showParseErrors current editor is not a grammar: "+
-								  ANTLRv4PluginController.getCurrentEditorFile(project));
-						return;
-					}
+					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+					PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 					MarkupModel markupModel = previewState.editor.getMarkupModel();
 					if ( errors.size()==0 ) {
 						markupModel.removeAllHighlighters();
 						return;
 					}
 					for (SyntaxError e : errors) {
-						annotateErrorsInPreviewInputEditor(e);
+						annotateErrorsInPreviewInputEditor(grammarFile, e);
 						displayErrorInParseErrorConsole(e);
 					}
 				}
@@ -312,13 +298,9 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
-	public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-		if ( previewState==null ) {
-			LOG.error("annotatePreviewInputEditor current editor is not a grammar: "+
-					  ANTLRv4PluginController.getCurrentEditorFile(project));
-			return;
-		}
+	public void annotateErrorsInPreviewInputEditor(VirtualFile grammarFile, SyntaxError e) {
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 		Editor editor = previewState.editor;
 		MarkupModel markupModel = editor.getMarkupModel();
 
