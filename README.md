@@ -4,6 +4,32 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for ANTLR v4 
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
+This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
+syntax error checking, semantic error checking, navigation window,
+goto-declaration, find usages, rename tokens, rename rules.
+Generates code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu
+and popups.
+Code completion for tokens, rule names. finds tokenVocab option for code gen
+if there is a tokenVocab option, don't warn about implicit tokens.
+shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
+for grammar preview. Right click on rule and say "Test ANTLR Rule".
+Changes to grammar seen in parse tree upon save of grammar. Works with
+Intellij 13.x and requires 12.1.x.
+
+You can configure the ANTLR tool options per grammar file; right-click
+in a grammar or on a grammar element within the structured view.
+When you change and save a grammar, it automatically builds with ANTLR
+in the background according to the preferences you have set.  ANTLR
+tool errors appear in a console you can opened by clicking on a button
+in the bottom tab.
+
+You can use the meta-key while moving the mouse and it will show you
+token information in the preview editor box via tooltips.
+
+Errors within the preview editor are now highlighted with tooltips
+and underlining just like a regular editor window. The difference
+is that this window's grammar is specified in your grammar file.
+
 ## History
 
 See [Releases](PerGramma://github.com/antlr/intellij-plugin-v4/releases)
