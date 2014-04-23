@@ -141,10 +141,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		for (PreviewState it : grammarToPreviewState.values() ) {
-			LOG.info("projectClosed still has state " + it.grammarFileName);
 			synchronized (controller.previewStateLock) {
 				if (it.editor != null) {
-					LOG.info("projectClosed still has editor " + it.grammarFileName);
 					final EditorFactory factory = EditorFactory.getInstance();
 					factory.releaseEditor(it.editor);
 					it.editor = null;
@@ -283,8 +281,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		// Dispose of state, editor, and such for this file
 		PreviewState previewState = grammarToPreviewState.get(grammarFileName);
-		if ( previewState==null ) {
-			LOG.error("editorFileClosedEvent no state for "+ grammarFileName);
+		if ( previewState==null ) { // project closing must have done already
 			return;
 		}
 
