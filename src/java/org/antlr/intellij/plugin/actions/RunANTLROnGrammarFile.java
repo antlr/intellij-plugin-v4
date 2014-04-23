@@ -36,19 +36,19 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String MISSING = "";
 
-	VirtualFile[] files;
+	VirtualFile grammarFile;
 	Project project;
 
 	PropertiesComponent props;
 
-	public RunANTLROnGrammarFile(VirtualFile[] files,
+	public RunANTLROnGrammarFile(VirtualFile grammarFile,
 								 @Nullable final Project project,
 								 @NotNull final String title,
 								 final boolean canBeCancelled,
 								 @Nullable final PerformInBackgroundOption backgroundOption)
 	{
 		super(project, title, canBeCancelled, backgroundOption);
-		this.files = files;
+		this.grammarFile = grammarFile;
 		this.project = project;
 		props = PropertiesComponent.getInstance(project);
 	}
@@ -56,8 +56,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 	@Override
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
-		VirtualFile currentGrammarFile = ANTLRv4PluginController.getCurrentGrammarFile(project);
-		antlr(currentGrammarFile);
+		antlr(grammarFile);
 	}
 
 	/** Run ANTLR tool on file according to preferences in intellij for this file.
