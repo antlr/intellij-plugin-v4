@@ -32,6 +32,9 @@
           and underlining just like a regular editor window. The difference
           is that this window's grammar is specified in your grammar file.
 
+          Quick start on grammars. You can inject predefined lexer rules. Use meta-j or type the
+          abbreviation like rid and wait a second. It should pop up that choice.
+
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 
