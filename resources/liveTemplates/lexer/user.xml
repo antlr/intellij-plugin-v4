@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templateSet group="user">
+  <template name="id" value="ID : [a-zA-Z_]* [a-zA-Z0-9_]+ ;" description="Create identifier rule" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="ANTLR_OUTSIDE" value="true" />
+    </context>
+  </template>
+</templateSet>
+

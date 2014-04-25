@@ -4,7 +4,8 @@ import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider;
 import org.jetbrains.annotations.Nullable;
 
 public class ANTLRLiveTemplatesProvider implements DefaultLiveTemplatesProvider {
-	public static final String[] TEMPLATES = {"/liveTemplates/lexer", "/liveTemplates/parser"};
+	// make sure module shows liveTemplates as source dir or whatever dir holds "lexer"
+	public static final String[] TEMPLATES = {"lexer/user"};
 
 	@Override
 	public String[] getDefaultLiveTemplateFiles() {
