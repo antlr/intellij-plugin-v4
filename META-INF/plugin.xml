@@ -1,8 +1,8 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.2</version>
-  <vendor email="parrt@antlr.org" url="http://www.antlr.org">ANTLR Project</vendor>
+  <version>1.2.1</version>
+  <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
       This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
@@ -36,17 +36,7 @@
       ]]></description>
 
   <change-notes><![CDATA[
-	You can use the meta-key while moving the mouse and it will show you
-	token information in the preview editor box via tooltips.
-
-	Errors within the preview editor are now highlighted with tooltips
-	and underlining just like a regular editor window. The difference
-	is that this window's grammar is specified in your grammar file.
-
-	Also note that the plug-in does not pay attention to any package statements
-	and actions now. You must use the configuration dialog.
-
-	More bug fixes. See github for complete list.
+	Hush annoying error.
       ]]>
   </change-notes>
 

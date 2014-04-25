@@ -50,6 +50,12 @@ public class PreviewPanel extends JPanel {
 	public static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
 	public static final int ERROR_LAYER = HighlighterLayer.ERROR;
 
+	/** switchToGrammar() was seeing an empty slot instead of a previous
+	 *  editor or placeHolder. Figured it was an order of operations thing
+	 *  and synchronized add/remove ops. Works now w/o error.
+	 */
+	public final Object swapEditorComponentLock = new Object();
+
 	public static final JLabel placeHolder = new JLabel("");
 	public static final String missingStartRuleLabelText =
 		"Start rule: <select from navigator or grammar>";
@@ -96,10 +102,11 @@ public class PreviewPanel extends JPanel {
 		editorPanel = new JPanel(new BorderLayout(0,0));
 		startRuleLabel = new JLabel(missingStartRuleLabelText);
 		startRuleLabel.setForeground(JBColor.RED);
-		editorPanel.add(startRuleLabel, BorderLayout.NORTH);
-		editorPanel.add(placeHolder, BorderLayout.CENTER);
-		editorPanel.add(spane, BorderLayout.SOUTH);
-
+		synchronized ( swapEditorComponentLock ) {
+			editorPanel.add(startRuleLabel, BorderLayout.NORTH);
+			editorPanel.add(placeHolder, BorderLayout.CENTER);
+			editorPanel.add(spane, BorderLayout.SOUTH);
+		}
 		return editorPanel;
 	}
 
@@ -161,14 +168,14 @@ public class PreviewPanel extends JPanel {
 		}
 
 		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
-		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
-		if ( editorSpotComp!=null ) {
-			editorPanel.remove(editorSpotComp); // remove old editor if it's there
+		// atomically remove old
+		synchronized ( swapEditorComponentLock ) {
+			Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
+			if (editorSpotComp != null) {
+				editorPanel.remove(editorSpotComp); // remove old editor if it's there
+			}
+			editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
 		}
-		else {
-			LOG.error("switchToGrammar no CENTER component in editorPanel"+" "+project.getName());
-		}
-		editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
 		clearParseErrors(grammarFile);
 
 		if ( previewState.startRuleName!=null ) {
@@ -205,8 +212,10 @@ public class PreviewPanel extends JPanel {
 		// restore the GUI
 		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
 		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
-		editorPanel.remove(editorSpotComp);
-		editorPanel.add(placeHolder, BorderLayout.CENTER); // put placeholder back after we remove the editor component.
+		synchronized ( swapEditorComponentLock ) {
+			editorPanel.remove(editorSpotComp);
+			editorPanel.add(placeHolder, BorderLayout.CENTER); // put placeholder back after we remove the editor component.
+		}
 	}
 
 	public void setParseTree(final List<String> ruleNames, final ParseTree tree) {
