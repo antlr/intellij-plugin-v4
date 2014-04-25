@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templateSet group="user">
+
+	<template name="rid" value="$NAME$ : [a-zA-Z_]* [a-zA-Z0-9_]+ ;" description="Create identifier rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;ID&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rflt" value="$NAME$&#10;    :   '-'? INT '.' INT EXP?   // 1.35, 1.35E-9, 0.3, -4.5&#10;    |   '-'? INT EXP            // 1e10 -3e4&#10;    |   '-'? INT                // -3, 45&#10;    ;&#10;&#10;fragment INT :   '0' | [1-9] [0-9]* ; // no leading zeros&#10;fragment EXP :   [Ee] [+\-]? INT ;" description="Create simple float rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;FLOAT&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rint" value="$NAME$ : [0-9]+ ;" description="Create integer rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;INT&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rws" value="$NAME$ : [ \t\n\r]+ -> channel(HIDDEN) ;" description="Create whitespace rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;WS&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rcmt" value="$NAME$ : '/*' .*? '*/' -> channel(HIDDEN) ;" description="Create C comment rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;COMMENT&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rlcmt" value="$NAME$ : '//' ~'\n'* '\n' -> channel(HIDDEN) ;" description="Create C line comment rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;LINE_COMMENT&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rstr" value="$NAME$ : '&quot;' (~'&quot;'|'\\&quot;')* '&quot;'  ;" description="Create simple string rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;STRING&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rstr" value="$NAME$ : '&quot;' (~'&quot;'|'\\&quot;')* '&quot;'  ;" description="Create simple string rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;STRING&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+	<template name="rstr2" value="$NAME$ :  '&quot;' (ESC | ~[&quot;\\])* '&quot;' ;&#10;&#10;fragment ESC :   '\\' ([&quot;\\/bfnrt] | UNICODE) ;&#10;fragment UNICODE : 'u' HEX HEX HEX HEX ;&#10;fragment HEX : [0-9a-fA-F] ;&#10;" description="Create string w/escapes rule" toReformat="false" toShortenFQNames="true">
+		<variable name="NAME" expression="" defaultValue="&quot;STRING&quot;" alwaysStopAt="true" />
+		<context>
+			<option name="ANTLR_OUTSIDE" value="true" />
+		</context>
+	</template>
+
+</templateSet>
+

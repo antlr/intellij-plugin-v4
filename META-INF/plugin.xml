@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.2.1</version>
+  <version>1.3-dev</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -31,6 +31,9 @@
           Errors within the preview editor are now highlighted with tooltips
           and underlining just like a regular editor window. The difference
           is that this window's grammar is specified in your grammar file.
+
+          Quick start on grammars. You can inject predefined lexer rules. Use meta-j or type the
+          abbreviation like rid and wait a second. It should pop up that choice.
 
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
@@ -91,5 +94,10 @@
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
+
+	  <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
+	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
+	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
+
   </extensions>
 </idea-plugin>

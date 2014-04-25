@@ -45,6 +45,12 @@ See [Releases](PerGramma://github.com/antlr/intellij-plugin-v4/releases)
 ### Code completion
 ![Code completion](images/completion.png)
 
+### Live templates
+
+You can inject predefined lexer rules. Use meta-j or type the abbreviation like rid and wait a second. It should pop up that choice.
+
+![predefined lexer rules](images/lexer-templates.png)
+
 ### Live parse tree preview
 
 You can test any rule in the (parser) grammar.  Right click on rule in grammar

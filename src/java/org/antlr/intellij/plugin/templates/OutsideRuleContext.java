@@ -1,0 +1,70 @@
+package org.antlr.intellij.plugin.templates;
+
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
+import org.jetbrains.annotations.NotNull;
+
+public class OutsideRuleContext extends ANTLRLiveTemplateContext {
+	public OutsideRuleContext() {
+		super("ANTLR_OUTSIDE", "Outside rule", ANTLRGenericContext.class);
+	}
+
+	@Override
+	public boolean isInContext(@NotNull PsiFile file, PsiElement element, int offset) {
+//		System.out.println("offset="+offset);
+		CommonTokenStream tokens = ANTLRv4ParserDefinition.tokenize(file.getText());
+		Token tokenUnderCursor = ANTLRv4ParserDefinition.getTokenUnderCursor(tokens, offset);
+//		System.out.println(tokenUnderCursor);
+		int tokenIndex = tokenUnderCursor.getTokenIndex();
+		Token nextRealToken = ANTLRv4ParserDefinition.nextRealToken(tokens, tokenIndex);
+		Token previousRealToken = ANTLRv4ParserDefinition.previousRealToken(tokens, tokenIndex);
+
+		if ( nextRealToken==null || previousRealToken==null ) {
+			return false;
+		}
+
+		int previousRealTokenType = previousRealToken.getType();
+		int nextRealTokenType = nextRealToken.getType();
+
+		if ( previousRealTokenType== ANTLRv4Parser.ACTION ) {
+			// make sure we're not in a rule; has to be @lexer::header {...} stuff
+			Token prevPrevRealToken = ANTLRv4ParserDefinition.previousRealToken(tokens, previousRealToken.getTokenIndex());
+			if ( prevPrevRealToken==null ) {
+				return false;
+			}
+//			System.out.println("prevPrevRealToken="+prevPrevRealToken);
+			Token prevPrevPrevRealToken = ANTLRv4ParserDefinition.previousRealToken(tokens, prevPrevRealToken.getTokenIndex());
+			if ( prevPrevPrevRealToken==null ) {
+				return false;
+			}
+//			System.out.println("prevPrevPrevRealToken="+prevPrevPrevRealToken);
+			if ( prevPrevPrevRealToken.getType()!=ANTLRv4Parser.AT &&
+				 prevPrevPrevRealToken.getType()!=ANTLRv4Parser.COLONCOLON )
+			{
+				return false;
+			}
+		}
+
+//		System.out.println("next = "+(nextRealTokenType!=Token.EOF?ANTLRv4Parser.tokenNames[nextRealTokenType]:"<EOF>"));
+//		System.out.println("prev = "+ANTLRv4Parser.tokenNames[previousRealTokenType]);
+//		System.out.println(tokens.getTokens());
+
+		boolean okBefore =
+			previousRealTokenType == ANTLRv4Parser.RBRACE ||
+				previousRealTokenType == ANTLRv4Parser.SEMI ||
+				previousRealTokenType == ANTLRv4Parser.ACTION;
+		boolean okAfter =
+			nextRealTokenType == ANTLRv4Parser.TOKEN_REF ||
+				nextRealTokenType == ANTLRv4Parser.RULE_REF ||
+				nextRealTokenType == Token.EOF;
+		if ( okBefore && okAfter) {
+//			System.out.println("in context");
+			return true;
+		}
+		return false;
+	}
+}
