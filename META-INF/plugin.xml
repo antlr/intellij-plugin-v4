@@ -91,5 +91,9 @@
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
+
+	  <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
+	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplateContext"/>
+
   </extensions>
 </idea-plugin>

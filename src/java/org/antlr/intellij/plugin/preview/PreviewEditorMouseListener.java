@@ -14,10 +14,9 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.ui.JBColor;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
+import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.LexerNoViableAltException;
-import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,7 +65,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		CommonTokenStream tokenStream =
 			(CommonTokenStream)previewState.parser.getInputStream();
 
-		Token tokenUnderCursor = getTokenUnderCursor(offset, tokenStream);
+		Token tokenUnderCursor = ANTLRv4ParserDefinition.getTokenUnderCursor(tokenStream, offset);
 		if ( tokenUnderCursor==null ) {
 			return;
 		}
@@ -111,7 +110,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 		MarkupModel markupModel = editor.getMarkupModel();
 
 		SyntaxError errorUnderCursor =
-			getErrorUnderCursor(previewState.syntaxErrorListener.getSyntaxErrors(), offset);
+			ANTLRv4ParserDefinition.getErrorUnderCursor(previewState.syntaxErrorListener.getSyntaxErrors(), offset);
 		if (errorUnderCursor == null) {
 			// Turn off any tooltips if none under the cursor
 			HintManager.getInstance().hideAllHints();
@@ -146,39 +145,5 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 				}
 			}
 		}
-	}
-
-	public Token getTokenUnderCursor(int offset, CommonTokenStream tokenStream) {
-		Token tokenUnderCursor = null;
-		for (Token t : tokenStream.getTokens()) {
-			int begin = t.getStartIndex();
-			int end = t.getStopIndex()+1;
-//				System.out.println("test "+t+" for "+offset);
-			if ( offset >= begin && offset < end ) {
-				tokenUnderCursor = t;
-				break;
-			}
-		}
-		return tokenUnderCursor;
-	}
-
-	public SyntaxError getErrorUnderCursor(java.util.List<SyntaxError> errors, int offset) {
-		for (SyntaxError e : errors) {
-			int a, b;
-			RecognitionException cause = e.getException();
-			if ( cause instanceof LexerNoViableAltException ) {
-				a = ((LexerNoViableAltException) cause).getStartIndex();
-				b = ((LexerNoViableAltException) cause).getStartIndex()+1;
-			}
-			else {
-				Token offendingToken = (Token)e.getOffendingSymbol();
-				a = offendingToken.getStartIndex();
-				b = offendingToken.getStopIndex()+1;
-			}
-			if ( offset >= a && offset < b ) { // cursor is over some kind of error
-				return e;
-			}
-		}
-		return null;
 	}
 }
