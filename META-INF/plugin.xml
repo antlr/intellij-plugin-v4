@@ -75,11 +75,17 @@
 		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
 		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
 	</action>
-	<action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
-		text="Test ANTLR Rule">
-		<add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
-		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
-	</action>
+	  <action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
+			  text="Test ANTLR Rule">
+		  <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
+		  <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+	  </action>
+	  <action id="antlr.DefineLexerRuleForLiteral"
+			  class="org.antlr.intellij.plugin.actions.DefineLexerRulesForLiterals"
+			  text="Geneate lexer rules for literals"
+			  description="Inject lexer rules for literals but leave literal in place">
+		  <add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="RenameElement"/>
+	  </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -98,6 +104,5 @@
 	  <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
-
   </extensions>
 </idea-plugin>
