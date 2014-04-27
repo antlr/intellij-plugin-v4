@@ -17,6 +17,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class LiteralChooser extends DialogWrapper {
 		final CheckedTreeNode rootNode = new CheckedTreeNode("all literals not defined");
 		for (String literal : literals) {
 			CheckedTreeNode child = new CheckedTreeNode(new LiteralChooserObject(literal, Icons.LEXER_RULE));
+			child.setChecked(true);
 			rootNode.add(child);
 		}
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -45,7 +47,9 @@ public class LiteralChooser extends DialogWrapper {
 		selectedElements.addAll(literals); // all are "on" by default
 
 		Tree tree = new Tree(treeModel);
-		tree.setRootVisible(false);
+		TreeSelectionModel selectionModel = tree.getSelectionModel();
+		selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.setRootVisible(true);
 		tree.setShowsRootHandles(true);
 		tree.setCellRenderer(new LiteralChooserRenderer());
 		tree.addTreeSelectionListener(new MyTreeSelectionListener());
@@ -97,7 +101,7 @@ public class LiteralChooser extends DialogWrapper {
 
 		TreeUtil.installActions(tree);
 		JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(tree);
-		scrollPane.setPreferredSize(new Dimension(350, 450));
+//		scrollPane.setPreferredSize(new Dimension(350, 450));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		return panel;
@@ -110,6 +114,7 @@ public class LiteralChooser extends DialogWrapper {
 
 	private class MyTreeSelectionListener implements TreeSelectionListener {
 		public void valueChanged(TreeSelectionEvent e) {
+			System.out.println("select event ----------");
 			TreePath[] paths = e.getPaths();
 			if (paths == null) return;
 			for (int i = 0; i < paths.length; i++) {
@@ -120,15 +125,26 @@ public class LiteralChooser extends DialogWrapper {
 						LiteralChooserObject literalObject = (LiteralChooserObject) userObject;
 						String text = literalObject.getText();
 						System.out.println("selected " + text);
-						selectedElements.add(text);
-						CheckedTreeNode checkedNode = (CheckedTreeNode) node;
-						if ( checkedNode.isChecked() ) {
-							selectedElements.remove(text);
-							checkedNode.setChecked(false); // toggle
+						if ( e.isAddedPath(paths[i]) ) {
+							if ( selectedElements.contains(text) ) {
+								selectedElements.remove(text);
+							}
+							else {
+								selectedElements.add(text);
+							}
+							System.out.println("added path: "+text);
+							CheckedTreeNode checkedNode = (CheckedTreeNode) node;
+
+							checkedNode.setChecked(!checkedNode.isChecked()); // toggle
 						}
-						else {
-							checkedNode.setChecked(true);
-						}
+
+//						if ( checkedNode.isChecked() ) {
+//							selectedElements.remove(text);
+//							checkedNode.setChecked(false); // toggle
+//						}
+//						else {
+//							checkedNode.setChecked(true);
+//						}
 					}
 				}
 			}
