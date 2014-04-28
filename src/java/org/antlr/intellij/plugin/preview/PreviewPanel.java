@@ -287,24 +287,17 @@ public class PreviewPanel extends JPanel {
 	 *  to the preview input window.
 	 */
 	public void showParseErrors(final VirtualFile grammarFile, final List<SyntaxError> errors) {
-		ApplicationManager.getApplication().invokeLater(
-			new Runnable() {
-				@Override
-				public void run() {
-					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-					PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
-					MarkupModel markupModel = previewState.editor.getMarkupModel();
-					if ( errors.size()==0 ) {
-						markupModel.removeAllHighlighters();
-						return;
-					}
-					for (SyntaxError e : errors) {
-						annotateErrorsInPreviewInputEditor(grammarFile, e);
-						displayErrorInParseErrorConsole(e);
-					}
-				}
-			}
-		);
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
+		MarkupModel markupModel = previewState.editor.getMarkupModel();
+		if ( errors.size()==0 ) {
+			markupModel.removeAllHighlighters();
+			return;
+		}
+		for (SyntaxError e : errors) {
+			annotateErrorsInPreviewInputEditor(grammarFile, e);
+			displayErrorInParseErrorConsole(e);
+		}
 	}
 
 	public void annotateErrorsInPreviewInputEditor(VirtualFile grammarFile, SyntaxError e) {
