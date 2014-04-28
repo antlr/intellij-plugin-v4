@@ -7,7 +7,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 public class MyActionUtils {
 	public static void selectedFileIsGrammar(AnActionEvent e) {
 		VirtualFile vfile = getGrammarFileFromEvent(e);
-		if ( vfile==null ) return;
+		if ( vfile==null ) {
+			e.getPresentation().setEnabled(false);
+			return;
+		}
 		e.getPresentation().setEnabled(true); // enable action if we're looking at grammar file
 		e.getPresentation().setVisible(true);
 	}
