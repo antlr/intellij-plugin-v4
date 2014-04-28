@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin.configdialogs;
+package org.antlr.intellij.plugin.generators;
 
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
@@ -49,7 +49,6 @@ public class LiteralChooser extends DialogWrapper {
 		Tree tree = new Tree(treeModel);
 		TreeSelectionModel selectionModel = tree.getSelectionModel();
 		selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		tree.setRootVisible(true);
 		tree.setShowsRootHandles(true);
 		tree.setCellRenderer(new LiteralChooserRenderer());
 		tree.addTreeSelectionListener(new MyTreeSelectionListener());

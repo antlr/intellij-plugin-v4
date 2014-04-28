@@ -62,7 +62,7 @@
   </project-components>
 
   <actions>
-	<action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateAction"
+	<action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateParserAction"
 		text="Generate ANTLR Recognizer">
 		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
 		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
@@ -80,14 +80,8 @@
 		  <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
 		  <add-to-group group-id="EditorPopupMenu" anchor="last"/>
 	  </action>
-	  <!--<action id="antlr.DefineLexerRulesForLiterals"-->
-			  <!--class="org.antlr.intellij.plugin.actions.DefineLexerRulesForLiterals"-->
-			  <!--text="Generate lexer rules for literals"-->
-			  <!--description="Inject lexer rules for undefined literals but leave literal in place">-->
-		  <!--<add-to-group group-id="CodeMenu" anchor="after" relative-to-action="Generate"/>-->
-	  <!--</action>-->
 	  <action id="antlr.DefineLexerRulesForLiterals"
-			  class="org.antlr.intellij.plugin.actions.DefineLexerRulesForLiterals"
+			  class="org.antlr.intellij.plugin.actions.GenerateLexerRulesForLiteralsAction"
 			  text="Generate lexer rules for literals"
 			  description="Inject lexer rules for undefined literals but leave literal in place">
 		  <add-to-group group-id="GenerateGroup" anchor="first"/>

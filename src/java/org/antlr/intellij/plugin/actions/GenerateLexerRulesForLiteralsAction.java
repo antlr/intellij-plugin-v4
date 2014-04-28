@@ -15,7 +15,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
 import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
-import org.antlr.intellij.plugin.configdialogs.LiteralChooser;
+import org.antlr.intellij.plugin.generators.LiteralChooser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -33,8 +33,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class DefineLexerRulesForLiterals extends AnAction {
-	public static final Logger LOG = Logger.getInstance("ANTLR DefineLexerRuleForLiteral");
+public class GenerateLexerRulesForLiteralsAction extends AnAction {
+	public static final Logger LOG = Logger.getInstance("ANTLR GenerateLexerRulesForLiterals");
 
 	/** Only show if selection is a literal */
 	@Override
@@ -45,7 +45,6 @@ public class DefineLexerRulesForLiterals extends AnAction {
 			presentation.setEnabled(false);
 			return;
 		}
-		Project project = e.getProject();
 		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		PsiElement selectedElement = getElementAtCaret(editor, file);
@@ -66,6 +65,7 @@ public class DefineLexerRulesForLiterals extends AnAction {
 
 	@Override
 	public void actionPerformed(AnActionEvent e) {
+		LOG.info("actionPerformed");
 		Project project = e.getProject();
 
 		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
@@ -143,7 +143,15 @@ public class DefineLexerRulesForLiterals extends AnAction {
 						text.substring(0,cursorOffset) +
 						"\n"+ allRules + "\n" +
 						text.substring(cursorOffset, text.length());
-					doc.setText(text);
+					final String text2 = text;
+					ApplicationManager.getApplication().runWriteAction(
+						new Runnable() {
+							@Override
+							public void run() {
+								doc.setText(text2);
+							}
+						}
+					);
 				}
 			}
 		});

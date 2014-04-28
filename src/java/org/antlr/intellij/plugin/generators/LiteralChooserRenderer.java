@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin.configdialogs;
+package org.antlr.intellij.plugin.generators;
 
 import com.intellij.ui.CheckboxTreeBase;
 

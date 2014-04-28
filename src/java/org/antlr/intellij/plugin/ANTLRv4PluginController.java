@@ -72,6 +72,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
 	public final Object previewStateLock = new Object();
+	public final Object shutdownLock = new Object();
+
+	public boolean projectIsClosed = false;
 
 	public Project project;
 	public ConsoleView console;
@@ -140,27 +143,29 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	@Override
 	public void projectClosed() {
 		LOG.info("projectClosed " + project.getName());
+		synchronized ( shutdownLock ) {
+			projectIsClosed = true;
+			uninstallListeners();
 
-		uninstallListeners();
+			console.dispose();
 
-		console.dispose();
-
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		for (PreviewState it : grammarToPreviewState.values()) {
-			synchronized (controller.previewStateLock) {
-				if (it.editor != null) {
-					final EditorFactory factory = EditorFactory.getInstance();
-					factory.releaseEditor(it.editor);
-					it.editor = null;
+			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+			for (PreviewState it : grammarToPreviewState.values()) {
+				synchronized (controller.previewStateLock) {
+					if (it.editor != null) {
+						final EditorFactory factory = EditorFactory.getInstance();
+						factory.releaseEditor(it.editor);
+						it.editor = null;
+					}
 				}
 			}
-		}
 
-		previewPanel = null;
-		previewWindow = null;
-		consoleWindow = null;
-		project = null;
-		grammarToPreviewState = null;
+			previewPanel = null;
+			previewWindow = null;
+			consoleWindow = null;
+			project = null;
+			grammarToPreviewState = null;
+		}
 	}
 
 	// seems that intellij can kill and reload a project w/o user knowing.
@@ -571,19 +576,24 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		public void contentsChanged(VirtualFileEvent event) {
 			final VirtualFile vfile = event.getFile();
 			if ( !vfile.getName().endsWith(".g4") ) return;
-			grammarFileSavedEvent(vfile);
+			synchronized ( shutdownLock ) {
+				if ( !projectIsClosed ) grammarFileSavedEvent(vfile); }
 		}
 	}
 
 	private class MyFileEditorManagerAdapter extends FileEditorManagerAdapter {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
-			currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			synchronized ( shutdownLock ) {
+				if ( !projectIsClosed ) currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			}
 		}
 
 		@Override
 		public void fileClosed(FileEditorManager source, VirtualFile file) {
-			editorFileClosedEvent(file);
+			synchronized ( shutdownLock ) {
+				if ( !projectIsClosed ) editorFileClosedEvent(file);
+			}
 		}
 	}
 }

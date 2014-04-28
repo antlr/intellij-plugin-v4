@@ -14,7 +14,7 @@ import com.intellij.psi.PsiDocumentManager;
 /** Generate parser from ANTLR grammar;
  *  learned how to do from Grammar-Kit by Gregory Shrago.
  */
-public class GenerateAction extends AnAction implements DumbAware {
+public class GenerateParserAction extends AnAction implements DumbAware {
 	public static final Logger LOG = Logger.getInstance("ANTLR GenerateAction");
 
 	@Override
@@ -29,8 +29,8 @@ public class GenerateAction extends AnAction implements DumbAware {
 			return; // whoa!
 		}
 		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
+		LOG.info("actionPerformed "+(grammarFile==null ? "NONE" : grammarFile));
 		if ( grammarFile==null ) return;
-		LOG.info("actionPerformed "+grammarFile);
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
 
