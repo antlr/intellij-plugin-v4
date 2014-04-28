@@ -25,7 +25,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
@@ -72,6 +71,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
 	public final Object previewStateLock = new Object();
+	public final Object shutdownLock = new Object();
+
+	public boolean projectIsClosed = false;
 
 	public Project project;
 	public ConsoleView console;
@@ -81,6 +83,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		Collections.synchronizedMap(new HashMap<String, PreviewState>());
 	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
+
+	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
+	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
 
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
@@ -136,19 +141,39 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void projectClosed() {
-		LOG.info("projectClosed "+project.getName());
-		console.dispose();
+		LOG.info("projectClosed " + project.getName());
+		synchronized ( shutdownLock ) {
+			projectIsClosed = true;
+			uninstallListeners();
 
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		for (PreviewState it : grammarToPreviewState.values() ) {
-			synchronized (controller.previewStateLock) {
-				if (it.editor != null) {
-					final EditorFactory factory = EditorFactory.getInstance();
-					factory.releaseEditor(it.editor);
-					it.editor = null;
+			console.dispose();
+
+			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+			for (PreviewState it : grammarToPreviewState.values()) {
+				synchronized (controller.previewStateLock) {
+					if (it.editor != null) {
+						final EditorFactory factory = EditorFactory.getInstance();
+						factory.releaseEditor(it.editor);
+						it.editor = null;
+					}
 				}
 			}
+
+			previewPanel = null;
+			previewWindow = null;
+			consoleWindow = null;
+			project = null;
+			grammarToPreviewState = null;
 		}
+	}
+
+	// seems that intellij can kill and reload a project w/o user knowing.
+	// a ptr was left around that pointed at a disposed project. led to
+	// problem in switchGrammar. Probably was a listener still attached and trigger
+	public void uninstallListeners() {
+		VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
+		MessageBusConnection msgBus = project.getMessageBus().connect(project);
+		msgBus.disconnect();
 	}
 
 	@Override
@@ -166,30 +191,15 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public void installListeners() {
 		LOG.info("installListeners "+project.getName());
 		// Listen for .g4 file saves
-		VirtualFileManager.getInstance().addVirtualFileListener(
-			new VirtualFileAdapter() {
-				@Override
-				public void contentsChanged(VirtualFileEvent event) {
-					final VirtualFile vfile = event.getFile();
-					if ( !vfile.getName().endsWith(".g4") ) return;
-					grammarFileSavedEvent(vfile);
-				}
-		});
+		VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileAdapter);
 
 		// Listen for editor window changes
 		MessageBusConnection msgBus = project.getMessageBus().connect(project);
-		msgBus.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
-						 new FileEditorManagerAdapter() {
-							 @Override
-							 public void selectionChanged(FileEditorManagerEvent event) {
-								 currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
-							 }
-							 @Override
-							 public void fileClosed(FileEditorManager source, VirtualFile file) {
-								 editorFileClosedEvent(file);
-							 }
-						 }
+		msgBus.subscribe(
+			FileEditorManagerListener.FILE_EDITOR_MANAGER,
+			myFileEditorManagerAdapter
 		);
+
 		// for now let's leave the grammar loading in the selectionChanged event
 		// as jetbrains says that I should not rely on event order.
 //		msgBus.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
@@ -556,6 +566,32 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			grammarErrorMessage = msgST.render();
 			if (tool.errMgr.formatWantsSingleLineMessage()) {
 				grammarErrorMessage = grammarErrorMessage.replace('\n', ' ');
+			}
+		}
+	}
+
+	private class MyVirtualFileAdapter extends VirtualFileAdapter {
+		@Override
+		public void contentsChanged(VirtualFileEvent event) {
+			final VirtualFile vfile = event.getFile();
+			if ( !vfile.getName().endsWith(".g4") ) return;
+			synchronized ( shutdownLock ) {
+				if ( !projectIsClosed ) grammarFileSavedEvent(vfile); }
+		}
+	}
+
+	private class MyFileEditorManagerAdapter extends FileEditorManagerAdapter {
+		@Override
+		public void selectionChanged(FileEditorManagerEvent event) {
+			synchronized ( shutdownLock ) {
+				if ( !projectIsClosed ) currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			}
+		}
+
+		@Override
+		public void fileClosed(FileEditorManager source, VirtualFile file) {
+			synchronized ( shutdownLock ) {
+				if ( !projectIsClosed ) editorFileClosedEvent(file);
 			}
 		}
 	}

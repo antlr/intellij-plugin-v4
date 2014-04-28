@@ -11,17 +11,22 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
+import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4GrammarParser;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.jetbrains.annotations.NotNull;
 
 /** The general interface between IDEA and ANTLR. */
@@ -170,5 +175,18 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 //		parser.addErrorListener(listener);
 //
 //		ParseTree t = parser.grammarSpec();
+	}
+
+	public static Pair<Parser, ParseTree> parse(String text) {
+		ANTLRInputStream input = new ANTLRInputStream(text);
+		ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		ANTLRv4Parser parser = new ANTLRv4Parser(tokens);
+		parser.removeErrorListeners();
+		SyntaxErrorListener listener = new SyntaxErrorListener();
+		parser.addErrorListener(listener);
+
+		ParseTree t = parser.grammarSpec();
+		return new Pair<Parser, ParseTree>(parser, t);
 	}
 }

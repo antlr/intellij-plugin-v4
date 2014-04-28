@@ -51,6 +51,12 @@ You can inject predefined lexer rules. Use meta-j or type the abbreviation like 
 
 ![predefined lexer rules](images/lexer-templates.png)
 
+### Refactoring: generate rules for literals
+
+It guesses rule names or just uses T__&lt;n>. Respects literals already defined.
+
+![def-literals.png](/Volumes/SSD2/Users/parrt/tmp/def-literals.png)
+
 ### Live parse tree preview
 
 You can test any rule in the (parser) grammar.  Right click on rule in grammar
