@@ -12,6 +12,6 @@ public class ANTLRGenericContext extends ANTLRLiveTemplateContext {
 
 	@Override
 	protected boolean isInContext(@NotNull PsiFile file, @NotNull PsiElement element, int offset) {
-		return true;
+		return false;
 	}
 }

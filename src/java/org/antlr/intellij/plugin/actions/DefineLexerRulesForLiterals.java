@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -13,14 +14,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.ui.components.JBList;
 import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
-import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.LiteralChooser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -39,20 +39,20 @@ public class DefineLexerRulesForLiterals extends AnAction {
 	/** Only show if selection is a literal */
 	@Override
 	public void update(AnActionEvent e) {
-//		Presentation presentation = e.getPresentation();
-//		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
-//		if ( grammarFile==null ) {
-//			presentation.setEnabled(false);
-//			return;
-//		}
-//		Project project = e.getProject();
-//		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
-//		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-//		PsiElement selectedElement = getElementAtCaret(editor, file);
-//		if ( selectedElement==null ) { // we clicked somewhere outside text
-//			presentation.setEnabled(false);
-//			return;
-//		}
+		Presentation presentation = e.getPresentation();
+		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
+		if ( grammarFile==null ) {
+			presentation.setEnabled(false);
+			return;
+		}
+		Project project = e.getProject();
+		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+		Editor editor = e.getData(PlatformDataKeys.EDITOR);
+		PsiElement selectedElement = getElementAtCaret(editor, file);
+		if ( selectedElement==null ) { // we clicked somewhere outside text
+			presentation.setEnabled(false);
+			return;
+		}
 //
 //		IElementType tokenType = selectedElement.getNode().getElementType();
 //		if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.STRING_LITERAL) ) {
@@ -66,28 +66,17 @@ public class DefineLexerRulesForLiterals extends AnAction {
 
 	@Override
 	public void actionPerformed(AnActionEvent e) {
-		final JBList list = new JBList("apple", "boy", "dog");
-
-		final Runnable callback = new Runnable() {
-			@Override
-			public void run() {
-				String selectedValue = (String)list.getSelectedValue();
-				if (selectedValue != null) {
-//					textField.setText(selectedValue);
-					System.out.println("selected: "+selectedValue);
-				}
-			}
-		};
-
 		Project project = e.getProject();
 
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+		if ( file==null ) {
+			return;
+		}
 		String inputText = file.getText();
 		Pair<Parser, ParseTree> pair = ANTLRv4ParserDefinition.parse(inputText);
 
-		ParseTree tree = pair.b;
-		Parser parser = pair.a;
+		final ParseTree tree = pair.b;
+		final Parser parser = pair.a;
 		Collection<ParseTree> literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
 		LinkedHashMap<String, String> lexerRules = new LinkedHashMap<String, String>();
 		for (ParseTree node : literalNodes) {
@@ -114,7 +103,6 @@ public class DefineLexerRulesForLiterals extends AnAction {
 			new LiteralChooser(project, new ArrayList<String>(lexerRules.values()));
 		chooser.show();
 
-		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
 		final Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		final Document doc = editor.getDocument();
 		final CommonTokenStream tokens = (CommonTokenStream)parser.getTokenStream();
@@ -125,23 +113,40 @@ public class DefineLexerRulesForLiterals extends AnAction {
 				List<String> selectedElements = chooser.getSelectedElements();
 				System.out.println(selectedElements);
 				if ( selectedElements!=null ) {
-					int cursorOffset = editor.getCaretModel().getOffset();
-//					Token tokenUnderCursor = ANTLRv4ParserDefinition.getTokenUnderCursor(tokens, cursorOffset);
-//					ANTLRv4ParserDefinition.nextRealToken()
 					String text = doc.getText();
+					int cursorOffset = editor.getCaretModel().getOffset();
+					// make sure it's not in middle of rule; put between.
+//					System.out.println("offset "+cursorOffset);
+					Collection<ParseTree> allRuleNodes = XPath.findAll(tree, "//ruleSpec", parser);
+					for (ParseTree r : allRuleNodes) {
+						Interval extent = r.getSourceInterval(); // token indexes
+						int start = tokens.get(extent.a).getStartIndex();
+						int stop = tokens.get(extent.b).getStopIndex();
+//						System.out.println("rule "+r.getChild(0).getText()+": "+start+".."+stop);
+						if ( cursorOffset < start ) {
+							// before this rule, so must be between previous and this one
+							cursorOffset = start; // put right before this rule
+							break;
+						}
+						else if ( cursorOffset>=start && cursorOffset<=stop ) {
+							// cursor in this rule
+							cursorOffset = stop + 2; // put right before this rule (after newline)
+							if ( cursorOffset >= text.length() ) {
+								cursorOffset = text.length();
+							}
+							break;
+						}
+					}
+
 					String allRules = Utils.join(selectedElements.iterator(), "\n");
-					text = text.substring(0,cursorOffset) + allRules + text.substring(cursorOffset, text.length());
+					text =
+						text.substring(0,cursorOffset) +
+						"\n"+ allRules + "\n" +
+						text.substring(cursorOffset, text.length());
 					doc.setText(text);
 				}
 			}
 		});
-
-//		final PopupChooserBuilder builder = JBPopupFactory.getInstance().createListPopupBuilder(list);
-//		final JBPopup popup =
-//			builder.setMovable(false).setResizable(false)
-//    			.setRequestFocus(true).setItemChoosenCallback(callback).createPopup();
-//
-//		popup.show(e.getInputEvent().getComponent());
 
 //		Project project = e.getProject();
 //		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);

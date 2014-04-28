@@ -80,11 +80,17 @@
 		  <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
 		  <add-to-group group-id="EditorPopupMenu" anchor="last"/>
 	  </action>
-	  <action id="antlr.DefineLexerRuleForLiteral"
+	  <!--<action id="antlr.DefineLexerRulesForLiterals"-->
+			  <!--class="org.antlr.intellij.plugin.actions.DefineLexerRulesForLiterals"-->
+			  <!--text="Generate lexer rules for literals"-->
+			  <!--description="Inject lexer rules for undefined literals but leave literal in place">-->
+		  <!--<add-to-group group-id="CodeMenu" anchor="after" relative-to-action="Generate"/>-->
+	  <!--</action>-->
+	  <action id="antlr.DefineLexerRulesForLiterals"
 			  class="org.antlr.intellij.plugin.actions.DefineLexerRulesForLiterals"
-			  text="Geneate lexer rules for literals"
-			  description="Inject lexer rules for literals but leave literal in place">
-		  <add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="RenameElement"/>
+			  text="Generate lexer rules for literals"
+			  description="Inject lexer rules for undefined literals but leave literal in place">
+		  <add-to-group group-id="GenerateGroup" anchor="first"/>
 	  </action>
   </actions>
 

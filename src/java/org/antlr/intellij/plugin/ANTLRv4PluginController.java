@@ -82,6 +82,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
 
+	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
+	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
+
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
 	}
@@ -136,11 +139,14 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void projectClosed() {
-		LOG.info("projectClosed "+project.getName());
+		LOG.info("projectClosed " + project.getName());
+
+		uninstallListeners();
+
 		console.dispose();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		for (PreviewState it : grammarToPreviewState.values() ) {
+		for (PreviewState it : grammarToPreviewState.values()) {
 			synchronized (controller.previewStateLock) {
 				if (it.editor != null) {
 					final EditorFactory factory = EditorFactory.getInstance();
@@ -149,6 +155,21 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				}
 			}
 		}
+
+		previewPanel = null;
+		previewWindow = null;
+		consoleWindow = null;
+		project = null;
+		grammarToPreviewState = null;
+	}
+
+	// seems that intellij can kill and reload a project w/o user knowing.
+	// a ptr was left around that pointed at a disposed project. led to
+	// problem in switchGrammar. Probably was a listener still attached and trigger
+	public void uninstallListeners() {
+		VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
+		MessageBusConnection msgBus = project.getMessageBus().connect(project);
+		msgBus.disconnect();
 	}
 
 	@Override
@@ -166,30 +187,15 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public void installListeners() {
 		LOG.info("installListeners "+project.getName());
 		// Listen for .g4 file saves
-		VirtualFileManager.getInstance().addVirtualFileListener(
-			new VirtualFileAdapter() {
-				@Override
-				public void contentsChanged(VirtualFileEvent event) {
-					final VirtualFile vfile = event.getFile();
-					if ( !vfile.getName().endsWith(".g4") ) return;
-					grammarFileSavedEvent(vfile);
-				}
-		});
+		VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileAdapter);
 
 		// Listen for editor window changes
 		MessageBusConnection msgBus = project.getMessageBus().connect(project);
-		msgBus.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
-						 new FileEditorManagerAdapter() {
-							 @Override
-							 public void selectionChanged(FileEditorManagerEvent event) {
-								 currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
-							 }
-							 @Override
-							 public void fileClosed(FileEditorManager source, VirtualFile file) {
-								 editorFileClosedEvent(file);
-							 }
-						 }
+		msgBus.subscribe(
+			FileEditorManagerListener.FILE_EDITOR_MANAGER,
+			myFileEditorManagerAdapter
 		);
+
 		// for now let's leave the grammar loading in the selectionChanged event
 		// as jetbrains says that I should not rely on event order.
 //		msgBus.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
@@ -557,6 +563,27 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			if (tool.errMgr.formatWantsSingleLineMessage()) {
 				grammarErrorMessage = grammarErrorMessage.replace('\n', ' ');
 			}
+		}
+	}
+
+	private class MyVirtualFileAdapter extends VirtualFileAdapter {
+		@Override
+		public void contentsChanged(VirtualFileEvent event) {
+			final VirtualFile vfile = event.getFile();
+			if ( !vfile.getName().endsWith(".g4") ) return;
+			grammarFileSavedEvent(vfile);
+		}
+	}
+
+	private class MyFileEditorManagerAdapter extends FileEditorManagerAdapter {
+		@Override
+		public void selectionChanged(FileEditorManagerEvent event) {
+			currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+		}
+
+		@Override
+		public void fileClosed(FileEditorManager source, VirtualFile file) {
+			editorFileClosedEvent(file);
 		}
 	}
 }

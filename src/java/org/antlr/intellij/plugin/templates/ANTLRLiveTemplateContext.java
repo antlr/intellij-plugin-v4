@@ -34,14 +34,6 @@ public abstract class ANTLRLiveTemplateContext extends TemplateContextType {
 //		System.out.println("isInContext: element " + element +", text="+element.getText());
 //		System.out.println(trace);
 
-//		if ( element!=null &&
-//			(element.getText().endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED)||
-//			 element.getText().endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER)) )
-//		{
-//			// i hate this DUMMY_IDENTIFIER thing!!!!!!!!
-//			return false;
-//		}
-
 		if ( element==null ) {
 			return false;
 		}
