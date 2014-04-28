@@ -25,7 +25,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;

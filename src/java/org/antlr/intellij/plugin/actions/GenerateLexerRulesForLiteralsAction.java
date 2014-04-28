@@ -5,7 +5,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -17,6 +18,7 @@ import com.intellij.psi.PsiWhiteSpace;
 import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.generators.LiteralChooser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
@@ -66,13 +68,13 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 	@Override
 	public void actionPerformed(AnActionEvent e) {
 		LOG.info("actionPerformed");
-		Project project = e.getProject();
+		final Project project = e.getProject();
 
-		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
-		if ( file==null ) {
+		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
+		if (psiFile == null) {
 			return;
 		}
-		String inputText = file.getText();
+		String inputText = psiFile.getText();
 		Pair<Parser, ParseTree> pair = ANTLRv4ParserDefinition.parse(inputText);
 
 		final ParseTree tree = pair.b;
@@ -94,7 +96,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 
 		for (ParseTreeMatch match : matches) {
 			ParseTree lit = match.get("STRING_LITERAL");
-			if ( lexerRules.containsKey(lit.getText()) ) { // we have rule for this literal already
+			if (lexerRules.containsKey(lit.getText())) { // we have rule for this literal already
 				lexerRules.remove(lit.getText());
 			}
 		}
@@ -105,73 +107,50 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 
 		final Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		final Document doc = editor.getDocument();
-		final CommonTokenStream tokens = (CommonTokenStream)parser.getTokenStream();
+		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
 
-		ApplicationManager.getApplication().runWriteAction(new Runnable() {
-			@Override
-			public void run() {
-				List<String> selectedElements = chooser.getSelectedElements();
-				System.out.println(selectedElements);
-				if ( selectedElements!=null ) {
-					String text = doc.getText();
-					int cursorOffset = editor.getCaretModel().getOffset();
-					// make sure it's not in middle of rule; put between.
+		List<String> selectedElements = chooser.getSelectedElements();
+		System.out.println(selectedElements);
+		if (selectedElements != null) {
+			String text = doc.getText();
+			int cursorOffset = editor.getCaretModel().getOffset();
+			// make sure it's not in middle of rule; put between.
 //					System.out.println("offset "+cursorOffset);
-					Collection<ParseTree> allRuleNodes = XPath.findAll(tree, "//ruleSpec", parser);
-					for (ParseTree r : allRuleNodes) {
-						Interval extent = r.getSourceInterval(); // token indexes
-						int start = tokens.get(extent.a).getStartIndex();
-						int stop = tokens.get(extent.b).getStopIndex();
+			Collection<ParseTree> allRuleNodes = XPath.findAll(tree, "//ruleSpec", parser);
+			for (ParseTree r : allRuleNodes) {
+				Interval extent = r.getSourceInterval(); // token indexes
+				int start = tokens.get(extent.a).getStartIndex();
+				int stop = tokens.get(extent.b).getStopIndex();
 //						System.out.println("rule "+r.getChild(0).getText()+": "+start+".."+stop);
-						if ( cursorOffset < start ) {
-							// before this rule, so must be between previous and this one
-							cursorOffset = start; // put right before this rule
-							break;
-						}
-						else if ( cursorOffset>=start && cursorOffset<=stop ) {
-							// cursor in this rule
-							cursorOffset = stop + 2; // put right before this rule (after newline)
-							if ( cursorOffset >= text.length() ) {
-								cursorOffset = text.length();
-							}
-							break;
-						}
+				if (cursorOffset < start) {
+					// before this rule, so must be between previous and this one
+					cursorOffset = start; // put right before this rule
+					break;
+				} else if (cursorOffset >= start && cursorOffset <= stop) {
+					// cursor in this rule
+					cursorOffset = stop + 2; // put right before this rule (after newline)
+					if (cursorOffset >= text.length()) {
+						cursorOffset = text.length();
 					}
-
-					String allRules = Utils.join(selectedElements.iterator(), "\n");
-					text =
-						text.substring(0,cursorOffset) +
-						"\n"+ allRules + "\n" +
-						text.substring(cursorOffset, text.length());
-					final String text2 = text;
-					ApplicationManager.getApplication().runWriteAction(
-						new Runnable() {
-							@Override
-							public void run() {
-								doc.setText(text2);
-							}
-						}
-					);
+					break;
 				}
 			}
-		});
 
-//		Project project = e.getProject();
-//		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
-//		if ( grammarFile==null ) return;
-//		LOG.info("actionPerformed "+grammarFile);
-//
-//		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
-//		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-//		PsiElement selectedElement = getElementAtCaret(editor, file);
-//		System.out.println("literal = "+selectedElement);
-//		if ( selectedElement==null ) return; // we clicked somewhere outside text
-//
-//		FileDocumentManager docMgr = FileDocumentManager.getInstance();
-//		Document doc = docMgr.getDocument(grammarFile);
-//		if ( doc!=null ) {
-//			docMgr.saveDocument(doc);
-//		}
+			String allRules = Utils.join(selectedElements.iterator(), "\n");
+			text =
+				text.substring(0, cursorOffset) +
+					"\n" + allRules + "\n" +
+					text.substring(cursorOffset, text.length());
+			final PsiFile newPsiFile = MyPsiUtils.createFile(project, text);
+			WriteCommandAction setTextAction = new WriteCommandAction(project) {
+				@Override
+				protected void run(final Result result) throws Throwable {
+					psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
+					psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
+				}
+			};
+			setTextAction.execute();
+		}
 	}
 
 	public static PsiElement getElementAtCaret(final Editor editor, final PsiFile file) {

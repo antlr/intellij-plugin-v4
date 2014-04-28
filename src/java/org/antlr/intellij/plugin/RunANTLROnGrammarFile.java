@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin.actions;
+package org.antlr.intellij.plugin;
 
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -15,7 +15,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.v4.Tool;
 import org.jetbrains.annotations.NotNull;
@@ -121,7 +120,9 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		antlr.removeListeners();
 		RunANTLRListener listener = new RunANTLRListener(antlr, console);
 		antlr.addListener(listener);
+
 		antlr.processGrammarsOnCommandLine();
+
 		if ( listener.hasOutput ) {
 			ApplicationManager.getApplication().invokeLater(
 				new Runnable() {
