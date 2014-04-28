@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.generators;
 
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.CheckedTreeNode;
@@ -17,7 +16,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -47,9 +45,7 @@ public class LiteralChooser extends DialogWrapper {
 		selectedElements.addAll(literals); // all are "on" by default
 
 		Tree tree = new Tree(treeModel);
-		TreeSelectionModel selectionModel = tree.getSelectionModel();
-		selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		tree.setShowsRootHandles(true);
+		tree.setRootVisible(false);
 		tree.setCellRenderer(new LiteralChooserRenderer());
 		tree.addTreeSelectionListener(new MyTreeSelectionListener());
 
@@ -60,33 +56,6 @@ public class LiteralChooser extends DialogWrapper {
 	@Override
 	protected JComponent createCenterPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-
-		// Toolbar
-
-		DefaultActionGroup group = new DefaultActionGroup();
-
-		group.addSeparator();
-
-		// Tree
-
-//		myTree.setCellRenderer(getTreeCellRenderer());
-//		UIUtil.setLineStyleAngled(myTree);
-//		myTree.setRootVisible(false);
-//		myTree.setShowsRootHandles(true);
-//		myTree.addKeyListener(new TreeKeyListener());
-//		myTree.addTreeSelectionListener(new MyTreeSelectionListener());
-//
-//		if (!myAllowMultiSelection) {
-//			myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-//		}
-//
-//		if (getRootNode().getChildCount() > 0) {
-//			myTree.expandRow(0);
-//			myTree.setSelectionRow(1);
-//		}
-//		defaultExpandTree();
-//		installSpeedSearch();
-
 		new DoubleClickListener() {
 			@Override
 			protected boolean onDoubleClick(MouseEvent e) {
@@ -113,7 +82,7 @@ public class LiteralChooser extends DialogWrapper {
 
 	private class MyTreeSelectionListener implements TreeSelectionListener {
 		public void valueChanged(TreeSelectionEvent e) {
-			System.out.println("select event ----------");
+//			System.out.println("select event ----------");
 			TreePath[] paths = e.getPaths();
 			if (paths == null) return;
 			for (int i = 0; i < paths.length; i++) {
@@ -123,7 +92,7 @@ public class LiteralChooser extends DialogWrapper {
 					if (userObject instanceof LiteralChooserObject) {
 						LiteralChooserObject literalObject = (LiteralChooserObject) userObject;
 						String text = literalObject.getText();
-						System.out.println("selected " + text);
+//						System.out.println("selected " + text);
 						if ( e.isAddedPath(paths[i]) ) {
 							if ( selectedElements.contains(text) ) {
 								selectedElements.remove(text);
@@ -131,7 +100,7 @@ public class LiteralChooser extends DialogWrapper {
 							else {
 								selectedElements.add(text);
 							}
-							System.out.println("added path: "+text);
+//							System.out.println("added path: "+text);
 							CheckedTreeNode checkedNode = (CheckedTreeNode) node;
 
 							checkedNode.setChecked(!checkedNode.isChecked()); // toggle

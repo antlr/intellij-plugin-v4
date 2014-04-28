@@ -30,6 +30,18 @@ Errors within the preview editor are now highlighted with tooltips
 and underlining just like a regular editor window. The difference
 is that this window's grammar is specified in your grammar file.
 
+meta-j pops up a list of live templates, just like it does for Java programming.
+Currently, there are a number of lexical rules for common tokens such as comments
+and identifiers that you can automatically inject.
+There are shortcuts like rid that lets you jump directly to the
+lexical rule you would like to generate. If you type the shortcut and wait a
+second, intellij should pop up an action you can select for that shortcut.
+
+ctrl-return, or whatever you have configured for the generate pop-up,
+will bring up a list of things you can generate. The only one so far is
+a generator to create lexical rules for any literals, referenced in the parser
+ grammar, that have not been defined.
+
 ## History
 
 See [Releases](PerGramma://github.com/antlr/intellij-plugin-v4/releases)

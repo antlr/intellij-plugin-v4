@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.3-dev</version>
+  <version>1.3</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -32,8 +32,17 @@
           and underlining just like a regular editor window. The difference
           is that this window's grammar is specified in your grammar file.
 
-          Quick start on grammars. You can inject predefined lexer rules. Use meta-j or type the
-          abbreviation like rid and wait a second. It should pop up that choice.
+meta-j pops up a list of live templates, just like it does for Java programming.
+Currently, there are a number of lexical rules for common tokens such as comments
+and identifiers that you can automatically inject.
+There are shortcuts like rid that lets you jump directly to the
+lexical rule you would like to generate. If you type the shortcut and wait a
+second, intellij should pop up an action you can select for that shortcut.
+
+ctrl-return, or whatever you have configured for the generate pop-up,
+will bring up a list of things you can generate. The only one so far is
+a generator to create lexical rules for any literals, referenced in the parser
+grammar, that have not been defined.
 
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>

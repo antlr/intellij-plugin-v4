@@ -110,7 +110,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
 
 		List<String> selectedElements = chooser.getSelectedElements();
-		System.out.println(selectedElements);
+//		System.out.println(selectedElements);
 		if (selectedElements != null) {
 			String text = doc.getText();
 			int cursorOffset = editor.getCaretModel().getOffset();
