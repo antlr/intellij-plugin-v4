@@ -55,7 +55,7 @@ You can inject predefined lexer rules. Use meta-j or type the abbreviation like 
 
 It guesses rule names or just uses T__&lt;n>. Respects literals already defined.
 
-![def-literals.png](/Volumes/SSD2/Users/parrt/tmp/def-literals.png)
+![def-literals.png](images/def-literals.png)
 
 ### Live parse tree preview
 
