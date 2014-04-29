@@ -61,13 +61,14 @@ public class PreviewPanel extends JPanel {
 		"Start rule: <select from navigator or grammar>";
 	public static final String startRuleLabelText =	"Start rule: ";
 
-	Project project;
+	public Project project;
 
 	public JPanel editorPanel;
 	public JTextArea editorConsole;
 
-	JLabel startRuleLabel;
-	TreeViewer treeViewer;
+	public JLabel startRuleLabel;
+	public TreeViewer treeViewer;
+	public ParseTree lastTree;
 
 	EditorMouseMotionAdapter editorMouseMoveListener = new PreviewEditorMouseListener();
 	EditorMouseAdapter editorMouseListener = new EditorMouseAdapter() {
@@ -129,7 +130,9 @@ public class PreviewPanel extends JPanel {
 				@Override
 				public void stateChanged(ChangeEvent e) {
 					int v = scaleSlider.getValue();
-					treeViewer.setScale(v / 1000.0 + 1.0);
+					if ( lastTree!=null ) {
+						treeViewer.setScale(v / 1000.0 + 1.0);
+					}
 				}
 			}
 									 );
@@ -223,6 +226,7 @@ public class PreviewPanel extends JPanel {
 			new Runnable() {
 				@Override
 				public void run() {
+					lastTree = tree;
 					treeViewer.setRuleNames(ruleNames);
 					treeViewer.setTree(tree);
 				}

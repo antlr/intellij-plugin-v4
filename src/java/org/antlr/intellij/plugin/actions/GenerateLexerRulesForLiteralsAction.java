@@ -14,7 +14,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.generators.LiteralChooser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
@@ -49,7 +49,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 		}
 		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-		PsiElement selectedElement = getElementAtCaret(editor, file);
+		PsiElement selectedElement = BaseRefactoringAction.getElementAtCaret(editor, file);
 		if ( selectedElement==null ) { // we clicked somewhere outside text
 			presentation.setEnabled(false);
 			return;
@@ -152,29 +152,4 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 			setTextAction.execute();
 		}
 	}
-
-	public static PsiElement getElementAtCaret(final Editor editor, final PsiFile file) {
-		final int offset = fixCaretOffset(editor);
-		PsiElement element = file.findElementAt(offset);
-		if (element == null && offset == file.getTextLength()) {
-			element = file.findElementAt(offset - 1);
-		}
-
-		if (element instanceof PsiWhiteSpace) {
-			element = file.findElementAt(element.getTextRange().getStartOffset() - 1);
-		}
-		return element;
-	}
-
-	private static int fixCaretOffset(final Editor editor) {
-		final int caret = editor.getCaretModel().getOffset();
-		if (editor.getSelectionModel().hasSelection() && !editor.getSelectionModel().hasBlockSelection()) {
-			if (caret == editor.getSelectionModel().getSelectionEnd()) {
-				return Math.max(editor.getSelectionModel().getSelectionStart(), editor.getSelectionModel().getSelectionEnd() - 1);
-			}
-		}
-
-		return caret;
-	}
-
 }
