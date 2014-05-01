@@ -56,17 +56,12 @@ public class PreviewPanel extends JPanel {
 	 */
 	public final Object swapEditorComponentLock = new Object();
 
-	public static final JLabel placeHolder = new JLabel("");
-	public static final String missingStartRuleLabelText =
-		"Start rule: <select from navigator or grammar>";
-	public static final String startRuleLabelText =	"Start rule: ";
+	public static final JTextArea placeHolder = new JTextArea();
 
 	public Project project;
 
-	public JPanel editorPanel;
-	public JTextArea editorConsole;
+	public InputPanel inputPanel;
 
-	public JLabel startRuleLabel;
 	public TreeViewer treeViewer;
 	public ParseTree lastTree;
 
@@ -87,28 +82,61 @@ public class PreviewPanel extends JPanel {
 		this.setLayout(new BorderLayout());
 
 		Splitter splitPane = new Splitter();
-		splitPane.setFirstComponent(createEditorPanel());
+		inputPanel = createEditorPanel();
+		splitPane.setFirstComponent(inputPanel);
 		splitPane.setSecondComponent(createParseTreePanel());
 
 		this.add(splitPane, BorderLayout.CENTER);
 	}
 
-	public JPanel createEditorPanel() {
+	public InputPanel createEditorPanel() {
 		LOG.info("createEditorPanel"+" "+project.getName());
+		return new InputPanel(this);
+/*
 		editorConsole = new JTextArea();
 		editorConsole.setRows(3);
 		editorConsole.setEditable(false);
 		editorConsole.setLineWrap(true);
 		JBScrollPane spane = new JBScrollPane(editorConsole); // wrap in scroller
-		editorPanel = new JPanel(new BorderLayout(0,0));
+		inputPanel = new JPanel(new BorderLayout(0,0));
+
+		JBPanel startRuleAndFilePanel = new JBPanel(new BorderLayout(0, 0));
 		startRuleLabel = new JLabel(missingStartRuleLabelText);
 		startRuleLabel.setForeground(JBColor.RED);
+		startRuleAndFilePanel.add(startRuleLabel, BorderLayout.WEST);
+
+		TextFieldWithBrowseButton fileChooser = new TextFieldWithBrowseButton();
+		FileChooserDescriptor singleFileDescriptor =
+		        FileChooserDescriptorFactory.createSingleFolderDescriptor();
+		fileChooser.addBrowseFolderListener("Select input file", null, project, singleFileDescriptor);
+		fileChooser.setTextFieldPreferredWidth(40);
+
+		JRadioButton manualButton = new JRadioButton("Manual");
+		manualButton.setSelected(true);
+		JRadioButton fileButton = new JRadioButton("File");
+		manualButton.setSelected(false);
+		ButtonGroup group = new ButtonGroup();
+		group.add(manualButton);
+		group.add(fileButton);
+
+		JPanel radioPanel = new JPanel(new GridLayout(1, 2));
+		radioPanel.add(manualButton);
+		JPanel f = new JPanel();
+		f.add(fileButton);
+		f.add(fileChooser);
+		radioPanel.add(fileButton);
+		radioPanel.add(f);
+
+		startRuleAndFilePanel.add(startRuleLabel, BorderLayout.WEST);
+		startRuleAndFilePanel.add(radioPanel, BorderLayout.CENTER);
+
 		synchronized ( swapEditorComponentLock ) {
-			editorPanel.add(startRuleLabel, BorderLayout.NORTH);
-			editorPanel.add(placeHolder, BorderLayout.CENTER);
-			editorPanel.add(spane, BorderLayout.SOUTH);
+			inputPanel.add(startRuleAndFilePanel, BorderLayout.NORTH);
+			inputPanel.add(placeHolder, BorderLayout.CENTER);
+			inputPanel.add(spane, BorderLayout.SOUTH);
 		}
-		return editorPanel;
+		return inputPanel;
+		*/
 	}
 
 	public JPanel createParseTreePanel() {
@@ -150,16 +178,6 @@ public class PreviewPanel extends JPanel {
 		switchToGrammar(newFile);
 	}
 
-	public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-		startRuleLabel.setText(startRuleLabelText + startRuleName);
-		startRuleLabel.setForeground(JBColor.BLACK);
-	}
-
-	public void resetStartRuleLabel() {
-		startRuleLabel.setText(missingStartRuleLabelText); // reset
-		startRuleLabel.setForeground(JBColor.RED);
-	}
-
 	/** Load grammars and set editor component. */
 	public void switchToGrammar(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
@@ -170,23 +188,23 @@ public class PreviewPanel extends JPanel {
 			previewState.editor = createEditor(grammarFile, ""); // nothing there, create
 		}
 
-		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
+		BorderLayout layout = (BorderLayout) inputPanel.getLayout();
 		// atomically remove old
 		synchronized ( swapEditorComponentLock ) {
 			Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
 			if (editorSpotComp != null) {
-				editorPanel.remove(editorSpotComp); // remove old editor if it's there
+				inputPanel.remove(editorSpotComp); // remove old editor if it's there
 			}
-			editorPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
+			inputPanel.add(previewState.editor.getComponent(), BorderLayout.CENTER);
 		}
 		clearParseErrors(grammarFile);
 
 		if ( previewState.startRuleName!=null ) {
-			setStartRuleName(grammarFile, previewState.startRuleName);
+			inputPanel.setStartRuleName(grammarFile, previewState.startRuleName);
 			updateParseTreeFromDoc(grammarFile);
 		}
 		else {
-			resetStartRuleLabel();
+			inputPanel.resetStartRuleLabel();
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
 		}
 	}
@@ -195,8 +213,8 @@ public class PreviewPanel extends JPanel {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("closeGrammar "+grammarFileName+" "+project.getName());
 
-		resetStartRuleLabel();
-		editorConsole.setText(""); // clear error console
+		inputPanel.resetStartRuleLabel();
+		inputPanel.clearErrorConsole();
 		setParseTree(Arrays.asList(new String[0]), null); // wipe tree
 
 		// release the editor
@@ -213,11 +231,11 @@ public class PreviewPanel extends JPanel {
 		}
 
 		// restore the GUI
-		BorderLayout layout = (BorderLayout)editorPanel.getLayout();
+		BorderLayout layout = (BorderLayout) inputPanel.getLayout();
 		Component editorSpotComp = layout.getLayoutComponent(BorderLayout.CENTER);
 		synchronized ( swapEditorComponentLock ) {
-			editorPanel.remove(editorSpotComp);
-			editorPanel.add(placeHolder, BorderLayout.CENTER); // put placeholder back after we remove the editor component.
+			inputPanel.remove(editorSpotComp);
+			inputPanel.add(placeHolder, BorderLayout.CENTER); // put placeholder back after we remove the editor component.
 		}
 	}
 
@@ -284,7 +302,7 @@ public class PreviewPanel extends JPanel {
 
 		HintManager.getInstance().hideAllHints();
 
-		editorConsole.setText(""); // clear error console
+		inputPanel.clearErrorConsole();
 	}
 
 	/** Display error messages to the console and also add annotations
@@ -300,7 +318,7 @@ public class PreviewPanel extends JPanel {
 		}
 		for (SyntaxError e : errors) {
 			annotateErrorsInPreviewInputEditor(grammarFile, e);
-			displayErrorInParseErrorConsole(e);
+			inputPanel.displayErrorInParseErrorConsole(e);
 		}
 	}
 
@@ -333,15 +351,6 @@ public class PreviewPanel extends JPanel {
 											HighlighterTargetArea.EXACT_RANGE);
 	}
 
-	public void displayErrorInParseErrorConsole(SyntaxError e) {
-		String msg = getErrorDisplayString(e);
-		editorConsole.insert(msg+'\n', editorConsole.getText().length());
-	}
-
-	public String getErrorDisplayString(SyntaxError e) {
-		return "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
-	}
-
 	public static MarkupModel removeTokenInfoHighlighters(Editor editor) {
 		// Remove any previous underlining, but not anything else like errors
 		MarkupModel markupModel=editor.getMarkupModel();
@@ -352,5 +361,9 @@ public class PreviewPanel extends JPanel {
 			}
 		}
 		return markupModel;
+	}
+
+	public InputPanel getInputPanel() {
+		return inputPanel;
 	}
 }

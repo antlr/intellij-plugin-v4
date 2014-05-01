@@ -132,7 +132,7 @@ public class PreviewEditorMouseListener extends EditorMouseMotionAdapter {
 				if (attr != null && attr.getEffectType() == EffectType.WAVE_UNDERSCORE) {
 					// error tool tips
 					String errorDisplayString =
-						controller.getPreviewPanel().getErrorDisplayString(errorUnderCursor);
+						InputPanel.getErrorDisplayString(errorUnderCursor);
 					int flags =
 						HintManager.HIDE_BY_ANY_KEY |
 							HintManager.HIDE_BY_TEXT_CHANGE |

@@ -220,7 +220,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		PreviewState previewState = getPreviewState(grammarFile.getPath());
 		previewState.startRuleName = startRuleName;
 		if ( previewPanel!=null ) {
-			previewPanel.setStartRuleName(grammarFile, startRuleName); // notify the view
+			previewPanel.getInputPanel().setStartRuleName(grammarFile, startRuleName); // notify the view
 			previewPanel.updateParseTreeFromDoc(grammarFile);
 		}
 		else {
