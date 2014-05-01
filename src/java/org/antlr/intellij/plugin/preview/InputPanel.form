@@ -54,11 +54,18 @@
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
         <constraints border-constraint="Center"/>
         <properties>
+          <background awt-color="lightGray"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <text value="place holder"/>
+          <text value=""/>
         </properties>
       </component>
     </children>
   </grid>
+  <buttonGroups>
+    <group name="inputRadioGroup">
+      <member id="6ed4e"/>
+      <member id="2d3c1"/>
+    </group>
+  </buttonGroups>
 </form>

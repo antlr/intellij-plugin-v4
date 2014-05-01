@@ -15,7 +15,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
@@ -82,7 +81,6 @@ public class TestRuleAction extends AnAction implements DumbAware {
 	}
 
 	public ParserRuleRefNode getSelectedRuleName(AnActionEvent e) {
-		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		if ( editor==null ) { // not in editor
 			PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
@@ -94,7 +92,14 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		}
 
 		// in editor
-		PsiElement selectedPsiRuleNode = BaseRefactoringAction.getElementAtCaret(editor, file);
+		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+		if ( file==null ) {
+			return null;
+		}
+
+		int offset = MyActionUtils.getMouseOffset(editor);
+
+		PsiElement selectedPsiRuleNode = file.findElementAt(offset);
 		if ( selectedPsiRuleNode==null ) { // didn't select a node in parse tree
 			return null;
 		}

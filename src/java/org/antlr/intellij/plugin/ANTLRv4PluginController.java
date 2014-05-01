@@ -5,7 +5,6 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -69,8 +68,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
-
-	public final Object previewStateLock = new Object();
 
 	public boolean projectIsClosed = false;
 
@@ -147,15 +144,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		console.dispose();
 
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		for (PreviewState it : grammarToPreviewState.values()) {
-			synchronized (controller.previewStateLock) {
-				if (it.editor != null) {
-					final EditorFactory factory = EditorFactory.getInstance();
-					factory.releaseEditor(it.editor);
-					it.editor = null;
-				}
-			}
+			previewPanel.inputPanel.releaseEditors(it);
 		}
 
 		previewPanel = null;
@@ -321,8 +311,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  (I hope!)
 	 */
 	public void updateGrammarObjectsFromFile(String grammarFileName) {
-		synchronized ( previewStateLock ) { // build atomically
-			PreviewState previewState = getPreviewState(grammarFileName);
+		PreviewState previewState = getPreviewState(grammarFileName);
+		synchronized ( previewState ) { // build atomically
 			/* run later */ Grammar[] grammars = loadGrammars(grammarFileName);
 			if ( grammars!=null ) {
 				previewState.lg = grammars[0];
@@ -341,7 +331,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 
 		// Wipes out the console and also any error annotations
-		previewPanel.clearParseErrors(grammarFile);
+		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
 		if ( previewState.g == BAD_PARSER_GRAMMAR ||
 			 previewState.lg == BAD_LEXER_GRAMMAR )
@@ -369,7 +359,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		ParseTree t = parser.parse(start.index);
 
-		previewPanel.showParseErrors(grammarFile, previewState.syntaxErrorListener.getSyntaxErrors());
+		previewPanel.inputPanel.showParseErrors(grammarFile, previewState.syntaxErrorListener.getSyntaxErrors());
 
 		if ( t!=null ) {
 			return new Object[] {parser, t};
