@@ -97,6 +97,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			return null;
 		}
 
+		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
 		int offset = MyActionUtils.getMouseOffset(editor);
 
 		PsiElement selectedPsiRuleNode = file.findElementAt(offset);
