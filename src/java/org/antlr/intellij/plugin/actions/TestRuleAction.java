@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.Condition;
@@ -18,6 +19,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
+
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 
 public class TestRuleAction extends AnAction implements DumbAware {
 	public static final Logger LOG = Logger.getInstance("ANTLR TestRuleAction");
@@ -97,9 +102,27 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			return null;
 		}
 
-		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
-		int offset = MyActionUtils.getMouseOffset(editor);
+//		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
+		int offset;
+		// an issue with intellij? fires update() twice. getInputEvent() is null.
+		// when called from actionPerformed, it's nonnull but getMousePosition() is null!
+		InputEvent inputEvent = e.getInputEvent();
+		Point mousePosition = editor.getContentComponent().getMousePosition();
+		System.out.println("\ninputEvent=="+inputEvent);
+		System.out.println("mousePosition=="+mousePosition);
+		if ( inputEvent instanceof MouseEvent ) {
+			MouseEvent mouseEvent = (MouseEvent)inputEvent;
+			mousePosition = new Point(mouseEvent.getPoint());
+		}
 
+		if ( mousePosition==null ) {
+			return null;
+		}
+
+		LogicalPosition pos = editor.xyToLogicalPosition(mousePosition);
+		offset = editor.logicalPositionToOffset(pos);
+
+		System.out.println("offset = "+offset);
 		PsiElement selectedPsiRuleNode = file.findElementAt(offset);
 		if ( selectedPsiRuleNode==null ) { // didn't select a node in parse tree
 			return null;
