@@ -162,11 +162,11 @@ public class PreviewPanel extends JPanel {
 
 		inputPanel.resetStartRuleLabel();
 		inputPanel.clearErrorConsole();
-		setParseTree(Arrays.asList(new String[0]), null); // wipe tree
+		clearParseTree(); // wipe tree
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
-		inputPanel.releaseEditors(previewState);
+		inputPanel.releaseEditor(previewState);
 	}
 
 	public void setParseTree(final List<String> ruleNames, final ParseTree tree) {
@@ -182,6 +182,10 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
+	public void clearParseTree() {
+		setParseTree(Arrays.asList(new String[0]), null);
+	}
+
 	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
 		try {
 			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -194,7 +198,7 @@ public class PreviewPanel extends JPanel {
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
 			}
 			else {
-				setParseTree(Arrays.asList(new String[0]), null);
+				clearParseTree();
 			}
 		}
 		catch (IOException ioe) {

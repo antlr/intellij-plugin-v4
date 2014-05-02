@@ -145,7 +145,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		console.dispose();
 
 		for (PreviewState it : grammarToPreviewState.values()) {
-			previewPanel.inputPanel.releaseEditors(it);
+			previewPanel.inputPanel.releaseEditor(it);
 		}
 
 		previewPanel = null;

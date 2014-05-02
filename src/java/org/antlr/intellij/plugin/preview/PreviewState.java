@@ -29,55 +29,29 @@ public class PreviewState {
 	public Parser parser;
 	public SyntaxErrorListener syntaxErrorListener;
 
-//	public InputPanel inputPanel;
-
 	/** The current input editor (inputEditor or fileEditor) for this grammar */
-	public Editor editor;
-	public Editor inputEditor;
-	public Editor fileEditor;
-
-	public Editor getEditor() {
-		return editor;
-	}
-
-	public boolean isInputEditor() {
-		return editor == inputEditor;
-	}
-
-	public boolean isFileEditor() {
-		return editor == fileEditor;
-	}
-
-	public synchronized void setInputEditor(Editor editor) {
-		this.inputEditor = editor;
-		this.editor = editor;
-	}
-
-	public synchronized void setFileEditor(Editor editor) {
-		this.fileEditor = editor;
-		this.editor = editor;
-	}
+	private Editor editor;
 
 	public PreviewState(String grammarFileName) {
 		this.grammarFileName = grammarFileName;
 	}
 
-	public void releaseEditors() {
-		final EditorFactory factory = EditorFactory.getInstance();
-		synchronized (this) {
-			// It would appear that the project closed event occurs before these close grammars. Very strange.
-			// check for null editor.
-			if (fileEditor != null) {
-				factory.releaseEditor(fileEditor);
-				fileEditor = null;
-			}
-			if (inputEditor != null) {
-				factory.releaseEditor(inputEditor);
-				inputEditor = null;
-			}
+	public synchronized Editor getEditor() {
+		return editor;
+	}
+
+	public synchronized void setEditor(Editor editor) {
+		releaseEditor();
+		this.editor = editor;
+	}
+
+	public synchronized void releaseEditor() {
+		// It would appear that the project closed event occurs before these close grammars. Very strange.
+		// check for null editor.
+		if (editor != null) {
+			final EditorFactory factory = EditorFactory.getInstance();
+			factory.releaseEditor(editor);
 			editor = null;
-			inputEditor = null;
-			fileEditor = null;
 		}
 	}
 

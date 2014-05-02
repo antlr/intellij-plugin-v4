@@ -23,6 +23,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
@@ -39,6 +40,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class InputPanel extends JBPanel {
@@ -149,47 +152,55 @@ public class InputPanel extends JBPanel {
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		PreviewState previewState =	controller.getPreviewState();
-		if ( previewState==null ) {
+		PreviewState previewState = controller.getPreviewState();
+		if (previewState == null) {
 			return;
 		}
 
-		if ( !previewState.isInputEditor() ) {
-			if ( previewState.inputEditor==null ) {
-				Editor editor = createEditor(controller.getCurrentGrammarFile(), "");
-				previewState.setInputEditor(editor);
-			}
-			else {
-				previewState.editor = previewState.inputEditor;
-			}
-		}
+		// wipe old and make new one
+		final EditorFactory factory = EditorFactory.getInstance();
+		Document doc = factory.createDocument("");
+
+		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
+
+		setEditorComponent(editor.getComponent()); // do before setting state
+		previewState.setEditor(editor);
+		previewPanel.clearParseTree();
+		clearErrorConsole();
 	}
 
 	public void selectFileEvent() {
-		System.out.println("file " + fileChooser.getText());
+		String inputFileName = fileChooser.getText();
+		if (inputFileName.trim().length() == 0) {
+			return;
+		}
+		System.out.println("file " + inputFileName);
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		PreviewState previewState =	controller.getPreviewState();
-		if ( previewState==null ) {
+		PreviewState previewState = controller.getPreviewState();
+		if (previewState == null) {
 			return;
 		}
 
-		if ( !previewState.isFileEditor() ) {
-			if ( previewState.fileEditor==null ) {
-				Editor editor = createEditor(controller.getCurrentGrammarFile(), "");
-				previewState.setFileEditor(editor);
-			}
-			else {
-				previewState.editor = previewState.fileEditor;
-			}
+		// wipe old and make new one
+		try {
+			char[] inputText = FileUtil.loadFileText(new File(inputFileName));
+			final EditorFactory factory = EditorFactory.getInstance();
+			Document doc = factory.createDocument(inputText);
+			Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
+			setEditorComponent(editor.getComponent()); // do before setting state
+			previewState.setEditor(editor);
+			clearErrorConsole();
+			previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
+		} catch (IOException ioe) {
+			LOG.error("can't load input file " + inputFileName, ioe);
 		}
 	}
 
-	public Editor createEditor(final VirtualFile grammarFile, String inputText) {
+	public Editor createEditor(final VirtualFile grammarFile, Document doc) {
 		LOG.info("createEditor: create new editor for " + grammarFile.getPath() + " " + previewPanel.project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
-		Document doc = factory.createDocument(inputText);
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
@@ -213,12 +224,7 @@ public class InputPanel extends JBPanel {
 		LOG.info("switchToGrammar " + grammarFileName + " " + previewPanel.project.getName());
 		PreviewState previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFileName);
 
-		if (previewState.getEditor() == null) {
-			Editor editor = createEditor(grammarFile, "");
-			previewState.setInputEditor(editor);
-		}
-
-		setEditorComponent(previewState.getEditor().getComponent());
+		selectInputEvent();
 
 		clearParseErrors(grammarFile);
 
@@ -236,6 +242,7 @@ public class InputPanel extends JBPanel {
 		synchronized (swapEditorComponentLock) {
 			Component editorSpotComp = layout.getLayoutComponent(EDITOR_SPOT_COMPONENT);
 			if (editorSpotComp != null) {
+				editorSpotComp.setVisible(false);
 				outerMostPanel.remove(editorSpotComp); // remove old editor if it's there
 			}
 			outerMostPanel.add(editor, EDITOR_SPOT_COMPONENT);
@@ -252,9 +259,9 @@ public class InputPanel extends JBPanel {
 		return getEditor(grammarFile).getDocument().getText();
 	}
 
-	public void releaseEditors(PreviewState previewState) {
+	public void releaseEditor(PreviewState previewState) {
 		// release the editor
-		previewState.releaseEditors();
+		previewState.releaseEditor();
 
 		// restore the GUI
 		setEditorComponent(placeHolder);
