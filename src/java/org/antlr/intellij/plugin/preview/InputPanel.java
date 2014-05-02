@@ -20,6 +20,8 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
+import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
@@ -77,16 +79,34 @@ public class InputPanel extends JBPanel {
 
 		FileChooserDescriptor singleFileDescriptor =
 			FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-		fileChooser.addBrowseFolderListener("Select input file", null,
-											previewPanel.project,
-											singleFileDescriptor);
+		ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseActionListener =
+			new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+				"Select input file", null,
+				fileChooser,
+				previewPanel.project,
+				singleFileDescriptor,
+				TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+			) {
+				@Override
+				protected void onFileChoosen(VirtualFile chosenFile) {
+					super.onFileChoosen(chosenFile);
+					selectFileEvent();
+				}
+			};
+		fileChooser.addBrowseFolderListener(previewPanel.project, browseActionListener);
+		fileChooser.getButton().addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fileRadioButton.setSelected(true);
+			}
+		});
 		fileChooser.setTextFieldPreferredWidth(40);
 
 		inputRadioButton.addActionListener(
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					selectInputEvent(e);
+					selectInputEvent();
 				}
 			}
 		);
@@ -94,7 +114,7 @@ public class InputPanel extends JBPanel {
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					selectFileEvent(e);
+					selectFileEvent();
 				}
 			}
 		);
@@ -124,12 +144,46 @@ public class InputPanel extends JBPanel {
 		return startRuleLabel;
 	}
 
-	public void selectInputEvent(ActionEvent e) {
+	public void selectInputEvent() {
 		System.out.println("input");
+
+		// get state for grammar in current editor, not editor where user is typing preview input!
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+		PreviewState previewState =	controller.getPreviewState();
+		if ( previewState==null ) {
+			return;
+		}
+
+		if ( !previewState.isInputEditor() ) {
+			if ( previewState.inputEditor==null ) {
+				Editor editor = createEditor(controller.getCurrentGrammarFile(), "");
+				previewState.setInputEditor(editor);
+			}
+			else {
+				previewState.editor = previewState.inputEditor;
+			}
+		}
 	}
 
-	public void selectFileEvent(ActionEvent e) {
-		System.out.println("file");
+	public void selectFileEvent() {
+		System.out.println("file " + fileChooser.getText());
+
+		// get state for grammar in current editor, not editor where user is typing preview input!
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+		PreviewState previewState =	controller.getPreviewState();
+		if ( previewState==null ) {
+			return;
+		}
+
+		if ( !previewState.isFileEditor() ) {
+			if ( previewState.fileEditor==null ) {
+				Editor editor = createEditor(controller.getCurrentGrammarFile(), "");
+				previewState.setFileEditor(editor);
+			}
+			else {
+				previewState.editor = previewState.fileEditor;
+			}
+		}
 	}
 
 	public Editor createEditor(final VirtualFile grammarFile, String inputText) {
@@ -159,7 +213,10 @@ public class InputPanel extends JBPanel {
 		LOG.info("switchToGrammar " + grammarFileName + " " + previewPanel.project.getName());
 		PreviewState previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFileName);
 
-		previewState.setEditor(createEditor(grammarFile, ""));
+		if (previewState.getEditor() == null) {
+			Editor editor = createEditor(grammarFile, "");
+			previewState.setInputEditor(editor);
+		}
 
 		setEditorComponent(previewState.getEditor().getComponent());
 
@@ -410,6 +467,7 @@ public class InputPanel extends JBPanel {
 		radioButtonPanel.add(fileChooser);
 		errorConsole = new JTextArea();
 		errorConsole.setEditable(false);
+		errorConsole.setLineWrap(true);
 		errorConsole.setRows(3);
 		outerMostPanel.add(errorConsole, BorderLayout.SOUTH);
 		placeHolder = new JTextArea();

@@ -48,6 +48,7 @@
         <constraints border-constraint="South"/>
         <properties>
           <editable value="false"/>
+          <lineWrap value="true"/>
           <rows value="3"/>
         </properties>
       </component>

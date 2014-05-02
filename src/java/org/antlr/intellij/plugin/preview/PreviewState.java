@@ -32,15 +32,29 @@ public class PreviewState {
 //	public InputPanel inputPanel;
 
 	/** The current input editor (inputEditor or fileEditor) for this grammar */
-	private Editor editor;
-	private Editor inputEditor;
-	private Editor fileEditor;
+	public Editor editor;
+	public Editor inputEditor;
+	public Editor fileEditor;
 
 	public Editor getEditor() {
 		return editor;
 	}
 
-	public void setEditor(Editor editor) {
+	public boolean isInputEditor() {
+		return editor == inputEditor;
+	}
+
+	public boolean isFileEditor() {
+		return editor == fileEditor;
+	}
+
+	public synchronized void setInputEditor(Editor editor) {
+		this.inputEditor = editor;
+		this.editor = editor;
+	}
+
+	public synchronized void setFileEditor(Editor editor) {
+		this.fileEditor = editor;
 		this.editor = editor;
 	}
 
