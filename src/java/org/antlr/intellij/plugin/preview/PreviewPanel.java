@@ -43,6 +43,7 @@ public class PreviewPanel extends JPanel {
 	public void createGUI() {
 		this.setLayout(new BorderLayout());
 
+		// Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
 		Splitter splitPane = new Splitter();
 		inputPanel = getEditorPanel();
 		splitPane.setFirstComponent(inputPanel.getComponent());
@@ -54,51 +55,6 @@ public class PreviewPanel extends JPanel {
 	public InputPanel getEditorPanel() {
 		LOG.info("createEditorPanel"+" "+project.getName());
 		return new InputPanel(this);
-/*
-		editorConsole = new JTextArea();
-		editorConsole.setRows(3);
-		editorConsole.setEditable(false);
-		editorConsole.setLineWrap(true);
-		JBScrollPane spane = new JBScrollPane(editorConsole); // wrap in scroller
-		inputPanel = new JPanel(new BorderLayout(0,0));
-
-		JBPanel startRuleAndFilePanel = new JBPanel(new BorderLayout(0, 0));
-		startRuleLabel = new JLabel(missingStartRuleLabelText);
-		startRuleLabel.setForeground(JBColor.RED);
-		startRuleAndFilePanel.add(startRuleLabel, BorderLayout.WEST);
-
-		TextFieldWithBrowseButton fileChooser = new TextFieldWithBrowseButton();
-		FileChooserDescriptor singleFileDescriptor =
-		        FileChooserDescriptorFactory.createSingleFolderDescriptor();
-		fileChooser.addBrowseFolderListener("Select input file", null, project, singleFileDescriptor);
-		fileChooser.setTextFieldPreferredWidth(40);
-
-		JRadioButton manualButton = new JRadioButton("Manual");
-		manualButton.setSelected(true);
-		JRadioButton fileButton = new JRadioButton("File");
-		manualButton.setSelected(false);
-		ButtonGroup group = new ButtonGroup();
-		group.add(manualButton);
-		group.add(fileButton);
-
-		JPanel radioPanel = new JPanel(new GridLayout(1, 2));
-		radioPanel.add(manualButton);
-		JPanel f = new JPanel();
-		f.add(fileButton);
-		f.add(fileChooser);
-		radioPanel.add(fileButton);
-		radioPanel.add(f);
-
-		startRuleAndFilePanel.add(startRuleLabel, BorderLayout.WEST);
-		startRuleAndFilePanel.add(radioPanel, BorderLayout.CENTER);
-
-		synchronized ( swapEditorComponentLock ) {
-			inputPanel.add(startRuleAndFilePanel, BorderLayout.NORTH);
-			inputPanel.add(placeHolder, BorderLayout.CENTER);
-			inputPanel.add(spane, BorderLayout.SOUTH);
-		}
-		return inputPanel;
-		*/
 	}
 
 	public JPanel createParseTreePanel() {

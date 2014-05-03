@@ -44,6 +44,8 @@ will bring up a list of things you can generate. The only one so far is
 a generator to create lexical rules for any literals, referenced in the parser
 grammar, that have not been defined.
 
+You can type input or select a file for testing in preview window.
+
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 

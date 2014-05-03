@@ -461,6 +461,8 @@ public class InputPanel {
 	private void $$$setupUI$$$() {
 		outerMostPanel = new JPanel();
 		outerMostPanel.setLayout(new BorderLayout(0, 0));
+		outerMostPanel.setMinimumSize(new Dimension(100, 70));
+		outerMostPanel.setPreferredSize(new Dimension(200, 100));
 		startRuleAndInputPanel = new JPanel();
 		startRuleAndInputPanel.setLayout(new BorderLayout(0, 0));
 		outerMostPanel.add(startRuleAndInputPanel, BorderLayout.NORTH);
