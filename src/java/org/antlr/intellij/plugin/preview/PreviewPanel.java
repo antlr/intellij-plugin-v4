@@ -45,7 +45,7 @@ public class PreviewPanel extends JPanel {
 
 		Splitter splitPane = new Splitter();
 		inputPanel = getEditorPanel();
-		splitPane.setFirstComponent(inputPanel);
+		splitPane.setFirstComponent(inputPanel.getComponent());
 		splitPane.setSecondComponent(createParseTreePanel());
 
 		this.add(splitPane, BorderLayout.CENTER);

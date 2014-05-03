@@ -26,7 +26,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBPanel;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -44,7 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class InputPanel extends JBPanel {
+// Not a view itself but delegates to one.
+
+public class InputPanel {
 	private JRadioButton inputRadioButton;
 	private JRadioButton fileRadioButton;
 	private JTextArea placeHolder;
@@ -134,9 +135,12 @@ public class InputPanel extends JBPanel {
 		};
 	}
 
+	public JPanel getComponent() {
+		return outerMostPanel;
+	}
+
 	private void createUIComponents() {
 		// TODO: place custom component creation code here
-		outerMostPanel = this;
 	}
 
 	public JTextArea getErrorConsole() {
@@ -455,7 +459,7 @@ public class InputPanel extends JBPanel {
 	 * @noinspection ALL
 	 */
 	private void $$$setupUI$$$() {
-		createUIComponents();
+		outerMostPanel = new JPanel();
 		outerMostPanel.setLayout(new BorderLayout(0, 0));
 		startRuleAndInputPanel = new JPanel();
 		startRuleAndInputPanel.setLayout(new BorderLayout(0, 0));
