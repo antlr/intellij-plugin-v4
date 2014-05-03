@@ -1,12 +1,13 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.tool.Grammar;
 
 /** Track everything associated with the state of the preview window.
- *  For each grammar, we need to track a separate editor object
+ *  For each grammar, we need to track an InputPanel (with <= 2 editor objects)
  *  that we will flip to every time we come back to a specific grammar,
  *  uniquely identified by the fully-qualified grammar name.
  *
@@ -28,14 +29,30 @@ public class PreviewState {
 	public Parser parser;
 	public SyntaxErrorListener syntaxErrorListener;
 
-	/** Upon successful parse of the input inside the preview editor,
-	 *  keep track of the token stream so that we can do token highlighting.
-	 */
-//	public TokenStream tokenStream;
-
-	public Editor editor;
+	/** The current input editor (inputEditor or fileEditor) for this grammar */
+	private Editor editor;
 
 	public PreviewState(String grammarFileName) {
 		this.grammarFileName = grammarFileName;
 	}
+
+	public synchronized Editor getEditor() {
+		return editor;
+	}
+
+	public synchronized void setEditor(Editor editor) {
+		releaseEditor();
+		this.editor = editor;
+	}
+
+	public synchronized void releaseEditor() {
+		// It would appear that the project closed event occurs before these close grammars. Very strange.
+		// check for null editor.
+		if (editor != null) {
+			final EditorFactory factory = EditorFactory.getInstance();
+			factory.releaseEditor(editor);
+			editor = null;
+		}
+	}
+
 }

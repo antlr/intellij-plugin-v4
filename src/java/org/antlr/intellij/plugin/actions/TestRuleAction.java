@@ -82,7 +82,6 @@ public class TestRuleAction extends AnAction implements DumbAware {
 	}
 
 	public ParserRuleRefNode getSelectedRuleName(AnActionEvent e) {
-		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		if ( editor==null ) { // not in editor
 			PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
@@ -94,7 +93,36 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		}
 
 		// in editor
+		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+		if ( file==null ) {
+			return null;
+		}
+
 		PsiElement selectedPsiRuleNode = BaseRefactoringAction.getElementAtCaret(editor, file);
+//		System.out.println("sel el: "+selectedPsiRuleNode);
+
+////		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
+//		int offset;
+//		// an issue with intellij? fires update() twice. getInputEvent() is null.
+//		// when called from actionPerformed, it's nonnull but getMousePosition() is null!
+//		InputEvent inputEvent = e.getInputEvent();
+//		Point mousePosition = editor.getComponent().getMousePosition();
+//		System.out.println("\ninputEvent=="+inputEvent);
+//		System.out.println("mousePosition=="+mousePosition);
+//		if ( inputEvent instanceof MouseEvent ) {
+//			MouseEvent mouseEvent = (MouseEvent)inputEvent;
+//			mousePosition = new Point(mouseEvent.getPoint());
+//		}
+//
+//		if ( mousePosition==null ) {
+//			return null;
+//		}
+//
+//		LogicalPosition pos = editor.xyToLogicalPosition(mousePosition);
+//		offset = editor.logicalPositionToOffset(pos);
+//
+//		System.out.println("offset = "+offset);
+//		PsiElement selectedPsiRuleNode = file.findElementAt(offset);
 		if ( selectedPsiRuleNode==null ) { // didn't select a node in parse tree
 			return null;
 		}

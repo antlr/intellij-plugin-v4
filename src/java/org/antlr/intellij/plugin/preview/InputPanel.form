@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.antlr.intellij.plugin.preview.InputPanel">
+  <grid id="27dc6" binding="outerMostPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties>
+      <minimumSize width="100" height="70"/>
+      <preferredSize width="200" height="100"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <grid id="aba34" binding="startRuleAndInputPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="68f06" class="javax.swing.JLabel" binding="startRuleLabel">
+            <constraints border-constraint="West"/>
+            <properties>
+              <text value="Label"/>
+            </properties>
+          </component>
+          <grid id="954fc" binding="radioButtonPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+            <constraints border-constraint="East"/>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="2d3c1" class="javax.swing.JRadioButton" binding="inputRadioButton" default-binding="true">
+                <constraints/>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Input"/>
+                </properties>
+              </component>
+              <component id="6ed4e" class="javax.swing.JRadioButton" binding="fileRadioButton" default-binding="true">
+                <constraints/>
+                <properties>
+                  <text value="File"/>
+                </properties>
+              </component>
+              <component id="825e9" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="fileChooser">
+                <constraints/>
+                <properties/>
+              </component>
+            </children>
+          </grid>
+        </children>
+      </grid>
+      <component id="37477" class="javax.swing.JTextArea" binding="errorConsole">
+        <constraints border-constraint="South"/>
+        <properties>
+          <editable value="false"/>
+          <lineWrap value="true"/>
+          <rows value="3"/>
+        </properties>
+      </component>
+      <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
+        <constraints border-constraint="Center"/>
+        <properties>
+          <background awt-color="lightGray"/>
+          <editable value="false"/>
+          <enabled value="true"/>
+          <text value=""/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+  <buttonGroups>
+    <group name="inputRadioGroup">
+      <member id="6ed4e"/>
+      <member id="2d3c1"/>
+    </group>
+  </buttonGroups>
+</form>
