@@ -148,7 +148,7 @@ public class InputPanel extends JBPanel {
 	}
 
 	public void selectInputEvent() {
-		System.out.println("input");
+//		System.out.println("input");
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
@@ -157,6 +157,7 @@ public class InputPanel extends JBPanel {
 			return;
 		}
 
+		inputRadioButton.setSelected(true);
 		// wipe old and make new one
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument("");
@@ -174,7 +175,8 @@ public class InputPanel extends JBPanel {
 		if (inputFileName.trim().length() == 0) {
 			return;
 		}
-		System.out.println("file " + inputFileName);
+		fileRadioButton.setSelected(true);
+//		System.out.println("file " + inputFileName);
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
@@ -188,6 +190,7 @@ public class InputPanel extends JBPanel {
 			char[] inputText = FileUtil.loadFileText(new File(inputFileName));
 			final EditorFactory factory = EditorFactory.getInstance();
 			Document doc = factory.createDocument(inputText);
+			doc.setReadOnly(true);
 			Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
 			setEditorComponent(editor.getComponent()); // do before setting state
 			previewState.setEditor(editor);
