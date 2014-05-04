@@ -24,6 +24,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
+import org.antlr.intellij.plugin.parsing.PluginANTLRTool;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
@@ -63,10 +64,23 @@ import java.util.Map;
  *  the grammars and editors are consistently associated with the same window.
  */
 public class ANTLRv4PluginController implements ProjectComponent {
-	public Grammar BAD_PARSER_GRAMMAR;
-	public LexerGrammar BAD_LEXER_GRAMMAR;
-
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
+
+	public static Grammar BAD_PARSER_GRAMMAR;
+	public static LexerGrammar BAD_LEXER_GRAMMAR;
+
+	static {
+		try {
+			BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
+			BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
+			BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
+			BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
+		}
+		catch (org.antlr.runtime.RecognitionException re) {
+			LOG.error("can't init bad grammar markers");
+		}
+	}
+
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
 	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
 
@@ -95,15 +109,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void initComponent() {
-		try {
-			BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
-			BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
-			BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
-			BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
-		}
-		catch (org.antlr.runtime.RecognitionException re) {
-			LOG.error("can't init bad grammar markers");
-		}
 	}
 
 	@Override
@@ -316,7 +321,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public void updateGrammarObjectsFromFile(String grammarFileName) {
 		PreviewState previewState = getPreviewState(grammarFileName);
 		synchronized ( previewState ) { // build atomically
-			/* run later */ Grammar[] grammars = loadGrammars(grammarFileName);
+			/* run later */ Grammar[] grammars = loadGrammars(grammarFileName, project);
 			if ( grammars!=null ) {
 				previewState.lg = grammars[0];
 				previewState.g = grammars[1];
@@ -371,9 +376,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	/** Get lexer and parser grammars */
-	public Grammar[] loadGrammars(String grammarFileName) {
+	public static Grammar[] loadGrammars(String grammarFileName, Project project) {
 		LOG.info("loadGrammars open "+grammarFileName+" "+project.getName());
-		Tool antlr = new Tool();
+		Tool antlr = new PluginANTLRTool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
 		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
