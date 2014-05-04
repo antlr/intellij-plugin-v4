@@ -27,8 +27,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
-import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
@@ -326,7 +326,7 @@ public class InputPanel {
 		CommonTokenStream tokenStream =
 			(CommonTokenStream) previewState.parser.getInputStream();
 
-		Token tokenUnderCursor = ANTLRv4ParserDefinition.getTokenUnderCursor(tokenStream, offset);
+		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokenStream, offset);
 		if (tokenUnderCursor == null) {
 			return;
 		}
@@ -373,7 +373,7 @@ public class InputPanel {
 		MarkupModel markupModel = editor.getMarkupModel();
 
 		SyntaxError errorUnderCursor =
-			ANTLRv4ParserDefinition.getErrorUnderCursor(previewState.syntaxErrorListener.getSyntaxErrors(), offset);
+			ParsingUtils.getErrorUnderCursor(previewState.syntaxErrorListener.getSyntaxErrors(), offset);
 		if (errorUnderCursor == null) {
 			// Turn off any tooltips if none under the cursor
 			HintManager.getInstance().hideAllHints();

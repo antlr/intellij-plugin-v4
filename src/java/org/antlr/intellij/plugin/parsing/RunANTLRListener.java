@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.parsing;
 
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;

@@ -15,9 +15,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
-import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.generators.LiteralChooser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -75,7 +75,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 			return;
 		}
 		String inputText = psiFile.getText();
-		Pair<Parser, ParseTree> pair = ANTLRv4ParserDefinition.parse(inputText);
+		Pair<Parser, ParseTree> pair = ParsingUtils.parse(inputText);
 
 		final ParseTree tree = pair.b;
 		final Parser parser = pair.a;

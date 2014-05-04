@@ -2,8 +2,8 @@ package org.antlr.intellij.plugin.templates;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.antlr.intellij.plugin.ANTLRv4ParserDefinition;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.NotNull;
@@ -16,12 +16,12 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 	@Override
 	public boolean isInContext(@NotNull PsiFile file, PsiElement element, int offset) {
 //		System.out.println("offset="+offset);
-		CommonTokenStream tokens = ANTLRv4ParserDefinition.tokenize(file.getText());
-		Token tokenUnderCursor = ANTLRv4ParserDefinition.getTokenUnderCursor(tokens, offset);
+		CommonTokenStream tokens = ParsingUtils.tokenize(file.getText());
+		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokens, offset);
 //		System.out.println(tokenUnderCursor);
 		int tokenIndex = tokenUnderCursor.getTokenIndex();
-		Token nextRealToken = ANTLRv4ParserDefinition.nextRealToken(tokens, tokenIndex);
-		Token previousRealToken = ANTLRv4ParserDefinition.previousRealToken(tokens, tokenIndex);
+		Token nextRealToken = ParsingUtils.nextRealToken(tokens, tokenIndex);
+		Token previousRealToken = ParsingUtils.previousRealToken(tokens, tokenIndex);
 
 		if ( nextRealToken==null || previousRealToken==null ) {
 			return false;
@@ -32,12 +32,12 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 
 		if ( previousRealTokenType== ANTLRv4Parser.ACTION ) {
 			// make sure we're not in a rule; has to be @lexer::header {...} stuff
-			Token prevPrevRealToken = ANTLRv4ParserDefinition.previousRealToken(tokens, previousRealToken.getTokenIndex());
+			Token prevPrevRealToken = ParsingUtils.previousRealToken(tokens, previousRealToken.getTokenIndex());
 			if ( prevPrevRealToken==null ) {
 				return false;
 			}
 //			System.out.println("prevPrevRealToken="+prevPrevRealToken);
-			Token prevPrevPrevRealToken = ANTLRv4ParserDefinition.previousRealToken(tokens, prevPrevRealToken.getTokenIndex());
+			Token prevPrevPrevRealToken = ParsingUtils.previousRealToken(tokens, prevPrevRealToken.getTokenIndex());
 			if ( prevPrevPrevRealToken==null ) {
 				return false;
 			}
