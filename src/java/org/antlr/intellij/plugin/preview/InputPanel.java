@@ -402,7 +402,7 @@ public class InputPanel {
         final TextAttributes attr = new TextAttributes();
         attr.setForegroundColor(JBColor.BLUE);
         attr.setEffectColor(JBColor.BLUE);
-        attr.setEffectType(EffectType.LINE_UNDERSCORE);
+        attr.setEffectType(EffectType.ROUNDED_BOX);
         MarkupModel markupModel = editor.getMarkupModel();
         markupModel.addRangeHighlighter(
                 sourceInterval.a,
@@ -551,11 +551,14 @@ public class InputPanel {
     }
 
     public static void removeTokenInfoHighlighters(Editor editor) {
-        // Remove any previous underlining, but not anything else like errors
+        // Remove any previous underlining or boxing, but not anything else like errors
         MarkupModel markupModel = editor.getMarkupModel();
         for (RangeHighlighter r : markupModel.getAllHighlighters()) {
             TextAttributes attr = r.getTextAttributes();
-            if (attr != null && attr.getEffectType() == EffectType.LINE_UNDERSCORE) {
+            if (attr != null &&
+                (attr.getEffectType() == EffectType.LINE_UNDERSCORE ||
+                 attr.getEffectType() == EffectType.ROUNDED_BOX))
+            {
                 markupModel.removeHighlighter(r);
             }
         }
