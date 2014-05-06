@@ -15,6 +15,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
+import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.generators.LiteralChooser;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -23,7 +24,7 @@ import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.misc.Triple;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.pattern.ParseTreeMatch;
@@ -75,10 +76,10 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 			return;
 		}
 		String inputText = psiFile.getText();
-		Pair<Parser, ParseTree> pair = ParsingUtils.parse(inputText);
+		Triple<Parser, ParseTree, SyntaxErrorListener> results = ParsingUtils.parseANTLRGrammar(inputText);
 
-		final ParseTree tree = pair.b;
-		final Parser parser = pair.a;
+		final Parser parser = results.a;
+		final ParseTree tree = results.b;
 		Collection<ParseTree> literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
 		LinkedHashMap<String, String> lexerRules = new LinkedHashMap<String, String>();
 		for (ParseTree node : literalNodes) {

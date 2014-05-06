@@ -5,6 +5,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -24,25 +25,17 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.parsing.PluginANTLRTool;
+import org.antlr.intellij.plugin.parsing.MyParser;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
-import org.antlr.v4.Tool;
-import org.antlr.v4.parse.ANTLRParser;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.LexerInterpreter;
-import org.antlr.v4.runtime.ParserInterpreter;
+import org.antlr.v4.runtime.misc.Triple;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.tool.ANTLRMessage;
-import org.antlr.v4.tool.DefaultToolListener;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
-import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
-import org.stringtemplate.v4.ST;
 
 import javax.swing.*;
 import java.io.File;
@@ -66,15 +59,12 @@ import java.util.Map;
 public class ANTLRv4PluginController implements ProjectComponent {
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
 
-	public static Grammar BAD_PARSER_GRAMMAR;
-	public static LexerGrammar BAD_LEXER_GRAMMAR;
-
 	static {
 		try {
-			BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
-			BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
-			BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
-			BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
+			ParsingUtils.BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
+			ParsingUtils.BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
+			ParsingUtils.BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
+			ParsingUtils.BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
 		}
 		catch (org.antlr.runtime.RecognitionException re) {
 			LOG.error("can't init bad grammar markers");
@@ -320,19 +310,22 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 */
 	public void updateGrammarObjectsFromFile(String grammarFileName) {
 		PreviewState previewState = getPreviewState(grammarFileName);
-		synchronized ( previewState ) { // build atomically
-			/* run later */ Grammar[] grammars = loadGrammars(grammarFileName, project);
-			if ( grammars!=null ) {
+		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
+		if (grammars != null) {
+			synchronized (previewState) { // build atomically
 				previewState.lg = grammars[0];
 				previewState.g = grammars[1];
+				GrammarRootAST ast = previewState.g.ast;
+				previewState.stateToGrammarRegionMap = ParsingUtils.getStateToGrammarRegionMap(ast);
+				System.out.println(previewState.stateToGrammarRegionMap);
 			}
 		}
 	}
 
-	public Object[] parseText(VirtualFile grammarFile, String inputText) throws IOException {
+	public Triple<MyParser, ParseTree, SyntaxErrorListener> parseText(final VirtualFile grammarFile, String inputText) throws IOException {
 		// TODO:Try to reuse the same parser and lexer.
 		String grammarFileName = grammarFile.getPath();
-		PreviewState previewState = getPreviewState(grammarFileName);
+		final PreviewState previewState = getPreviewState(grammarFileName);
 		if (!new File(grammarFileName).exists()) {
 			LOG.error("parseText grammar doesn't exit " + grammarFileName);
 			return null;
@@ -341,141 +334,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// Wipes out the console and also any error annotations
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
-		if ( previewState.g == BAD_PARSER_GRAMMAR ||
-			 previewState.lg == BAD_LEXER_GRAMMAR )
-		{
+		Triple<MyParser, ParseTree, SyntaxErrorListener> results =
+			ParsingUtils.parseText(previewState, grammarFile, inputText);
+
+		if ( results==null ) {
 			return null;
 		}
 
-		ANTLRInputStream input = new ANTLRInputStream(inputText);
-		LexerInterpreter lexEngine;
-		lexEngine = previewState.lg.createLexerInterpreter(input);
+		SyntaxErrorListener syntaxErrorListener = results.c;
+		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
 
-		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
-		ParserInterpreter parser = previewState.g.createParserInterpreter(tokens);
-		previewState.parser = parser;
-
-		previewState.syntaxErrorListener = new SyntaxErrorListener();
-		parser.removeErrorListeners();
-		parser.addErrorListener(previewState.syntaxErrorListener);
-		lexEngine.removeErrorListeners();
-		lexEngine.addErrorListener(previewState.syntaxErrorListener);
-
-		Rule start = previewState.g.getRule(previewState.startRuleName);
-		if ( start==null ) {
-			return null; // can't find start rule
-		}
-		ParseTree t = parser.parse(start.index);
-
-		previewPanel.inputPanel.showParseErrors(grammarFile, previewState.syntaxErrorListener.getSyntaxErrors());
-
-		if ( t!=null ) {
-			return new Object[] {parser, t};
-		}
-		return null;
-	}
-
-	/** Get lexer and parser grammars */
-	public static Grammar[] loadGrammars(String grammarFileName, Project project) {
-		LOG.info("loadGrammars open "+grammarFileName+" "+project.getName());
-		Tool antlr = new PluginANTLRTool();
-		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
-		antlr.errMgr.setFormat("antlr");
-		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
-		antlr.addListener(listener);
-
-		String combinedGrammarFileName = null;
-		String lexerGrammarFileName = null;
-		String parserGrammarFileName = null;
-
-		// basically here I am importing the loadGrammar() method from Tool
-		// so that I can check for an empty AST coming back.
-		GrammarRootAST grammarRootAST = antlr.parseGrammar(grammarFileName);
-		if ( grammarRootAST==null ) {
-			LOG.info("Empty or bad grammar "+grammarFileName+" "+project.getName());
-			return null;
-		}
-		Grammar g = antlr.createGrammar(grammarRootAST);
-		g.fileName = grammarFileName;
-		antlr.process(g, false);
-
-		// examine's Grammar AST from v4 itself;
-		// hence use ANTLRParser.X not ANTLRv4Parser from this plugin
-		switch ( g.getType() ) {
-			case ANTLRParser.PARSER :
-				parserGrammarFileName = grammarFileName;
-				int i = grammarFileName.indexOf("Parser");
-				if ( i>=0 ) {
-					lexerGrammarFileName = grammarFileName.substring(0, i) + "Lexer.g4";
-				}
-				break;
-			case ANTLRParser.LEXER :
-				lexerGrammarFileName = grammarFileName;
-				int i2 = grammarFileName.indexOf("Lexer");
-				if ( i2>=0 ) {
-					parserGrammarFileName = grammarFileName.substring(0, i2) + "Parser.g4";
-				}
-				break;
-			case ANTLRParser.COMBINED :
-				combinedGrammarFileName = grammarFileName;
-				lexerGrammarFileName = grammarFileName+"Lexer";
-				parserGrammarFileName = grammarFileName+"Parser";
-				break;
-		}
-
-		if ( lexerGrammarFileName==null ) {
-			LOG.error("Can't compute lexer file name from "+grammarFileName, (Throwable)null);
-			return null;
-		}
-		if ( parserGrammarFileName==null ) {
-			LOG.error("Can't compute parser file name from "+grammarFileName, (Throwable)null);
-			return null;
-		}
-
-		LexerGrammar lg = null;
-
-		if ( combinedGrammarFileName!=null ) {
-			// already loaded above
-			lg = g.getImplicitLexer();
-			if ( listener.grammarErrorMessage!=null ) {
-				g = null;
-			}
-		}
-		else {
-			try {
-				lg = (LexerGrammar)Grammar.load(lexerGrammarFileName);
-			}
-			catch (ClassCastException cce) {
-				LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
-				lg = null;
-			}
-			if ( listener.grammarErrorMessage!=null ) {
-				lg = null;
-			}
-			g = loadGrammar(antlr, parserGrammarFileName, lg);
-		}
-
-		if ( g==null ) {
-			LOG.info("loadGrammars parser "+parserGrammarFileName+" has errors");
-			g = BAD_PARSER_GRAMMAR;
-		}
-		if ( lg==null ) {
-			LOG.info("loadGrammars lexer "+lexerGrammarFileName+" has errors");
-			lg = BAD_LEXER_GRAMMAR;
-		}
-		LOG.info("loadGrammars "+lg.getRecognizerName()+", "+g.getRecognizerName());
-		return new Grammar[] {lg, g};
-	}
-
-
-	/** Same as loadGrammar(fileName) except import vocab from existing lexer */
-	public static Grammar loadGrammar(Tool tool, String fileName, LexerGrammar lexerGrammar) {
-		GrammarRootAST grammarRootAST = tool.parseGrammar(fileName);
-		final Grammar g = tool.createGrammar(grammarRootAST);
-		g.fileName = fileName;
-		g.importVocab(lexerGrammar);
-		tool.process(g, false);
-		return g;
+		return results;
 	}
 
 	public PreviewPanel getPreviewPanel() {
@@ -538,6 +407,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return files[0];
 	}
 
+	public Editor getCurrentGrammarEditor() {
+		FileEditorManager edMgr = FileEditorManager.getInstance(project);
+		return edMgr.getSelectedTextEditor();
+	}
+
 	public VirtualFile getCurrentGrammarFile() {
 		return getCurrentGrammarFile(project);
 	}
@@ -549,21 +423,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		if ( f.getName().endsWith(".g4") ) return f;
 		return null;
-	}
-
-	static class MyANTLRToolListener extends DefaultToolListener {
-		public String grammarErrorMessage;
-		public MyANTLRToolListener(Tool tool) { super(tool); }
-
-		@Override
-		public void error(ANTLRMessage msg) {
-//			super.error(msg);
-			ST msgST = tool.errMgr.getMessageTemplate(msg);
-			grammarErrorMessage = msgST.render();
-			if (tool.errMgr.formatWantsSingleLineMessage()) {
-				grammarErrorMessage = grammarErrorMessage.replace('\n', ' ');
-			}
-		}
 	}
 
 	private class MyVirtualFileAdapter extends VirtualFileAdapter {
@@ -586,4 +445,5 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			if ( !projectIsClosed ) editorFileClosedEvent(file);
 		}
 	}
+
 }

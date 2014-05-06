@@ -9,9 +9,6 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.EditorMouseAdapter;
-import com.intellij.openapi.editor.event.EditorMouseEvent;
-import com.intellij.openapi.editor.event.EditorMouseMotionAdapter;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
@@ -20,6 +17,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -29,6 +27,7 @@ import com.intellij.ui.JBColor;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
+import org.antlr.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
@@ -73,8 +72,7 @@ public class InputPanel {
 
 	public PreviewPanel previewPanel;
 
-	EditorMouseMotionAdapter editorMouseMoveListener;
-	EditorMouseAdapter editorMouseListener;
+	PreviewEditorMouseListener editorMouseListener;
 
 	public InputPanel(PreviewPanel previewPanel) {
 		$$$setupUI$$$();
@@ -126,13 +124,7 @@ public class InputPanel {
 		startRuleLabel.setText(missingStartRuleLabelText);
 		startRuleLabel.setForeground(JBColor.RED);
 
-		editorMouseMoveListener = new PreviewEditorMouseListener(this);
-		editorMouseListener = new EditorMouseAdapter() {
-			@Override
-			public void mouseExited(EditorMouseEvent e) {
-				removeTokenInfoHighlighters(e.getEditor());
-			}
-		};
+		editorMouseListener = new PreviewEditorMouseListener(this);
 	}
 
 	public JPanel getComponent() {
@@ -220,7 +212,7 @@ public class InputPanel {
 		EditorSettings settings = editor.getSettings();
 		settings.setWhitespacesShown(true); // hmm...doesn't work.  maybe show when showing token tooltip?
 
-		editor.addEditorMouseMotionListener(editorMouseMoveListener);
+		editor.addEditorMouseMotionListener(editorMouseListener);
 		editor.addEditorMouseListener(editorMouseListener);
 
 		return editor;
@@ -323,6 +315,9 @@ public class InputPanel {
 	 * Show token information if the meta-key is down and mouse movement occurs
 	 */
 	public void showTokenInfoUponMeta(Editor editor, PreviewState previewState, int offset) {
+		if (previewState.parser == null)
+			return; // set by parseText() but check anyway
+
 		CommonTokenStream tokenStream =
 			(CommonTokenStream) previewState.parser.getInputStream();
 
@@ -364,6 +359,48 @@ public class InputPanel {
 		caretModel.moveToOffset(offset); // info tooltip only shows at cursor :(
 		HintManager.getInstance().showInformationHint(editor, tokenInfo);
 	}
+
+	public void setCursorToGrammarElement(Project project, PreviewState previewState, int offset) {
+		CommonTokenStream tokenStream =
+			(CommonTokenStream) previewState.parser.getInputStream();
+
+		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokenStream, offset);
+		if (tokenUnderCursor == null) {
+			return;
+		}
+
+		Integer atnState = previewState.parser.inputTokenToStateMap.get(tokenUnderCursor);
+		if (atnState == null) {
+			LOG.error("no ATN state for input token " + tokenUnderCursor);
+			return;
+		}
+
+		CommonToken tokenInGrammar = previewState.stateToGrammarRegionMap.get(atnState);
+
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		Editor grammarEditor = controller.getCurrentGrammarEditor();
+
+		int start = tokenInGrammar.getStartIndex();
+		CaretModel caretModel = grammarEditor.getCaretModel();
+		caretModel.moveToOffset(start);
+//		grammarEditor.getContentComponent().requestFocus();
+
+//		int stop = tokenInGrammar.getStopIndex() + 1;
+//		if (stop > grammarEditor.getDocument().getTextLength()) {
+//			stop = grammarEditor.getDocument().getTextLength();
+//		}
+//		final TextAttributes attr = new TextAttributes();
+//		attr.setForegroundColor(JBColor.RED);
+//		attr.setEffectColor(JBColor.RED);
+//		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
+//		MarkupModel markupModel = grammarEditor.getMarkupModel();
+//		markupModel.addRangeHighlighter(start,
+//										stop,
+//										InputPanel.ERROR_LAYER, // layer
+//										attr,
+//										HighlighterTargetArea.EXACT_RANGE);
+	}
+
 
 	/**
 	 * Display syntax errors in tooltips if under the cursor
