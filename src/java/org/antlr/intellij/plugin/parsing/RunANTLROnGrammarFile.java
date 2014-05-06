@@ -1,4 +1,4 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.parsing;
 
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.v4.Tool;
 import org.jetbrains.annotations.NotNull;

@@ -5,7 +5,6 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
@@ -17,15 +16,11 @@ import java.awt.*;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
-	public static final TextAttributes RULE_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES.getDefaultAttributes().clone();
-	public static final TextAttributes TOKEN_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES.getDefaultAttributes().clone();
-//	public static final TextAttributes KEYWORD_ATTRIBUTES = DefaultLanguageHighlighterColors.KEYWORD.getDefaultAttributes().clone();
+	public static final TextAttributesKey RULE_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES;
+	public static final TextAttributesKey TOKEN_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES;
 	static{
-		RULE_ATTRIBUTES.setForegroundColor(new Color(102,100,191));
-//		TOKEN_ATTRIBUTES.setForegroundColor(new Color(98,60,150));
-//	TOKEN_ATTRIBUTES.setForegroundColor(new Color(80,72,117));
-	TOKEN_ATTRIBUTES.setForegroundColor(new Color(130,72,146));
-//		KEYWORD_ATTRIBUTES.setFontType(Font.ITALIC);
+		RULE_ATTRIBUTES.getDefaultAttributes().setForegroundColor(new Color(102,100,191));
+		TOKEN_ATTRIBUTES.getDefaultAttributes().setForegroundColor(new Color(130,72,146));
 	}
 
 	public static final TextAttributesKey KEYWORD = createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);

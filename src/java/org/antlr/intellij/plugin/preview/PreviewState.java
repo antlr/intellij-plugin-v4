@@ -2,9 +2,10 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
-import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.v4.runtime.Parser;
+import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
+
+import java.util.Map;
 
 /** Track everything associated with the state of the preview window.
  *  For each grammar, we need to track an InputPanel (with <= 2 editor objects)
@@ -26,8 +27,13 @@ public class PreviewState {
 	public Grammar lg;
 	public String startRuleName;
 
-	public Parser parser;
-	public SyntaxErrorListener syntaxErrorListener;
+	/** For each grammar, track mapping from ATN states to token in the
+	 *  grammar so we can jump from input token (via ATN state used to
+	 *  match that token) into grammar text.
+	 */
+	public Map<Integer, org.antlr.runtime.CommonToken> stateToGrammarRegionMap;
+
+	public ParsingResult parsingResult;
 
 	/** The current input editor (inputEditor or fileEditor) for this grammar */
 	private Editor editor;

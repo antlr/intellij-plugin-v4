@@ -46,6 +46,12 @@ grammar, that have not been defined.
 
 You can type input or select a file for testing in preview window.
 
+Meta-key while moving the mouse shows token info per above, but now you can
+click on the token that's underlined and it will show the location in the ANTLR
+grammar editor window of the grammar element that matched that token.
+This required a change to ANTLR 4 itself and therefore includes a
+prerelease version of ANTLR 4.2.3.
+
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 

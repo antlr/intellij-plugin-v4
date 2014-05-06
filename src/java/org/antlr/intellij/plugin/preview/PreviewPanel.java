@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -147,11 +148,9 @@ public class PreviewPanel extends JPanel {
 			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 			PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 			final String inputText = previewState.getEditor().getDocument().getText();
-			Object[] results =
-				controller.parseText(grammarFile, inputText);
+			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if (results != null) {
-				ParseTree root = (ParseTree) results[1];
-				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
+				setParseTree(Arrays.asList(previewState.g.getRuleNames()), results.tree);
 			}
 			else {
 				clearParseTree();

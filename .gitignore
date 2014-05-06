@@ -1,6 +1,5 @@
 # Build intermediate
 /gen/
-/lib/
 
 # Build output
 /out/
