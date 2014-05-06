@@ -12,17 +12,17 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.LexerNoViableAltException;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.misc.IntervalSet;
-import org.antlr.v4.runtime.misc.Triple;
+import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
@@ -78,15 +78,52 @@ public class ParsingUtils {
 	}
 
 	public static Token getTokenUnderCursor(CommonTokenStream tokens, int offset) {
+		if ( offset<0 || offset >= tokens.getTokenSource().getInputStream().size() ) return null;
 		Token tokenUnderCursor = null;
 		for (Token t : tokens.getTokens()) {
 			int begin = t.getStartIndex();
-			int end = t.getStopIndex()+1;
-//				System.out.println("test "+t+" for "+offset);
-			if ( offset >= begin && offset < end ) {
+			int end = t.getStopIndex();
+			if ( offset >= begin && offset <= end ) {
 				tokenUnderCursor = t;
 				break;
 			}
+			if ( offset < begin ) break; // we're past this offset already
+		}
+		return tokenUnderCursor;
+	}
+
+	/*
+	[77] = {org.antlr.v4.runtime.CommonToken@16710}"[@77,263:268='import',<25>,9:0]"
+	[78] = {org.antlr.v4.runtime.CommonToken@16709}"[@78,270:273='java',<100>,9:7]"
+	 */
+	public static Token getSkippedTokenUnderCursor(CommonTokenStream tokens, int offset) {
+		if ( offset<0 || offset >= tokens.getTokenSource().getInputStream().size() ) return null;
+		Token prevToken = null;
+		Token tokenUnderCursor = null;
+		for (Token t : tokens.getTokens()) {
+			int begin = t.getStartIndex();
+			int end = t.getStopIndex();
+			if ( (prevToken==null || offset > prevToken.getStopIndex()) && offset < begin ) {
+				// found in between
+				TokenSource tokenSource = tokens.getTokenSource();
+				CharStream inputStream = null;
+				if ( tokenSource!=null ) {
+					inputStream = tokenSource.getInputStream();
+				}
+				tokenUnderCursor = new org.antlr.v4.runtime.CommonToken(
+					new Pair<TokenSource, CharStream>(tokenSource, inputStream),
+					Token.INVALID_TYPE,
+					-1,
+					prevToken!=null ? prevToken.getStopIndex()+1 : 0,
+					begin-1
+				);
+				break;
+			}
+			if ( offset >= begin && offset <= end ) {
+				tokenUnderCursor = t;
+				break;
+			}
+			prevToken = t;
 		}
 		return tokenUnderCursor;
 	}
@@ -119,7 +156,7 @@ public class ParsingUtils {
 		return tokens;
 	}
 
-	public static Triple<Parser, ParseTree, SyntaxErrorListener> parseANTLRGrammar(String text) {
+	public static ParsingResult parseANTLRGrammar(String text) {
 		ANTLRInputStream input = new ANTLRInputStream(text);
 		ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -132,12 +169,12 @@ public class ParsingUtils {
 		lexer.addErrorListener(listener);
 
 		ParseTree t = parser.grammarSpec();
-		return new Triple<Parser, ParseTree, SyntaxErrorListener>(parser, t, listener);
+		return new ParsingResult(parser, t, listener);
 	}
 
-	public static Triple<MyParser, ParseTree, SyntaxErrorListener> parseText(PreviewState previewState,
-																			 final VirtualFile grammarFile,
-																			 String inputText)
+	public static ParsingResult parseText(PreviewState previewState,
+										  final VirtualFile grammarFile,
+										  String inputText)
 		throws IOException
 	{
 		// TODO:Try to reuse the same parser and lexer.
@@ -156,31 +193,8 @@ public class ParsingUtils {
 		ANTLRInputStream input = new ANTLRInputStream(inputText);
 		LexerInterpreter lexEngine;
 		lexEngine = previewState.lg.createLexerInterpreter(input);
-//		lexEngine.setTokenFactory(
-//			new CommonTokenFactory() {
-//				@Override
-//				public CommonToken create(Pair<TokenSource, CharStream> source, int type, String text, int channel, int start, int stop, int line, int charPositionInLine) {
-//					CommonToken t = new CommonToken(source, type, channel, start, stop);
-//					t.setLine(line);
-//					t.setCharPositionInLine(charPositionInLine);
-//					if ( text!=null ) {
-//						t.setText(text);
-//					}
-//					else if ( copyText && source.b != null ) {
-//						t.setText(source.b.getText(Interval.of(start,stop)));
-//					}
-//
-//					return t;
-//				}
-//
-//				@Override
-//				public CommonToken create(int type, String text) {
-//					return new CommonToken(type, text);
-//				}
-//			});
-
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
-		MyParser parser = new MyParser(previewState, tokens);
+		PreviewParser parser = new PreviewParser(previewState, tokens);
 
 		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
 		parser.removeErrorListeners();
@@ -195,7 +209,7 @@ public class ParsingUtils {
 		ParseTree t = parser.parse(start.index);
 
 		if ( t!=null ) {
-			return new Triple<MyParser, ParseTree, SyntaxErrorListener>(parser, t, syntaxErrorListener);
+			return new ParsingResult(parser, t, syntaxErrorListener);
 		}
 		return null;
 	}
@@ -203,7 +217,7 @@ public class ParsingUtils {
 	/** Get lexer and parser grammars */
 	public static Grammar[] loadGrammars(String grammarFileName, Project project) {
 		ANTLRv4PluginController.LOG.info("loadGrammars open "+grammarFileName+" "+project.getName());
-		Tool antlr = new PluginANTLRTool();
+		Tool antlr = new Tool();
 
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");

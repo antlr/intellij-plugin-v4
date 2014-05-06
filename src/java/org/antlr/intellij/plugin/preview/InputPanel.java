@@ -7,6 +7,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.markup.EffectType;
@@ -27,6 +29,7 @@ import com.intellij.ui.JBColor;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
+import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
@@ -315,13 +318,15 @@ public class InputPanel {
 	 * Show token information if the meta-key is down and mouse movement occurs
 	 */
 	public void showTokenInfoUponMeta(Editor editor, PreviewState previewState, int offset) {
-		if (previewState.parser == null)
-			return; // set by parseText() but check anyway
-
+		if (previewState.parsingResult == null) return; // no results?
 		CommonTokenStream tokenStream =
-			(CommonTokenStream) previewState.parser.getInputStream();
+			(CommonTokenStream) previewState.parsingResult.parser.getInputStream();
 
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokenStream, offset);
+		if (tokenUnderCursor == null) {
+			tokenUnderCursor = ParsingUtils.getSkippedTokenUnderCursor(tokenStream, offset);
+		}
+
 		if (tokenUnderCursor == null) {
 			return;
 		}
@@ -333,21 +338,26 @@ public class InputPanel {
 			String chNum = channel == Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
 			channelInfo = ", Channel " + chNum;
 		}
+		JBColor color = JBColor.BLUE;
 		String tokenInfo =
-			String.format("Type %s, Line %d:%d, Index %d%s",
+			String.format("#%d Type %s, Line %d:%d%s",
+						  tokenUnderCursor.getTokenIndex(),
 						  previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
 						  tokenUnderCursor.getLine(),
 						  tokenUnderCursor.getCharPositionInLine(),
-						  tokenUnderCursor.getTokenIndex(),
 						  channelInfo
 			);
-		MarkupModel markupModel = InputPanel.removeTokenInfoHighlighters(editor);
+		if (channel == -1) {
+			tokenInfo = "Skipped";
+			color = JBColor.gray;
+		}
 
 		// Underline
+		MarkupModel markupModel = InputPanel.removeTokenInfoHighlighters(editor);
 		CaretModel caretModel = editor.getCaretModel();
 		final TextAttributes attr = new TextAttributes();
-		attr.setForegroundColor(JBColor.BLUE);
-		attr.setEffectColor(JBColor.BLUE);
+		attr.setForegroundColor(color);
+		attr.setEffectColor(color);
 		attr.setEffectType(EffectType.LINE_UNDERSCORE);
 		markupModel.addRangeHighlighter(tokenUnderCursor.getStartIndex(),
 										tokenUnderCursor.getStopIndex() + 1,
@@ -361,15 +371,18 @@ public class InputPanel {
 	}
 
 	public void setCursorToGrammarElement(Project project, PreviewState previewState, int offset) {
+		if (previewState.parsingResult == null) return; // no results?
+
+		PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
 		CommonTokenStream tokenStream =
-			(CommonTokenStream) previewState.parser.getInputStream();
+			(CommonTokenStream) parser.getInputStream();
 
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokenStream, offset);
 		if (tokenUnderCursor == null) {
 			return;
 		}
 
-		Integer atnState = previewState.parser.inputTokenToStateMap.get(tokenUnderCursor);
+		Integer atnState = parser.inputTokenToStateMap.get(tokenUnderCursor);
 		if (atnState == null) {
 			LOG.error("no ATN state for input token " + tokenUnderCursor);
 			return;
@@ -383,46 +396,29 @@ public class InputPanel {
 		int start = tokenInGrammar.getStartIndex();
 		CaretModel caretModel = grammarEditor.getCaretModel();
 		caretModel.moveToOffset(start);
-//		grammarEditor.getContentComponent().requestFocus();
-
-//		int stop = tokenInGrammar.getStopIndex() + 1;
-//		if (stop > grammarEditor.getDocument().getTextLength()) {
-//			stop = grammarEditor.getDocument().getTextLength();
-//		}
-//		final TextAttributes attr = new TextAttributes();
-//		attr.setForegroundColor(JBColor.RED);
-//		attr.setEffectColor(JBColor.RED);
-//		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
-//		MarkupModel markupModel = grammarEditor.getMarkupModel();
-//		markupModel.addRangeHighlighter(start,
-//										stop,
-//										InputPanel.ERROR_LAYER, // layer
-//										attr,
-//										HighlighterTargetArea.EXACT_RANGE);
+		ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
+		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+		grammarEditor.getContentComponent().requestFocus();
 	}
-
 
 	/**
 	 * Display syntax errors in tooltips if under the cursor
 	 */
 	public void showTooltipsForErrors(Editor editor, @NotNull PreviewState previewState, int offset) {
-//		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(editor.getProject());
-		MarkupModel markupModel = editor.getMarkupModel();
+		if (previewState.parsingResult == null) return; // no results?
 
+		MarkupModel markupModel = editor.getMarkupModel();
 		SyntaxError errorUnderCursor =
-			ParsingUtils.getErrorUnderCursor(previewState.syntaxErrorListener.getSyntaxErrors(), offset);
+			ParsingUtils.getErrorUnderCursor(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors(), offset);
 		if (errorUnderCursor == null) {
 			// Turn off any tooltips if none under the cursor
 			HintManager.getInstance().hideAllHints();
 			return;
 		}
 
-//		System.out.println("# highlighters=" + markupModel.getAllHighlighters().length);
-
 		// find the highlighter associated with this error by finding error at this offset
 		int i = 1;
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-//			System.out.println("highlighter: "+r);
 			int a = r.getStartOffset();
 			int b = r.getEndOffset();
 //			System.out.printf("#%d: %d..%d %s\n", i, a, b, r.toString());

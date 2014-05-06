@@ -7,10 +7,8 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.intellij.plugin.parsing.MyParser;
-import org.antlr.v4.runtime.misc.Triple;
+import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -150,13 +148,9 @@ public class PreviewPanel extends JPanel {
 			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 			PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 			final String inputText = previewState.getEditor().getDocument().getText();
-			Triple<MyParser, ParseTree, SyntaxErrorListener> results =
-				controller.parseText(grammarFile, inputText);
+			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if (results != null) {
-				previewState.parser = results.a;
-				ParseTree root = results.b;
-				previewState.syntaxErrorListener = results.c;
-				setParseTree(Arrays.asList(previewState.g.getRuleNames()), root);
+				setParseTree(Arrays.asList(previewState.g.getRuleNames()), results.tree);
 			}
 			else {
 				clearParseTree();

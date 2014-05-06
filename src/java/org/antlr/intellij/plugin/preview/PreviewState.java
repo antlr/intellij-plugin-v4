@@ -2,8 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
-import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.parsing.MyParser;
+import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
 
 import java.util.Map;
@@ -28,14 +27,13 @@ public class PreviewState {
 	public Grammar lg;
 	public String startRuleName;
 
-	public MyParser parser;
-	public SyntaxErrorListener syntaxErrorListener;
-
 	/** For each grammar, track mapping from ATN states to token in the
 	 *  grammar so we can jump from input token (via ATN state used to
 	 *  match that token) into grammar text.
 	 */
 	public Map<Integer, org.antlr.runtime.CommonToken> stateToGrammarRegionMap;
+
+	public ParsingResult parsingResult;
 
 	/** The current input editor (inputEditor or fileEditor) for this grammar */
 	private Editor editor;

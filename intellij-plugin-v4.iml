@@ -20,7 +20,9 @@
           <root url="jar://$MODULE_DIR$/lib/antlr-4.2.3-dev-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="file://$USER_HOME$/antlr/code/antlr4/runtime/Java/src" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

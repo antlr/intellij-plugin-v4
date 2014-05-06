@@ -7,7 +7,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import org.antlr.intellij.plugin.parsing.PluginANTLRTool;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
@@ -58,7 +57,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(final PsiFile file) {
 		String fileContents = file.getText();
 		final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<Issue>();
-		final Tool antlr = new PluginANTLRTool();
+		final Tool antlr = new Tool();
 		// getContainingDirectory() must be identified as a read operation on file system
 		ApplicationManager.getApplication().runReadAction(new Runnable() {
 			@Override
@@ -156,7 +155,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	}
 
 	public void processIssue(Issue issue) {
-		Tool antlr = new PluginANTLRTool();
+		Tool antlr = new Tool();
 		if ( issue.msg instanceof GrammarSemanticsMessage ) {
 			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
 			issue.offendingTokens.add(t);

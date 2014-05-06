@@ -25,13 +25,11 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.parsing.MyParser;
+import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
-import org.antlr.v4.runtime.misc.Triple;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.ast.GrammarRootAST;
@@ -317,12 +315,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				previewState.g = grammars[1];
 				GrammarRootAST ast = previewState.g.ast;
 				previewState.stateToGrammarRegionMap = ParsingUtils.getStateToGrammarRegionMap(ast);
-				System.out.println(previewState.stateToGrammarRegionMap);
 			}
 		}
 	}
 
-	public Triple<MyParser, ParseTree, SyntaxErrorListener> parseText(final VirtualFile grammarFile, String inputText) throws IOException {
+	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
 		// TODO:Try to reuse the same parser and lexer.
 		String grammarFileName = grammarFile.getPath();
 		final PreviewState previewState = getPreviewState(grammarFileName);
@@ -334,17 +331,15 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// Wipes out the console and also any error annotations
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
-		Triple<MyParser, ParseTree, SyntaxErrorListener> results =
-			ParsingUtils.parseText(previewState, grammarFile, inputText);
-
-		if ( results==null ) {
+		previewState.parsingResult = ParsingUtils.parseText(previewState, grammarFile, inputText);
+		if ( previewState.parsingResult==null ) {
 			return null;
 		}
 
-		SyntaxErrorListener syntaxErrorListener = results.c;
+		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
 
-		return results;
+		return previewState.parsingResult;
 	}
 
 	public PreviewPanel getPreviewPanel() {

@@ -113,7 +113,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 
 		//System.out.println("args="+args);
 
-		Tool antlr = new PluginANTLRTool(args.toArray(new String[args.size()]));
+		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
 		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
