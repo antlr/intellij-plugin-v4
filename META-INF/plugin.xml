@@ -52,6 +52,11 @@ grammar editor window of the grammar element that matched that token.
 This required a change to ANTLR 4 itself and therefore includes a
 prerelease version of ANTLR 4.2.3.
 
+Alt-key while moving the mouse shows the region of input associated with
+parser rule that matched it. It finds parent of the token under cursor
+and shows region of that rule parse tree node.  Clicking at the same time
+jumps the grammar to the associated rule.  A pop up shows the rule name.
+
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 
