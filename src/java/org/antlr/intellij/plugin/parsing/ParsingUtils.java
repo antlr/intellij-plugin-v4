@@ -11,19 +11,12 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.LexerInterpreter;
-import org.antlr.v4.runtime.LexerNoViableAltException;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenFactory;
-import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
@@ -32,6 +25,7 @@ import org.antlr.v4.tool.ast.GrammarRootAST;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,8 +150,23 @@ public class ParsingUtils {
 		return tokens;
 	}
 
-	public static ParsingResult parseANTLRGrammar(String text) {
-		ANTLRInputStream input = new ANTLRInputStream(text);
+    public static ParseTree getParseTreeNodeWithToken(ParseTree tree, Token token) {
+        if ( tree==null || token==null ) {
+            return null;
+        }
+
+        Collection<ParseTree> tokenNodes = Trees.findAllTokenNodes(tree, token.getType());
+        for (ParseTree t : tokenNodes) {
+            TerminalNode tnode = (TerminalNode)t;
+            if ( tnode.getPayload() == token ) {
+                return tnode;
+            }
+        }
+        return null;
+    }
+
+    public static ParsingResult parseANTLRGrammar(String text) {
+	    ANTLRInputStream input = new ANTLRInputStream(text);
 		ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		ANTLRv4Parser parser = new ANTLRv4Parser(tokens);

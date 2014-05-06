@@ -38,6 +38,9 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		if ( mouseEvent.isMetaDown() ) {
 			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), previewState, offset);
 		}
+        else if ( mouseEvent.isAltDown() ) {
+            inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), previewState, offset);
+        }
 	}
 
 	@Override
@@ -56,6 +59,9 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		if ( mouseEvent.isMetaDown() ) {
 			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
 		}
+        else if ( mouseEvent.isAltDown() ) {
+            inputPanel.showParseRegion(editor, previewState, offset);
+        }
 		else { // just moving around, show any errors
 			inputPanel.showTooltipsForErrors(editor, previewState, offset);
 		}
