@@ -2,10 +2,21 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.markup.*;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterLayer;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -20,7 +31,11 @@ import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.runtime.CommonToken;
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -341,25 +356,12 @@ public class InputPanel {
         if (channel == -1) {
             tokenInfo = "Skipped";
             color = JBColor.gray;
-        }
+		}
 
-        // Underline
-        InputPanel.removeTokenInfoHighlighters(editor);
-        CaretModel caretModel = editor.getCaretModel();
-        final TextAttributes attr = new TextAttributes();
-        attr.setForegroundColor(color);
-        attr.setEffectColor(color);
-        attr.setEffectType(EffectType.LINE_UNDERSCORE);
-        MarkupModel markupModel = editor.getMarkupModel();
-        markupModel.addRangeHighlighter(tokenUnderCursor.getStartIndex(),
-                tokenUnderCursor.getStopIndex() + 1,
-                InputPanel.TOKEN_INFO_LAYER, // layer
-                attr,
-                HighlighterTargetArea.EXACT_RANGE);
-
-        // HINT
-        caretModel.moveToOffset(offset); // info tooltip only shows at cursor :(
-        HintManager.getInstance().showInformationHint(editor, tokenInfo);
+		Interval sourceInterval = Interval.of(tokenUnderCursor.getStartIndex(),
+											  tokenUnderCursor.getStopIndex() + 1);
+		highlightAndOfferHint(editor, offset, sourceInterval,
+							  color, EffectType.LINE_UNDERSCORE, tokenInfo);
     }
 
     /**
@@ -367,7 +369,6 @@ public class InputPanel {
      * if the alt-key is down and mouse movement occurs.
      */
     public void showParseRegion(Editor editor, PreviewState previewState, int offset) {
-        InputPanel.removeTokenInfoHighlighters(editor);
         HintManager.getInstance().hideAllHints();
 
         if (previewState.parsingResult == null) return; // no results?
@@ -393,31 +394,40 @@ public class InputPanel {
         Token startToken = tokenStream.get(tokenInterval.a);
         Token stopToken = tokenStream.get(tokenInterval.b);
         Interval sourceInterval =
-                Interval.of(startToken.getStartIndex(), stopToken.getStopIndex());
+        	Interval.of(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
         int ruleIndex = parent.getRuleIndex();
         String ruleName = parser.getRuleNames()[ruleIndex];
 //        System.out.println("parent " + ruleName + " region " + sourceInterval);
 
-        CaretModel caretModel = editor.getCaretModel();
-        final TextAttributes attr = new TextAttributes();
-        attr.setForegroundColor(JBColor.BLUE);
-        attr.setEffectColor(JBColor.BLUE);
-        attr.setEffectType(EffectType.ROUNDED_BOX);
-        MarkupModel markupModel = editor.getMarkupModel();
-        markupModel.addRangeHighlighter(
-                sourceInterval.a,
-                sourceInterval.b + 1,
-                InputPanel.TOKEN_INFO_LAYER, // layer
-                attr,
-                HighlighterTargetArea.EXACT_RANGE
-        );
-
-        // HINT
-        caretModel.moveToOffset(offset); // info tooltip only shows at cursor :(
-        HintManager.getInstance().showInformationHint(editor, ruleName);
+		highlightAndOfferHint(editor, offset, sourceInterval,
+							  JBColor.BLUE, EffectType.ROUNDED_BOX, ruleName);
     }
 
-    public void setCursorToGrammarElement(Project project, PreviewState previewState, int offset) {
+	public void highlightAndOfferHint(Editor editor, int offset,
+									  Interval sourceInterval,
+									  JBColor color,
+									  EffectType effectType, String hintText)
+	{
+		CaretModel caretModel = editor.getCaretModel();
+		final TextAttributes attr = new TextAttributes();
+		attr.setForegroundColor(color);
+		attr.setEffectColor(color);
+		attr.setEffectType(effectType);
+		MarkupModel markupModel = editor.getMarkupModel();
+		markupModel.addRangeHighlighter(
+				sourceInterval.a,
+				sourceInterval.b,
+				InputPanel.TOKEN_INFO_LAYER, // layer
+				attr,
+				HighlighterTargetArea.EXACT_RANGE
+		);
+
+		// HINT
+		caretModel.moveToOffset(offset); // info tooltip only shows at cursor :(
+		HintManager.getInstance().showInformationHint(editor, hintText);
+	}
+
+	public void setCursorToGrammarElement(Project project, PreviewState previewState, int offset) {
         if (previewState.parsingResult == null) return; // no results?
 
         PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
@@ -436,19 +446,12 @@ public class InputPanel {
         }
 
         CommonToken tokenInGrammar = previewState.stateToGrammarRegionMap.get(atnState);
+		int start = tokenInGrammar.getStartIndex();
 
-        ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-        Editor grammarEditor = controller.getCurrentGrammarEditor();
-
-        int start = tokenInGrammar.getStartIndex();
-        CaretModel caretModel = grammarEditor.getCaretModel();
-        caretModel.moveToOffset(start);
-        ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
-        scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
-        grammarEditor.getContentComponent().requestFocus();
+		jumpToGrammarPosition(project, start);
     }
 
-    public void setCursorToGrammarRule(Project project, PreviewState previewState, int offset) {
+	public void setCursorToGrammarRule(Project project, PreviewState previewState, int offset) {
         if (previewState.parsingResult == null) return; // no results?
 
         PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
@@ -474,14 +477,18 @@ public class InputPanel {
         GrammarAST ruleNameNode = (GrammarAST) rule.ast.getChild(0);
         int start = ((CommonToken) ruleNameNode.getToken()).getStartIndex();
 
-        ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-        Editor grammarEditor = controller.getCurrentGrammarEditor();
-        CaretModel caretModel = grammarEditor.getCaretModel();
-        caretModel.moveToOffset(start);
-        ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
-        scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
-        grammarEditor.getContentComponent().requestFocus();
+		jumpToGrammarPosition(project, start);
     }
+
+	public void jumpToGrammarPosition(Project project, int start) {
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		Editor grammarEditor = controller.getCurrentGrammarEditor();
+		CaretModel caretModel = grammarEditor.getCaretModel();
+		caretModel.moveToOffset(start);
+		ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
+		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+		grammarEditor.getContentComponent().requestFocus();
+	}
 
     /**
      * Display syntax errors in tooltips if under the cursor
