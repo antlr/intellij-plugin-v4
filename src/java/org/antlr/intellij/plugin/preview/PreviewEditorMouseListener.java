@@ -63,7 +63,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
         else if ( mouseEvent.isAltDown() ) {
 			HintManager.getInstance().hideAllHints();
-            inputPanel.showParseRegion(editor, previewState, offset);
+            inputPanel.showParseRegion(e, editor, previewState, offset);
         }
 		else { // just moving around, show any errors
 			inputPanel.showTooltipsForErrors(editor, previewState, offset);

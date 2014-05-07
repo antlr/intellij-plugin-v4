@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
@@ -37,6 +38,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.tool.Rule;
@@ -49,6 +51,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 // Not a view itself but delegates to one.
@@ -366,7 +369,9 @@ public class InputPanel {
 	 * Show tokens/region associated with parse tree parent of this token
 	 * if the alt-key is down and mouse movement occurs.
 	 */
-	public void showParseRegion(Editor editor, PreviewState previewState, int offset) {
+	public void showParseRegion(EditorMouseEvent event, Editor editor,
+								PreviewState previewState, int offset)
+	{
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
 		if (tokenUnderCursor == null) {
 			return;
@@ -392,8 +397,43 @@ public class InputPanel {
 		String ruleName = parser.getRuleNames()[ruleIndex];
 //        System.out.println("parent " + ruleName + " region " + sourceInterval);
 
+		List<String> stack = parser.getRuleInvocationStack(parent);
+		Collections.reverse(stack);
+
 		highlightAndOfferHint(editor, offset, sourceInterval,
-							  JBColor.BLUE, EffectType.ROUNDED_BOX, ruleName);
+							  JBColor.BLUE, EffectType.ROUNDED_BOX, Utils.join(stack.toArray(), "\n"));
+
+
+		// Code for a pop up list with selectable elements
+
+//		final JList list = new JBList(stack);
+////		PopupChooserBuilder builder = new PopupChooserBuilder(list);
+//		JBPopupFactory factory = JBPopupFactory.getInstance();
+//		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
+//		JBPopup popup = builder.createPopup();
+//
+//		MouseEvent mouseEvent = event.getMouseEvent();
+//		Point point = mouseEvent.getPoint();
+//		Dimension dimension = popup.getContent().getLayout().preferredLayoutSize(builder.getScrollPane());
+//		System.out.println(dimension);
+//		int height = dimension.height;
+//		point.translate(10, -height);
+//		RelativePoint where = new RelativePoint(mouseEvent.getComponent(), point);
+//		popup.show(where);
+
+		// Code for a balloon.
+
+//		JBPopupFactory popupFactory = JBPopupFactory.getInstance();
+//		BalloonBuilder builder =
+//		    popupFactory.createHtmlTextBalloonBuilder(Utils.join(stack.toArray(), "<br>"),
+//												  MessageType.INFO, null);
+//		builder.setHideOnClickOutside(true);
+//		Balloon balloon = builder.createBalloon();
+//		MouseEvent mouseEvent = event.getMouseEvent();
+//		Point point = mouseEvent.getPoint();
+//		point.translate(10, -15);
+//		RelativePoint where = new RelativePoint(mouseEvent.getComponent(), point);
+//		balloon.show(where, Balloon.Position.above);
 	}
 
 	public void highlightAndOfferHint(Editor editor, int offset,
