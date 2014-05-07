@@ -11,7 +11,16 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.LexerInterpreter;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenFactory;
+import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -69,6 +78,14 @@ public class ParsingUtils {
 			t = tokens.get(i);
 		}
 		return t;
+	}
+
+	public static Token getTokenUnderCursor(PreviewState previewState, int offset) {
+		if ( previewState==null || previewState.parsingResult == null) return null;
+
+		PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
+		CommonTokenStream tokenStream =	(CommonTokenStream) parser.getInputStream();
+		return ParsingUtils.getTokenUnderCursor(tokenStream, offset);
 	}
 
 	public static Token getTokenUnderCursor(CommonTokenStream tokens, int offset) {

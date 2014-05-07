@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
@@ -61,6 +62,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
 		}
         else if ( mouseEvent.isAltDown() ) {
+			HintManager.getInstance().hideAllHints();
             inputPanel.showParseRegion(editor, previewState, offset);
         }
 		else { // just moving around, show any errors
