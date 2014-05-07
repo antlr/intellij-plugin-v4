@@ -91,6 +91,10 @@ When there are errors, you will see the output in the small console under the in
 
 ![error-popup.png](images/error-popup.png)
 
+With alt-mouse movement, you'll see parse region for rule matching token under cursor. Click and it jumps to grammar definition.
+
+![parse-region.png](images/parse-region.png)
+
 ### Per file ANTLR configuration
 
 ![Configuration](images/per-file-config.png)
