@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.actions.EditorActionUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.Condition;
@@ -98,7 +99,14 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			return null;
 		}
 
-		PsiElement selectedPsiRuleNode = BaseRefactoringAction.getElementAtCaret(editor, file);
+		PsiElement selectedPsiRuleNode;
+		final Integer offset = editor.getUserData(EditorActionUtil.EXPECTED_CARET_OFFSET);
+		if (offset != null) {
+			selectedPsiRuleNode = file.findElementAt(offset);
+		}
+		else {
+			selectedPsiRuleNode = BaseRefactoringAction.getElementAtCaret(editor, file);
+		}
 //		System.out.println("sel el: "+selectedPsiRuleNode);
 
 ////		System.out.println("caret offset = "+editor.getCaretModel().getOffset());

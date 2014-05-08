@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.3.1-dev</version>
+  <version>1.4</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -44,7 +44,7 @@ will bring up a list of things you can generate. The only one so far is
 a generator to create lexical rules for any literals, referenced in the parser
 grammar, that have not been defined.
 
-You can type input or select a file for testing in preview window.
+You can type input into an editor or select a file for testing in preview window.
 
 Meta-key while moving the mouse shows token info per above, but now you can
 click on the token that's underlined and it will show the location in the ANTLR
@@ -55,7 +55,8 @@ prerelease version of ANTLR 4.2.3.
 Alt-key while moving the mouse shows the region of input associated with
 parser rule that matched it. It finds parent of the token under cursor
 and shows region of that rule parse tree node.  Clicking at the same time
-jumps the grammar to the associated rule.  A pop up shows the rule name.
+jumps the grammar to the associated rule.  A pop up shows the parser call
+stack leading to that parse region.
 
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
