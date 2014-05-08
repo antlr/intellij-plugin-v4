@@ -299,6 +299,8 @@ public class InputPanel {
 
 	public void clearParseErrors(VirtualFile grammarFile) {
 		Editor editor = getEditor(grammarFile);
+		if (editor == null) return;
+
 		MarkupModel markupModel = editor.getMarkupModel();
 		markupModel.removeAllHighlighters();
 
@@ -370,8 +372,7 @@ public class InputPanel {
 	 * if the alt-key is down and mouse movement occurs.
 	 */
 	public void showParseRegion(EditorMouseEvent event, Editor editor,
-								PreviewState previewState, int offset)
-	{
+								PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
 		if (tokenUnderCursor == null) {
 			return;

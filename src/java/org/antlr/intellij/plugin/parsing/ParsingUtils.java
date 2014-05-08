@@ -336,6 +336,7 @@ public class ParsingUtils {
 	/** Same as loadGrammar(fileName) except import vocab from existing lexer */
 	public static Grammar loadGrammar(Tool tool, String fileName, LexerGrammar lexerGrammar) {
 		GrammarRootAST grammarRootAST = tool.parseGrammar(fileName);
+		if ( grammarRootAST==null ) return null;
 		final Grammar g = tool.createGrammar(grammarRootAST);
 		g.fileName = fileName;
 		g.importVocab(lexerGrammar);
