@@ -21,7 +21,6 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
-import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -29,15 +28,11 @@ import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
-import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
@@ -342,31 +337,5 @@ public class ParsingUtils {
 		g.importVocab(lexerGrammar);
 		tool.process(g, false);
 		return g;
-	}
-
-	public static Map<Integer, org.antlr.runtime.CommonToken> getStateToGrammarRegionMap(GrammarRootAST ast) {
-		Map<Integer, org.antlr.runtime.CommonToken> stateToGrammarRegionMap =
-			new HashMap<Integer, org.antlr.runtime.CommonToken>();
-
-		if ( ast==null ) return stateToGrammarRegionMap;
-
-		IntervalSet terminalTokenTypes = new IntervalSet();
-		terminalTokenTypes.add(ANTLRParser.STRING_LITERAL);
-		terminalTokenTypes.add(ANTLRParser.TOKEN_REF);
-		terminalTokenTypes.add(ANTLRParser.SET);
-		List<GrammarAST> terminalNodes = ast.getNodesWithType(terminalTokenTypes);
-		for (GrammarAST n : terminalNodes) {
-			org.antlr.runtime.CommonToken t = (org.antlr.runtime.CommonToken)n.getToken();
-			if (n.atnState != null) {
-				stateToGrammarRegionMap.put(n.atnState.stateNumber, t);
-			}
-			else {
-				if ( n.getParent().getType() != ANTLRParser.SET ) {
-					ANTLRv4PluginController.LOG.error("null ATN state for node " + n + " in " + ast.getGrammarName());
-				}
-			}
-		}
-
-		return stateToGrammarRegionMap;
 	}
 }

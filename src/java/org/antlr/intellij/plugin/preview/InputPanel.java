@@ -473,10 +473,8 @@ public class InputPanel {
 			return;
 		}
 
-		CommonToken tokenInGrammar = previewState.stateToGrammarRegionMap.get(atnState);
-		int start = tokenInGrammar.getStartIndex();
-
-		jumpToGrammarPosition(project, start);
+		Interval region = previewState.g.getStateToGrammarRegion(atnState);
+		jumpToGrammarPosition(project, region.a);
 	}
 
 	public void setCursorToGrammarRule(Project project, PreviewState previewState, int offset) {

@@ -314,7 +314,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				previewState.lg = grammars[0];
 				previewState.g = grammars[1];
 				GrammarRootAST ast = previewState.g.ast;
-				previewState.stateToGrammarRegionMap = ParsingUtils.getStateToGrammarRegionMap(ast);
 			}
 		}
 	}
