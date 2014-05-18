@@ -7,7 +7,10 @@ import org.antlr.v4.runtime.atn.DecisionInfo;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.LinkedHashMap;
 
 public class ProfilerPanel {
@@ -32,18 +35,20 @@ public class ProfilerPanel {
 	 * @noinspection ALL
 	 */
 	private void $$$setupUI$$$() {
+		createUIComponents();
 		outerPanel = new JPanel();
 		outerPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
 		splitPane = new JSplitPane();
+		splitPane.setDividerLocation(489);
 		splitPane.setDividerSize(7);
-		outerPanel.add(splitPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
+		outerPanel.add(splitPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(800, 400), null, 0, false));
 		inputDisplayScrollPane = new JScrollPane();
 		splitPane.setRightComponent(inputDisplayScrollPane);
 		inputDisplayPane = new JTextArea();
 		inputDisplayScrollPane.setViewportView(inputDisplayPane);
 		final JScrollPane scrollPane1 = new JScrollPane();
 		splitPane.setLeftComponent(scrollPane1);
-		profilerDataTable = new JBTable();
+		profilerDataTable.setPreferredScrollableViewportSize(new Dimension(800, 400));
 		scrollPane1.setViewportView(profilerDataTable);
 	}
 
@@ -54,45 +59,15 @@ public class ProfilerPanel {
 		return outerPanel;
 	}
 
-	public static class DataModel extends AbstractTableModel {
-		public Object[][] data;
-		public String[] columnNames;
-
-		public DataModel(Object[][] data, String[] columnNames) {
-			this.data = data;
-			this.columnNames = columnNames;
-		}
-
-		public String getColumnName(int column) {
-			return columnNames[column];
-		}
-
-		public int getRowCount() {
-			return data.length;
-		}
-
-		public int getColumnCount() {
-			return columnNames.length;
-		}
-
-		public Object getValueAt(int row, int col) {
-			return data[row][col];
-		}
-
-		public boolean isCellEditable(int row, int column) {
-			return true;
-		}
-
-		public void setValueAt(Object value, int row, int col) {
-			data[row][col] = value;
-			fireTableCellUpdated(row, col);
-		}
-	}
-
 	public static class ProfilerTableDataModel extends AbstractTableModel {
 		public DecisionInfo[] decisionInfo;
 		public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
 		public static final String[] columnNames = {
+			"Decision", "Invocations", "Full context", "Total k", "Min k", "Max k",
+			"DFA k", "SLL-ATN k", "LL-ATN k", "Predicates"
+		};
+
+		public static final String[] columnToolTips = {
 			"Decision", "Invocations", "Full context", "Total k", "Min k", "Max k",
 			"DFA k", "SLL-ATN k", "LL-ATN k", "Predicates"
 		};
@@ -104,8 +79,14 @@ public class ProfilerPanel {
 			}
 		}
 
+
 		public String getColumnName(int column) {
 			return columnNames[column];
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return Integer.class;
 		}
 
 		public int getRowCount() {
@@ -143,17 +124,6 @@ public class ProfilerPanel {
 		}
 	}
 
-	public ProfilerPanel() {
-		String dataValues[][] =
-			{
-				{"12", "234", "67"},
-				{"-123", "43", "853"},
-				{"93", "89.2", "109"},
-				{"279", "9033", "3092"}
-			};
-//		profilerDataTable.setModel(new DataModel(dataValues, new String[]{"a", "b", "c"}));
-	}
-
 	public JTextArea getInputDisplayPane() {
 		return inputDisplayPane;
 	}
@@ -163,10 +133,27 @@ public class ProfilerPanel {
 	}
 
 	public void setProfilerData(DecisionInfo[] info) {
-		profilerDataTable.setModel(new ProfilerTableDataModel(info));
+		ProfilerTableDataModel model = new ProfilerTableDataModel(info);
+		profilerDataTable.setModel(model);
+		profilerDataTable.setRowSorter(new TableRowSorter<ProfilerTableDataModel>(model));
+		JTableHeader tableHeader = profilerDataTable.getTableHeader();
+//		tableHeader.setDefaultRenderer();
 	}
 
 	private void createUIComponents() {
-		// TODO: place custom component creation code here
+		profilerDataTable = new JBTable() {
+			@Override
+			protected JTableHeader createDefaultTableHeader() {
+				return new JTableHeader(columnModel) {
+					public String getToolTipText(MouseEvent e) {
+						Point p = e.getPoint();
+						int index = columnModel.getColumnIndexAtX(p.x);
+						int realIndex =
+							columnModel.getColumn(index).getModelIndex();
+						return ProfilerTableDataModel.columnToolTips[realIndex];
+					}
+				};
+			}
+		};
 	}
 }

@@ -11,10 +11,11 @@
       <splitpane id="70a8" binding="splitPane">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="200" height="200"/>
+            <preferred-size width="800" height="400"/>
           </grid>
         </constraints>
         <properties>
+          <dividerLocation value="489"/>
           <dividerSize value="7"/>
         </properties>
         <border type="none"/>
@@ -39,9 +40,11 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="4621d" class="com.intellij.ui.table.JBTable" binding="profilerDataTable">
+              <component id="4621d" class="com.intellij.ui.table.JBTable" binding="profilerDataTable" custom-create="true">
                 <constraints/>
-                <properties/>
+                <properties>
+                  <preferredScrollableViewportSize width="800" height="400"/>
+                </properties>
               </component>
             </children>
           </scrollpane>
