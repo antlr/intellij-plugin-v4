@@ -89,16 +89,16 @@ public class PreviewPanel extends JPanel {
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
-		switchToGrammar(grammarFile);
+		switchToGrammar(null, grammarFile);
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
-		switchToGrammar(newFile);
+		switchToGrammar(oldFile, newFile);
 	}
 
 	/** Load grammars and set editor component. */
-	public void switchToGrammar(VirtualFile grammarFile) {
+	public void switchToGrammar(VirtualFile oldFile, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);

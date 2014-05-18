@@ -24,6 +24,8 @@ public class PreviewState {
 	public Grammar g;
 	public Grammar lg;
 	public String startRuleName;
+	public CharSequence manualInputText = ""; // save input when switching grammars
+	public String inputFileName = ""; 	// save input file when switching grammars
 
 	public ParsingResult parsingResult;
 

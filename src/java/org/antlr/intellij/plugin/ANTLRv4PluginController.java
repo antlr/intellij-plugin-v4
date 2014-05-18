@@ -30,6 +30,7 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.ast.GrammarRootAST;
@@ -69,19 +70,22 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
-	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
+	public static final String PREVIEW_WINDOW_ID = "Preview";
+	public static final String CONSOLE_WINDOW_ID = "Tool Output";
+	public static final String PROFILER_WINDOW_ID = "Profiler";
 
 	public boolean projectIsClosed = false;
 
 	public Project project;
 	public ConsoleView console;
 	public ToolWindow consoleWindow;
+	public ToolWindow profilerWindow;
 
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<String, PreviewState>());
 	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
+	public ProfilerPanel profilerPanel;
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
 	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
@@ -127,8 +131,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		content = contentFactory.createContent(consoleComponent, "", false);
 
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-		consoleWindow.getContentManager().addContent(content);
 		consoleWindow.setIcon(Icons.FILE);
+
+		profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+		profilerPanel = new ProfilerPanel();
+		profilerWindow.getComponent().add(profilerPanel.$$$getRootComponent$$$());
+		profilerWindow.setIcon(Icons.FILE);
 	}
 
 	@Override
@@ -334,6 +342,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}
+
+		profilerPanel.setProfilerData(previewState.parsingResult.parser.getDecisionInfo());
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());

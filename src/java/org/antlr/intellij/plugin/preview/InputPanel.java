@@ -86,7 +86,7 @@ public class InputPanel {
 
 	PreviewEditorMouseListener editorMouseListener;
 
-	public InputPanel(PreviewPanel previewPanel) {
+	public InputPanel(final PreviewPanel previewPanel) {
 		$$$setupUI$$$();
 
 		this.previewPanel = previewPanel;
@@ -104,6 +104,12 @@ public class InputPanel {
 				@Override
 				protected void onFileChoosen(VirtualFile chosenFile) {
 					super.onFileChoosen(chosenFile);
+					// get state for grammar in current editor, not editor where user is typing preview input!
+					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+					PreviewState previewState = controller.getPreviewState();
+					if (previewState != null) {
+						previewState.inputFileName = chosenFile.getPath();
+					}
 					selectFileEvent();
 				}
 			};
@@ -156,19 +162,26 @@ public class InputPanel {
 	}
 
 	public void selectInputEvent() {
-//		System.out.println("input");
+		inputRadioButton.setSelected(true);
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		PreviewState previewState = controller.getPreviewState();
+		final PreviewState previewState = controller.getPreviewState();
 		if (previewState == null) {
 			return;
 		}
 
-		inputRadioButton.setSelected(true);
 		// wipe old and make new one
 		final EditorFactory factory = EditorFactory.getInstance();
-		Document doc = factory.createDocument("");
+		Document doc = factory.createDocument(previewState.manualInputText);
+		doc.addDocumentListener(
+			new DocumentAdapter() {
+				@Override
+				public void documentChanged(DocumentEvent e) {
+					previewState.manualInputText = e.getDocument().getCharsSequence();
+				}
+			}
+		);
 
 		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
 
@@ -179,13 +192,18 @@ public class InputPanel {
 	}
 
 	public void selectFileEvent() {
-		String inputFileName = fileChooser.getText();
-		if (inputFileName.trim().length() == 0) {
-			return;
-		}
 		fileRadioButton.setSelected(true);
-//		System.out.println("file " + inputFileName);
 
+		String inputFileName = fileChooser.getText();
+		char[] inputText = new char[0];
+		if (inputFileName.trim().length() > 0) {
+			try {
+				inputText = FileUtil.loadFileText(new File(inputFileName));
+			}
+			catch (IOException ioe) {
+				LOG.error("can't load input file " + inputFileName, ioe);
+			}
+		}
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
 		PreviewState previewState = controller.getPreviewState();
@@ -194,19 +212,14 @@ public class InputPanel {
 		}
 
 		// wipe old and make new one
-		try {
-			char[] inputText = FileUtil.loadFileText(new File(inputFileName));
-			final EditorFactory factory = EditorFactory.getInstance();
-			Document doc = factory.createDocument(inputText);
-			doc.setReadOnly(true);
-			Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
-			setEditorComponent(editor.getComponent()); // do before setting state
-			previewState.setEditor(editor);
-			clearErrorConsole();
-			previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
-		} catch (IOException ioe) {
-			LOG.error("can't load input file " + inputFileName, ioe);
-		}
+		final EditorFactory factory = EditorFactory.getInstance();
+		Document doc = factory.createDocument(inputText);
+		doc.setReadOnly(true);
+		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
+		setEditorComponent(editor.getComponent()); // do before setting state
+		previewState.setEditor(editor);
+		clearErrorConsole();
+		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
 	}
 
 	public Editor createEditor(final VirtualFile grammarFile, Document doc) {
@@ -236,6 +249,8 @@ public class InputPanel {
 		PreviewState previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFileName);
 
 		selectInputEvent();
+
+		fileChooser.setText(previewState.inputFileName);
 
 		clearParseErrors(grammarFile);
 
@@ -268,6 +283,14 @@ public class InputPanel {
 
 	public String getText(VirtualFile grammarFile) {
 		return getEditor(grammarFile).getDocument().getText();
+	}
+
+	public String getChosenFileName() {
+		return fileChooser.getText();
+	}
+
+	public boolean fileInputIsSelected() {
+		return fileRadioButton.isSelected();
 	}
 
 	public void releaseEditor(PreviewState previewState) {

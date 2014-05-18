@@ -216,6 +216,7 @@ public class ParsingUtils {
 		lexEngine = previewState.lg.createLexerInterpreter(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		PreviewParser parser = new PreviewParser(previewState, tokens);
+		parser.setProfile(true);
 
 		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
 		parser.removeErrorListeners();
