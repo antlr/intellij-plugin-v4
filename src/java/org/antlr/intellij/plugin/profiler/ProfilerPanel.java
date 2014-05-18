@@ -3,11 +3,13 @@ package org.antlr.intellij.plugin.profiler;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.antlr.v4.runtime.atn.DecisionInfo;
+import org.antlr.v4.runtime.atn.ParseInfo;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -60,20 +62,20 @@ public class ProfilerPanel {
 	}
 
 	public static class ProfilerTableDataModel extends AbstractTableModel {
-		public DecisionInfo[] decisionInfo;
+		public ParseInfo parseInfo;
 		public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
 		public static final String[] columnNames = {
-			"Decision", "Invocations", "Full context", "Total k", "Min k", "Max k",
+			"Decision", "Invocations", "Time (ns)", "# DFA states", "Full context", "Total k", "Min k", "Max k",
 			"DFA k", "SLL-ATN k", "LL-ATN k", "Predicates"
 		};
 
 		public static final String[] columnToolTips = {
-			"Decision", "Invocations", "Full context", "Total k", "Min k", "Max k",
+			"Decision", "Invocations", "Time (ns)", "# DFA states", "Full context", "Total k", "Min k", "Max k",
 			"DFA k", "SLL-ATN k", "LL-ATN k", "Predicates"
 		};
 
-		public ProfilerTableDataModel(DecisionInfo[] decisionInfo) {
-			this.decisionInfo = decisionInfo;
+		public ProfilerTableDataModel(ParseInfo parseInfo) {
+			this.parseInfo = parseInfo;
 			for (int i = 0; i < columnNames.length; i++) {
 				nameToColumnMap.put(columnNames[i], i);
 			}
@@ -90,7 +92,7 @@ public class ProfilerPanel {
 		}
 
 		public int getRowCount() {
-			return decisionInfo.length;
+			return parseInfo.getDecisionInfo().length;
 		}
 
 		public int getColumnCount() {
@@ -98,27 +100,32 @@ public class ProfilerPanel {
 		}
 
 		public Object getValueAt(int row, int col) {
-			switch (col) {
+			int decision = row;
+			switch (col) { // laborious but more efficient than reflection
 				case 0:
-					return decisionInfo[row].decision;
+					return parseInfo.getDecisionInfo()[decision].decision;
 				case 1:
-					return decisionInfo[row].invocations;
+					return parseInfo.getDecisionInfo()[decision].invocations;
 				case 2:
-					return decisionInfo[row].LL_Fallback;
+					return parseInfo.getDecisionInfo()[decision].timeInPrediction;
 				case 3:
-					return decisionInfo[row].totalLook;
+					return parseInfo.getDFASize(decision);
 				case 4:
-					return decisionInfo[row].minLook;
+					return parseInfo.getDecisionInfo()[decision].LL_Fallback;
 				case 5:
-					return decisionInfo[row].maxLook;
+					return parseInfo.getDecisionInfo()[decision].totalLook;
 				case 6:
-					return decisionInfo[row].DFATransitions;
+					return parseInfo.getDecisionInfo()[decision].minLook;
 				case 7:
-					return decisionInfo[row].SLL_ATNTransitions;
+					return parseInfo.getDecisionInfo()[decision].maxLook;
 				case 8:
-					return decisionInfo[row].LL_ATNTransitions;
+					return parseInfo.getDecisionInfo()[decision].DFATransitions;
 				case 9:
-					return decisionInfo[row].predicateEvals.size();
+					return parseInfo.getDecisionInfo()[decision].SLL_ATNTransitions;
+				case 10:
+					return parseInfo.getDecisionInfo()[decision].LL_ATNTransitions;
+				case 11:
+					return parseInfo.getDecisionInfo()[decision].predicateEvals.size();
 			}
 			return "n/a";
 		}
@@ -132,8 +139,8 @@ public class ProfilerPanel {
 		return profilerDataTable;
 	}
 
-	public void setProfilerData(DecisionInfo[] info) {
-		ProfilerTableDataModel model = new ProfilerTableDataModel(info);
+	public void setProfilerData(ParseInfo parseInfo) {
+		ProfilerTableDataModel model = new ProfilerTableDataModel(parseInfo);
 		profilerDataTable.setModel(model);
 		profilerDataTable.setRowSorter(new TableRowSorter<ProfilerTableDataModel>(model));
 		JTableHeader tableHeader = profilerDataTable.getTableHeader();
@@ -155,5 +162,26 @@ public class ProfilerPanel {
 				};
 			}
 		};
+		JTableHeader header = profilerDataTable.getTableHeader();
+		header.setDefaultRenderer(new HeaderRenderer(profilerDataTable));
+	}
+
+	static class HeaderRenderer implements TableCellRenderer {
+
+	    DefaultTableCellRenderer renderer;
+
+	    public HeaderRenderer(JTable table) {
+	        renderer = (DefaultTableCellRenderer)
+	            table.getTableHeader().getDefaultRenderer();
+	        renderer.setHorizontalAlignment(JLabel.RIGHT);
+	    }
+
+	    @Override
+	    public Component getTableCellRendererComponent(
+	        JTable table, Object value, boolean isSelected,
+	        boolean hasFocus, int row, int col) {
+	        return renderer.getTableCellRendererComponent(
+	            table, value, isSelected, hasFocus, row, col);
+	    }
 	}
 }

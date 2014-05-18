@@ -343,7 +343,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			return null;
 		}
 
-		profilerPanel.setProfilerData(previewState.parsingResult.parser.getDecisionInfo());
+		profilerPanel.setProfilerData(previewState.parsingResult.parser.getParseInfo());
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
