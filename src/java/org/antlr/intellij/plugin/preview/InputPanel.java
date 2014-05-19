@@ -497,7 +497,9 @@ public class InputPanel {
 		}
 
 		Interval region = previewState.g.getStateToGrammarRegion(atnState);
-		jumpToGrammarPosition(project, region.a);
+		CommonToken token =
+			(CommonToken) previewState.g.tokenStream.get(region.a);
+		jumpToGrammarPosition(project, token.getStartIndex());
 	}
 
 	public void setCursorToGrammarRule(Project project, PreviewState previewState, int offset) {

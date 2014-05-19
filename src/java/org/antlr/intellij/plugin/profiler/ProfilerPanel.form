@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.antlr.intellij.plugin.profiler.ProfilerPanel">
-  <grid id="27dc6" binding="outerPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="outerPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="755" height="400"/>
@@ -8,21 +8,20 @@
     <properties/>
     <border type="none"/>
     <children>
-      <splitpane id="70a8" binding="splitPane">
+      <grid id="36768" class="com.intellij.openapi.ui.Splitter" binding="splitter" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="800" height="400"/>
-          </grid>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <dividerLocation value="191"/>
-          <dividerSize value="9"/>
+          <firstComponent value="fe51e"/>
+          <secondComponent value="ac65a"/>
         </properties>
         <border type="none"/>
         <children>
           <scrollpane id="fe51e">
             <constraints>
-              <splitpane position="left"/>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -38,7 +37,8 @@
           <grid id="ac65a" binding="statsPanel" layout-manager="GridLayoutManager" row-count="6" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="5" bottom="0" right="0"/>
             <constraints>
-              <splitpane position="right"/>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -134,10 +134,10 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <text value="Number of tokens:"/>
+                  <text value="Input size:"/>
                 </properties>
               </component>
-              <component id="a596b" class="javax.swing.JLabel" binding="numTokensField">
+              <component id="a596b" class="javax.swing.JLabel" binding="inputSizeField">
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -148,7 +148,7 @@
             </children>
           </grid>
         </children>
-      </splitpane>
+      </grid>
     </children>
   </grid>
 </form>

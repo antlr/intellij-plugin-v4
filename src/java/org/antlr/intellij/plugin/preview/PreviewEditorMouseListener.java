@@ -58,10 +58,10 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 		MouseEvent mouseEvent=e.getMouseEvent();
 		InputPanel.removeTokenInfoHighlighters(editor);
-		if ( mouseEvent.isMetaDown() ) {
+		if ( mouseEvent.isMetaDown() && previewState.parsingResult!=null ) {
 			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
 		}
-        else if ( mouseEvent.isAltDown() ) {
+        else if ( mouseEvent.isAltDown() && previewState.parsingResult!=null ) {
 			HintManager.getInstance().hideAllHints();
             inputPanel.showParseRegion(e, editor, previewState, offset);
         }
