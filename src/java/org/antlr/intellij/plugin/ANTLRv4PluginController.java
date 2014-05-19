@@ -79,7 +79,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public Project project;
 	public ConsoleView console;
 	public ToolWindow consoleWindow;
-	public ToolWindow profilerWindow;
 
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<String, PreviewState>());
@@ -131,12 +130,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		content = contentFactory.createContent(consoleComponent, "", false);
 
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+        consoleWindow.getContentManager().addContent(content);
 		consoleWindow.setIcon(Icons.FILE);
 
-		profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-		profilerPanel = new ProfilerPanel();
-		profilerWindow.getComponent().add(profilerPanel.$$$getRootComponent$$$());
-		profilerWindow.setIcon(Icons.FILE);
+//		profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+//		profilerPanel = new ProfilerPanel();
+//		profilerWindow.getComponent().add(profilerPanel.$$$getRootComponent$$$());
+//		profilerWindow.setIcon(Icons.FILE);
 	}
 
 	@Override
@@ -338,12 +338,16 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// Wipes out the console and also any error annotations
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
+        long start = System.nanoTime();
 		previewState.parsingResult = ParsingUtils.parseText(previewState, grammarFile, inputText);
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}
+        long stop = System.nanoTime();
 
-		profilerPanel.setProfilerData(previewState.parsingResult.parser.getParseInfo());
+		previewPanel.profilerPanel.setProfilerData(
+                previewState.parsingResult.parser,
+                stop-start);
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());

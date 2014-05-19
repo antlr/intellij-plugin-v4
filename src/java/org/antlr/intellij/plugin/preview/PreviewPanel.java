@@ -7,8 +7,10 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
+import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -36,6 +38,8 @@ public class PreviewPanel extends JPanel {
 	public TreeViewer treeViewer;
 	public ParseTree lastTree;
 
+    public ProfilerPanel profilerPanel;
+
 	public PreviewPanel(Project project) {
 		this.project = project;
 		createGUI();
@@ -48,7 +52,7 @@ public class PreviewPanel extends JPanel {
 		Splitter splitPane = new Splitter();
 		inputPanel = getEditorPanel();
 		splitPane.setFirstComponent(inputPanel.getComponent());
-		splitPane.setSecondComponent(createParseTreePanel());
+		splitPane.setSecondComponent(createParseTreeAndProfileTabbedPanel());
 
 		this.add(splitPane, BorderLayout.CENTER);
 	}
@@ -57,6 +61,17 @@ public class PreviewPanel extends JPanel {
 		LOG.info("createEditorPanel"+" "+project.getName());
 		return new InputPanel(this);
 	}
+
+    public JTabbedPane createParseTreeAndProfileTabbedPanel() {
+        JBTabbedPane tabbedPane = new JBTabbedPane();
+
+        tabbedPane.addTab("Parse tree", createParseTreePanel());
+
+        profilerPanel = new ProfilerPanel();
+        tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
+
+        return tabbedPane;
+    }
 
 	public JPanel createParseTreePanel() {
 		LOG.info("createParseTreePanel"+" "+project.getName());

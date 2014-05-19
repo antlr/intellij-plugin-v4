@@ -12,7 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/adaptor" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/liveTemplates" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="IDEA IC-133.SNAPSHOT" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library>
@@ -21,8 +21,10 @@
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="file://$USER_HOME$/antlr/code/antlr4/runtime/Java/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
           <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
         </SOURCES>
       </library>
     </orderEntry>
