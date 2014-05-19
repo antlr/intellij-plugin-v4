@@ -12,7 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/adaptor" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/liveTemplates" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="IDEA IC-133.SNAPSHOT" jdkType="IDEA JDK" />
+    <orderEntry type="jdk" jdkName="IDEA IC-129.1359" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library>
