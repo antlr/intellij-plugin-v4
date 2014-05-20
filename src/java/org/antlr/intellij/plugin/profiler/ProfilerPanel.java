@@ -1,16 +1,32 @@
 package org.antlr.intellij.plugin.profiler;
 
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.ScrollingModel;
+import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.runtime.CommonToken;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.atn.AmbiguityInfo;
+import org.antlr.v4.runtime.atn.DecisionInfo;
+import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.ParseInfo;
+import org.antlr.v4.runtime.misc.Interval;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -21,6 +37,9 @@ import java.awt.event.MouseEvent;
 import java.util.LinkedHashMap;
 
 public class ProfilerPanel {
+	public Project project;
+	public PreviewState previewState;
+
 	protected JPanel outerPanel;
 	protected JTextArea inputDisplayPane;
 	protected JBTable profilerDataTable;
@@ -49,15 +68,18 @@ public class ProfilerPanel {
 	private void $$$setupUI$$$() {
 		createUIComponents();
 		outerPanel = new JPanel();
-		outerPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+		outerPanel.setLayout(new BorderLayout(0, 0));
 		splitter = new Splitter();
 		splitter.setLayout(new GridBagLayout());
-		outerPanel.add(splitter, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+		splitter.setProportion(0.7f);
+		outerPanel.add(splitter, BorderLayout.CENTER);
 		final JScrollPane scrollPane1 = new JScrollPane();
 		GridBagConstraints gbc;
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
+		gbc.weightx = 1.0;
+		gbc.weighty = 1.0;
 		splitter.add(scrollPane1, gbc);
 		profilerDataTable.setPreferredScrollableViewportSize(new Dimension(800, 400));
 		scrollPane1.setViewportView(profilerDataTable);
@@ -66,6 +88,8 @@ public class ProfilerPanel {
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
+		gbc.weightx = 1.0;
+		gbc.weighty = 1.0;
 		splitter.add(statsPanel, gbc);
 		final JLabel label1 = new JLabel();
 		label1.setText("Parse time (ms):");
@@ -101,8 +125,8 @@ public class ProfilerPanel {
 		inputSizeField = new JLabel();
 		inputSizeField.setText("0");
 		statsPanel.add(inputSizeField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-		splitter.setSecondComponent(statsPanel);
 		splitter.setFirstComponent(scrollPane1);
+		splitter.setSecondComponent(statsPanel);
 	}
 
 	/**
@@ -194,8 +218,14 @@ public class ProfilerPanel {
 		return profilerDataTable;
 	}
 
-	public void setProfilerData(Parser parser,
+	public ProfilerPanel(Project project) {
+		this.project = project;
+	}
+
+	public void setProfilerData(PreviewState previewState,
 								long parseTime_ns) {
+		this.previewState = previewState;
+		Parser parser = previewState.parsingResult.parser;
 		ParseInfo parseInfo = parser.getParseInfo();
 		ProfilerTableDataModel model = new ProfilerTableDataModel(parseInfo);
 		profilerDataTable.setModel(model);
@@ -212,8 +242,13 @@ public class ProfilerPanel {
 		int numChar = lastToken.getStopIndex();
 		int numLines = lastToken.getLine();
 		if (lastToken.getType() == Token.EOF) {
-			Token secondToLastToken = tokens.get(numTokens - 2);
-			numLines = secondToLastToken.getLine();
+			if (numTokens <= 1) {
+				numLines = 0;
+			}
+			else {
+				Token secondToLastToken = tokens.get(numTokens - 2);
+				numLines = secondToLastToken.getLine();
+			}
 		}
 		inputSizeField.setText(String.format("%d char, %d tokens, %d lines",
 											 numChar,
@@ -243,27 +278,90 @@ public class ProfilerPanel {
 					}
 				};
 			}
+
+			@Override
+			public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
+				return new ProfileTableCellRenderer();
+			}
 		};
-		JTableHeader header = profilerDataTable.getTableHeader();
-		header.setDefaultRenderer(new HeaderRenderer(profilerDataTable));
+		ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
+		selectionModel.addListSelectionListener(
+			new ListSelectionListener() {
+				@Override
+				public void valueChanged(ListSelectionEvent e) {
+					// previewState, project set later
+					if (previewState != null && project != null) {
+						int decision = profilerDataTable.convertRowIndexToModel(e.getFirstIndex());
+						selectDecision(previewState, decision);
+						selectAmbiguousPhrases(previewState, decision);
+					}
+				}
+			}
+		);
+		selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	}
 
-	static class HeaderRenderer implements TableCellRenderer {
+	public void selectDecision(PreviewState previewState, int decision) {
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		Editor grammarEditor = controller.getCurrentGrammarEditor();
 
-		DefaultTableCellRenderer renderer;
+		DecisionState decisionState = previewState.g.atn.getDecisionState(decision);
+		Interval region = previewState.g.getStateToGrammarRegion(decisionState.stateNumber);
+		SelectionModel selectionModel = grammarEditor.getSelectionModel();
+		CommonToken startToken =
+			(CommonToken) previewState.g.tokenStream.get(region.a);
+		CommonToken stopToken =
+			(CommonToken) previewState.g.tokenStream.get(region.b);
+		selectionModel.setSelection(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
 
-		public HeaderRenderer(JTable table) {
-			renderer = (DefaultTableCellRenderer)
-				table.getTableHeader().getDefaultRenderer();
-			renderer.setHorizontalAlignment(JLabel.RIGHT);
+		ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
+		CaretModel caretModel = grammarEditor.getCaretModel();
+		caretModel.moveToOffset(startToken.getStartIndex());
+		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+	}
+
+	public void selectAmbiguousPhrases(PreviewState previewState, int decision) {
+		ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
+		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
+		if (decisionInfo.ambiguities.size() == 0) {
+			return;
 		}
 
-		@Override
-		public Component getTableCellRendererComponent(
-			JTable table, Object value, boolean isSelected,
-			boolean hasFocus, int row, int col) {
-			return renderer.getTableCellRendererComponent(
-				table, value, isSelected, hasFocus, row, col);
+		Editor editor = previewState.getEditor();
+		SelectionModel selectionModel = editor.getSelectionModel();
+		ScrollingModel scrollingModel = editor.getScrollingModel();
+		CaretModel caretModel = editor.getCaretModel();
+
+		Token firstToken = null;
+		for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
+			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+			Token startToken = tokens.get(ambiguityInfo.startIndex);
+			if (firstToken == null) {
+				firstToken = startToken;
+			}
+			Token stopToken = tokens.get(ambiguityInfo.stopIndex);
+			selectionModel.setSelection(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
+		}
+
+		caretModel.moveToOffset(firstToken.getStartIndex());
+		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+	}
+
+	class ProfileTableCellRenderer extends DefaultTableCellRenderer {
+		public Component getTableCellRendererComponent(JTable table, Object value,
+													   boolean isSelected, boolean hasFocus,
+													   int row, int column) {
+			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			if (previewState == null || previewState.parsingResult == null) {
+				return c;
+			}
+			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
+			int decision = profilerDataTable.convertRowIndexToModel(row);
+			DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
+			if (decisionInfo.ambiguities.size() > 0) {
+				setForeground(JBColor.ORANGE);
+			}
+			return c;
 		}
 	}
 }

@@ -67,7 +67,7 @@ public class PreviewPanel extends JPanel {
 
         tabbedPane.addTab("Parse tree", createParseTreePanel());
 
-        profilerPanel = new ProfilerPanel();
+        profilerPanel = new ProfilerPanel(project);
         tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
 
         return tabbedPane;

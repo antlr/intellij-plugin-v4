@@ -345,9 +345,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
         long stop = System.nanoTime();
 
-		previewPanel.profilerPanel.setProfilerData(
-                previewState.parsingResult.parser,
-                stop-start);
+		previewPanel.profilerPanel.setProfilerData(previewState, stop-start);
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
