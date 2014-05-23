@@ -12,6 +12,7 @@ import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.ex.EditorMarkupModel;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
@@ -234,11 +235,58 @@ public class InputPanel {
 			}
 		);
 		final Editor editor = factory.createEditor(doc, previewPanel.project);
+		((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
 		EditorSettings settings = editor.getSettings();
-		settings.setWhitespacesShown(true); // hmm...doesn't work.  maybe show when showing token tooltip?
+		settings.setWhitespacesShown(true);
+		settings.setLineNumbersShown(true);
+		settings.setLineMarkerAreaShown(true);
 
 		editor.addEditorMouseMotionListener(editorMouseListener);
 		editor.addEditorMouseListener(editorMouseListener);
+
+//		EditorGutter gutter = editor.getGutter();
+//		gutter.registerTextAnnotation(
+//			new TextAnnotationGutterProvider() {
+//				@Nullable
+//				@Override
+//				public String getLineText(int line, Editor editor) {
+//					return "foo";
+//				}
+//
+//				@Nullable
+//				@Override
+//				public String getToolTip(int line, Editor editor) {
+//					return "tool tip";
+//				}
+//
+//				@Override
+//				public EditorFontType getStyle(int line, Editor editor) {
+//					return null;
+//				}
+//
+//				@Nullable
+//				@Override
+//				public ColorKey getColor(int line, Editor editor) {
+//					return EditorColors.MODIFIED_LINES_COLOR;
+//				}
+//
+//				@Nullable
+//				@Override
+//				public Color getBgColor(int line, Editor editor) {
+//					return JBColor.WHITE;
+//				}
+//
+//				@Override
+//				public List<AnAction> getPopupActions(int line, Editor editor) {
+//					return null;
+//				}
+//
+//				@Override
+//				public void gutterClosed() {
+//
+//				}
+//			}
+//		);
 
 		return editor;
 	}
@@ -256,7 +304,8 @@ public class InputPanel {
 
 		if (previewState.startRuleName != null) {
 			setStartRuleName(grammarFile, previewState.startRuleName);
-		} else {
+		}
+		else {
 			resetStartRuleLabel();
 		}
 	}
@@ -417,8 +466,8 @@ public class InputPanel {
 		Token stopToken = tokenStream.get(tokenInterval.b);
 		Interval sourceInterval =
 			Interval.of(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
-		int ruleIndex = parent.getRuleIndex();
-		String ruleName = parser.getRuleNames()[ruleIndex];
+//		int ruleIndex = parent.getRuleIndex();
+//		String ruleName = parser.getRuleNames()[ruleIndex];
 //        System.out.println("parent " + ruleName + " region " + sourceInterval);
 
 		List<String> stack = parser.getRuleInvocationStack(parent);
@@ -586,7 +635,8 @@ public class InputPanel {
 		if (cause instanceof LexerNoViableAltException) {
 			a = ((LexerNoViableAltException) cause).getStartIndex();
 			b = ((LexerNoViableAltException) cause).getStartIndex() + 1;
-		} else {
+		}
+		else {
 			Token offendingToken = (Token) e.getOffendingSymbol();
 			a = offendingToken.getStartIndex();
 			b = offendingToken.getStopIndex() + 1;
@@ -632,14 +682,16 @@ public class InputPanel {
 		outerMostPanel.setMinimumSize(new Dimension(100, 70));
 		outerMostPanel.setPreferredSize(new Dimension(200, 100));
 		startRuleAndInputPanel = new JPanel();
-		startRuleAndInputPanel.setLayout(new BorderLayout(0, 0));
+		startRuleAndInputPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+		startRuleAndInputPanel.setMinimumSize(new Dimension(233, 60));
 		outerMostPanel.add(startRuleAndInputPanel, BorderLayout.NORTH);
+		startRuleAndInputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), null));
 		startRuleLabel = new JLabel();
 		startRuleLabel.setText("Label");
-		startRuleAndInputPanel.add(startRuleLabel, BorderLayout.WEST);
+		startRuleAndInputPanel.add(startRuleLabel);
 		radioButtonPanel = new JPanel();
 		radioButtonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		startRuleAndInputPanel.add(radioButtonPanel, BorderLayout.EAST);
+		startRuleAndInputPanel.add(radioButtonPanel);
 		inputRadioButton = new JRadioButton();
 		inputRadioButton.setSelected(true);
 		inputRadioButton.setText("Input");
@@ -659,7 +711,7 @@ public class InputPanel {
 		placeHolder.setEditable(false);
 		placeHolder.setEnabled(true);
 		placeHolder.setText("");
-		outerMostPanel.add(placeHolder, BorderLayout.CENTER);
+		outerMostPanel.add(placeHolder, BorderLayout.WEST);
 		ButtonGroup buttonGroup;
 		buttonGroup = new ButtonGroup();
 		buttonGroup.add(fileRadioButton);

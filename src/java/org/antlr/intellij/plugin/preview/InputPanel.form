@@ -10,19 +10,21 @@
     </properties>
     <border type="none"/>
     <children>
-      <grid id="aba34" binding="startRuleAndInputPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="aba34" binding="startRuleAndInputPanel" layout-manager="FlowLayout" hgap="5" vgap="0" flow-align="1">
         <constraints border-constraint="North"/>
-        <properties/>
-        <border type="none"/>
+        <properties>
+          <minimumSize width="233" height="60"/>
+        </properties>
+        <border type="etched"/>
         <children>
           <component id="68f06" class="javax.swing.JLabel" binding="startRuleLabel">
-            <constraints border-constraint="West"/>
+            <constraints/>
             <properties>
               <text value="Label"/>
             </properties>
           </component>
           <grid id="954fc" binding="radioButtonPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
-            <constraints border-constraint="East"/>
+            <constraints/>
             <properties/>
             <border type="none"/>
             <children>
@@ -56,7 +58,7 @@
         </properties>
       </component>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
-        <constraints border-constraint="Center"/>
+        <constraints border-constraint="West"/>
         <properties>
           <background awt-color="lightGray"/>
           <editable value="false"/>

@@ -133,10 +133,32 @@ public class ANTLRv4PluginController implements ProjectComponent {
         consoleWindow.getContentManager().addContent(content);
 		consoleWindow.setIcon(Icons.FILE);
 
-//		profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-//		profilerPanel = new ProfilerPanel();
-//		profilerWindow.getComponent().add(profilerPanel.$$$getRootComponent$$$());
+//		ToolWindow profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+//		JPanel panel = new JPanel(new BorderLayout());
+//		profilerWindow.getComponent().add(panel);
 //		profilerWindow.setIcon(Icons.FILE);
+//		final EditorFactory edfactory = EditorFactory.getInstance();
+//		Document doc = edfactory.createDocument("foo\nbar\n");
+//		RangeMarker rangeMarker = doc.createRangeMarker(2, 5);
+//		final Editor editor = edfactory.createEditor(doc, previewPanel.project);
+//		EditorSettings settings = editor.getSettings();
+//		settings.setWhitespacesShown(true);
+//		settings.setLineNumbersShown(true);
+//		settings.setLineMarkerAreaShown(true);
+//		MarkupModel markupModel = editor.getMarkupModel();
+//		panel.add(editor.getComponent());
+//
+//
+//
+//		TextAttributes textAttributes =
+//			new TextAttributes(JBColor.BLACK, JBColor.WHITE, JBColor.RED, EffectType.WAVE_UNDERSCORE, 1);
+//		textAttributes.setErrorStripeColor(JBColor.RED);
+//		final RangeHighlighter lineHighlighter =
+//			markupModel.addRangeHighlighter(2,
+//											5,
+//											HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
+//											HighlighterTargetArea.EXACT_RANGE);
+//		lineHighlighter.setErrorStripeMarkColor(JBColor.BLUE);
 	}
 
 	@Override

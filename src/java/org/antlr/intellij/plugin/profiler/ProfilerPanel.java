@@ -1,10 +1,19 @@
 package org.antlr.intellij.plugin.profiler;
 
+import com.intellij.codeInsight.highlighting.HighlightManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.ex.EditorGutterComponentEx;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.editor.markup.LineMarkerRenderer;
+import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.JBColor;
@@ -12,6 +21,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import com.intellij.util.ui.UIUtil;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.runtime.CommonToken;
@@ -34,6 +44,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class ProfilerPanel {
@@ -332,7 +343,7 @@ public class ProfilerPanel {
 		ScrollingModel scrollingModel = editor.getScrollingModel();
 		CaretModel caretModel = editor.getCaretModel();
 
-		Token firstToken = null;
+		Token firstToken = null, lastToken = null;
 		for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
 			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
 			Token startToken = tokens.get(ambiguityInfo.startIndex);
@@ -340,11 +351,80 @@ public class ProfilerPanel {
 				firstToken = startToken;
 			}
 			Token stopToken = tokens.get(ambiguityInfo.stopIndex);
+			lastToken = stopToken;
 			selectionModel.setSelection(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
 		}
 
-		caretModel.moveToOffset(firstToken.getStartIndex());
-		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+		if (firstToken != null && lastToken != null) {
+			TextAttributes textAttributes =
+				new TextAttributes(JBColor.BLACK, JBColor.WHITE, JBColor.ORANGE, EffectType.WAVE_UNDERSCORE, 1);
+			textAttributes.setErrorStripeColor(JBColor.RED);
+			MarkupModel markupModel = editor.getMarkupModel();
+			final RangeHighlighter lineHighlighter =
+				markupModel.addRangeHighlighter(firstToken.getStartIndex(),
+												lastToken.getStopIndex(),
+												1, textAttributes,
+												HighlighterTargetArea.EXACT_RANGE);
+			lineHighlighter.setErrorStripeMarkColor(JBColor.BLUE);
+			lineHighlighter.setLineMarkerRenderer(
+				new LineMarkerRenderer() {
+					@Override
+					public void paint(Editor editor, Graphics g, Rectangle r) {
+						// draws left gutter range like for brace highlighting
+						final EditorGutterComponentEx gutter = ((EditorEx) editor).getGutterComponentEx();
+						g.setColor(JBColor.ORANGE);
+
+						final int endX = gutter.getWhitespaceSeparatorOffset();
+						final int x = r.x + r.width - 5;
+						final int width = endX - x;
+						if (r.height > 0) {
+							g.fillRect(x, r.y, width, r.height);
+							g.setColor(gutter.getOutlineColor(false));
+							UIUtil.drawLine(g, x, r.y, x + width, r.y);
+							UIUtil.drawLine(g, x, r.y, x, r.y + r.height - 1);
+							UIUtil.drawLine(g, x, r.y + r.height - 1, x + width, r.y + r.height - 1);
+						}
+						else {
+							final int[] xPoints = new int[]{x,
+								x,
+								x + width - 1};
+							final int[] yPoints = new int[]{r.y - 4,
+								r.y + 4,
+								r.y};
+							g.fillPolygon(xPoints, yPoints, 3);
+
+							g.setColor(gutter.getOutlineColor(false));
+							g.drawPolygon(xPoints, yPoints, 3);
+						}
+					}
+				}
+			);
+
+//			HighlightManager.getInstance(project).addRangeHighlight(
+//				editor,
+//				firstToken.getStartIndex(),
+//				firstToken.getStopIndex() + 1,
+//				textAttributes,
+//				false,
+//				false,
+//				null);
+
+			HighlightManager.getInstance(project).addOccurrenceHighlight(
+				editor,
+				firstToken.getStartIndex(),
+				firstToken.getStopIndex() + 1,
+				textAttributes,
+				HighlightManager.HIDE_BY_TEXT_CHANGE,
+				new ArrayList<RangeHighlighter>() {{
+					add(lineHighlighter);
+				}},
+				JBColor.BLUE
+			);
+
+			caretModel.moveToOffset(firstToken.getStartIndex());
+			scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+		}
+
 	}
 
 	class ProfileTableCellRenderer extends DefaultTableCellRenderer {
