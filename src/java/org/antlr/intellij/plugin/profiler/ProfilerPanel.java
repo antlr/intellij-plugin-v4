@@ -6,12 +6,14 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.table.JBTable;
@@ -25,6 +27,7 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
+import org.antlr.v4.runtime.atn.ContextSensitivityInfo;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.ParseInfo;
@@ -35,6 +38,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
@@ -44,9 +48,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class ProfilerPanel {
-	public static final JBColor AMBIGUITY_COLOR = JBColor.ORANGE;
-	public static final JBColor FULLCTX_COLOR = JBColor.YELLOW;
-	public static final JBColor PREDEVAL_COLOR = JBColor.GREEN;
+	public static final Color AMBIGUITY_COLOR = JBColor.ORANGE;
+	public static final Color FULLCTX_COLOR = JBColor.CYAN;
+	public static final Color PREDEVAL_COLOR = JBColor.GREEN;
 
 	public Project project;
 	public PreviewState previewState;
@@ -185,6 +189,12 @@ public class ProfilerPanel {
 		selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	}
 
+	public void switchToGrammar(VirtualFile grammarFile) {
+		DefaultTableModel model = new DefaultTableModel();
+		profilerDataTable.setModel(model);
+		profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
+	}
+
 	public void selectDecision(PreviewState previewState, int decision) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		Editor grammarEditor = controller.getCurrentGrammarEditor();
@@ -227,7 +237,31 @@ public class ProfilerPanel {
 		CaretModel caretModel = editor.getCaretModel();
 		MarkupModel markupModel = editor.getMarkupModel();
 
+		// context-sensitivities
 		Token firstToken = null, lastToken = null;
+		for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
+			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+			Token startToken = tokens.get(ctxSensitivityInfo.startIndex);
+			if (firstToken == null) {
+				firstToken = startToken;
+			}
+			Token stopToken = tokens.get(ctxSensitivityInfo.stopIndex);
+			lastToken = stopToken;
+//            selectionModel.setSelection(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
+
+			// ambiguities
+			TextAttributes textAttributes =
+				new TextAttributes(JBColor.BLACK, JBColor.WHITE, FULLCTX_COLOR, EffectType.WAVE_UNDERSCORE, 1);
+			textAttributes.setErrorStripeColor(FULLCTX_COLOR);
+			final RangeHighlighter rangeHighlighter =
+				markupModel.addRangeHighlighter(
+					startToken.getStartIndex(), stopToken.getStopIndex() + 1,
+					HighlighterLayer.WARNING, textAttributes,
+					HighlighterTargetArea.EXACT_RANGE);
+			rangeHighlighter.setErrorStripeMarkColor(FULLCTX_COLOR);
+		}
+
+		// ambiguities (might overlay context-sensitivities)
 		for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
 			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
 			Token startToken = tokens.get(ambiguityInfo.startIndex);
@@ -239,12 +273,12 @@ public class ProfilerPanel {
 //            selectionModel.setSelection(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
 
 			TextAttributes textAttributes =
-				new TextAttributes(JBColor.BLACK, JBColor.WHITE, JBColor.ORANGE, EffectType.WAVE_UNDERSCORE, 1);
+				new TextAttributes(JBColor.BLACK, JBColor.WHITE, AMBIGUITY_COLOR, EffectType.WAVE_UNDERSCORE, 1);
 			textAttributes.setErrorStripeColor(AMBIGUITY_COLOR);
 			final RangeHighlighter rangeHighlighter =
 				markupModel.addRangeHighlighter(
 					startToken.getStartIndex(), stopToken.getStopIndex() + 1,
-					1, textAttributes,
+					HighlighterLayer.ERROR, textAttributes,
 					HighlighterTargetArea.EXACT_RANGE);
 			rangeHighlighter.setErrorStripeMarkColor(AMBIGUITY_COLOR);
 		}
@@ -391,8 +425,8 @@ public class ProfilerPanel {
 		statsPanel.add(numTokensField, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		expertCheckBox.setText("Show expert columns");
 		statsPanel.add(expertCheckBox, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-		splitter.setSecondComponent(statsPanel);
 		splitter.setFirstComponent(scrollPane1);
+		splitter.setSecondComponent(statsPanel);
 	}
 
 	/**
@@ -415,6 +449,9 @@ public class ProfilerPanel {
 			DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 			if (decisionInfo.ambiguities.size() > 0) {
 				setForeground(AMBIGUITY_COLOR);
+			}
+			else if (decisionInfo.contextSensitivities.size() > 0) {
+				setForeground(FULLCTX_COLOR);
 			}
 			return c;
 		}

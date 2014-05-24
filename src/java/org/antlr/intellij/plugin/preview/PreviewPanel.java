@@ -120,6 +120,8 @@ public class PreviewPanel extends JPanel {
 
 		inputPanel.switchToGrammar(grammarFile);
 
+		profilerPanel.switchToGrammar(grammarFile);
+
 		if ( previewState.startRuleName!=null ) {
 			updateParseTreeFromDoc(grammarFile);
 		}

@@ -8,13 +8,13 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
     public static final String[] columnNames = {
-        "Decision", "Invocations", "Time (ms)", "# DFA states", "Full context", "Total k", "Min k", "Max k",
-        "DFA k", "SLL-ATN k", "LL-ATN k", "Predicates"
+        "Decision", "Invocations", "Time (ms)", "# DFA states", "LL failover", "Total k", "Min k", "Max k",
+        "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
     };
 
     public static final String[] columnToolTips = {
         "Decision", "Invocations", "Time (ms)", "# DFA states", "Full context", "Total k", "Min k", "Max k",
-        "DFA k", "SLL-ATN k", "LL-ATN k", "Predicates"
+        "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
     };
 
     public ExpertProfilerTableDataModel(ParseInfo parseInfo) {
@@ -57,11 +57,15 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
                 return parseInfo.getDecisionInfo()[decision].DFATransitions;
             case 9:
                 return parseInfo.getDecisionInfo()[decision].SLL_ATNTransitions;
-            case 10:
-                return parseInfo.getDecisionInfo()[decision].LL_ATNTransitions;
-            case 11:
-                return parseInfo.getDecisionInfo()[decision].predicateEvals.size();
-        }
-        return "n/a";
-    }
+			case 10:
+				return parseInfo.getDecisionInfo()[decision].LL_ATNTransitions;
+			case 11:
+				return parseInfo.getDecisionInfo()[decision].contextSensitivities.size();
+			case 12:
+				return parseInfo.getDecisionInfo()[decision].ambiguities.size();
+			case 13:
+				return parseInfo.getDecisionInfo()[decision].predicateEvals.size();
+		}
+		return "n/a";
+	}
 }
