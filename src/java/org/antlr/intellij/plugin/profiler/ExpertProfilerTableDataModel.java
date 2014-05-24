@@ -2,10 +2,9 @@ package org.antlr.intellij.plugin.profiler;
 
 import org.antlr.v4.runtime.atn.ParseInfo;
 
-import javax.swing.table.AbstractTableModel;
 import java.util.LinkedHashMap;
 
-public class ExpertProfilerTableDataModel extends AbstractTableModel {
+public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
     public static final String[] columnNames = {
@@ -25,23 +24,16 @@ public class ExpertProfilerTableDataModel extends AbstractTableModel {
         }
     }
 
-    public String getColumnName(int column) {
-        return columnNames[column];
-    }
+	public String[] getColumnNames() {
+		return columnNames;
+	}
 
-    @Override
-    public Class<?> getColumnClass(int columnIndex) {
-        return Integer.class;
-    }
-
+	@Override
     public int getRowCount() {
         return parseInfo.getDecisionInfo().length;
     }
 
-    public int getColumnCount() {
-        return columnNames.length;
-    }
-
+	@Override
     public Object getValueAt(int row, int col) {
         int decision = row;
         switch (col) { // laborious but more efficient than reflection
