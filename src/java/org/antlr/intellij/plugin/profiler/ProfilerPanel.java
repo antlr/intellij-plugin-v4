@@ -3,7 +3,6 @@ package org.antlr.intellij.plugin.profiler;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
@@ -54,8 +53,6 @@ public class ProfilerPanel {
     public PreviewState previewState;
 
     protected JPanel outerPanel;
-    protected JTextArea inputDisplayPane;
-    protected JBTable profilerDataTable;
     protected JPanel statsPanel;
     protected JLabel parseTimeField;
     protected JLabel predictionTimeField;
@@ -67,14 +64,16 @@ public class ProfilerPanel {
     protected JLabel ambiguityColorLabel;
     protected JLabel contextSensitivityColorLabel;
     protected JLabel predEvaluationColorLabel;
-    protected Splitter splitter;
+    protected JBTable profilerDataTable;
+
+    public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
+        DefaultTableModel model = new DefaultTableModel();
+        profilerDataTable.setModel(model);
+        profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
+    }
 
     public JPanel getComponent() {
         return outerPanel;
-    }
-
-    public JTextArea getInputDisplayPane() {
-        return inputDisplayPane;
     }
 
     public JBTable getProfilerDataTable() {
@@ -133,76 +132,6 @@ public class ProfilerPanel {
         else {
             model = new SimpleProfilerTableDataModel(parseInfo);
         }
-        profilerDataTable.setModel(model);
-        profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
-    }
-
-    private void createUIComponents() {
-        splitter = new Splitter();
-        expertCheckBox = new JBCheckBox();
-        expertCheckBox.setSelected(false);
-        expertCheckBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-                updateTableModelPerExpertCheckBox(parseInfo);
-            }
-        });
-        profilerDataTable = new JBTable() {
-            @Override
-            protected JTableHeader createDefaultTableHeader() {
-                return new JTableHeader(columnModel) {
-                    public String getToolTipText(MouseEvent e) {
-                        Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        int realIndex = columnModel.getColumn(index).getModelIndex();
-                        return getModel().getColumnName(realIndex);
-                    }
-                };
-            }
-
-            @Override
-            public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
-                return new ProfileTableCellRenderer();
-            }
-        };
-        ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
-        selectionModel.addListSelectionListener(
-                new ListSelectionListener() {
-                    @Override
-                    public void valueChanged(ListSelectionEvent e) {
-                        // previewState, project set later
-                        if (e.getValueIsAdjusting()) {
-                            return; // this seems to be "mouse down" but not mouse up
-                        }
-                        // get state for current grammar editor tab
-                        PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-                        if (previewState != null && project != null) {
-                            int selectedRow = profilerDataTable.getSelectedRow();
-                            if (selectedRow == -1) {
-                                selectedRow = 0;
-                            }
-                            int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
-                            int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
-                            if (decision <= numberOfDecisions) {
-                                selectDecisionInGrammar(previewState, decision);
-                                highlightPhrases(previewState, decision);
-                            }
-                        }
-                    }
-                }
-        );
-        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ambiguityColorLabel = new JBLabel("Ambiguity");
-        ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);
-        contextSensitivityColorLabel = new JBLabel("Context sensitivity");
-        contextSensitivityColorLabel.setForeground(FULLCTX_COLOR);
-        predEvaluationColorLabel = new JBLabel("Predicate evaluation");
-        predEvaluationColorLabel.setForeground(PREDEVAL_COLOR);
-    }
-
-    public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
-        DefaultTableModel model = new DefaultTableModel();
         profilerDataTable.setModel(model);
         profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
     }
@@ -387,7 +316,6 @@ public class ProfilerPanel {
             caretModel.moveToOffset(firstToken.getStartIndex());
             scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
         }
-
     }
 
     {
@@ -408,19 +336,8 @@ public class ProfilerPanel {
         createUIComponents();
         outerPanel = new JPanel();
         outerPanel.setLayout(new BorderLayout(0, 0));
-        outerPanel.setOpaque(false);
-        splitter = new Splitter();
-        splitter.setLayout(new GridBagLayout());
-        splitter.setProportion(0.7f);
-        outerPanel.add(splitter, BorderLayout.CENTER);
-        final JScrollPane scrollPane1 = new JScrollPane();
-        scrollPane1.setOpaque(false);
-        outerPanel.add(scrollPane1, BorderLayout.WEST);
-        profilerDataTable.setPreferredScrollableViewportSize(new Dimension(800, 400));
-        scrollPane1.setViewportView(profilerDataTable);
         statsPanel = new JPanel();
         statsPanel.setLayout(new GridLayoutManager(12, 3, new Insets(0, 5, 0, 0), -1, -1));
-        statsPanel.setOpaque(false);
         outerPanel.add(statsPanel, BorderLayout.EAST);
         final JLabel label1 = new JLabel();
         label1.setText("Parse time (ms):");
@@ -459,9 +376,6 @@ public class ProfilerPanel {
         final JLabel label6 = new JLabel();
         label6.setText("Number of tokens:");
         statsPanel.add(label6, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        numTokensField = new JLabel();
-        numTokensField.setText("0");
-        statsPanel.add(numTokensField, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         expertCheckBox.setText("Show expert columns");
         statsPanel.add(expertCheckBox, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         ambiguityColorLabel.setText("Ambiguity");
@@ -470,8 +384,15 @@ public class ProfilerPanel {
         statsPanel.add(contextSensitivityColorLabel, new GridConstraints(9, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         predEvaluationColorLabel.setText("Predicate evaluation");
         statsPanel.add(predEvaluationColorLabel, new GridConstraints(10, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        splitter.setSecondComponent(statsPanel);
-        splitter.setFirstComponent(scrollPane1);
+        numTokensField = new JLabel();
+        numTokensField.setText("0");
+        statsPanel.add(numTokensField, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JSeparator separator1 = new JSeparator();
+        statsPanel.add(separator1, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        outerPanel.add(scrollPane1, BorderLayout.CENTER);
+        profilerDataTable.setPreferredScrollableViewportSize(new Dimension(800, 400));
+        scrollPane1.setViewportView(profilerDataTable);
     }
 
     /**
@@ -508,4 +429,68 @@ public class ProfilerPanel {
             return c;
         }
     }
+
+    private void createUIComponents() {
+        expertCheckBox = new JBCheckBox();
+        expertCheckBox.setSelected(false);
+        expertCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
+                updateTableModelPerExpertCheckBox(parseInfo);
+            }
+        });
+        profilerDataTable = new JBTable() {
+            @Override
+            protected JTableHeader createDefaultTableHeader() {
+                return new JTableHeader(columnModel) {
+                    public String getToolTipText(MouseEvent e) {
+                        Point p = e.getPoint();
+                        int index = columnModel.getColumnIndexAtX(p.x);
+                        int realIndex = columnModel.getColumn(index).getModelIndex();
+                        return getModel().getColumnName(realIndex);
+                    }
+                };
+            }
+
+            @Override
+            public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
+                return new ProfileTableCellRenderer();
+            }
+        };
+        ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
+        selectionModel.addListSelectionListener(
+                new ListSelectionListener() {
+                    @Override
+                    public void valueChanged(ListSelectionEvent e) {
+                        // previewState, project set later
+                        if (e.getValueIsAdjusting()) {
+                            return; // this seems to be "mouse down" but not mouse up
+                        }
+                        // get state for current grammar editor tab
+                        PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+                        if (previewState != null && project != null) {
+                            int selectedRow = profilerDataTable.getSelectedRow();
+                            if (selectedRow == -1) {
+                                selectedRow = 0;
+                            }
+                            int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
+                            int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
+                            if (decision <= numberOfDecisions) {
+                                selectDecisionInGrammar(previewState, decision);
+                                highlightPhrases(previewState, decision);
+                            }
+                        }
+                    }
+                }
+        );
+        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        ambiguityColorLabel = new JBLabel("Ambiguity");
+        ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);
+        contextSensitivityColorLabel = new JBLabel("Context sensitivity");
+        contextSensitivityColorLabel.setForeground(FULLCTX_COLOR);
+        predEvaluationColorLabel = new JBLabel("Predicate evaluation");
+        predEvaluationColorLabel.setForeground(PREDEVAL_COLOR);
+    }
+
 }
