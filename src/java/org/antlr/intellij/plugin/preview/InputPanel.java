@@ -2,12 +2,23 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.ex.EditorMarkupModel;
-import com.intellij.openapi.editor.markup.*;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterLayer;
+import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -21,18 +32,39 @@ import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
+import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.runtime.CommonToken;
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.atn.DecisionEventInfo;
+import org.antlr.v4.runtime.atn.PredicateContextEvalInfo;
+import org.antlr.v4.runtime.atn.SemanticContext;
+import org.antlr.v4.runtime.dfa.DFAState;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.tool.Rule;
+import org.antlr.v4.tool.ast.ActionAST;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -220,7 +252,7 @@ public class InputPanel {
 			}
 		);
 		final Editor editor = factory.createEditor(doc, previewPanel.project);
-        // force right margin
+		// force right margin
 		((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
 		EditorSettings settings = editor.getSettings();
 		settings.setWhitespacesShown(true);
@@ -576,16 +608,16 @@ public class InputPanel {
 	public void showTooltipsForErrors(Editor editor, @NotNull PreviewState previewState, int offset) {
 		if (previewState.parsingResult == null) return; // no results?
 
-		MarkupModel markupModel = editor.getMarkupModel();
 		SyntaxError errorUnderCursor =
 			ParsingUtils.getErrorUnderCursor(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors(), offset);
-		if (errorUnderCursor == null) {
-			// Turn off any tooltips if none under the cursor
-			HintManager.getInstance().hideAllHints();
-			return;
-		}
+//		if (errorUnderCursor == null) {
+		// Turn off any tooltips if none under the cursor
+		HintManager.getInstance().hideAllHints();
+//			return;
+//		}
 
 		// find the highlighter associated with this error by finding error at this offset
+		MarkupModel markupModel = editor.getMarkupModel();
 		int i = 1;
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			int a = r.getStartOffset();
@@ -595,17 +627,48 @@ public class InputPanel {
 			if (offset >= a && offset < b) { // cursor is over some kind of highlighting
 				TextAttributes attr = r.getTextAttributes();
 				if (attr != null && attr.getEffectType() == EffectType.WAVE_UNDERSCORE) {
-					// error tool tips
-					String errorDisplayString =
-						InputPanel.getErrorDisplayString(errorUnderCursor);
+					DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
+					String msg;
+					if (attr.getErrorStripeColor() == ProfilerPanel.AMBIGUITY_COLOR) {
+						msg = "ambiguity";
+					}
+					else if (attr.getErrorStripeColor() == ProfilerPanel.FULLCTX_COLOR) {
+						msg = "context-sensitive";
+					}
+					else if (attr.getErrorStripeColor() == ProfilerPanel.PREDEVAL_COLOR) {
+						PredicateContextEvalInfo pred = (PredicateContextEvalInfo) eventInfo;
+						StringBuilder buf = new StringBuilder();
+						for (int p = 0; p < pred.dfaState.predicates.length; p++) {
+							DFAState.PredPrediction pair = pred.dfaState.predicates[p];
+							if (pair.pred instanceof SemanticContext.Predicate) {
+								SemanticContext.Predicate pred1 = (SemanticContext.Predicate) pair.pred;
+								Rule rule = previewState.g.getRule(pred1.ruleIndex);
+								ActionAST actionAST = rule.actions.get(pred1.predIndex);
+								buf.append(actionAST.getText() + "=>" + pair.alt + " " + pred.evalResults[p] + "\n");
+							}
+							else {
+								buf.append(pair.pred.toString() + "=>" + pair.alt + " " + pred.evalResults[p] + "\n");
+							}
+						}
+						msg = buf.toString();
+					}
+					else {
+						// error tool tips
+						msg = getErrorDisplayString(errorUnderCursor);
+					}
 					int flags =
 						HintManager.HIDE_BY_ANY_KEY |
 							HintManager.HIDE_BY_TEXT_CHANGE |
 							HintManager.HIDE_BY_SCROLLING;
 					int timeout = 0; // default?
-					HintManager.getInstance().showErrorHint(editor, errorDisplayString,
-															offset, offset + 1,
-															HintManager.ABOVE, flags, timeout);
+					if (eventInfo != null) {
+						HintManager.getInstance().showInformationHint(editor, msg);
+					}
+					else {
+						HintManager.getInstance().showErrorHint(editor, msg,
+																offset, offset + 1,
+																HintManager.ABOVE, flags, timeout);
+					}
 					return;
 				}
 			}

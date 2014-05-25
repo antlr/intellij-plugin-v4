@@ -14,10 +14,13 @@ import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -120,14 +123,14 @@ public class PreviewPanel extends JPanel {
 
 		inputPanel.switchToGrammar(grammarFile);
 
-		profilerPanel.switchToGrammar(grammarFile);
-
 		if ( previewState.startRuleName!=null ) {
 			updateParseTreeFromDoc(grammarFile);
 		}
 		else {
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
 		}
+
+		profilerPanel.switchToGrammar(previewState, grammarFile);
 	}
 
 	public void closeGrammar(VirtualFile grammarFile) {

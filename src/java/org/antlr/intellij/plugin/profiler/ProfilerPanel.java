@@ -13,9 +13,11 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -28,12 +30,21 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.ContextSensitivityInfo;
+import org.antlr.v4.runtime.atn.DecisionEventInfo;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.ParseInfo;
+import org.antlr.v4.runtime.atn.PredicateContextEvalInfo;
 import org.antlr.v4.runtime.misc.Interval;
 
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -42,15 +53,36 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class ProfilerPanel {
-	public static final Color AMBIGUITY_COLOR = JBColor.ORANGE;
-	public static final Color FULLCTX_COLOR = JBColor.CYAN;
-	public static final Color PREDEVAL_COLOR = JBColor.GREEN;
+	/* TODO:
+	 * TER: context-sens is when SLL fails but LL has no conflict in my book
+	 * SLL fail is heuristic though. hmm...
+	 *
+	 * SAM: At the point of LL fallback, mine makes a note of the conflicting
+	 * ATNConfigSet produced by SLL prediction, and then compares that set
+	 * to the result provided by LL prediction. If SLL conflict resolution
+	 * would not have produced the same result as LL prediction, I report
+	 * the decision as context-sensitive.
+	 */
+
+
+	public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
+	public static final Color FULLCTX_COLOR = new Color(255, 128, 0);
+	public static final Color PREDEVAL_COLOR = new Color(110, 139, 61);
+
+	public static final Key<DecisionEventInfo> DECISION_EVENT_INFO_KEY = Key.create("DECISION_EVENT_INFO");
 
 	public Project project;
 	public PreviewState previewState;
@@ -67,6 +99,9 @@ public class ProfilerPanel {
 	protected Splitter splitter;
 	protected JLabel numTokensField;
 	protected JCheckBox expertCheckBox;
+	protected JLabel ambiguityColorLabel;
+	protected JLabel contextSensitivityColorLabel;
+	protected JLabel predEvaluationColorLabel;
 
 	public JPanel getComponent() {
 		return outerPanel;
@@ -173,29 +208,39 @@ public class ProfilerPanel {
 					if (e.getValueIsAdjusting()) {
 						return; // this seems to be "mouse down" but not mouse up
 					}
+					// get state for current grammar editor tab
+					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 					if (previewState != null && project != null) {
 						int selectedRow = profilerDataTable.getSelectedRow();
 						if (selectedRow == -1) {
 							selectedRow = 0;
 						}
 						int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
-						System.out.println("select " + selectedRow + "=>" + decision);
-						selectDecision(previewState, decision);
-						selectAmbiguousPhrases(previewState, decision);
+						int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
+						if (decision <= numberOfDecisions) {
+							selectDecisionInGrammar(previewState, decision);
+							highlightPhrases(previewState, decision);
+						}
 					}
 				}
 			}
 		);
 		selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		ambiguityColorLabel = new JBLabel("Ambiguity");
+		ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);
+		contextSensitivityColorLabel = new JBLabel("Context sensitivity");
+		contextSensitivityColorLabel.setForeground(FULLCTX_COLOR);
+		predEvaluationColorLabel = new JBLabel("Predicate evaluation");
+		predEvaluationColorLabel.setForeground(PREDEVAL_COLOR);
 	}
 
-	public void switchToGrammar(VirtualFile grammarFile) {
+	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		DefaultTableModel model = new DefaultTableModel();
 		profilerDataTable.setModel(model);
 		profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
 	}
 
-	public void selectDecision(PreviewState previewState, int decision) {
+	public void selectDecisionInGrammar(PreviewState previewState, int decision) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		Editor grammarEditor = controller.getCurrentGrammarEditor();
 
@@ -206,11 +251,16 @@ public class ProfilerPanel {
 			return;
 		}
 		SelectionModel selectionModel = grammarEditor.getSelectionModel();
-		CommonToken startToken =
-			(CommonToken) previewState.g.tokenStream.get(region.a);
-		CommonToken stopToken =
-			(CommonToken) previewState.g.tokenStream.get(region.b);
+		org.antlr.runtime.TokenStream tokens = previewState.g.tokenStream;
+		if (region.a >= tokens.size() || region.b >= tokens.size()) {
+//			System.out.println("out of range: " + region + " tokens.size()=" + tokens.size());
+			return;
+		}
+		CommonToken startToken = (CommonToken) tokens.get(region.a);
+		CommonToken stopToken = (CommonToken) tokens.get(region.b);
 		selectionModel.setSelection(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
+
+//		System.out.println("dec " + decision + " from " + startToken + " to " + stopToken);
 
 		ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
 		CaretModel caretModel = grammarEditor.getCaretModel();
@@ -222,14 +272,17 @@ public class ProfilerPanel {
 		markupModel.removeAllHighlighters();
 	}
 
-	public void selectAmbiguousPhrases(PreviewState previewState, int decision) {
-		ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
-		if (decisionInfo.ambiguities.size() == 0) {
+	public void highlightPhrases(PreviewState previewState, int decision) {
+		if (previewState.parsingResult == null) {
 			return;
 		}
-
-		System.out.println("select decision " + decisionInfo.toString());
+		ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
+		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
+		if (decisionInfo.ambiguities.size() == 0 &&
+			decisionInfo.contextSensitivities.size() == 0 &&
+			decisionInfo.predicateEvals.size() == 0) {
+			return;
+		}
 
 		Editor editor = previewState.getEditor();
 		SelectionModel selectionModel = editor.getSelectionModel();
@@ -258,7 +311,31 @@ public class ProfilerPanel {
 					startToken.getStartIndex(), stopToken.getStopIndex() + 1,
 					HighlighterLayer.WARNING, textAttributes,
 					HighlighterTargetArea.EXACT_RANGE);
+			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, ctxSensitivityInfo);
 			rangeHighlighter.setErrorStripeMarkColor(FULLCTX_COLOR);
+		}
+
+		// pred evals
+		for (PredicateContextEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
+			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+			Token startToken = tokens.get(predEvalInfo.startIndex);
+			if (firstToken == null) {
+				firstToken = startToken;
+			}
+			Token stopToken = tokens.get(predEvalInfo.stopIndex);
+			lastToken = stopToken;
+
+			// ambiguities
+			TextAttributes textAttributes =
+				new TextAttributes(JBColor.BLACK, JBColor.WHITE, PREDEVAL_COLOR, EffectType.WAVE_UNDERSCORE, 1);
+			textAttributes.setErrorStripeColor(PREDEVAL_COLOR);
+			final RangeHighlighter rangeHighlighter =
+				markupModel.addRangeHighlighter(
+					startToken.getStartIndex(), stopToken.getStopIndex() + 1,
+					HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
+					HighlighterTargetArea.EXACT_RANGE);
+			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, predEvalInfo);
+			rangeHighlighter.setErrorStripeMarkColor(PREDEVAL_COLOR);
 		}
 
 		// ambiguities (might overlay context-sensitivities)
@@ -280,6 +357,7 @@ public class ProfilerPanel {
 					startToken.getStartIndex(), stopToken.getStopIndex() + 1,
 					HighlighterLayer.ERROR, textAttributes,
 					HighlighterTargetArea.EXACT_RANGE);
+			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, ambiguityInfo);
 			rangeHighlighter.setErrorStripeMarkColor(AMBIGUITY_COLOR);
 		}
 
@@ -376,7 +454,7 @@ public class ProfilerPanel {
 		profilerDataTable.setPreferredScrollableViewportSize(new Dimension(800, 400));
 		scrollPane1.setViewportView(profilerDataTable);
 		statsPanel = new JPanel();
-		statsPanel.setLayout(new GridLayoutManager(9, 3, new Insets(0, 5, 0, 0), -1, -1));
+		statsPanel.setLayout(new GridLayoutManager(12, 3, new Insets(0, 5, 0, 0), -1, -1));
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -396,7 +474,7 @@ public class ProfilerPanel {
 		label4.setText("DFA cache miss rate:");
 		statsPanel.add(label4, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(130, 16), null, 0, false));
 		final Spacer spacer1 = new Spacer();
-		statsPanel.add(spacer1, new GridConstraints(8, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 14), null, 0, false));
+		statsPanel.add(spacer1, new GridConstraints(11, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 14), null, 0, false));
 		final Spacer spacer2 = new Spacer();
 		statsPanel.add(spacer2, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
 		parseTimeField = new JLabel();
@@ -425,6 +503,12 @@ public class ProfilerPanel {
 		statsPanel.add(numTokensField, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		expertCheckBox.setText("Show expert columns");
 		statsPanel.add(expertCheckBox, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		ambiguityColorLabel.setText("Ambiguity");
+		statsPanel.add(ambiguityColorLabel, new GridConstraints(8, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		contextSensitivityColorLabel.setText("Context-sensitivity");
+		statsPanel.add(contextSensitivityColorLabel, new GridConstraints(9, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		predEvaluationColorLabel.setText("Predicate evaluation");
+		statsPanel.add(predEvaluationColorLabel, new GridConstraints(10, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		splitter.setFirstComponent(scrollPane1);
 		splitter.setSecondComponent(statsPanel);
 	}
@@ -446,12 +530,19 @@ public class ProfilerPanel {
 			}
 			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
 			int decision = profilerDataTable.convertRowIndexToModel(row);
-			DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
+			DecisionInfo[] decisions = parseInfo.getDecisionInfo();
+			if (decision >= decisions.length) {
+				return c;
+			}
+			DecisionInfo decisionInfo = decisions[decision];
 			if (decisionInfo.ambiguities.size() > 0) {
 				setForeground(AMBIGUITY_COLOR);
 			}
 			else if (decisionInfo.contextSensitivities.size() > 0) {
 				setForeground(FULLCTX_COLOR);
+			}
+			else if (decisionInfo.predicateEvals.size() > 0) {
+				setForeground(PREDEVAL_COLOR);
 			}
 			return c;
 		}
