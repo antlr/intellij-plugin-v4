@@ -234,29 +234,7 @@ public class ProfilerPanel {
 			return;
 		}
 
-		// context-sensitivities
 		Token firstToken = null;
-		for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
-			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
-			Token startToken = tokens.get(ctxSensitivityInfo.startIndex);
-			if ( firstToken==null ) {
-				firstToken = startToken;
-			}
-			Token stopToken = tokens.get(ctxSensitivityInfo.stopIndex);
-
-			// ambiguities
-			TextAttributes textAttributes =
-				new TextAttributes(JBColor.BLACK, JBColor.WHITE, FULLCTX_COLOR, EffectType.ROUNDED_BOX, Font.PLAIN);
-			textAttributes.setErrorStripeColor(FULLCTX_COLOR);
-			final RangeHighlighter rangeHighlighter =
-				markupModel.addRangeHighlighter(
-					startToken.getStartIndex(), stopToken.getStopIndex()+1,
-					HighlighterLayer.WARNING, textAttributes,
-					HighlighterTargetArea.EXACT_RANGE);
-			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, ctxSensitivityInfo);
-			rangeHighlighter.setErrorStripeMarkColor(FULLCTX_COLOR);
-		}
-
 		// pred evals
 		for (PredicateEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
 			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
@@ -277,6 +255,28 @@ public class ProfilerPanel {
 					HighlighterTargetArea.EXACT_RANGE);
 			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, predEvalInfo);
 			rangeHighlighter.setErrorStripeMarkColor(PREDEVAL_COLOR);
+		}
+
+		// context-sensitivities
+		for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
+			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+			Token startToken = tokens.get(ctxSensitivityInfo.startIndex);
+			if ( firstToken==null ) {
+				firstToken = startToken;
+			}
+			Token stopToken = tokens.get(ctxSensitivityInfo.stopIndex);
+
+			// ambiguities
+			TextAttributes textAttributes =
+				new TextAttributes(JBColor.BLACK, JBColor.WHITE, FULLCTX_COLOR, EffectType.ROUNDED_BOX, Font.PLAIN);
+			textAttributes.setErrorStripeColor(FULLCTX_COLOR);
+			final RangeHighlighter rangeHighlighter =
+				markupModel.addRangeHighlighter(
+					startToken.getStartIndex(), stopToken.getStopIndex()+1,
+					HighlighterLayer.WARNING, textAttributes,
+					HighlighterTargetArea.EXACT_RANGE);
+			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, ctxSensitivityInfo);
+			rangeHighlighter.setErrorStripeMarkColor(FULLCTX_COLOR);
 		}
 
 		// ambiguities (might overlay context-sensitivities)

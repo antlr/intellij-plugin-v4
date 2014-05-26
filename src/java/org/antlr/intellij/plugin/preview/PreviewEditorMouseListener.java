@@ -42,6 +42,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
         else if ( mouseEvent.isAltDown() ) {
             inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), previewState, offset);
         }
+		editor.getMarkupModel().removeAllHighlighters();
 	}
 
 	@Override
