@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.profiler;
 
+import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
 import java.util.LinkedHashMap;
@@ -36,35 +37,36 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 	@Override
     public Object getValueAt(int row, int col) {
         int decision = row;
-        switch (col) { // laborious but more efficient than reflection
+		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
+		switch (col) { // laborious but more efficient than reflection
             case 0:
-                return parseInfo.getDecisionInfo()[decision].decision;
+                return decisionInfo.decision;
             case 1:
-                return parseInfo.getDecisionInfo()[decision].invocations;
+                return decisionInfo.invocations;
             case 2:
-                return (int) (parseInfo.getDecisionInfo()[decision].timeInPrediction / 1000.0 / 1000.0);
+                return (int) (decisionInfo.timeInPrediction / 1000.0 / 1000.0);
             case 3:
                 return parseInfo.getDFASize(decision);
             case 4:
-                return parseInfo.getDecisionInfo()[decision].LL_Fallback;
+                return decisionInfo.LL_Fallback;
             case 5:
-                return parseInfo.getDecisionInfo()[decision].totalLook;
+                return decisionInfo.totalLook;
             case 6:
-                return parseInfo.getDecisionInfo()[decision].minLook;
+                return decisionInfo.minLook;
             case 7:
-                return parseInfo.getDecisionInfo()[decision].maxLook;
+                return decisionInfo.maxLook;
             case 8:
-                return parseInfo.getDecisionInfo()[decision].DFATransitions;
+                return decisionInfo.DFATransitions;
             case 9:
-                return parseInfo.getDecisionInfo()[decision].SLL_ATNTransitions;
+                return decisionInfo.SLL_ATNTransitions;
 			case 10:
-				return parseInfo.getDecisionInfo()[decision].LL_ATNTransitions;
+				return decisionInfo.LL_ATNTransitions;
 			case 11:
-				return parseInfo.getDecisionInfo()[decision].contextSensitivities.size();
+				return decisionInfo.contextSensitivities.size();
 			case 12:
-				return parseInfo.getDecisionInfo()[decision].ambiguities.size();
+				return decisionInfo.ambiguities.size();
 			case 13:
-				return parseInfo.getDecisionInfo()[decision].predicateEvals.size();
+				return decisionInfo.predicateEvals.size();
 		}
 		return "n/a";
 	}

@@ -65,7 +65,11 @@ public class PreviewPanel extends JPanel {
 		return new InputPanel(this);
 	}
 
-    public JTabbedPane createParseTreeAndProfileTabbedPanel() {
+	public ProfilerPanel getProfilerPanel() {
+		return profilerPanel;
+	}
+
+	public JTabbedPane createParseTreeAndProfileTabbedPanel() {
         JBTabbedPane tabbedPane = new JBTabbedPane();
 
         tabbedPane.addTab("Parse tree", createParseTreePanel());

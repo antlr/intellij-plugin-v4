@@ -65,8 +65,8 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 			HintManager.getInstance().hideAllHints();
             inputPanel.showParseRegion(e, editor, previewState, offset);
         }
-		else { // just moving around, show any errors
-			inputPanel.showTooltipsForErrors(editor, previewState, offset);
+		else { // just moving around, show any errors or hints
+			inputPanel.showTooltips(editor, previewState, offset);
 		}
 	}
 

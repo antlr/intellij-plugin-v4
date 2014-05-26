@@ -5,7 +5,14 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.EditorFactoryAdapter;
+import com.intellij.openapi.editor.event.EditorFactoryEvent;
+import com.intellij.openapi.editor.event.EditorMouseAdapter;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -30,13 +37,12 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
-import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -84,7 +90,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		Collections.synchronizedMap(new HashMap<String, PreviewState>());
 	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
-	public ProfilerPanel profilerPanel;
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
 	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
@@ -214,16 +219,18 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			myFileEditorManagerAdapter
 		);
 
-		// for now let's leave the grammar loading in the selectionChanged event
-		// as jetbrains says that I should not rely on event order.
-//		msgBus.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
-//						 new FileEditorManagerListener.Before.Adapter() {
-//							 @Override
-//							 public void beforeFileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-//								 fileOpenedEvent(file);
-//							 }
-//						 }
-//						 );
+		EditorFactory factory = EditorFactory.getInstance();
+		factory.addEditorFactoryListener(
+			new EditorFactoryAdapter() {
+				@Override
+				public void editorCreated(@NotNull EditorFactoryEvent event) {
+					Editor editor = event.getEditor();
+					editor.addEditorMouseListener(
+						new GrammarEditorMouseAdapter()
+					);
+				}
+			}
+		);
 	}
 
 	/** The test ANTLR rule action triggers this event. This can occur
@@ -280,21 +287,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-//	public void fileOpenedEvent(VirtualFile vfile) {
-//		String grammarFileName = vfile.getPath();
-//		LOG.info("fileOpenedEvent "+ grammarFileName+" "+project.getName());
-//		if ( !vfile.getName().endsWith(".g4") ) {
-//			ApplicationManager.getApplication().invokeLater(
-//				new Runnable() {
-//					@Override
-//					public void run() {
-//						previewWindow.hide(null);
-//					}
-//				}
-//			);
-//		}
-//	}
-//
+	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
+		previewPanel.getProfilerPanel().mouseEnteredGrammarEditorEvent(vfile, e);
+	}
+
 	public void editorFileClosedEvent(VirtualFile vfile) {
 		String grammarFileName = vfile.getPath();
 		LOG.info("editorFileClosedEvent "+ grammarFileName+" "+project.getName());
@@ -451,6 +447,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		if ( f.getName().endsWith(".g4") ) return f;
 		return null;
+	}
+
+	private class GrammarEditorMouseAdapter extends EditorMouseAdapter {
+		@Override
+		public void mouseClicked(EditorMouseEvent e) {
+			Document doc = e.getEditor().getDocument();
+			VirtualFile vfile = FileDocumentManager.getInstance().getFile(doc);
+			if ( vfile!=null && vfile.getName().endsWith(".g4") ) {
+				mouseEnteredGrammarEditorEvent(vfile, e);
+			}
+		}
 	}
 
 	private class MyVirtualFileAdapter extends VirtualFileAdapter {
