@@ -14,7 +14,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 
     public static final String[] columnToolTips = {
         "# decision invocations",
-		"Time (ms) spent in prediction",
+		"Rough estimate of time (ms) spent in prediction",
 		"Total lookahead symbols examined",
 		"Max lookahead symbols examined in any decision event",
 		"# of ambiguous input phrases",

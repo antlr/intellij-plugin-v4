@@ -16,7 +16,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public static final String[] columnToolTips = {
         "Decision index",
 		"# decision invocations",
-		"Time (ms) spent in prediction",
+		"Rough estimate of time (ms) spent in prediction",
 		"# DFA states",
 		"# of SLL -> LL prediction failovers",
 		"Total lookahead symbols examined",
