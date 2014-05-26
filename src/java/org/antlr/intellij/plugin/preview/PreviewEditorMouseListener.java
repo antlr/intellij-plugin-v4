@@ -67,7 +67,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
             inputPanel.showParseRegion(e, editor, previewState, offset);
         }
 		else { // just moving around, show any errors or hints
-			inputPanel.showTooltips(editor, previewState, offset);
+			InputPanel.showTooltips(e, editor, previewState, offset);
 		}
 	}
 

@@ -1,12 +1,15 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.codeInsight.hint.HintManager;
+import com.intellij.codeInsight.hint.HintManagerImpl;
+import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
@@ -25,9 +28,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.LightweightHint;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -65,6 +70,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -75,6 +81,8 @@ import java.util.List;
 // Not a view itself but delegates to one.
 
 public class InputPanel {
+	public static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
+
 	private JRadioButton inputRadioButton;
 	private JRadioButton fileRadioButton;
 	private JTextArea placeHolder;
@@ -605,15 +613,13 @@ public class InputPanel {
 	/**
 	 * Display syntax errors, hints in tooltips if under the cursor
 	 */
-	public void showTooltips(Editor editor, @NotNull PreviewState previewState, int offset) {
+	public static void showTooltips(EditorMouseEvent event, Editor editor,
+									@NotNull PreviewState previewState, int offset) {
 		if ( previewState.parsingResult==null ) return; // no results?
 
-		List<SyntaxError> syntaxErrors = previewState.parsingResult.syntaxErrorListener.getSyntaxErrors();
-		SyntaxError errorUnderCursor =
-			ParsingUtils.getErrorUnderCursor(syntaxErrors, offset);
-
 		// Turn off any tooltips if none under the cursor
-		HintManager.getInstance().hideAllHints();
+		HintManagerImpl hintMgr = (HintManagerImpl)HintManager.getInstance();
+		hintMgr.hideAllHints();
 
 		// find the highlighter associated with this error by finding error at this offset
 		MarkupModel markupModel = editor.getMarkupModel();
@@ -655,15 +661,27 @@ public class InputPanel {
 							HintManager.HIDE_BY_TEXT_CHANGE|
 							HintManager.HIDE_BY_SCROLLING;
 					int timeout = 0; // default?
-					HintManager.getInstance().showErrorHint(editor, msg,
-															offset, offset+1,
-															HintManager.ABOVE, flags, timeout);
+
+					JComponent infoLabel = HintUtil.createInformationLabel(msg);
+					LightweightHint hint = new LightweightHint(infoLabel);
+					final LogicalPosition pos = editor.offsetToLogicalPosition(offset);
+					final Point p = HintManagerImpl.getHintPosition(hint, editor, pos, HintManager.ABOVE);
+					hintMgr.showEditorHint(hint, editor, p, flags, timeout, false);
 					return;
 				}
 				else {
 					// error tool tips
+					SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 					String msg = getErrorDisplayString(errorUnderCursor);
-					HintManager.getInstance().showInformationHint(editor, msg);
+					int flags =
+						HintManager.HIDE_BY_ANY_KEY|
+							HintManager.HIDE_BY_TEXT_CHANGE|
+							HintManager.HIDE_BY_SCROLLING;
+					int timeout = 0; // default?
+					hintMgr.showErrorHint(editor, msg,
+										  offset, offset+1,
+										  HintManager.ABOVE, flags, timeout);
+					return;
 				}
 			}
 		}
@@ -688,18 +706,22 @@ public class InputPanel {
 		attr.setForegroundColor(JBColor.RED);
 		attr.setEffectColor(JBColor.RED);
 		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
-		markupModel.addRangeHighlighter(a,
-										b,
-										ERROR_LAYER, // layer
-										attr,
-										HighlighterTargetArea.EXACT_RANGE);
+		RangeHighlighter highlighter =
+			markupModel.addRangeHighlighter(a,
+											b,
+											ERROR_LAYER, // layer
+											attr,
+											HighlighterTargetArea.EXACT_RANGE);
+		highlighter.putUserData(SYNTAX_ERROR, e);
 	}
+
 
 	public static void removeTokenInfoHighlighters(Editor editor) {
 		// Remove any previous underlining or boxing, but not anything else like errors
 		MarkupModel markupModel = editor.getMarkupModel();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null ) {
+			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null&&
+				r.getUserData(SYNTAX_ERROR)==null ) {
 				markupModel.removeHighlighter(r);
 			}
 		}
