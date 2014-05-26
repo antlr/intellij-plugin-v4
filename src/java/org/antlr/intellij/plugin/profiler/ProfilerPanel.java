@@ -37,6 +37,7 @@ import org.antlr.v4.runtime.atn.PredicateEvalInfo;
 import org.antlr.v4.runtime.atn.SemanticContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.tool.Grammar;
+import org.antlr.v4.tool.Rule;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -360,7 +361,15 @@ public class ProfilerPanel {
 	}
 
 	public static String getSemanticContextDisplayString(Grammar g, SemanticContext semctx, int alt, boolean result) {
-		return g.getSemanticContextDisplayString(semctx)+"=>"+alt+" "+result;
+		String semanticContextDisplayString = g.getSemanticContextDisplayString(semctx);
+		if ( semctx instanceof SemanticContext.PrecedencePredicate ) {
+			Rule rule = g.getRule(((SemanticContext.PrecedencePredicate)semctx).ruleIndex);
+			int precedence = ((SemanticContext.PrecedencePredicate)semctx).precedence;
+			// precedence = n - originalAlt + 1, So:
+			int originalAlt = rule.getOriginalNumberOfAlts()-precedence+1;
+			alt = originalAlt;
+		}
+		return semanticContextDisplayString+"=>"+alt+" "+result;
 	}
 
 	{
@@ -513,8 +522,11 @@ public class ProfilerPanel {
 						return; // this seems to be "mouse down" but not mouse up
 					}
 					// get state for current grammar editor tab
+					if ( project==null ) {
+						return;
+					}
 					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-					if ( previewState!=null&&project!=null ) {
+					if ( previewState!=null&&profilerDataTable.getModel().getClass()!=DefaultTableModel.class ) {
 						int selectedRow = profilerDataTable.getSelectedRow();
 						if ( selectedRow==-1 ) {
 							selectedRow = 0;
