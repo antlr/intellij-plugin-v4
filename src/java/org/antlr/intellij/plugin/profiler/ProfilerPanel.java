@@ -54,6 +54,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -369,7 +370,7 @@ public class ProfilerPanel {
 			int originalAlt = rule.getOriginalNumberOfAlts()-precedence+1;
 			alt = originalAlt;
 		}
-		return semanticContextDisplayString+"=>"+alt+" "+result;
+		return semanticContextDisplayString+" => alt "+alt+" is "+result;
 	}
 
 	{
@@ -502,7 +503,11 @@ public class ProfilerPanel {
 						Point p = e.getPoint();
 						int index = columnModel.getColumnIndexAtX(p.x);
 						int realIndex = columnModel.getColumn(index).getModelIndex();
-						return getModel().getColumnName(realIndex);
+						TableModel model = getModel();
+						if ( model instanceof ProfilerTableDataModel ) {
+							return ((ProfilerTableDataModel)model).getColumnToolTips()[realIndex];
+						}
+						return model.getColumnName(realIndex);
 					}
 				};
 			}

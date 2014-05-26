@@ -13,7 +13,12 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
     };
 
     public static final String[] columnToolTips = {
-            "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
+        "# decision invocations",
+		"Time (ms) spent in prediction",
+		"Total lookahead symbols examined",
+		"Max lookahead symbols examined in any decision event",
+		"# of ambiguous input phrases",
+		"# of non-DFA transitions during prediction (cache miss)"
     };
 
     public SimpleProfilerTableDataModel(ParseInfo parseInfo) {
@@ -26,6 +31,11 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	@Override
 	public String[] getColumnNames() {
 		return columnNames;
+	}
+
+	@Override
+	public String[] getColumnToolTips() {
+		return columnToolTips;
 	}
 
 	@Override

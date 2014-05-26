@@ -9,13 +9,25 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
     public static final String[] columnNames = {
-        "Decision", "Invocations", "Time (ms)", "# DFA states", "LL failover", "Total k", "Min k", "Max k",
+        "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k", "Min k", "Max k",
         "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
     };
 
     public static final String[] columnToolTips = {
-        "Decision", "Invocations", "Time (ms)", "# DFA states", "Full context", "Total k", "Min k", "Max k",
-        "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
+        "Decision index",
+		"# decision invocations",
+		"Time (ms) spent in prediction",
+		"# DFA states",
+		"# of SLL -> LL prediction failovers",
+		"Total lookahead symbols examined",
+		"Fewest lookahead symbols examined in any decision event",
+		"Max lookahead symbols examined in any decision event",
+        "# of DFA transitions during prediction (cache hit)",
+		"# of conventional SLL ATN (non-DFA) transitions during prediction (cache miss)",
+		"# of full-context LL ATN (non-DFA) transitions during prediction (cache miss)",
+		"# of (likely) context-sensitive phrases",
+		"# of ambiguous input phrases",
+		"# of predicate evaluations"
     };
 
     public ExpertProfilerTableDataModel(ParseInfo parseInfo) {
@@ -27,6 +39,11 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 
 	public String[] getColumnNames() {
 		return columnNames;
+	}
+
+	@Override
+	public String[] getColumnToolTips() {
+		return columnToolTips;
 	}
 
 	@Override

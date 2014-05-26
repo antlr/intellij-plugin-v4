@@ -629,10 +629,10 @@ public class InputPanel {
 					// TODO: move decision event stuff to profiler?
 					String msg;
 					if ( eventInfo instanceof AmbiguityInfo ) {
-						msg = "ambiguity";
+						msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
 					}
 					else if ( eventInfo instanceof ContextSensitivityInfo ) {
-						msg = "context-sensitive";
+						msg = "Likely context-sensitive";
 					}
 					else if ( eventInfo instanceof PredicateEvalInfo ) {
 						PredicateEvalInfo pred = (PredicateEvalInfo)eventInfo;
@@ -648,7 +648,7 @@ public class InputPanel {
 						msg = buf.toString();
 					}
 					else {
-						msg = "unknown decision event: "+eventInfo;
+						msg = "Unknown decision event: "+eventInfo;
 					}
 					int flags =
 						HintManager.HIDE_BY_ANY_KEY|

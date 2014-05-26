@@ -5,6 +5,7 @@ import javax.swing.table.AbstractTableModel;
 public abstract class ProfilerTableDataModel extends AbstractTableModel {
 
 	public abstract String[] getColumnNames();
+	public abstract String[] getColumnToolTips();
 
 	@Override
     public String getColumnName(int column) {
