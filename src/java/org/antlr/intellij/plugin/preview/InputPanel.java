@@ -50,6 +50,7 @@ import org.antlr.v4.runtime.atn.DecisionEventInfo;
 import org.antlr.v4.runtime.atn.PredicateEvalInfo;
 import org.antlr.v4.runtime.dfa.DFAState;
 import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -75,6 +76,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -82,6 +84,7 @@ import java.util.List;
 
 public class InputPanel {
 	public static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
+	public static final int MAX_STACK_DISPLAY = 30;
 
 	private JRadioButton inputRadioButton;
 	private JRadioButton fileRadioButton;
@@ -499,8 +502,35 @@ public class InputPanel {
 		List<String> stack = parser.getRuleInvocationStack(parent);
 		Collections.reverse(stack);
 
+		if ( stack.size()>MAX_STACK_DISPLAY ) {
+			// collapse contiguous dups to handle left-recursive stacks
+			List<Pair<String, Integer>> smaller = new ArrayList<Pair<String, Integer>>();
+			int last = 0;
+			smaller.add(new Pair<String, Integer>(stack.get(0), 1)); // init to having first element, count of 1
+			for (int i = 1; i<stack.size(); i++) {
+				String s = stack.get(i);
+				if ( smaller.get(last).a.equals(s) ) {
+					smaller.set(last, new Pair<String, Integer>(s, smaller.get(last).b+1));
+				}
+				else {
+					smaller.add(new Pair<String, Integer>(s, 1));
+					last++;
+				}
+			}
+			stack = new ArrayList<String>();
+			for (int i = 0; i<smaller.size(); i++) {
+				Pair<String, Integer> pair = smaller.get(i);
+				if ( pair.b>1 ) {
+					stack.add(pair.a+"^"+pair.b);
+				}
+				else {
+					stack.add(pair.a);
+				}
+			}
+		}
+		String stackS = Utils.join(stack.toArray(), "\n");
 		highlightAndOfferHint(editor, offset, sourceInterval,
-							  JBColor.BLUE, EffectType.ROUNDED_BOX, Utils.join(stack.toArray(), "\n"));
+							  JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
 
 
 		// Code for a pop up list with selectable elements
