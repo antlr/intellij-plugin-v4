@@ -45,7 +45,7 @@ public class PreviewPanel extends JPanel {
 		this.setLayout(new BorderLayout());
 
 		// Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
-		Splitter splitPane = new Splitter();
+		Splitter splitPane = new Splitter(false,0.65f);
 		inputPanel = getEditorPanel();
 		splitPane.setFirstComponent(inputPanel.getComponent());
 		splitPane.setSecondComponent(createParseTreePanel());
