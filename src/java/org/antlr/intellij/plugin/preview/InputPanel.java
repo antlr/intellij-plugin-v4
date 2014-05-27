@@ -653,68 +653,90 @@ public class InputPanel {
 
 		// find the highlighter associated with this error by finding error at this offset
 		MarkupModel markupModel = editor.getMarkupModel();
-		int i = 1;
+		// collect all highlighters and combine to make a single tool tip
+		List<RangeHighlighter> highlightersAtOffset = new ArrayList<RangeHighlighter>();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			int a = r.getStartOffset();
 			int b = r.getEndOffset();
 //			System.out.printf("#%d: %d..%d %s\n", i, a, b, r.toString());
-			i++;
 			if ( offset>=a&&offset<b ) { // cursor is over some kind of highlighting
-				DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
-				if ( eventInfo!=null ) {
-					// TODO: move decision event stuff to profiler?
-					String msg;
-					if ( eventInfo instanceof AmbiguityInfo ) {
-						msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
-					}
-					else if ( eventInfo instanceof ContextSensitivityInfo ) {
-						msg = "Likely context-sensitive";
-					}
-					else if ( eventInfo instanceof PredicateEvalInfo ) {
-						PredicateEvalInfo pred = (PredicateEvalInfo)eventInfo;
-						StringBuilder buf = new StringBuilder();
-						for (int p = 0; p<pred.dfaState.predicates.length; p++) {
-							DFAState.PredPrediction pair = pred.dfaState.predicates[p];
-							String s = ProfilerPanel.getSemanticContextDisplayString(previewState.g,
-																					 pair.pred, pair.alt,
-																					 pred.evalResults[p]);
-							buf.append(s);
-							buf.append("\n");
-						}
-						msg = buf.toString();
-					}
-					else {
-						msg = "Unknown decision event: "+eventInfo;
-					}
-					int flags =
-						HintManager.HIDE_BY_ANY_KEY|
-							HintManager.HIDE_BY_TEXT_CHANGE|
-							HintManager.HIDE_BY_SCROLLING;
-					int timeout = 0; // default?
-
-					JComponent infoLabel = HintUtil.createInformationLabel(msg);
-					LightweightHint hint = new LightweightHint(infoLabel);
-					final LogicalPosition pos = editor.offsetToLogicalPosition(offset);
-					final Point p = HintManagerImpl.getHintPosition(hint, editor, pos, HintManager.ABOVE);
-					hintMgr.showEditorHint(hint, editor, p, flags, timeout, false);
-					return;
-				}
-				else {
-					// error tool tips
-					SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
-					String msg = getErrorDisplayString(errorUnderCursor);
-					int flags =
-						HintManager.HIDE_BY_ANY_KEY|
-							HintManager.HIDE_BY_TEXT_CHANGE|
-							HintManager.HIDE_BY_SCROLLING;
-					int timeout = 0; // default?
-					hintMgr.showErrorHint(editor, msg,
-										  offset, offset+1,
-										  HintManager.ABOVE, flags, timeout);
-					return;
-				}
+				highlightersAtOffset.add(r);
 			}
 		}
+		if ( highlightersAtOffset.size()==0 ) {
+			return;
+		}
+
+		List<String> msgList = new ArrayList<String>();
+		boolean foundDecisionEvent = false;
+		for (int i = 0; i<highlightersAtOffset.size(); i++) {
+			RangeHighlighter r = highlightersAtOffset.get(i);
+			DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
+			String msg;
+			if ( eventInfo!=null ) {
+				// TODO: move decision event stuff to profiler?
+				if ( eventInfo instanceof AmbiguityInfo ) {
+					msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
+				}
+				else if ( eventInfo instanceof ContextSensitivityInfo ) {
+					msg = "Likely context-sensitive";
+				}
+				else if ( eventInfo instanceof PredicateEvalInfo ) {
+					PredicateEvalInfo pred = (PredicateEvalInfo)eventInfo;
+					StringBuilder buf = new StringBuilder();
+					for (int p = 0; p<pred.dfaState.predicates.length; p++) {
+						if ( p>0 ) buf.append("\n");
+						DFAState.PredPrediction pair = pred.dfaState.predicates[p];
+						String s = ProfilerPanel.getSemanticContextDisplayString(previewState.g,
+																				 pair.pred, pair.alt,
+																				 pred.evalResults[p]);
+						buf.append(s);
+					}
+					msg = buf.toString();
+				}
+				else {
+					msg = "Unknown decision event: "+eventInfo;
+				}
+				foundDecisionEvent = true;
+			}
+			else {
+				// error tool tips
+				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
+				msg = getErrorDisplayString(errorUnderCursor);
+			}
+			msgList.add(msg);
+		}
+		String combinedMsg = Utils.join(msgList.iterator(), "\n");
+		if ( foundDecisionEvent ) {
+			showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg.toString());
+		}
+		else {
+			showPreviewEditorErrorToolTip(editor, offset, hintMgr, combinedMsg.toString());
+		}
+	}
+
+	public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
+		int flags =
+			HintManager.HIDE_BY_ANY_KEY|
+				HintManager.HIDE_BY_TEXT_CHANGE|
+				HintManager.HIDE_BY_SCROLLING;
+		int timeout = 0; // default?
+		hintMgr.showErrorHint(editor, msg,
+							  offset, offset+1,
+							  HintManager.ABOVE, flags, timeout);
+	}
+
+	public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
+		int flags =
+			HintManager.HIDE_BY_ANY_KEY|
+				HintManager.HIDE_BY_TEXT_CHANGE|
+				HintManager.HIDE_BY_SCROLLING;
+		int timeout = 0; // default?
+		JComponent infoLabel = HintUtil.createInformationLabel(msg);
+		LightweightHint hint = new LightweightHint(infoLabel);
+		final LogicalPosition pos = editor.offsetToLogicalPosition(offset);
+		final Point p = HintManagerImpl.getHintPosition(hint, editor, pos, HintManager.ABOVE);
+		hintMgr.showEditorHint(hint, editor, p, flags, timeout, false);
 	}
 
 	public void annotateErrorsInPreviewInputEditor(VirtualFile grammarFile, SyntaxError e) {

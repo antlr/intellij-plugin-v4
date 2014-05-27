@@ -237,70 +237,26 @@ public class ProfilerPanel {
 		Token firstToken = null;
 		// pred evals
 		for (PredicateEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
-			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
-			Token startToken = tokens.get(predEvalInfo.startIndex);
-			if ( firstToken==null ) {
-				firstToken = startToken;
-			}
-			Token stopToken = tokens.get(predEvalInfo.stopIndex);
-
-			// ambiguities
-			TextAttributes textAttributes =
-				new TextAttributes(JBColor.BLACK, JBColor.WHITE, PREDEVAL_COLOR, EffectType.ROUNDED_BOX, Font.PLAIN);
-			textAttributes.setErrorStripeColor(PREDEVAL_COLOR);
-			final RangeHighlighter rangeHighlighter =
-				markupModel.addRangeHighlighter(
-					startToken.getStartIndex(), stopToken.getStopIndex()+1,
-					HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
-					HighlighterTargetArea.EXACT_RANGE);
-			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, predEvalInfo);
-			rangeHighlighter.setErrorStripeMarkColor(PREDEVAL_COLOR);
+			Token t = addDecisionEventHighlighter(previewState, markupModel, predEvalInfo, PREDEVAL_COLOR);
+			if ( firstToken==null ) firstToken = t;
 		}
 
 		// context-sensitivities
 		for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
-			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
-			Token startToken = tokens.get(ctxSensitivityInfo.startIndex);
-			if ( firstToken==null ) {
-				firstToken = startToken;
-			}
-			Token stopToken = tokens.get(ctxSensitivityInfo.stopIndex);
-
-			// ambiguities
-			TextAttributes textAttributes =
-				new TextAttributes(JBColor.BLACK, JBColor.WHITE, FULLCTX_COLOR, EffectType.ROUNDED_BOX, Font.PLAIN);
-			textAttributes.setErrorStripeColor(FULLCTX_COLOR);
-			final RangeHighlighter rangeHighlighter =
-				markupModel.addRangeHighlighter(
-					startToken.getStartIndex(), stopToken.getStopIndex()+1,
-					HighlighterLayer.WARNING, textAttributes,
-					HighlighterTargetArea.EXACT_RANGE);
-			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, ctxSensitivityInfo);
-			rangeHighlighter.setErrorStripeMarkColor(FULLCTX_COLOR);
+			Token t = addDecisionEventHighlighter(previewState, markupModel, ctxSensitivityInfo, FULLCTX_COLOR);
+			if ( firstToken==null ) firstToken = t;
 		}
 
 		// ambiguities (might overlay context-sensitivities)
 		for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
-			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
-			Token startToken = tokens.get(ambiguityInfo.startIndex);
-			if ( firstToken==null ) {
-				firstToken = startToken;
-			}
-			Token stopToken = tokens.get(ambiguityInfo.stopIndex);
-
-			TextAttributes textAttributes =
-				new TextAttributes(JBColor.BLACK, JBColor.WHITE, AMBIGUITY_COLOR, EffectType.ROUNDED_BOX, Font.PLAIN);
-			textAttributes.setErrorStripeColor(AMBIGUITY_COLOR);
-			final RangeHighlighter rangeHighlighter =
-				markupModel.addRangeHighlighter(
-					startToken.getStartIndex(), stopToken.getStopIndex()+1,
-					HighlighterLayer.ERROR, textAttributes,
-					HighlighterTargetArea.EXACT_RANGE);
-			rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, ambiguityInfo);
-			rangeHighlighter.setErrorStripeMarkColor(AMBIGUITY_COLOR);
+			Token t = addDecisionEventHighlighter(previewState, markupModel, ambiguityInfo, AMBIGUITY_COLOR);
+			if ( firstToken==null ) firstToken = t;
 		}
 
 		if ( firstToken!=null ) {
+			caretModel.moveToOffset(firstToken.getStartIndex());
+			scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+
 //			rangeHighlighter.setLineMarkerRenderer(
 //				new LineMarkerRenderer() {
 //					@Override
@@ -355,10 +311,26 @@ public class ProfilerPanel {
 //                    }},
 //                    AMBIGUITY_COLOR
 //            );
-
-			caretModel.moveToOffset(firstToken.getStartIndex());
-			scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
 		}
+	}
+
+	public Token addDecisionEventHighlighter(PreviewState previewState, MarkupModel markupModel,
+											 DecisionEventInfo info, Color errorStripeColor)
+	{
+		TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+		Token startToken = tokens.get(info.startIndex);
+		Token stopToken = tokens.get(info.stopIndex);
+		TextAttributes textAttributes =
+			new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor, EffectType.ROUNDED_BOX, Font.PLAIN);
+		textAttributes.setErrorStripeColor(errorStripeColor);
+		final RangeHighlighter rangeHighlighter =
+			markupModel.addRangeHighlighter(
+				startToken.getStartIndex(), stopToken.getStopIndex()+1,
+				HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
+				HighlighterTargetArea.EXACT_RANGE);
+		rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, info);
+		rangeHighlighter.setErrorStripeMarkColor(errorStripeColor);
+		return startToken;
 	}
 
 	public static String getSemanticContextDisplayString(Grammar g, SemanticContext semctx, int alt, boolean result) {
