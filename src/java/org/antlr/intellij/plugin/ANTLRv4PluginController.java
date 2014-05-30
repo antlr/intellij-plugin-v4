@@ -368,6 +368,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
 
+		previewPanel.getProfilerPanel().tagAmbiguousDecisionsInGrammar(previewState);
+
 		return previewState.parsingResult;
 	}
 
