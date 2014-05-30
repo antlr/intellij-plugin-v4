@@ -47,6 +47,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.ContextSensitivityInfo;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
+import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.atn.PredicateEvalInfo;
 import org.antlr.v4.runtime.dfa.DFAState;
 import org.antlr.v4.runtime.misc.Interval;
@@ -680,6 +681,10 @@ public class InputPanel {
 				}
 				else if ( eventInfo instanceof ContextSensitivityInfo ) {
 					msg = "Likely context-sensitive";
+				}
+				else if ( eventInfo instanceof LookaheadEventInfo ) {
+					int k = eventInfo.stopIndex-eventInfo.startIndex+1;
+					msg = "Deepest lookahead k="+k;
 				}
 				else if ( eventInfo instanceof PredicateEvalInfo ) {
 					PredicateEvalInfo pred = (PredicateEvalInfo)eventInfo;

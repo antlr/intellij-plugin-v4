@@ -83,6 +83,7 @@ public class ProfilerPanel {
 	public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
 	public static final Color FULLCTX_COLOR = new Color(255, 128, 0);
 	public static final Color PREDEVAL_COLOR = new Color(110, 139, 61);
+	public static final Color DEEPESTLOOK_COLOR = new Color(0, 128, 128);
 
 	public static final Key<DecisionEventInfo> DECISION_EVENT_INFO_KEY = Key.create("DECISION_EVENT_INFO");
 
@@ -102,6 +103,7 @@ public class ProfilerPanel {
 	protected JLabel contextSensitivityColorLabel;
 	protected JLabel predEvaluationColorLabel;
 	protected JBTable profilerDataTable;
+	protected JLabel deepestLookaheadLabel;
 
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		DefaultTableModel model = new DefaultTableModel();
@@ -273,59 +275,41 @@ public class ProfilerPanel {
 		markupModel.removeAllHighlighters();
 
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
-		if ( decisionInfo.ambiguities.size()==0&&
-			decisionInfo.contextSensitivities.size()==0&&
-			decisionInfo.predicateEvals.size()==0 ) {
-			return;
-		}
 
 		Token firstToken = null;
-		// pred evals
-		for (PredicateEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
-			Token t = addDecisionEventHighlighter(previewState, markupModel, predEvalInfo, PREDEVAL_COLOR);
-			if ( firstToken==null ) firstToken = t;
-		}
-
-		// context-sensitivities
-		for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
-			Token t = addDecisionEventHighlighter(previewState, markupModel, ctxSensitivityInfo, FULLCTX_COLOR);
-			if ( firstToken==null ) firstToken = t;
-		}
-
-		// ambiguities (might overlay context-sensitivities)
-		for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
-			Token t = addDecisionEventHighlighter(previewState, markupModel, ambiguityInfo, AMBIGUITY_COLOR);
-			if ( firstToken==null ) firstToken = t;
-		}
-
-		if ( firstToken!=null ) {
-			caretModel.moveToOffset(firstToken.getStartIndex());
-			scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
-
+		// deepest lookahead
+		if ( decisionInfo.maxLookEvent!=null&&
+			(decisionInfo.maxLookEvent.stopIndex-decisionInfo.maxLookEvent.startIndex+1)>1 ) // ignore k=1
+		{
+			Token t = addDecisionEventHighlighter(previewState, markupModel,
+												  decisionInfo.maxLookEvent,
+												  DEEPESTLOOK_COLOR,
+												  EffectType.BOLD_DOTTED_LINE);
+			firstToken = t;
 //			rangeHighlighter.setLineMarkerRenderer(
 //				new LineMarkerRenderer() {
 //					@Override
 //					public void paint(Editor editor, Graphics g, Rectangle r) {
 //						// draws left gutter range like for brace highlighting
-//						final EditorGutterComponentEx gutter = ((EditorEx) editor).getGutterComponentEx();
-//						g.setColor(AMBIGUITY_COLOR);
+//						final EditorGutterComponentEx gutter = ((EditorEx)editor).getGutterComponentEx();
+//						g.setColor(DEEPESTLOOK_COLOR);
 //
 //						final int endX = gutter.getWhitespaceSeparatorOffset();
-//						final int x = r.x + r.width - 5;
-//						final int width = endX - x;
-//						if (r.height > 0) {
+//						final int x = r.x+r.width-5;
+//						final int width = endX-x;
+//						if ( r.height>0 ) {
 //							g.fillRect(x, r.y, width, r.height);
 //							g.setColor(gutter.getOutlineColor(false));
-//							UIUtil.drawLine(g, x, r.y, x + width, r.y);
-//							UIUtil.drawLine(g, x, r.y, x, r.y + r.height - 1);
-//							UIUtil.drawLine(g, x, r.y + r.height - 1, x + width, r.y + r.height - 1);
+//							UIUtil.drawLine(g, x, r.y, x+width, r.y);
+//							UIUtil.drawLine(g, x, r.y, x, r.y+r.height-1);
+//							UIUtil.drawLine(g, x, r.y+r.height-1, x+width, r.y+r.height-1);
 //						}
 //						else {
 //							final int[] xPoints = new int[]{x,
 //								x,
-//								x + width - 1};
-//							final int[] yPoints = new int[]{r.y - 4,
-//								r.y + 4,
+//								x+width-1};
+//							final int[] yPoints = new int[]{r.y-4,
+//								r.y+4,
 //								r.y};
 //							g.fillPolygon(xPoints, yPoints, 3);
 //
@@ -335,6 +319,36 @@ public class ProfilerPanel {
 //					}
 //				}
 //			);
+		}
+
+		if ( decisionInfo.ambiguities.size()==0&&
+			decisionInfo.contextSensitivities.size()==0&&
+			decisionInfo.predicateEvals.size()==0&&
+			decisionInfo.maxLookEvent==null ) {
+			return;
+		}
+
+		// pred evals
+		for (PredicateEvalInfo predEvalInfo : decisionInfo.predicateEvals) {
+			Token t = addDecisionEventHighlighter(previewState, markupModel, predEvalInfo, PREDEVAL_COLOR, EffectType.ROUNDED_BOX);
+			if ( firstToken==null ) firstToken = t;
+		}
+
+		// context-sensitivities
+		for (ContextSensitivityInfo ctxSensitivityInfo : decisionInfo.contextSensitivities) {
+			Token t = addDecisionEventHighlighter(previewState, markupModel, ctxSensitivityInfo, FULLCTX_COLOR, EffectType.ROUNDED_BOX);
+			if ( firstToken==null ) firstToken = t;
+		}
+
+		// ambiguities (might overlay context-sensitivities)
+		for (AmbiguityInfo ambiguityInfo : decisionInfo.ambiguities) {
+			Token t = addDecisionEventHighlighter(previewState, markupModel, ambiguityInfo, AMBIGUITY_COLOR, EffectType.ROUNDED_BOX);
+			if ( firstToken==null ) firstToken = t;
+		}
+
+		if ( firstToken!=null ) {
+			caretModel.moveToOffset(firstToken.getStartIndex());
+			scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
 
 //			HighlightManager.getInstance(project).addRangeHighlight(
 //				editor,
@@ -360,12 +374,15 @@ public class ProfilerPanel {
 	}
 
 	public Token addDecisionEventHighlighter(PreviewState previewState, MarkupModel markupModel,
-											 DecisionEventInfo info, Color errorStripeColor) {
+											 DecisionEventInfo info, Color errorStripeColor,
+											 EffectType effectType)
+	{
 		TokenStream tokens = previewState.parsingResult.parser.getInputStream();
 		Token startToken = tokens.get(info.startIndex);
 		Token stopToken = tokens.get(info.stopIndex);
 		TextAttributes textAttributes =
-			new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor, EffectType.ROUNDED_BOX, Font.PLAIN);
+			new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor,
+							   effectType, Font.PLAIN);
 		textAttributes.setErrorStripeColor(errorStripeColor);
 		final RangeHighlighter rangeHighlighter =
 			markupModel.addRangeHighlighter(
@@ -451,7 +468,7 @@ public class ProfilerPanel {
 		numTokensField.setText("0");
 		statsPanel.add(numTokensField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		final JPanel panel1 = new JPanel();
-		panel1.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+		panel1.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
 		statsPanel.add(panel1, new GridConstraints(7, 0, 4, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
 		panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), null));
 		ambiguityColorLabel.setText("Ambiguity");
@@ -460,7 +477,8 @@ public class ProfilerPanel {
 		panel1.add(contextSensitivityColorLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		predEvaluationColorLabel.setText("Predicate evaluation");
 		panel1.add(predEvaluationColorLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-		expertCheckBox = new JCheckBox();
+		deepestLookaheadLabel.setText("Deepest lookahead");
+		panel1.add(deepestLookaheadLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		expertCheckBox.setText("Show expert columns");
 		statsPanel.add(expertCheckBox, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		final JScrollPane scrollPane1 = new JScrollPane();
@@ -572,6 +590,8 @@ public class ProfilerPanel {
 		contextSensitivityColorLabel.setForeground(FULLCTX_COLOR);
 		predEvaluationColorLabel = new JBLabel("Predicate evaluation");
 		predEvaluationColorLabel.setForeground(PREDEVAL_COLOR);
+		deepestLookaheadLabel = new JBLabel("Deepest lookahead");
+		deepestLookaheadLabel.setForeground(DEEPESTLOOK_COLOR);
 	}
 
 }
