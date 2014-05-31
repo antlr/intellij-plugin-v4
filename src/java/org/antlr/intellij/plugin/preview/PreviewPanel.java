@@ -10,9 +10,11 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
+import org.antlr.v4.tool.Rule;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -111,7 +113,34 @@ public class PreviewPanel extends JPanel {
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
-		switchToGrammar(null, grammarFile);
+		ensureStartRuleExists(grammarFile);
+		String grammarFileName = grammarFile.getPath();
+		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+
+		inputPanel.grammarFileSaved(grammarFile);
+
+		if ( previewState.startRuleName!=null ) {
+			updateParseTreeFromDoc(grammarFile);
+		}
+		else {
+			setParseTree(Collections.<String>emptyList(), null); // blank tree
+		}
+
+		profilerPanel.grammarFileSaved(previewState, grammarFile);
+	}
+
+	public void ensureStartRuleExists(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		// if start rule no longer exists, reset display/state.
+		if ( previewState.g!=ParsingUtils.BAD_PARSER_GRAMMAR && previewState.startRuleName!=null ) {
+			Rule rule = previewState.g.getRule(previewState.startRuleName);
+			if ( rule==null ) {
+				previewState.startRuleName = null;
+				inputPanel.resetStartRuleLabel();
+			}
+		}
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */

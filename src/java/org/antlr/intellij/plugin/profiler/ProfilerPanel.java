@@ -105,6 +105,10 @@ public class ProfilerPanel {
 	protected JBTable profilerDataTable;
 	protected JLabel deepestLookaheadLabel;
 
+	public void grammarFileSaved(PreviewState previewState, VirtualFile grammarFile) {
+		// leave model and such alone.
+	}
+
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		DefaultTableModel model = new DefaultTableModel();
 		profilerDataTable.setModel(model);

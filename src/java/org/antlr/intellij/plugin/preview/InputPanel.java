@@ -321,6 +321,10 @@ public class InputPanel {
 		return editor;
 	}
 
+	public void grammarFileSaved(VirtualFile grammarFile) {
+		clearParseErrors(grammarFile);
+	}
+
 	public void switchToGrammar(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar "+grammarFileName+" "+previewPanel.project.getName());
@@ -691,7 +695,8 @@ public class InputPanel {
 					for (int p = 0; p<pred.dfaState.predicates.length; p++) {
 						if ( p>0 ) buf.append("\n");
 						DFAState.PredPrediction pair = pred.dfaState.predicates[p];
-						String s = ProfilerPanel.getSemanticContextDisplayString(previewState.g,
+						String s = ProfilerPanel.getSemanticContextDisplayString(pred,
+																				 previewState,
 																				 pair.pred, pair.alt,
 																				 pred.evalResults[p]);
 						buf.append(s);
