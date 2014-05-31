@@ -650,7 +650,6 @@ public class InputPanel {
 
 		// Turn off any tooltips if none under the cursor
 		HintManagerImpl hintMgr = (HintManagerImpl)HintManager.getInstance();
-		hintMgr.hideAllHints();
 
 		// find the highlighter associated with this error by finding error at this offset
 		MarkupModel markupModel = editor.getMarkupModel();
