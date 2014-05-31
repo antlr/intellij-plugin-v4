@@ -394,10 +394,17 @@ public class ProfilerPanel {
 		return startToken;
 	}
 
-	public static String getSemanticContextDisplayString(Grammar g, SemanticContext semctx, int alt, boolean result) {
+	public static String getSemanticContextDisplayString(PredicateEvalInfo pred,
+														 PreviewState previewState,
+														 SemanticContext semctx,
+														 int alt,
+														 boolean result)
+	{
+		Grammar g = previewState.g;
 		String semanticContextDisplayString = g.getSemanticContextDisplayString(semctx);
 		if ( semctx instanceof SemanticContext.PrecedencePredicate ) {
-			Rule rule = g.getRule(((SemanticContext.PrecedencePredicate)semctx).ruleIndex);
+			int ruleIndex = previewState.parsingResult.parser.getATN().decisionToState.get(pred.decision).ruleIndex;
+			Rule rule = g.getRule(ruleIndex);
 			int precedence = ((SemanticContext.PrecedencePredicate)semctx).precedence;
 			// precedence = n - originalAlt + 1, So:
 			int originalAlt = rule.getOriginalNumberOfAlts()-precedence+1;
