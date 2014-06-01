@@ -270,9 +270,7 @@ public class InputPanel {
 		settings.setWhitespacesShown(true);
 		settings.setLineNumbersShown(true);
 		settings.setLineMarkerAreaShown(true);
-
-		editor.addEditorMouseMotionListener(editorMouseListener);
-		editor.addEditorMouseListener(editorMouseListener);
+		installListeners(editor);
 
 //		EditorGutter gutter = editor.getGutter();
 //		gutter.registerTextAnnotation(
@@ -377,11 +375,23 @@ public class InputPanel {
 	}
 
 	public void releaseEditor(PreviewState previewState) {
+		uninstallListeners(previewState.getEditor());
+
 		// release the editor
 		previewState.releaseEditor();
 
 		// restore the GUI
 		setEditorComponent(placeHolder);
+	}
+
+	public void installListeners(Editor editor) {
+		editor.addEditorMouseMotionListener(editorMouseListener);
+		editor.addEditorMouseListener(editorMouseListener);
+	}
+
+	public void uninstallListeners(Editor editor) {
+		editor.removeEditorMouseListener(editorMouseListener);
+		editor.removeEditorMouseMotionListener(editorMouseListener);
 	}
 
 	public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {

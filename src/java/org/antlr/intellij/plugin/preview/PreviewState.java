@@ -46,8 +46,8 @@ public class PreviewState {
 	}
 
 	public synchronized void releaseEditor() {
-		// It would appear that the project closed event occurs before these close grammars. Very strange.
-		// check for null editor.
+		// It would appear that the project closed event occurs before these
+		// close grammars sometimes. Very strange. check for null editor.
 		if (editor != null) {
 			final EditorFactory factory = EditorFactory.getInstance();
 			factory.releaseEditor(editor);

@@ -20,7 +20,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
@@ -39,7 +39,6 @@ import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
-import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JComponent;
@@ -62,6 +61,7 @@ import java.util.Map;
  *  the grammars and editors are consistently associated with the same window.
  */
 public class ANTLRv4PluginController implements ProjectComponent {
+	public static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
 
 	static {
@@ -189,6 +189,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	// seems that intellij can kill and reload a project w/o user knowing.
 	// a ptr was left around that pointed at a disposed project. led to
 	// problem in switchGrammar. Probably was a listener still attached and trigger
+	// editor listeners released in editorReleased() events.
 	public void uninstallListeners() {
 		VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
 		MessageBusConnection msgBus = project.getMessageBus().connect(project);
@@ -225,9 +226,21 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				@Override
 				public void editorCreated(@NotNull EditorFactoryEvent event) {
 					Editor editor = event.getEditor();
-					editor.addEditorMouseListener(
-						new GrammarEditorMouseAdapter()
-					);
+					GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
+					editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
+					editor.addEditorMouseListener(listener);
+				}
+
+				@Override
+				public void editorReleased(@NotNull EditorFactoryEvent event) {
+					Editor editor = event.getEditor();
+					GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
+					if ( editor.getProject()!=null && editor.getProject()!=project ) {
+						return;
+					}
+					if ( listener!=null ) {
+						editor.removeEditorMouseListener(listener);
+					}
 				}
 			}
 		);
@@ -313,16 +326,18 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewWindow.hide(null);
 	}
 
+	/** Make sure to run after updating grammars in previewState */
 	public void runANTLRTool(final VirtualFile grammarFile) {
 		LOG.info("runANTLRTool launch on "+grammarFile.getPath()+" "+project.getName());
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
+		boolean forceGeneration = false;
 		Task.Backgroundable gen =
 			new RunANTLROnGrammarFile(grammarFile,
 									  project,
 									  title,
 									  canBeCancelled,
-									  new BackgroundFromStartOption());
+									  forceGeneration);
 		ProgressManager.getInstance().run(gen);
 	}
 
@@ -339,7 +354,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			synchronized (previewState) { // build atomically
 				previewState.lg = grammars[0];
 				previewState.g = grammars[1];
-				GrammarRootAST ast = previewState.g.ast;
 			}
 		}
 	}
