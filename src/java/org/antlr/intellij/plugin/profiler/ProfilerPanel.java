@@ -197,14 +197,26 @@ public class ProfilerPanel {
 		MarkupModel markupModel = grammarEditor.getMarkupModel();
 		markupModel.removeAllHighlighters();
 		org.antlr.runtime.TokenStream tokens = previewState.g.tokenStream;
-		if ( region.a>=tokens.size()||region.b>=tokens.size() ) {
+		if ( region.a>=tokens.size() || region.b>=tokens.size() ) {
 //			System.out.println("out of range: " + region + " tokens.size()=" + tokens.size());
 			return;
 		}
 		CommonToken startToken = (CommonToken)tokens.get(region.a);
 		CommonToken stopToken = (CommonToken)tokens.get(region.b);
+		JBColor effectColor = JBColor.darkGray;
+		DecisionInfo decisionInfo = previewState.parsingResult.parser.getParseInfo().getDecisionInfo()[decision];
+		if ( decisionInfo.predicateEvals.size()>0 ) {
+			effectColor = new JBColor(PREDEVAL_COLOR, AMBIGUITY_COLOR);
+		}
+		if ( decisionInfo.contextSensitivities.size()>0 ) {
+			effectColor = new JBColor(FULLCTX_COLOR, AMBIGUITY_COLOR);
+		}
+		if ( decisionInfo.ambiguities.size()>0 ) {
+			effectColor = new JBColor(AMBIGUITY_COLOR, AMBIGUITY_COLOR);
+		}
+
 		TextAttributes attr =
-			new TextAttributes(JBColor.BLACK, JBColor.WHITE, JBColor.darkGray,
+			new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
 							   EffectType.ROUNDED_BOX, Font.PLAIN);
 		markupModel.addRangeHighlighter(
 			startToken.getStartIndex(),
@@ -282,7 +294,7 @@ public class ProfilerPanel {
 
 		Token firstToken = null;
 		// deepest lookahead
-		if ( decisionInfo.maxLookEvent!=null&&
+		if ( decisionInfo.maxLookEvent!=null &&
 			(decisionInfo.maxLookEvent.stopIndex-decisionInfo.maxLookEvent.startIndex+1)>1 ) // ignore k=1
 		{
 			Token t = addDecisionEventHighlighter(previewState, markupModel,
@@ -325,9 +337,9 @@ public class ProfilerPanel {
 //			);
 		}
 
-		if ( decisionInfo.ambiguities.size()==0&&
-			decisionInfo.contextSensitivities.size()==0&&
-			decisionInfo.predicateEvals.size()==0&&
+		if ( decisionInfo.ambiguities.size()==0 &&
+			decisionInfo.contextSensitivities.size()==0 &&
+			decisionInfo.predicateEvals.size()==0 &&
 			decisionInfo.maxLookEvent==null ) {
 			return;
 		}
@@ -379,8 +391,7 @@ public class ProfilerPanel {
 
 	public Token addDecisionEventHighlighter(PreviewState previewState, MarkupModel markupModel,
 											 DecisionEventInfo info, Color errorStripeColor,
-											 EffectType effectType)
-	{
+											 EffectType effectType) {
 		TokenStream tokens = previewState.parsingResult.parser.getInputStream();
 		Token startToken = tokens.get(info.startIndex);
 		Token stopToken = tokens.get(info.stopIndex);
@@ -402,8 +413,7 @@ public class ProfilerPanel {
 														 PreviewState previewState,
 														 SemanticContext semctx,
 														 int alt,
-														 boolean result)
-	{
+														 boolean result) {
 		Grammar g = previewState.g;
 		String semanticContextDisplayString = g.getSemanticContextDisplayString(semctx);
 		if ( semctx instanceof SemanticContext.PrecedencePredicate ) {
@@ -510,7 +520,7 @@ public class ProfilerPanel {
 													   boolean isSelected, boolean hasFocus,
 													   int row, int column) {
 			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			if ( previewState==null||previewState.parsingResult==null ) {
+			if ( previewState==null || previewState.parsingResult==null ) {
 				return c;
 			}
 			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
@@ -579,7 +589,7 @@ public class ProfilerPanel {
 						return;
 					}
 					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-					if ( previewState!=null&&profilerDataTable.getModel().getClass()!=DefaultTableModel.class ) {
+					if ( previewState!=null && profilerDataTable.getModel().getClass()!=DefaultTableModel.class ) {
 						int selectedRow = profilerDataTable.getSelectedRow();
 						if ( selectedRow==-1 ) {
 							selectedRow = 0;
