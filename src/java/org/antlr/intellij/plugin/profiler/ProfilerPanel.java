@@ -32,6 +32,7 @@ import org.antlr.v4.runtime.atn.ContextSensitivityInfo;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.DecisionState;
+import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 import org.antlr.v4.runtime.atn.PredicateEvalInfo;
 import org.antlr.v4.runtime.atn.SemanticContext;
@@ -165,7 +166,9 @@ public class ProfilerPanel {
 											 numChar,
 											 numLines));
 		numTokensField.setText(String.valueOf(numTokens));
-		double look = parseInfo.getTotalLookaheadOps();
+		double look =
+			parseInfo.getTotalSLLLookaheadOps()+
+			parseInfo.getTotalLLLookaheadOps();
 		lookaheadBurdenField.setText(
 			String.format("%d/%d = %3.2f", (long)look, numTokens, look/numTokens)
 		);
@@ -297,11 +300,15 @@ public class ProfilerPanel {
 
 		Token firstToken = null;
 		// deepest lookahead
-		if ( decisionInfo.maxLookEvent!=null &&
-			(decisionInfo.maxLookEvent.stopIndex-decisionInfo.maxLookEvent.startIndex+1)>1 ) // ignore k=1
+		long maxLook = Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
+		if ( maxLook>1 ) // ignore k=1
 		{
+			LookaheadEventInfo maxLookEvent = decisionInfo.SLL_MaxLookEvent;
+			if ( decisionInfo.LL_MaxLook>decisionInfo.SLL_MaxLook ) {
+				maxLookEvent = decisionInfo.LL_MaxLookEvent;
+			}
 			Token t = addDecisionEventHighlighter(previewState, markupModel,
-												  decisionInfo.maxLookEvent,
+												  maxLookEvent,
 												  DEEPESTLOOK_COLOR,
 												  EffectType.BOLD_DOTTED_LINE);
 			firstToken = t;
@@ -338,13 +345,6 @@ public class ProfilerPanel {
 //					}
 //				}
 //			);
-		}
-
-		if ( decisionInfo.ambiguities.size()==0 &&
-			decisionInfo.contextSensitivities.size()==0 &&
-			decisionInfo.predicateEvals.size()==0 &&
-			decisionInfo.maxLookEvent==null ) {
-			return;
 		}
 
 		// pred evals

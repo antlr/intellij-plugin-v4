@@ -67,13 +67,13 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
             case 4:
                 return decisionInfo.LL_Fallback;
             case 5:
-                return decisionInfo.totalLook;
+                return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
             case 6:
-                return decisionInfo.minLook;
+                return decisionInfo.LL_MinLook+decisionInfo.SLL_MinLook;
             case 7:
-                return decisionInfo.maxLook;
+				return decisionInfo.LL_MaxLook+decisionInfo.SLL_MaxLook;
             case 8:
-                return decisionInfo.DFATransitions;
+                return decisionInfo.SLL_TotalLook - decisionInfo.SLL_ATNTransitions;
             case 9:
                 return decisionInfo.SLL_ATNTransitions;
 			case 10:

@@ -673,7 +673,7 @@ public class InputPanel {
 			int a = r.getStartOffset();
 			int b = r.getEndOffset();
 //			System.out.printf("#%d: %d..%d %s\n", i, a, b, r.toString());
-			if ( offset>=a&&offset<b ) { // cursor is over some kind of highlighting
+			if ( offset>=a && offset<b ) { // cursor is over some kind of highlighting
 				highlightersAtOffset.add(r);
 			}
 		}
@@ -791,7 +791,7 @@ public class InputPanel {
 		// Remove any previous underlining or boxing, but not anything else like errors
 		MarkupModel markupModel = editor.getMarkupModel();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null&&
+			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null &&
 				r.getUserData(SYNTAX_ERROR)==null ) {
 				markupModel.removeHighlighter(r);
 			}
