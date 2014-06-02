@@ -77,6 +77,9 @@ public class ProfilerPanel {
 	 * to the result provided by LL prediction. If SLL conflict resolution
 	 * would not have produced the same result as LL prediction, I report
 	 * the decision as context-sensitive.
+	 *
+	 * tjp: what about SLL that just happens to guess right by order of alts?
+	 * sam agrees it's possible so not perfect.
 	 */
 
 
@@ -365,27 +368,6 @@ public class ProfilerPanel {
 		if ( firstToken!=null ) {
 			caretModel.moveToOffset(firstToken.getStartIndex());
 			scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
-
-//			HighlightManager.getInstance(project).addRangeHighlight(
-//				editor,
-//				firstToken.getStartIndex(),
-//				firstToken.getStopIndex() + 1,
-//				textAttributes,
-//				false,
-//				false,
-//				null);
-
-//            HighlightManager.getInstance(project).addOccurrenceHighlight(
-//                    editor,
-//                    firstToken.getStartIndex(),
-//                    firstToken.getStopIndex() + 1,
-//                    textAttributes,
-//                    HighlightManager.HIDE_BY_TEXT_CHANGE,
-//                    new ArrayList<RangeHighlighter>() {{
-//                        add(rangeHighlighter);
-//                    }},
-//                    AMBIGUITY_COLOR
-//            );
 		}
 	}
 

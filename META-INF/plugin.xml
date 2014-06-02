@@ -112,7 +112,7 @@ stack leading to that parse region.
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-	  <!-- only works for psielement stuff <codeInsight.lineMarkerProvider language="" implementationClass="org.antlr.intellij.plugin.ANTLRv4LineMarkerProvider"/>-->
+	  <!--<codeInsight.lineMarkerProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4LineMarkerProvider"/>-->
       <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
       <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <colorSettingsPage implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4ColorsPage"/>
