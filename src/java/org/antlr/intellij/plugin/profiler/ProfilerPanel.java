@@ -81,6 +81,13 @@ public class ProfilerPanel {
 	 *
 	 * tjp: what about SLL that just happens to guess right by order of alts?
 	 * sam agrees it's possible so not perfect.
+	 *
+	 * two-stage does not directly expose true context-sensitivity.
+	 * At the point of LL fallback, mine makes a note of the conflicting
+	 * ATNConfigSet produced by SLL prediction, and then compares that set
+	 * to the result provided by LL prediction. If SLL conflict resolution
+	 * would not have produced the same result as LL prediction, I report
+	 * the decision as context-sensitive.
 	 */
 
 

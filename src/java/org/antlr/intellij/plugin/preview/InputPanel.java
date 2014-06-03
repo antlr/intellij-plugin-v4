@@ -49,7 +49,6 @@ import org.antlr.v4.runtime.atn.ContextSensitivityInfo;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.atn.PredicateEvalInfo;
-import org.antlr.v4.runtime.dfa.DFAState;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
@@ -700,18 +699,12 @@ public class InputPanel {
 					msg = "Deepest lookahead k="+k;
 				}
 				else if ( eventInfo instanceof PredicateEvalInfo ) {
-					PredicateEvalInfo pred = (PredicateEvalInfo)eventInfo;
-					StringBuilder buf = new StringBuilder();
-					for (int p = 0; p<pred.dfaState.predicates.length; p++) {
-						if ( p>0 ) buf.append("\n");
-						DFAState.PredPrediction pair = pred.dfaState.predicates[p];
-						String s = ProfilerPanel.getSemanticContextDisplayString(pred,
-																				 previewState,
-																				 pair.pred, pair.alt,
-																				 pred.evalResults[p]);
-						buf.append(s);
-					}
-					msg = buf.toString();
+					PredicateEvalInfo evalInfo = (PredicateEvalInfo)eventInfo;
+					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
+																		previewState,
+																		evalInfo.semctx, evalInfo.predictedAlt,
+																		evalInfo.evalResult);
+					msg = msg+(!evalInfo.fullCtx ? " (DFA)" : "");
 				}
 				else {
 					msg = "Unknown decision event: "+eventInfo;
