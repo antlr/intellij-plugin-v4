@@ -22,6 +22,8 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$MODULE_DIR$/lib/antlr-4.3-dev-complete.jar!/org/antlr/v4/runtime/tree/xpath/gen" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
         </SOURCES>
       </library>
     </orderEntry>
