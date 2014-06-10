@@ -692,7 +692,7 @@ public class InputPanel {
 					msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
 				}
 				else if ( eventInfo instanceof ContextSensitivityInfo ) {
-					msg = "Likely context-sensitive";
+					msg = "Context-sensitive";
 				}
 				else if ( eventInfo instanceof LookaheadEventInfo ) {
 					int k = eventInfo.stopIndex-eventInfo.startIndex+1;

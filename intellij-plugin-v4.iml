@@ -17,15 +17,11 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.2.3-dev-complete.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/antlr-4.3-dev-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
-          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
-          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
-          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
-          <root url="file://$MODULE_DIR$/../antlr3/runtime/Java/src/main/java" />
+          <root url="jar://$MODULE_DIR$/lib/antlr-4.3-dev-complete.jar!/org/antlr/v4/runtime/tree/xpath/gen" />
         </SOURCES>
       </library>
     </orderEntry>

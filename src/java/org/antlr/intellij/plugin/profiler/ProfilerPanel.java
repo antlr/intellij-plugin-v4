@@ -69,28 +69,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class ProfilerPanel {
-	/* TODO:
-	 * TER: context-sens is when SLL fails but LL has no conflict in my book
-	 * SLL fail is heuristic though. hmm...
-	 *
-	 * SAM: At the point of LL fallback, mine makes a note of the conflicting
-	 * ATNConfigSet produced by SLL prediction, and then compares that set
-	 * to the result provided by LL prediction. If SLL conflict resolution
-	 * would not have produced the same result as LL prediction, I report
-	 * the decision as context-sensitive.
-	 *
-	 * tjp: what about SLL that just happens to guess right by order of alts?
-	 * sam agrees it's possible so not perfect.
-	 *
-	 * two-stage does not directly expose true context-sensitivity.
-	 * At the point of LL fallback, mine makes a note of the conflicting
-	 * ATNConfigSet produced by SLL prediction, and then compares that set
-	 * to the result provided by LL prediction. If SLL conflict resolution
-	 * would not have produced the same result as LL prediction, I report
-	 * the decision as context-sensitive.
-	 */
-
-
 	public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
 	public static final Color FULLCTX_COLOR = new Color(255, 128, 0);
 	public static final Color PREDEVAL_COLOR = new Color(110, 139, 61);

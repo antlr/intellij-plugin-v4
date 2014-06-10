@@ -25,7 +25,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
         "# of DFA transitions during prediction (cache hit)",
 		"# of conventional SLL ATN (non-DFA) transitions during prediction (cache miss)",
 		"# of full-context LL ATN (non-DFA) transitions during prediction (cache miss)",
-		"# of (likely) context-sensitive phrases",
+		"# of context-sensitive phrases found (not certain to be all)",
 		"# of ambiguous input phrases",
 		"# of predicate evaluations"
     };
@@ -73,7 +73,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
             case 7:
 				return decisionInfo.LL_MaxLook+decisionInfo.SLL_MaxLook;
             case 8:
-                return decisionInfo.SLL_TotalLook - decisionInfo.SLL_ATNTransitions;
+				return decisionInfo.SLL_DFATransitions;
             case 9:
                 return decisionInfo.SLL_ATNTransitions;
 			case 10:
