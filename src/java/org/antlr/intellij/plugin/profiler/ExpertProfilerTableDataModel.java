@@ -9,7 +9,9 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
     public static final String[] columnNames = {
-        "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k", "Min k", "Max k",
+        "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k",
+		"Min SLL k", "Min LL k",
+		"SLL Max k", "LL Max k",
         "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
     };
 
@@ -20,8 +22,10 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 		"# DFA states",
 		"# of SLL -> LL prediction failovers",
 		"Total lookahead symbols examined",
-		"Fewest lookahead symbols examined in any decision event",
-		"Max lookahead symbols examined in any decision event",
+		"Fewest SLL lookahead symbols examined in any decision event",
+		"Fewest LL lookahead symbols examined in any decision event",
+		"Max SLL lookahead symbols examined in any decision event",
+		"Max LL lookahead symbols examined in any decision event",
         "# of DFA transitions during prediction (cache hit)",
 		"# of conventional SLL ATN (non-DFA) transitions during prediction (cache miss)",
 		"# of full-context LL ATN (non-DFA) transitions during prediction (cache miss)",
@@ -65,24 +69,28 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
             case 3:
                 return parseInfo.getDFASize(decision);
             case 4:
-                return decisionInfo.LL_Fallback;
-            case 5:
-                return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
-            case 6:
-                return decisionInfo.LL_MinLook+decisionInfo.SLL_MinLook;
-            case 7:
-				return decisionInfo.LL_MaxLook+decisionInfo.SLL_MaxLook;
-            case 8:
+				return decisionInfo.LL_Fallback;
+			case 5:
+				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
+			case 6:
+				return decisionInfo.SLL_MinLook;
+			case 7:
+				return decisionInfo.LL_MinLook;
+			case 8:
+				return decisionInfo.SLL_MaxLook;
+			case 9:
+				return decisionInfo.LL_MaxLook;
+            case 10:
 				return decisionInfo.SLL_DFATransitions;
-            case 9:
+            case 11:
                 return decisionInfo.SLL_ATNTransitions;
-			case 10:
-				return decisionInfo.LL_ATNTransitions;
-			case 11:
-				return decisionInfo.contextSensitivities.size();
 			case 12:
-				return decisionInfo.ambiguities.size();
+				return decisionInfo.LL_ATNTransitions;
 			case 13:
+				return decisionInfo.contextSensitivities.size();
+			case 14:
+				return decisionInfo.ambiguities.size();
+			case 15:
 				return decisionInfo.predicateEvals.size();
 		}
 		return "n/a";
