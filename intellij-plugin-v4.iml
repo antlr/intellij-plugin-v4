@@ -12,21 +12,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src/adaptor" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/liveTemplates" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="IDEA IU-129.713" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.3-dev-complete.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.3-dev-complete.jar!/org/antlr/v4/runtime/tree/xpath/gen" />
-          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
-          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="antlr-4.3-complete" level="application" />
   </component>
   <component name="PluginUploader.PluginUploadConfigurable">
     <option name="ARCHIVE_PATH" />
