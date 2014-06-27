@@ -11,7 +11,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public static final String[] columnNames = {
         "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k",
 		"Min SLL k", "Min LL k",
-		"SLL Max k", "LL Max k",
+		"Max SLL k", "Max LL k",
         "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
     };
 
