@@ -389,6 +389,7 @@ public class InputPanel {
 	}
 
 	public void uninstallListeners(Editor editor) {
+		if ( editor==null ) return;
 		editor.removeEditorMouseListener(editorMouseListener);
 		editor.removeEditorMouseMotionListener(editorMouseListener);
 	}
