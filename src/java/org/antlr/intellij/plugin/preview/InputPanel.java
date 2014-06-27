@@ -85,6 +85,7 @@ import java.util.List;
 public class InputPanel {
 	public static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
 	public static final int MAX_STACK_DISPLAY = 30;
+	public static final int MAX_HINT_WIDTH = 110;
 
 	private JRadioButton inputRadioButton;
 	private JRadioButton fileRadioButton;
@@ -716,6 +717,12 @@ public class InputPanel {
 				// error tool tips
 				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 				msg = getErrorDisplayString(errorUnderCursor);
+				if ( msg.length()>MAX_HINT_WIDTH ) {
+					msg = msg.substring(0, MAX_HINT_WIDTH)+"...";
+				}
+				if ( msg.indexOf('<')>=0 ) {
+					msg = msg.replaceAll("<", "&lt;");
+				}
 			}
 			msgList.add(msg);
 		}

@@ -261,6 +261,7 @@ public class ParsingUtils {
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
 		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
+		antlr.removeListeners();
 		antlr.addListener(listener);
 
 		String combinedGrammarFileName = null;

@@ -72,6 +72,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			// for now, just turn off undef token warnings
 		}
 
+		antlr.removeListeners();
 		antlr.addListener(new ANTLRToolListener() {
 			@Override
 			public void info(String msg) {

@@ -11,7 +11,15 @@ public class MyANTLRToolListener extends DefaultToolListener {
 
 	@Override
 	public void error(ANTLRMessage msg) {
-//			super.error(msg);
+		ST msgST = tool.errMgr.getMessageTemplate(msg);
+		grammarErrorMessage = msgST.render();
+		if (tool.errMgr.formatWantsSingleLineMessage()) {
+			grammarErrorMessage = grammarErrorMessage.replace('\n', ' ');
+		}
+	}
+
+	@Override
+	public void warning(ANTLRMessage msg) {
 		ST msgST = tool.errMgr.getMessageTemplate(msg);
 		grammarErrorMessage = msgST.render();
 		if (tool.errMgr.formatWantsSingleLineMessage()) {
