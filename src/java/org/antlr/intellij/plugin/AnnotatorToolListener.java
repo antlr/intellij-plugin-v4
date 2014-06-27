@@ -27,16 +27,16 @@ class AnnotatorToolListener implements ANTLRToolListener {
 
     @Override
     public void error(ANTLRMessage msg) {
-        if ( (msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION &&
-              msg.getErrorType()!=ErrorType.IMPLICIT_STRING_DEFINITION) ||
-            vocabName==null )
-        {
-            issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
-        }
+        issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
     }
 
     @Override
     public void warning(ANTLRMessage msg) {
-        issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
+        if ( (msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION &&
+            msg.getErrorType()!=ErrorType.IMPLICIT_STRING_DEFINITION) ||
+            vocabName==null )
+		{
+            issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
+        }
     }
 }
