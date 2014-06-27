@@ -88,7 +88,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		File inF = new File(fullyQualifiedInputFileName);
 		File outF = new File(fullyQualifiedOutputFileName);
 		boolean stale = inF.lastModified()>outF.lastModified();
-		System.out.println("stale="+stale);
+//		System.out.println("stale="+stale);
 		return stale;
 	}
 

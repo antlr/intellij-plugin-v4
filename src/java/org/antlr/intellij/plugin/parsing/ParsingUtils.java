@@ -260,7 +260,7 @@ public class ParsingUtils {
 
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
-		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
+		LoadGrammarsToolListener listener = new LoadGrammarsToolListener(antlr);
 		antlr.removeListeners();
 		antlr.addListener(listener);
 
@@ -317,7 +317,7 @@ public class ParsingUtils {
 		if ( combinedGrammarFileName!=null ) {
 			// already loaded above
 			lg = g.getImplicitLexer();
-			if ( listener.grammarErrorMessage!=null ) {
+			if ( listener.grammarErrorMessages !=null ) {
 				g = null;
 			}
 		}
@@ -329,7 +329,7 @@ public class ParsingUtils {
 				ANTLRv4PluginController.LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
 				lg = null;
 			}
-			if ( listener.grammarErrorMessage!=null ) {
+			if ( listener.grammarErrorMessages !=null ) {
 				lg = null;
 			}
 			g = loadGrammar(antlr, parserGrammarFileName, lg);
@@ -353,7 +353,9 @@ public class ParsingUtils {
 		if ( grammarRootAST==null ) return null;
 		final Grammar g = tool.createGrammar(grammarRootAST);
 		g.fileName = fileName;
-		g.importVocab(lexerGrammar);
+		if ( lexerGrammar!=null ) {
+            g.importVocab(lexerGrammar);
+        }
 		tool.process(g, false);
 		return g;
 	}
