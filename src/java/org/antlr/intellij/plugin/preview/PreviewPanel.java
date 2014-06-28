@@ -197,9 +197,10 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
+		LOG.info("updateParseTreeFromDoc "+previewState.grammarFileName+" rule "+previewState.startRuleName);
 		try {
-			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-			PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
 			final String inputText = previewState.getEditor().getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if (results != null) {

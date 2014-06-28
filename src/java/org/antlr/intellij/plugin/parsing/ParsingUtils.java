@@ -317,7 +317,7 @@ public class ParsingUtils {
 		if ( combinedGrammarFileName!=null ) {
 			// already loaded above
 			lg = g.getImplicitLexer();
-			if ( listener.grammarErrorMessages !=null ) {
+			if ( listener.grammarErrorMessages.size()!=0 ) {
 				g = null;
 			}
 		}
@@ -329,7 +329,7 @@ public class ParsingUtils {
 				ANTLRv4PluginController.LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
 				lg = null;
 			}
-			if ( listener.grammarErrorMessages !=null ) {
+			if ( listener.grammarErrorMessages.size()!=0 ) {
 				lg = null;
 			}
 			g = loadGrammar(antlr, parserGrammarFileName, lg);
