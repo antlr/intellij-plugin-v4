@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.misc.Misc;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -152,7 +154,28 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		RunANTLRListener listener = new RunANTLRListener(antlr, console);
 		antlr.addListener(listener);
 
-		antlr.processGrammarsOnCommandLine();
+
+		boolean showGeneratedMsg;
+		String groupDisplayId = "ANTLR 4 Parser Generation";
+		try {
+			antlr.processGrammarsOnCommandLine();
+			showGeneratedMsg = antlr.getNumErrors()==0;
+		}
+		catch (Throwable e) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			String msg = sw.toString();
+			Notification notification =
+				new Notification(groupDisplayId,
+					"can't generate parser for " + vfile.getName(),
+					e.toString(),
+					NotificationType.INFORMATION);
+			Notifications.Bus.notify(notification, project);
+			console.print(timeStamp + ": antlr4 " + msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+			listener.hasOutput = true; // show console below
+			showGeneratedMsg = false;
+		}
 
 		if ( listener.hasOutput ) {
 			ApplicationManager.getApplication().invokeLater(
@@ -165,8 +188,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 			);
 		}
 
-		String groupDisplayId = "ANTLR 4 Parser Generation";
-		if ( antlr.getNumErrors()==0 ) {
+		if ( showGeneratedMsg ) {
 			// refresh from disk to see new files
 			Set<File> generatedFiles = new HashSet<File>();
 			generatedFiles.add(new File(outputDirName));
