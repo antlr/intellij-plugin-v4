@@ -42,9 +42,15 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
 	}
 
-    /** Called first; return file; idea 12*/
+	/** Called first; return file; idea 12 */
 	@Nullable
-    @Override
+	public PsiFile collectionInformation(@NotNull PsiFile file) {
+		LOG.info("collectionInformation "+file.getVirtualFile());
+		return file;
+	}
+
+	/** Called first; return file; idea 13; can't use @Override */
+	@Nullable
 	public PsiFile collectInformation(@NotNull PsiFile file) {
 		LOG.info("collectionInformation "+file.getVirtualFile());
 		return file;
