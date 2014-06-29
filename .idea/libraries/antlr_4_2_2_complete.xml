@@ -5,8 +5,8 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="file://$USER_HOME$/antlr/code/antlr4/runtime/Java/src" />
-      <root url="file://$USER_HOME$/antlr/code/antlr4/tool/src" />
+      <root url="file://$PROJECT_DIR$/../antlr4/runtime/Java/src" />
+      <root url="file://$PROJECT_DIR$/../antlr4/tool/src" />
       <root url="file://$PROJECT_DIR$/../antlr3/runtime/Java/src/main/java" />
     </SOURCES>
   </library>

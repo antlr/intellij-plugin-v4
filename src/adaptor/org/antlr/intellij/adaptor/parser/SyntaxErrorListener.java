@@ -10,6 +10,7 @@ import java.util.List;
 /** Traps errors from parsing language of plugin. E.g., for a Java plugin,
  *  this would catch errors when people type invalid Java code into .java file.
  *  For ANTLRv4 plugin, it traps errors for erroneous grammars.
+ *  This swallows the errors as the PSI tree has error nodes.
  *
  *  Instance created by GrammarParser.createParserImpl().
  */

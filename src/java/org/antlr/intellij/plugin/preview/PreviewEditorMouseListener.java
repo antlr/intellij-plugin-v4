@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.preview;
 
-import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
@@ -42,6 +41,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
         else if ( mouseEvent.isAltDown() ) {
             inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), previewState, offset);
         }
+		editor.getMarkupModel().removeAllHighlighters();
 	}
 
 	@Override
@@ -58,15 +58,14 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 		MouseEvent mouseEvent=e.getMouseEvent();
 		InputPanel.removeTokenInfoHighlighters(editor);
-		if ( mouseEvent.isMetaDown() ) {
+		if ( mouseEvent.isMetaDown() && previewState.parsingResult!=null ) {
 			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
 		}
-        else if ( mouseEvent.isAltDown() ) {
-			HintManager.getInstance().hideAllHints();
+        else if ( mouseEvent.isAltDown() && previewState.parsingResult!=null ) {
             inputPanel.showParseRegion(e, editor, previewState, offset);
         }
-		else { // just moving around, show any errors
-			inputPanel.showTooltipsForErrors(editor, previewState, offset);
+		else { // just moving around, show any errors or hints
+			InputPanel.showTooltips(e, editor, previewState, offset);
 		}
 	}
 

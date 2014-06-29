@@ -19,7 +19,7 @@ public class PreviewParser extends ParserInterpreter {
 	public Map<Token, Integer> inputTokenToStateMap = new HashMap<Token, Integer>();
 
 	public PreviewParser(PreviewState previewState, CommonTokenStream tokens) {
-		super(previewState.g.fileName, Arrays.asList(previewState.g.getTokenNames()),
+		super(previewState.g.fileName, Arrays.asList(previewState.g.getTokenDisplayNames()),
 									   Arrays.asList(previewState.g.getRuleNames()),
 									   new ATNDeserializer().deserialize(ATNSerializer.getSerializedAsChars(previewState.g.atn)),
 									   tokens);

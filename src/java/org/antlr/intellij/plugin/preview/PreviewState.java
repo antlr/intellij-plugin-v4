@@ -24,6 +24,8 @@ public class PreviewState {
 	public Grammar g;
 	public Grammar lg;
 	public String startRuleName;
+	public CharSequence manualInputText = ""; // save input when switching grammars
+	public String inputFileName = ""; 	// save input file when switching grammars
 
 	public ParsingResult parsingResult;
 
@@ -44,8 +46,8 @@ public class PreviewState {
 	}
 
 	public synchronized void releaseEditor() {
-		// It would appear that the project closed event occurs before these close grammars. Very strange.
-		// check for null editor.
+		// It would appear that the project closed event occurs before these
+		// close grammars sometimes. Very strange. check for null editor.
 		if (editor != null) {
 			final EditorFactory factory = EditorFactory.getInstance();
 			factory.releaseEditor(editor);

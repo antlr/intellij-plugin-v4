@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.4</version>
+  <version>1.5</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -58,6 +58,22 @@ and shows region of that rule parse tree node.  Clicking at the same time
 jumps the grammar to the associated rule.  A pop up shows the parser call
 stack leading to that parse region.
 
+Added profiler tab in preview tool window. Selecting a row in the table
+ highlights the associated decision in the grammar and highlights important
+ regions of the input window to the left. You can sort the columns by clicking
+on the header row. Hover over the header row to get tooltips describing the column.
+If you know a lot about the internals of the parsing strategy, you can click on
+the expert columns to see additional information. This is  the first attempt
+ at a profiler so we can learn what is really important and then improve.
+ If you see ambiguities highlighted, those you should definitely take a look
+ at in your grammar. If you see decisions requiring full context sensitivity,
+ when viewing the expert columns, those are very expensive and could be causing
+ speed problems. Note that the profiler always tries to keep up-to-date with
+ the input. The profiler uses the parser interpreter but is fairly
+ consistent with the speed of a generated and compiled parser. At the moment
+ it only uses the single stage not two-stage parsing, which could also affect
+ speed.
+
           <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 
@@ -112,6 +128,7 @@ stack leading to that parse region.
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+	  <!--<codeInsight.lineMarkerProvider language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4LineMarkerProvider"/>-->
       <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
       <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <colorSettingsPage implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4ColorsPage"/>

@@ -7,7 +7,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
@@ -39,12 +38,13 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 		PsiDocumentManager.getInstance(e.getProject()).commitAllDocuments();
 		FileDocumentManager.getInstance().saveAllDocuments();
 
+		boolean forceGeneration = true; // from action, they really mean it
 		Task.Backgroundable gen =
 			new RunANTLROnGrammarFile(grammarFile,
 									  e.getProject(),
 									  title,
 									  canBeCancelled,
-									  new BackgroundFromStartOption());
+									  forceGeneration);
 		ProgressManager.getInstance().run(gen);
 	}
 }

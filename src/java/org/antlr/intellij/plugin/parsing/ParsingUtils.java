@@ -33,6 +33,9 @@ import org.antlr.v4.tool.ast.GrammarRootAST;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
@@ -84,17 +87,31 @@ public class ParsingUtils {
 	}
 
 	public static Token getTokenUnderCursor(CommonTokenStream tokens, int offset) {
-		if ( offset<0 || offset >= tokens.getTokenSource().getInputStream().size() ) return null;
-		Token tokenUnderCursor = null;
-		for (Token t : tokens.getTokens()) {
-			int begin = t.getStartIndex();
-			int end = t.getStopIndex();
-			if ( offset >= begin && offset <= end ) {
-				tokenUnderCursor = t;
-				break;
+		Comparator<Token> cmp = new Comparator<Token>() {
+			@Override
+			public int compare(Token a, Token b) {
+				if ( a.getStopIndex() < b.getStartIndex() ) return -1;
+				if ( a.getStartIndex() > b.getStopIndex() ) return 1;
+				return 0;
 			}
-			if ( offset < begin ) break; // we're past this offset already
-		}
+		};
+		if ( offset<0 || offset >= tokens.getTokenSource().getInputStream().size() ) return null;
+		CommonToken key = new CommonToken(Token.INVALID_TYPE, "");
+		key.setStartIndex(offset);
+		key.setStopIndex(offset);
+		List<Token> tokenList = tokens.getTokens();
+		Token tokenUnderCursor = null;
+		int i = Collections.binarySearch(tokenList, key, cmp);
+		if ( i>=0 ) tokenUnderCursor = tokenList.get(i);
+//		for (Token t : tokenList) {
+//			int begin = t.getStartIndex();
+//			int end = t.getStopIndex();
+//			if ( offset >= begin && offset <= end ) {
+//				tokenUnderCursor = t;
+//				break;
+//			}
+//			if ( offset < begin ) break; // we're past this offset already
+//		}
 		return tokenUnderCursor;
 	}
 
@@ -216,6 +233,7 @@ public class ParsingUtils {
 		lexEngine = previewState.lg.createLexerInterpreter(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		PreviewParser parser = new PreviewParser(previewState, tokens);
+		parser.setProfile(true);
 
 		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
 		parser.removeErrorListeners();
@@ -242,7 +260,8 @@ public class ParsingUtils {
 
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
-		MyANTLRToolListener listener = new MyANTLRToolListener(antlr);
+		LoadGrammarsToolListener listener = new LoadGrammarsToolListener(antlr);
+		antlr.removeListeners();
 		antlr.addListener(listener);
 
 		String combinedGrammarFileName = null;
@@ -298,7 +317,7 @@ public class ParsingUtils {
 		if ( combinedGrammarFileName!=null ) {
 			// already loaded above
 			lg = g.getImplicitLexer();
-			if ( listener.grammarErrorMessage!=null ) {
+			if ( listener.grammarErrorMessages.size()!=0 ) {
 				g = null;
 			}
 		}
@@ -310,7 +329,7 @@ public class ParsingUtils {
 				ANTLRv4PluginController.LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
 				lg = null;
 			}
-			if ( listener.grammarErrorMessage!=null ) {
+			if ( listener.grammarErrorMessages.size()!=0 ) {
 				lg = null;
 			}
 			g = loadGrammar(antlr, parserGrammarFileName, lg);
@@ -334,7 +353,9 @@ public class ParsingUtils {
 		if ( grammarRootAST==null ) return null;
 		final Grammar g = tool.createGrammar(grammarRootAST);
 		g.fileName = fileName;
-		g.importVocab(lexerGrammar);
+		if ( lexerGrammar!=null ) {
+            g.importVocab(lexerGrammar);
+        }
 		tool.process(g, false);
 		return g;
 	}

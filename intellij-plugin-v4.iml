@@ -17,11 +17,10 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.2.3-dev-complete.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/antlr-4.3-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="file://$USER_HOME$/antlr/code/antlr4/runtime/Java/src" />
           <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
         </SOURCES>
       </library>
