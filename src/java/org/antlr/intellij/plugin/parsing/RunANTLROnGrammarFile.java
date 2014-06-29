@@ -62,7 +62,9 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 	@Override
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
-		if ( forceGeneration || isGrammarStale() ) {
+		String qualFileName = grammarFile.getPath();
+		boolean autogen = getBooleanProp(qualFileName, "auto-gen", true);
+		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
 		}
 	}
@@ -90,7 +92,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		File inF = new File(fullyQualifiedInputFileName);
 		File outF = new File(fullyQualifiedOutputFileName);
 		boolean stale = inF.lastModified()>outF.lastModified();
-//		System.out.println("stale="+stale);
+		System.out.println("stale="+stale);
 		return stale;
 	}
 
@@ -110,6 +112,12 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		if ( package_!=MISSING) {
 			args.add("-package");
 			args.add(package_);
+		}
+
+		String language = getProp(qualFileName, "language", MISSING);
+		if ( package_!=MISSING) {
+			args.add("-language");
+			args.add(language);
 		}
 
 		// create gen dir at root of project by default, but add in package if any
