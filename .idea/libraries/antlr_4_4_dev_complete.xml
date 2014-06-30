@@ -1,13 +1,15 @@
 <component name="libraryTable">
-  <library name="antlr-4.2.2-complete">
+  <library name="antlr-4.4-dev-complete">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/antlr-4.2.2-complete.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/antlr-4.4-dev-complete.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
       <root url="file://$PROJECT_DIR$/../antlr4/runtime/Java/src" />
       <root url="file://$PROJECT_DIR$/../antlr4/tool/src" />
       <root url="file://$PROJECT_DIR$/../antlr3/runtime/Java/src/main/java" />
+      <root url="jar://$PROJECT_DIR$/lib/antlr-4.4-dev-complete.jar!/org/antlr/v4/runtime/tree/xpath/gen" />
+      <root url="file://$PROJECT_DIR$/../stringtemplate4/src" />
     </SOURCES>
   </library>
 </component>
