@@ -11,10 +11,9 @@
     <property name="src.grammars.dir" value="${basedir}/src/grammars"/>
 
     <target name="init-complete-artifact">
-
         <property name="artifact.name" value="antlr"/>
-        <property name="artifact.version" value="4.3"/>
-        <property name="artifact.snapshot" value=""/> <!-- this could be empty for a final release -->
+        <property name="artifact.version" value="4.4"/>
+        <property name="artifact.snapshot" value="-dev"/> <!-- this could be empty for a final release -->
         <property name="artifact.classifier" value="complete"/>
 
         <property name="artifact.source.name" value="${artifact.name}-${artifact.version}${artifact.snapshot}-${artifact.classifier}.jar"/>
