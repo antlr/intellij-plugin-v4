@@ -12,8 +12,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
@@ -30,21 +28,22 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
-public class RunANTLROnGrammarFile extends Task.Backgroundable {
+public class RunANTLROnGrammarFile extends Task.Modal {
 	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile");
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String MISSING = "";
+	public static final String groupDisplayId = "ANTLR 4 Parser Generation";
 
-	VirtualFile grammarFile;
-	Project project;
-	boolean forceGeneration;
+	public VirtualFile grammarFile;
+	public Project project;
+	public boolean forceGeneration;
 
-	PropertiesComponent props;
+	public String outputDirName;
+
+	public PropertiesComponent props;
 
 	public RunANTLROnGrammarFile(VirtualFile grammarFile,
 								 @Nullable final Project project,
@@ -52,7 +51,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 								 final boolean canBeCancelled,
 								 boolean forceGeneration)
 	{
-		super(project, title, canBeCancelled, new BackgroundFromStartOption());
+		super(project, title, canBeCancelled); //, inBackground ? new BackgroundFromStartOption() : null);
 		this.grammarFile = grammarFile;
 		this.project = project;
 		props = PropertiesComponent.getInstance(project);
@@ -63,7 +62,8 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
 		String qualFileName = grammarFile.getPath();
-		boolean autogen = getBooleanProp(qualFileName, "auto-gen", true);
+		boolean autogen = getBooleanProp(qualFileName, "auto-gen", false);
+		System.out.println("autogen is "+autogen+", force="+forceGeneration);
 		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
 		}
@@ -122,7 +122,7 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 
 		// create gen dir at root of project by default, but add in package if any
 		args.add("-o");
-		String outputDirName = getOutputDirName(qualFileName, contentRoot, package_);
+		outputDirName = getOutputDirName(qualFileName, contentRoot, package_);
 		args.add(outputDirName);
 
 		args.add("-lib");
@@ -163,11 +163,8 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		antlr.addListener(listener);
 
 
-		boolean showGeneratedMsg;
-		String groupDisplayId = "ANTLR 4 Parser Generation";
 		try {
 			antlr.processGrammarsOnCommandLine();
-			showGeneratedMsg = antlr.getNumErrors()==0;
 		}
 		catch (Throwable e) {
 			StringWriter sw = new StringWriter();
@@ -182,7 +179,6 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 			Notifications.Bus.notify(notification, project);
 			console.print(timeStamp + ": antlr4 " + msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
 			listener.hasOutput = true; // show console below
-			showGeneratedMsg = false;
 		}
 
 		if ( listener.hasOutput ) {
@@ -194,20 +190,6 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 					}
 				}
 			);
-		}
-
-		if ( showGeneratedMsg ) {
-			// refresh from disk to see new files
-			Set<File> generatedFiles = new HashSet<File>();
-			generatedFiles.add(new File(outputDirName));
-			LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
-			// pop up a notification
-			Notification notification =
-				new Notification(groupDisplayId,
-								 "parser for " + vfile.getName() + " generated",
-								 "to " + outputDirName,
-								 NotificationType.INFORMATION);
-			Notifications.Bus.notify(notification, project);
 		}
 	}
 
@@ -240,5 +222,9 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 				.getFileIndex().getContentRootForFile(vfile);
 		if ( root!=null ) return root;
 		return vfile.getParent();
+	}
+
+	public String getOutputDirName() {
+		return outputDirName;
 	}
 }
