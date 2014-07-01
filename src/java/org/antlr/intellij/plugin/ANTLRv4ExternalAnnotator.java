@@ -18,6 +18,7 @@ import org.antlr.v4.tool.GrammarSemanticsMessage;
 import org.antlr.v4.tool.GrammarSyntaxMessage;
 import org.antlr.v4.tool.LeftRecursionCyclesMessage;
 import org.antlr.v4.tool.Rule;
+import org.antlr.v4.tool.ToolMessage;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +153,9 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		else if ( issue.msg instanceof LeftRecursionCyclesMessage ) {
 			List<String> rulesToHighlight = new ArrayList<String>();
 			LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage)issue.msg;
-			for (Collection<Rule> cycle : lmsg.cycles) {
+			Collection<? extends Collection<Rule>> cycles =
+				(Collection<? extends Collection<Rule>>)lmsg.getArgs()[0];
+			for (Collection<Rule> cycle : cycles) {
 				for (Rule r : cycle) {
 					rulesToHighlight.add(r.name);
 					GrammarAST nameNode = (GrammarAST)r.ast.getChild(0);
@@ -161,8 +164,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			}
 		}
 		else if ( issue.msg instanceof GrammarSyntaxMessage ) {
-			Token t = ((GrammarSyntaxMessage)issue.msg).offendingToken;
+			Token t = issue.msg.offendingToken;
 			issue.offendingTokens.add(t);
+		}
+		else if ( issue.msg instanceof ToolMessage ) {
+			issue.offendingTokens.add(issue.msg.offendingToken);
 		}
 
 		ST msgST = antlr.errMgr.getMessageTemplate(issue.msg);
