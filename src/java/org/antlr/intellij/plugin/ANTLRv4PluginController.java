@@ -328,11 +328,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	/** Make sure to run after updating grammars in previewState */
 	public void runANTLRTool(final VirtualFile grammarFile) {
-		LOG.info("runANTLRTool launch on "+grammarFile.getPath()+" "+project.getName());
+		LOG.info("runANTLRTool request for "+grammarFile.getPath()+" "+project.getName());
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
 		boolean forceGeneration = false;
-		Task.Backgroundable gen =
+		Task gen =
 			new RunANTLROnGrammarFile(grammarFile,
 									  project,
 									  title,
