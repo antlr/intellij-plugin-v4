@@ -115,9 +115,9 @@ public class RunANTLROnGrammarFile extends Task.Backgroundable {
 		}
 
 		String language = getProp(qualFileName, "language", MISSING);
-		if ( package_!=MISSING) {
-			args.add("-language");
-			args.add(language);
+		if ( language!=MISSING) {
+			args.add("-Dlanguage="+language);
+//			args.add(language);
 		}
 
 		// create gen dir at root of project by default, but add in package if any
