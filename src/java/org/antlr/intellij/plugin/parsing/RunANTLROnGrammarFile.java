@@ -18,6 +18,7 @@ import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.codegen.CodeGenerator;
+import org.antlr.v4.runtime.misc.Utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.misc.Misc;
@@ -28,11 +29,13 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Modal {
-	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.actions.RunANTLROnGrammarFile");
+	public static final Logger LOG = Logger.getInstance("RunANTLROnGrammarFile");
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String MISSING = "";
 	public static final String groupDisplayId = "ANTLR 4 Parser Generation";
@@ -40,10 +43,6 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public VirtualFile grammarFile;
 	public Project project;
 	public boolean forceGeneration;
-
-	public String outputDirName;
-
-	public PropertiesComponent props;
 
 	public RunANTLROnGrammarFile(VirtualFile grammarFile,
 								 @Nullable final Project project,
@@ -54,7 +53,6 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		super(project, title, canBeCancelled); //, inBackground ? new BackgroundFromStartOption() : null);
 		this.grammarFile = grammarFile;
 		this.project = project;
-		props = PropertiesComponent.getInstance(project);
 		this.forceGeneration = forceGeneration;
 	}
 
@@ -62,7 +60,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
 		String qualFileName = grammarFile.getPath();
-		boolean autogen = getBooleanProp(qualFileName, "auto-gen", false);
+		boolean autogen = getBooleanProp(project, qualFileName, "auto-gen", false);
 		System.out.println("autogen is "+autogen+", force="+forceGeneration);
 		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
@@ -73,26 +71,28 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public boolean isGrammarStale() {
 		String qualFileName = grammarFile.getPath();
 		String sourcePath = getParentDir(grammarFile);
-		sourcePath = getProp(qualFileName, "lib-dir", sourcePath);
+		sourcePath = getProp(project, qualFileName, "lib-dir", sourcePath);
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		final PreviewState previewState = controller.getPreviewState(fullyQualifiedInputFileName);
 		// Grammar should be updated in the preview state before calling this function
+		if ( previewState.g==null ) {
+			return false;
+		}
 		String language = previewState.g.getOptionString("language");
 		CodeGenerator generator = new CodeGenerator(null, previewState.g, language);
 		String recognizerFileName = generator.getRecognizerFileName();
 
-		VirtualFile contentRoot = getContentRoot(grammarFile);
-		String package_ = getProp(qualFileName, "package", MISSING);
-		String outputDirName = getOutputDirName(qualFileName, contentRoot, package_);
+		VirtualFile contentRoot = getContentRoot(project, grammarFile);
+		String package_ = getProp(project, qualFileName, "package", MISSING);
+		String outputDirName = getOutputDirName(project, qualFileName, contentRoot, package_);
 		String fullyQualifiedOutputFileName = outputDirName+File.separator+recognizerFileName;
 
-		System.out.println(fullyQualifiedInputFileName+" -> "+fullyQualifiedOutputFileName);
 		File inF = new File(fullyQualifiedInputFileName);
 		File outF = new File(fullyQualifiedOutputFileName);
 		boolean stale = inF.lastModified()>outF.lastModified();
-		System.out.println("stale="+stale);
+		LOG.info((!stale ? "not" : "") + "stale: " + fullyQualifiedInputFileName + " -> " + fullyQualifiedOutputFileName);
 		return stale;
 	}
 
@@ -102,56 +102,23 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public void antlr(VirtualFile vfile) {
 		if ( vfile==null ) return;
 
+		LOG.info("antlr(\""+vfile.getPath()+"\")");
+		Map<String,String> argMap = getANTLRArgs(project, vfile);
+
 		List<String> args = new ArrayList<String>();
+		for (String option : argMap.keySet()) {
+			args.add(option);
+			String value = argMap.get(option);
+			if ( value.length()!=0 ) {
+				args.add(value);
+			}
+		}
 
-		String qualFileName = vfile.getPath();
 		String sourcePath = getParentDir(vfile);
-		VirtualFile contentRoot = getContentRoot(vfile);
-
-		String package_ = getProp(qualFileName, "package", MISSING);
-		if ( package_!=MISSING) {
-			args.add("-package");
-			args.add(package_);
-		}
-
-		String language = getProp(qualFileName, "language", MISSING);
-		if ( language!=MISSING) {
-			args.add("-Dlanguage="+language);
-//			args.add(language);
-		}
-
-		// create gen dir at root of project by default, but add in package if any
-		args.add("-o");
-		outputDirName = getOutputDirName(qualFileName, contentRoot, package_);
-		args.add(outputDirName);
-
-		args.add("-lib");
-		sourcePath = getProp(qualFileName, "lib-dir", sourcePath);
-		args.add(sourcePath);
-
-		String encoding = getProp(qualFileName, "encoding", MISSING);
-		if ( encoding!=MISSING ) {
-			args.add("-encoding");
-			args.add(encoding);
-		}
-
-		if ( getBooleanProp(qualFileName, "gen-listener", true) ) {
-			args.add("-listener");
-		}
-		else {
-			args.add("-no-listener");
-		}
-		if ( getBooleanProp(qualFileName, "gen-visitor", true) ) {
-			args.add("-visitor");
-		}
-		else {
-			args.add("-no-visitor");
-		}
-
 		String fullyQualifiedInputFileName = sourcePath+File.separator+vfile.getName();
 		args.add(fullyQualifiedInputFileName); // add grammar file last
 
-		//System.out.println("args="+args);
+		LOG.info("args: " + Utils.join(args.iterator(), " "));
 
 		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
@@ -161,7 +128,6 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		antlr.removeListeners();
 		RunANTLRListener listener = new RunANTLRListener(antlr, console);
 		antlr.addListener(listener);
-
 
 		try {
 			antlr.processGrammarsOnCommandLine();
@@ -193,30 +159,76 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		}
 	}
 
-	public String getOutputDirName(String qualFileName, VirtualFile contentRoot, String package_) {
+	public static Map<String,String> getANTLRArgs(Project project, VirtualFile vfile) {
+		Map<String,String> args = new HashMap<String, String>();
+		String qualFileName = vfile.getPath();
+		String sourcePath = getParentDir(vfile);
+
+		String package_ = getProp(project, qualFileName, "package", MISSING);
+		if ( package_!=MISSING) {
+			args.put("-package", package_);
+		}
+
+		String language = getProp(project, qualFileName, "language", MISSING);
+		if ( language!=MISSING) {
+			args.put("-Dlanguage="+language, "");
+		}
+
+		// create gen dir at root of project by default, but add in package if any
+		VirtualFile contentRoot = getContentRoot(project, vfile);
+		String outputDirName = getOutputDirName(project, qualFileName, contentRoot, package_);
+		args.put("-o", outputDirName);
+
+		String libDir = getProp(project, qualFileName, "lib-dir", sourcePath);
+		args.put("-lib", libDir);
+
+		String encoding = getProp(project, qualFileName, "encoding", MISSING);
+		if ( encoding!=MISSING ) {
+			args.put("-encoding", encoding);
+		}
+
+		if ( getBooleanProp(project, qualFileName, "gen-listener", true) ) {
+			args.put("-listener", "");
+		}
+		else {
+			args.put("-no-listener", "");
+		}
+		if ( getBooleanProp(project, qualFileName, "gen-visitor", true) ) {
+			args.put("-visitor", "");
+		}
+		else {
+			args.put("-no-visitor", "");
+		}
+
+		return args;
+	}
+
+	public static String getOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
 		String outputDirName = contentRoot.getPath()+File.separator+OUTPUT_DIR_NAME;
-		outputDirName = getProp(qualFileName, "output-dir", outputDirName);
+		outputDirName = getProp(project, qualFileName, "output-dir", outputDirName);
 		if ( package_!=MISSING ) {
 			outputDirName += File.separator+package_.replace('.',File.separatorChar);
 		}
 		return outputDirName;
 	}
 
-	public String getProp(String qualFileName, String name, String defaultValue) {
+	public static String getProp(Project project, String qualFileName, String name, String defaultValue) {
+		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		String v = props.getValue(ConfigANTLRPerGrammar.getPropNameForFile(qualFileName, name));
 		if ( v==null || v.trim().length()==0 ) return defaultValue;
 		return v;
 	}
 
-	public boolean getBooleanProp(String qualFileName, String name, boolean defaultValue) {
+	public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
+		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		return props.getBoolean(ConfigANTLRPerGrammar.getPropNameForFile(qualFileName, name), defaultValue);
 	}
 
-	public String getParentDir(VirtualFile vfile) {
+	public static String getParentDir(VirtualFile vfile) {
 		return vfile.getParent().getPath();
 	}
 
-	public VirtualFile getContentRoot(VirtualFile vfile) {
+	public static VirtualFile getContentRoot(Project project, VirtualFile vfile) {
 		VirtualFile root =
 			ProjectRootManager.getInstance(project)
 				.getFileIndex().getContentRootForFile(vfile);
@@ -225,6 +237,12 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	}
 
 	public String getOutputDirName() {
-		return outputDirName;
+		VirtualFile contentRoot = getContentRoot(project, grammarFile);
+		Map<String,String> argMap = getANTLRArgs(project, grammarFile);
+		String package_ = argMap.get("-package");
+		if ( package_==null ) {
+			package_ = MISSING;
+		}
+		return getOutputDirName(project, grammarFile.getPath(), contentRoot, package_);
 	}
 }

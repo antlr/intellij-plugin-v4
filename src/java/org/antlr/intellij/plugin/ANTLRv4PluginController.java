@@ -41,7 +41,7 @@ import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -235,10 +235,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				public void editorReleased(@NotNull EditorFactoryEvent event) {
 					Editor editor = event.getEditor();
 					GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
-					if ( editor.getProject()!=null && editor.getProject()!=project ) {
+					if (editor.getProject() != null && editor.getProject() != project) {
 						return;
 					}
-					if ( listener!=null ) {
+					if (listener != null) {
 						editor.removeEditorMouseListener(listener);
 					}
 				}
@@ -328,7 +328,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	/** Make sure to run after updating grammars in previewState */
 	public void runANTLRTool(final VirtualFile grammarFile) {
-		LOG.info("runANTLRTool request for "+grammarFile.getPath()+" "+project.getName());
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
 		boolean forceGeneration = false;

@@ -145,7 +145,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	}
 
 	public void processIssue(Issue issue) {
-		Tool antlr = new Tool();
 		if ( issue.msg instanceof GrammarSemanticsMessage ) {
 			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
 			issue.offendingTokens.add(t);
@@ -171,6 +170,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			issue.offendingTokens.add(issue.msg.offendingToken);
 		}
 
+		Tool antlr = new Tool();
 		ST msgST = antlr.errMgr.getMessageTemplate(issue.msg);
 		String outputMsg = msgST.render();
 		if (antlr.errMgr.formatWantsSingleLineMessage()) {

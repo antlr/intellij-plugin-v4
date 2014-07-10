@@ -5,11 +5,13 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -32,7 +34,8 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 
 	@Override
 	public void actionPerformed(final AnActionEvent e) {
-		if ( e.getProject()==null ) {
+		Project project = e.getData(PlatformDataKeys.PROJECT);
+		if ( project==null ) {
 			LOG.error("actionPerformed no project for "+e);
 			return; // whoa!
 		}
@@ -43,7 +46,7 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 		boolean canBeCancelled = true;
 
 		// commit changes to PSI and file system
-		PsiDocumentManager psiMgr = PsiDocumentManager.getInstance(e.getProject());
+		PsiDocumentManager psiMgr = PsiDocumentManager.getInstance(project);
 		FileDocumentManager docMgr = FileDocumentManager.getInstance();
 		Document doc = docMgr.getDocument(grammarFile);
 		if ( doc==null ) return;
@@ -58,17 +61,17 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 		boolean forceGeneration = true; // from action, they really mean it
 		RunANTLROnGrammarFile gen =
 			new RunANTLROnGrammarFile(grammarFile,
-									  e.getProject(),
+									  project,
 									  title,
 									  canBeCancelled,
 									  forceGeneration);
-		boolean autogen = gen.getBooleanProp(grammarFile.getPath(), "auto-gen", false);
+		boolean autogen = RunANTLROnGrammarFile.getBooleanProp(project, grammarFile.getPath(), "auto-gen", false);
 
 		if ( !wasStale || (wasStale && !autogen) ) {
 			// if everything already saved (!stale) then run ANTLR
-			// if had to be save and autogen NOT on, then run ANTLR
+			// if had to be saved and autogen NOT on, then run ANTLR
 			// Otherwise, the save file event will have or will run ANTLR.
-			ProgressManager.getInstance().run(gen); //, "Generating", canBeCancelled, e.getProject());
+			ProgressManager.getInstance().run(gen); //, "Generating", canBeCancelled, e.getData(PlatformDataKeys.PROJECT));
 
 			// refresh from disk to see new files
 			Set<File> generatedFiles = new HashSet<File>();
@@ -80,7 +83,7 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 								 "parser for " + grammarFile.getName() + " generated",
 								 "to " + gen.getOutputDirName(),
 								 NotificationType.INFORMATION);
-			Notifications.Bus.notify(notification, e.getProject());
+			Notifications.Bus.notify(notification, project);
 		}
 	}
 }
