@@ -58,20 +58,8 @@ import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Point;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -229,6 +217,12 @@ public class InputPanel {
 		if ( inputFileName.trim().length()>0 ) {
 			try {
 				inputText = FileUtil.loadFileText(new File(inputFileName));
+				String s = new String(inputText);
+				s = s.replaceAll("\r","");
+				// "All text strings passed to document modification methods
+				// (setText, insertString, replaceString) must use only \n as
+				// line separators."
+				inputText = s.toCharArray();
 			}
 			catch (IOException ioe) {
 				LOG.error("can't load input file "+inputFileName, ioe);
