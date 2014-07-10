@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.ST;
 
+import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,7 +101,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			antlr.process(g, false);
 
 			for (Issue issue : listener.issues) {
-				processIssue(issue);
+				processIssue(file, issue);
 			}
 		}
 		catch (Exception e) {
@@ -148,7 +149,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		super.apply(file, issues, holder);
 	}
 
-	public void processIssue(Issue issue) {
+	public void processIssue(final PsiFile file, Issue issue) {
+		File grammarFile = new File(file.getVirtualFile().getPath());
+		File issueFile = new File(issue.msg.fileName);
+		if ( !grammarFile.getName().equals(issueFile.getName()) ) {
+			return; // ignore errors from external files
+		}
 		if ( issue.msg instanceof GrammarSemanticsMessage ) {
 			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
 			issue.offendingTokens.add(t);
