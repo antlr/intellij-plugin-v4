@@ -103,16 +103,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		if ( vfile==null ) return;
 
 		LOG.info("antlr(\""+vfile.getPath()+"\")");
-		Map<String,String> argMap = getANTLRArgs(project, vfile);
-
-		List<String> args = new ArrayList<String>();
-		for (String option : argMap.keySet()) {
-			args.add(option);
-			String value = argMap.get(option);
-			if ( value.length()!=0 ) {
-				args.add(value);
-			}
-		}
+		List<String> args = getANTLRArgsAsList(project, vfile);
 
 		String sourcePath = getParentDir(vfile);
 		String fullyQualifiedInputFileName = sourcePath+File.separator+vfile.getName();
@@ -157,6 +148,19 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 				}
 			);
 		}
+	}
+
+	public static List<String> getANTLRArgsAsList(Project project, VirtualFile vfile) {
+		Map<String,String> argMap = getANTLRArgs(project, vfile);
+		List<String> args = new ArrayList<String>();
+		for (String option : argMap.keySet()) {
+			args.add(option);
+			String value = argMap.get(option);
+			if ( value.length()!=0 ) {
+				args.add(value);
+			}
+		}
+		return args;
 	}
 
 	public static Map<String,String> getANTLRArgs(Project project, VirtualFile vfile) {

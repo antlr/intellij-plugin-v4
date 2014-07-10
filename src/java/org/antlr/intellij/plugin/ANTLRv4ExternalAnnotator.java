@@ -7,6 +7,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
@@ -62,14 +63,17 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	@Override
 	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(final PsiFile file) {
 		String fileContents = file.getText();
-		final Tool antlr = new Tool();
-		// getContainingDirectory() must be identified as a read operation on file system
-		ApplicationManager.getApplication().runReadAction(new Runnable() {
-			@Override
-			public void run() {
-				antlr.libDirectory = file.getContainingDirectory().toString();
-			}
-		});
+		List<String> args = RunANTLROnGrammarFile.getANTLRArgsAsList(file.getProject(), file.getVirtualFile());
+		final Tool antlr = new Tool(args.toArray(new String[args.size()]));
+		if ( !args.contains("-lib") ) {
+			// getContainingDirectory() must be identified as a read operation on file system
+			ApplicationManager.getApplication().runReadAction(new Runnable() {
+				@Override
+				public void run() {
+					antlr.libDirectory = file.getContainingDirectory().toString();
+				}
+			});
+		}
 
 		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
 		ApplicationManager.getApplication().runReadAction(findVocabAction);
