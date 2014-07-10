@@ -202,6 +202,12 @@ public class PreviewPanel extends JPanel {
 														  "Issues with grammar prevents parsing with preview")));
 	}
 
+	public void indicateNoStartRuleInParseTreePane() {
+		setParseTree(Arrays.asList(new String[0]),
+					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
+														  "No start rule is selected")));
+	}
+
 	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
@@ -209,8 +215,11 @@ public class PreviewPanel extends JPanel {
 		try {
 			final String inputText = previewState.getEditor().getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
-			if (results != null) {
+			if ( results!=null) {
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), results.tree);
+			}
+			else if ( previewState.startRuleName==null ) {
+				indicateNoStartRuleInParseTreePane();
 			}
 			else {
 				indicateInvalidGrammarInParseTreePane();
