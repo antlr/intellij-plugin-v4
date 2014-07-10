@@ -12,17 +12,17 @@ import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JTabbedPane;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -196,6 +196,12 @@ public class PreviewPanel extends JPanel {
 		setParseTree(Arrays.asList(new String[0]), null);
 	}
 
+	public void indicateInvalidGrammarInParseTreePane() {
+		setParseTree(Arrays.asList(new String[0]),
+					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
+														  "Issues with grammar prevents parsing with preview")));
+	}
+
 	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
@@ -207,7 +213,7 @@ public class PreviewPanel extends JPanel {
 				setParseTree(Arrays.asList(previewState.g.getRuleNames()), results.tree);
 			}
 			else {
-				clearParseTree();
+				indicateInvalidGrammarInParseTreePane();
 			}
 		}
 		catch (IOException ioe) {
