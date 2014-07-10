@@ -303,14 +303,14 @@ public class ParsingUtils {
 				break;
 		}
 
-		if ( lexerGrammarFileName==null ) {
-			ANTLRv4PluginController.LOG.error("Can't compute lexer file name from "+grammarFileName, (Throwable)null);
-			return null;
-		}
-		if ( parserGrammarFileName==null ) {
-			ANTLRv4PluginController.LOG.error("Can't compute parser file name from "+grammarFileName, (Throwable)null);
-			return null;
-		}
+//		if ( lexerGrammarFileName==null ) {
+//			ANTLRv4PluginController.LOG.error("Can't compute lexer file name from "+grammarFileName, (Throwable)null);
+//			return null;
+//		}
+//		if ( parserGrammarFileName==null ) {
+//			ANTLRv4PluginController.LOG.error("Can't compute parser file name from "+grammarFileName, (Throwable)null);
+//			return null;
+//		}
 
 		LexerGrammar lg = null;
 
@@ -322,17 +322,21 @@ public class ParsingUtils {
 			}
 		}
 		else {
-			try {
-				lg = (LexerGrammar)Grammar.load(lexerGrammarFileName);
+			if ( lexerGrammarFileName!=null ) {
+				try {
+					lg = (LexerGrammar) Grammar.load(lexerGrammarFileName);
+				}
+				catch (ClassCastException cce) {
+					ANTLRv4PluginController.LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
+					lg = null;
+				}
+				if (listener.grammarErrorMessages.size() != 0) {
+					lg = null;
+				}
 			}
-			catch (ClassCastException cce) {
-				ANTLRv4PluginController.LOG.error("File " + lexerGrammarFileName + " isn't a lexer grammar", cce);
-				lg = null;
+			if ( parserGrammarFileName==null ) {
+				g = loadGrammar(antlr, parserGrammarFileName, lg);
 			}
-			if ( listener.grammarErrorMessages.size()!=0 ) {
-				lg = null;
-			}
-			g = loadGrammar(antlr, parserGrammarFileName, lg);
 		}
 
 		if ( g==null ) {
