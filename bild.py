@@ -2,6 +2,7 @@
 
 # bootstrap by downloading bilder.py if not found
 import urllib
+import os
 
 if not os.path.exists("bilder.py"):
 	print "bootstrapping; downloading bilder.py"
