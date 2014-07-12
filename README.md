@@ -65,7 +65,7 @@ You can inject predefined lexer rules. Use meta-j or type the abbreviation like 
 
 ### Refactoring: generate rules for literals
 
-It guesses rule names or just uses T__&lt;n>. Respects literals already defined.
+It guesses rule names or just uses T__&lt;n>. Respects literals already defined. Use Code::Generate menu item or key equivalent.
 
 ![def-literals.png](images/def-literals.png)
 
@@ -94,6 +94,10 @@ When there are errors, you will see the output in the small console under the in
 With alt-mouse movement, you'll see parse region for rule matching token under cursor. Click and it jumps to grammar definition.
 
 ![parse-region.png](images/parse-region.png)
+
+#### Unicode chars are no problem
+
+![unicode.png](images/unicode.png)
 
 ### Per file ANTLR configuration
 
