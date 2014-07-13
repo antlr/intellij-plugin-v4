@@ -3,7 +3,7 @@
   <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" />
   <component name="FacetManager">
     <facet type="Python" name="Python">
-      <configuration sdkName="Python 2.7.7 virtualenv at /usr/local/intellij-python2.7" />
+      <configuration sdkName="" />
     </facet>
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
@@ -32,7 +32,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="Python 2.7.7 virtualenv at /usr/local/intellij-python2.7 interpreter library" level="application" />
   </component>
   <component name="PluginUploader.PluginUploadConfigurable">
     <option name="ARCHIVE_PATH" />
