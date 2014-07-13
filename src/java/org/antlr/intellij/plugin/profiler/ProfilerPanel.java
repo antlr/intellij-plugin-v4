@@ -297,39 +297,6 @@ public class ProfilerPanel {
 												  DEEPESTLOOK_COLOR,
 												  EffectType.BOLD_DOTTED_LINE);
 			firstToken = t;
-//			rangeHighlighter.setLineMarkerRenderer(
-//				new LineMarkerRenderer() {
-//					@Override
-//					public void paint(Editor editor, Graphics g, Rectangle r) {
-//						// draws left gutter range like for brace highlighting
-//						final EditorGutterComponentEx gutter = ((EditorEx)editor).getGutterComponentEx();
-//						g.setColor(DEEPESTLOOK_COLOR);
-//
-//						final int endX = gutter.getWhitespaceSeparatorOffset();
-//						final int x = r.x+r.width-5;
-//						final int width = endX-x;
-//						if ( r.height>0 ) {
-//							g.fillRect(x, r.y, width, r.height);
-//							g.setColor(gutter.getOutlineColor(false));
-//							UIUtil.drawLine(g, x, r.y, x+width, r.y);
-//							UIUtil.drawLine(g, x, r.y, x, r.y+r.height-1);
-//							UIUtil.drawLine(g, x, r.y+r.height-1, x+width, r.y+r.height-1);
-//						}
-//						else {
-//							final int[] xPoints = new int[]{x,
-//								x,
-//								x+width-1};
-//							final int[] yPoints = new int[]{r.y-4,
-//								r.y+4,
-//								r.y};
-//							g.fillPolygon(xPoints, yPoints, 3);
-//
-//							g.setColor(gutter.getOutlineColor(false));
-//							g.drawPolygon(xPoints, yPoints, 3);
-//						}
-//					}
-//				}
-//			);
 		}
 
 		// pred evals

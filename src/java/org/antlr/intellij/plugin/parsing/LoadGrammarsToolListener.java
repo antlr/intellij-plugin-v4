@@ -35,4 +35,9 @@ public class LoadGrammarsToolListener extends DefaultToolListener {
         }
         grammarWarningMessages.add(s);
 	}
+
+	public void clear() {
+		grammarErrorMessages.clear();
+		grammarWarningMessages.clear();
+	}
 }

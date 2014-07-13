@@ -38,10 +38,9 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.tool.Grammar;
-import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -63,18 +62,6 @@ import java.util.Map;
 public class ANTLRv4PluginController implements ProjectComponent {
 	public static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
-
-	static {
-		try {
-			ParsingUtils.BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
-			ParsingUtils.BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
-			ParsingUtils.BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
-			ParsingUtils.BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
-		}
-		catch (org.antlr.runtime.RecognitionException re) {
-			LOG.error("can't init bad grammar markers");
-		}
-	}
 
 	public static final String PREVIEW_WINDOW_ID = "Preview";
 	public static final String CONSOLE_WINDOW_ID = "Tool Output";
@@ -318,6 +305,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			return;
 		}
 
+		previewState.g = null; // wack old ref to the Grammar for text in editor
+
 		previewPanel.closeGrammar(vfile);
 
 		grammarToPreviewState.remove(grammarFileName);
@@ -370,7 +359,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
         long start = System.nanoTime();
-		previewState.parsingResult = ParsingUtils.parseText(previewState, grammarFile, inputText);
+		previewState.parsingResult = ParsingUtils.parseText(previewState, previewPanel, grammarFile, inputText);
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}
