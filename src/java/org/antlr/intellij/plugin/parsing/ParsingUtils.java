@@ -302,6 +302,9 @@ public class ParsingUtils {
 					ANTLRv4PluginController.LOG.info("loadGrammars implicit lexer from "+g.name+" has errors");
 					lg = BAD_LEXER_GRAMMAR;
 				}
+				if ( lg==null ) {
+					lg = BAD_LEXER_GRAMMAR;
+				}
 				ANTLRv4PluginController.LOG.info("loadGrammars combined: "+lg.name+", "+g.name);
 				return new Grammar[] {lg, g};
 		}
