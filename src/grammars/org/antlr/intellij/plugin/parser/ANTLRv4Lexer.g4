@@ -315,13 +315,12 @@ mode ArgAction; // E.g., [int x, List<String> a[]]
         ;
 
 
-
 mode LexerCharSet;
 
 	LEXER_CHAR_SET_BODY
 		:	(	~[\]\\]
 			|	'\\' .
-			)+
+			)
                                         -> more
 		;
 
