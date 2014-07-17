@@ -37,6 +37,7 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
 
@@ -288,7 +289,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
-		previewPanel.getProfilerPanel().mouseEnteredGrammarEditorEvent(vfile, e);
+		ProfilerPanel profilerPanel = previewPanel.getProfilerPanel();
+		if ( profilerPanel!=null ) {
+			profilerPanel.mouseEnteredGrammarEditorEvent(vfile, e);
+		}
 	}
 
 	public void editorFileClosedEvent(VirtualFile vfile) {
