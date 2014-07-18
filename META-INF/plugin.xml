@@ -8,10 +8,11 @@
   <p>
       This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
       syntax error checking, semantic error checking, navigation window,
-      goto-declaration, find usages, rename tokens, rename rules.
-      Generates code. Uses package dir if @header { package x.y.z; } action present.
-      Generates in <root>/gen/package/YourGrammarRecognizer.java
-      Shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu, popups.
+      live preview, parse tree view, profiler, goto-declaration, find usages,
+      rename tokens, rename rules.
+      Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
+      unless you override in the configuration dialog.
+      Shortcut to generate parsers is ctrl-shift-G / meta-shift-G but it's in Tools menu, popups.
       Code completion for tokens, rule names. finds tokenVocab option for code gen
           if there is a tokenVocab option, don't warn about implicit tokens.
           shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
