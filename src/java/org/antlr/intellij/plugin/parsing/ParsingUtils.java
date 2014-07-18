@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -239,6 +240,7 @@ public class ParsingUtils {
 		lexEngine = previewState.lg.createLexerInterpreter(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
 		PreviewParser parser = new PreviewParser(previewState, tokens);
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		parser.setProfile(true);
 
 		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();

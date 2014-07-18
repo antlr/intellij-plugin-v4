@@ -95,7 +95,24 @@ With alt-mouse movement, you'll see parse region for rule matching token under c
 
 ![parse-region.png](images/parse-region.png)
 
-#### Unicode chars are no problem
+### Grammar Profiler
+
+The profiler helps you understand which decisions in your grammar are complicated or expensive.  Profiling data is always available just like the parse tree during grammar interpretation.  The profiler cannot track code execution because it is running the grammar interpreter not executing compiled code.  It provides both a simplified set of columns and an expert set the provides a great deal more information. Clicking on a row in the profiler highlights the decision in the grammar and also highlights relevant pieces of the input, such as ambiguities or the deepest lookahead. You can sort the columns by clicking on the header row. Hover over the header row to get tooltips describing the column.
+
+If you see ambiguities highlighted, those you should definitely take a look
+ at in your grammar. If you see decisions requiring full context sensitivity,
+ when viewing the expert columns, those are very expensive and could be causing
+ speed problems. Note that the profiler always tries to keep up-to-date with
+ the input. The profiler uses the parser interpreter but is fairly
+ consistent with the speed of a generated and compiled parser but it does use
+ single-stage full LL parsing which can be slower.  It needs to do that so
+ that it gets full and complete profiling information. For those in the know,
+ it uses PredictionMode.LL_EXACT_AMBIG_DETECTION. For really big files and
+ slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
+
+![parse-region.png](images/profiler.png)
+
+### Unicode chars are no problem
 
 ![unicode.png](images/unicode.png)
 

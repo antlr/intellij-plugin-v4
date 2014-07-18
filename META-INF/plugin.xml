@@ -5,6 +5,7 @@
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
+  <p>
       This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
       syntax error checking, semantic error checking, navigation window,
       goto-declaration, find usages, rename tokens, rename rules.
@@ -17,21 +18,23 @@
           for grammar preview. Right click on rule and say "Test ANTLR Rule".
           Changes to grammar seen in parse tree upon save of grammar. Works with
           Intellij 13.x and requires 12.1.x.
-
+  <p>
           You can configure the ANTLR tool options per grammar file; right-click
           in a grammar or on a grammar element within the structured view.
           When you change and save a grammar, it automatically builds with ANTLR
           in the background according to the preferences you have set.  ANTLR
           tool errors appear in a console you can opened by clicking on a button
           in the bottom tab.
-
+  <p>
           You can use the meta-key while moving the mouse and it will show you
           token information in the preview editor box via tooltips.
 
+  <p>
           Errors within the preview editor are now highlighted with tooltips
           and underlining just like a regular editor window. The difference
           is that this window's grammar is specified in your grammar file.
 
+  <p>
 meta-j pops up a list of live templates, just like it does for Java programming.
 Currently, there are a number of lexical rules for common tokens such as comments
 and identifiers that you can automatically inject.
@@ -39,25 +42,30 @@ There are shortcuts like rid that lets you jump directly to the
 lexical rule you would like to generate. If you type the shortcut and wait a
 second, intellij should pop up an action you can select for that shortcut.
 
+  <p>
 ctrl-return, or whatever you have configured for the generate pop-up,
 will bring up a list of things you can generate. The only one so far is
 a generator to create lexical rules for any literals, referenced in the parser
 grammar, that have not been defined.
 
+  <p>
 You can type input into an editor or select a file for testing in preview window.
 
+  <p>
 Meta-key while moving the mouse shows token info per above, but now you can
 click on the token that's underlined and it will show the location in the ANTLR
 grammar editor window of the grammar element that matched that token.
 This required a change to ANTLR 4 itself and therefore includes a
 prerelease version of ANTLR 4.2.3.
 
+  <p>
 Alt-key while moving the mouse shows the region of input associated with
 parser rule that matched it. It finds parent of the token under cursor
 and shows region of that rule parse tree node.  Clicking at the same time
 jumps the grammar to the associated rule.  A pop up shows the parser call
 stack leading to that parse region.
 
+<p>
 Added profiler tab in preview tool window. Selecting a row in the table
  highlights the associated decision in the grammar and highlights important
  regions of the input window to the left. You can sort the columns by clicking
@@ -70,15 +78,21 @@ the expert columns to see additional information. This is  the first attempt
  when viewing the expert columns, those are very expensive and could be causing
  speed problems. Note that the profiler always tries to keep up-to-date with
  the input. The profiler uses the parser interpreter but is fairly
- consistent with the speed of a generated and compiled parser. At the moment
- it only uses the single stage not two-stage parsing, which could also affect
- speed.
+ consistent with the speed of a generated and compiled parser but it does use
+ single-stage full LL parsing which can be slower.  It needs to do that so
+ that it gets full and complete profiling information. For those in the know,
+ it uses PredictionMode.LL_EXACT_AMBIG_DETECTION.
 
-          <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
+<p>
+For really big files and
+ slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
+
+<p>
+<a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
       ]]></description>
 
   <change-notes><![CDATA[
-	Hush annoying error.
+	Add profiler.
       ]]>
   </change-notes>
 
