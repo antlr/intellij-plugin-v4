@@ -5,7 +5,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -137,14 +136,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		}
 
 		if ( listener.hasOutput ) {
-			ApplicationManager.getApplication().invokeLater(
-				new Runnable() {
-					@Override
-					public void run() {
-						ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
-					}
-				}
-			);
+			ANTLRv4PluginController.showConsoleWindow(project);
 		}
 	}
 
