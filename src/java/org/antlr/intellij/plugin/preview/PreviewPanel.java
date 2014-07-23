@@ -19,10 +19,13 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -116,12 +119,23 @@ public class PreviewPanel extends JPanel {
 		ensureStartRuleExists(grammarFile);
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFileName);
 
 		inputPanel.grammarFileSaved(grammarFile);
 
+		PreviewState parserState = null;
 		if ( previewState.startRuleName!=null ) {
-			updateParseTreeFromDoc(grammarFile);
+			parserState = previewState; // previewState is combined or parser
+		}
+		else {// are we lexer and have a parser loaded?
+			PreviewState associatedParserIfLexer = controller.getAssociatedParserIfLexer(grammarFileName);
+			if ( associatedParserIfLexer!=null ) {
+				parserState = associatedParserIfLexer; // need to
+			}
+		}
+		if ( parserState!=null ) { // if we can parse
+			updateParseTreeFromDoc(parserState.grammarFileName);
 		}
 		else {
 			setParseTree(Collections.<String>emptyList(), null); // blank tree

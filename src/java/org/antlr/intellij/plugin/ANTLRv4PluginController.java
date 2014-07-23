@@ -38,6 +38,7 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
+import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
 
@@ -228,6 +229,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 					}
 					if (listener != null) {
 						editor.removeEditorMouseListener(listener);
+						editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
 					}
 				}
 			}
@@ -280,7 +282,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			return;
 		}
 		PreviewState previewState = getPreviewState(newFile.getPath());
-		if ( previewState.g==null ) { // only load grammars if not there
+		if ( previewState.g==null && previewState.lg==null ) { // only load grammars if none is there
 			updateGrammarObjectsFromFile(newFile.getPath());
 		}
 		if ( previewPanel!=null ) {
@@ -289,13 +291,16 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
-		ProfilerPanel profilerPanel = previewPanel.getProfilerPanel();
-		if ( profilerPanel!=null ) {
-			profilerPanel.mouseEnteredGrammarEditorEvent(vfile, e);
+		if ( previewPanel!=null ) {
+			ProfilerPanel profilerPanel = previewPanel.getProfilerPanel();
+			if ( profilerPanel!=null ) {
+				profilerPanel.mouseEnteredGrammarEditorEvent(vfile, e);
+			}
 		}
 	}
 
 	public void editorFileClosedEvent(VirtualFile vfile) {
+		// hopefully called only from swing EDT
 		String grammarFileName = vfile.getPath();
 		LOG.info("editorFileClosedEvent "+ grammarFileName+" "+project.getName());
 		if ( !vfile.getName().endsWith(".g4") ) {
@@ -310,6 +315,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 
 		previewState.g = null; // wack old ref to the Grammar for text in editor
+		previewState.lg = null;
 
 		previewPanel.closeGrammar(vfile);
 
@@ -348,6 +354,29 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				previewState.g = grammars[1];
 			}
 		}
+
+		// if grammarFileName is a separate lexer, we need to look for
+		// its matching parser, if any, that is loaded in an editor
+		// (don't go looking on disk).
+		PreviewState s = getAssociatedParserIfLexer(grammarFileName);
+		if ( s!=null ) {
+			// try to load lexer again and associate with this parser grammar.
+			s.lg = ParsingUtils.loadLexerGrammarFor(s.g);
+		}
+	}
+
+	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
+		for (PreviewState s : grammarToPreviewState.values()) {
+			if ( s!=null && s.lg!=null && grammarFileName.equals(s.lg.fileName) ) {
+				// s has a lexer with same filename, see if there is a parser grammar
+				// (not a combined grammar)
+				if ( s.g!=null && s.g.getType()==ANTLRParser.PARSER ) {
+//					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
+					return s;
+				}
+			}
+		}
+		return null;
 	}
 
 	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
