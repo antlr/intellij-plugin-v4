@@ -73,7 +73,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		final PreviewState previewState = controller.getPreviewState(fullyQualifiedInputFileName);
+		final PreviewState previewState = controller.getPreviewState(grammarFile);
 		// Grammar should be updated in the preview state before calling this function
 		if ( previewState.g==null ) {
 			return false;

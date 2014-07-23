@@ -243,7 +243,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 */
 	public void setStartRuleNameEvent(VirtualFile grammarFile, String startRuleName) {
 		LOG.info("setStartRuleNameEvent " + startRuleName+" "+project.getName());
-		PreviewState previewState = getPreviewState(grammarFile.getPath());
+		PreviewState previewState = getPreviewState(grammarFile);
 		previewState.startRuleName = startRuleName;
 		if ( previewPanel!=null ) {
 			previewPanel.getInputPanel().setStartRuleName(grammarFile, startRuleName); // notify the view
@@ -256,7 +256,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public void grammarFileSavedEvent(VirtualFile grammarFile) {
 		LOG.info("grammarFileSavedEvent "+grammarFile.getPath()+" "+project.getName());
-		updateGrammarObjectsFromFile(grammarFile.getPath()); // force reload
+		updateGrammarObjectsFromFile(grammarFile); // force reload
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(grammarFile);
 		}
@@ -281,9 +281,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			previewWindow.hide(null);
 			return;
 		}
-		PreviewState previewState = getPreviewState(newFile.getPath());
+		PreviewState previewState = getPreviewState(newFile);
 		if ( previewState.g==null && previewState.lg==null ) { // only load grammars if none is there
-			updateGrammarObjectsFromFile(newFile.getPath());
+			updateGrammarObjectsFromFile(newFile);
 		}
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
@@ -345,8 +345,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  this grammar or we will have seen a grammar file changed event.
 	 *  (I hope!)
 	 */
-	public void updateGrammarObjectsFromFile(String grammarFileName) {
-		PreviewState previewState = getPreviewState(grammarFileName);
+	public void updateGrammarObjectsFromFile(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
+		PreviewState previewState = getPreviewState(grammarFile);
 		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
 		if (grammars != null) {
 			synchronized (previewState) { // build atomically
@@ -380,9 +381,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
-		// TODO:Try to reuse the same parser and lexer.
 		String grammarFileName = grammarFile.getPath();
-		final PreviewState previewState = getPreviewState(grammarFileName);
+		final PreviewState previewState = getPreviewState(grammarFile);
 		if (!new File(grammarFileName).exists()) {
 			LOG.error("parseText grammar doesn't exit " + grammarFileName);
 			return null;
@@ -424,7 +424,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return previewWindow;
 	}
 
-	public @NotNull PreviewState getPreviewState(String grammarFileName) {
+	public @NotNull PreviewState getPreviewState(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
 		// Have we seen this grammar before?
 		PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
 		if ( stateForCurrentGrammar!=null ) {
@@ -432,7 +433,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 
 		// not seen, must create state
-		stateForCurrentGrammar = new PreviewState(grammarFileName);
+		stateForCurrentGrammar = new PreviewState(grammarFile);
 		grammarToPreviewState.put(grammarFileName, stateForCurrentGrammar);
 
 		return stateForCurrentGrammar;
@@ -452,7 +453,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		if ( currentGrammarFileName==null ) {
 			return null; // we are not looking at a grammar file
 		}
-		return getPreviewState(currentGrammarFileName);
+		return getPreviewState(currentGrammarFile);
 	}
 
 	// These "get current editor file" routines should only be used
