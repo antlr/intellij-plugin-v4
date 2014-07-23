@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -346,6 +347,20 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  (I hope!)
 	 */
 	public void updateGrammarObjectsFromFile(VirtualFile grammarFile) {
+		updateGrammarObjectsFromFile_(grammarFile);
+
+		// if grammarFileName is a separate lexer, we need to look for
+		// its matching parser, if any, that is loaded in an editor
+		// (don't go looking on disk).
+		PreviewState s = getAssociatedParserIfLexer(grammarFile.getPath());
+		if ( s!=null ) {
+			// try to load lexer again and associate with this parser grammar.
+			// must update parser too as tokens have changed
+			updateGrammarObjectsFromFile_(s.grammarFile);
+		}
+	}
+
+	public String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		PreviewState previewState = getPreviewState(grammarFile);
 		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
@@ -355,24 +370,18 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				previewState.g = grammars[1];
 			}
 		}
-
-		// if grammarFileName is a separate lexer, we need to look for
-		// its matching parser, if any, that is loaded in an editor
-		// (don't go looking on disk).
-		PreviewState s = getAssociatedParserIfLexer(grammarFileName);
-		if ( s!=null ) {
-			// try to load lexer again and associate with this parser grammar.
-			s.lg = ParsingUtils.loadLexerGrammarFor(s.g);
-		}
+		return grammarFileName;
 	}
 
 	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
 		for (PreviewState s : grammarToPreviewState.values()) {
-			if ( s!=null && s.lg!=null && grammarFileName.equals(s.lg.fileName) ) {
+			if ( s!=null && s.lg!=null &&
+				(grammarFileName.equals(s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
+			{
 				// s has a lexer with same filename, see if there is a parser grammar
 				// (not a combined grammar)
 				if ( s.g!=null && s.g.getType()==ANTLRParser.PARSER ) {
-//					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
+					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
 					return s;
 				}
 			}
@@ -418,6 +427,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public ToolWindow getConsoleWindow() {
 		return consoleWindow;
+	}
+
+	public static void showConsoleWindow(final Project project) {
+		ApplicationManager.getApplication().invokeLater(
+			new Runnable() {
+				@Override
+				public void run() {
+					ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
+				}
+			}
+		);
 	}
 
 	public ToolWindow getPreviewWindow() {
