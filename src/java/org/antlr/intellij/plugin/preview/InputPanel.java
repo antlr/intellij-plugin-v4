@@ -332,7 +332,7 @@ public class InputPanel {
 	public void switchToGrammar(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar "+grammarFileName+" "+previewPanel.project.getName());
-		PreviewState previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFileName);
+		PreviewState previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
 
 		selectInputEvent();
 
@@ -364,7 +364,7 @@ public class InputPanel {
 
 	public Editor getEditor(VirtualFile grammarFile) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
+		PreviewState previewState = controller.getPreviewState(grammarFile);
 		return previewState.getEditor();
 	}
 
