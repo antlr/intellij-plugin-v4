@@ -19,10 +19,15 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -113,15 +118,18 @@ public class PreviewPanel extends JPanel {
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
-		ensureStartRuleExists(grammarFile);
 		String grammarFileName = grammarFile.getPath();
-		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		LOG.info("grammarFileSaved " + grammarFileName+" "+project.getName());
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile);
 
+		ensureStartRuleExists(grammarFile);
 		inputPanel.grammarFileSaved(grammarFile);
 
-		if ( previewState.startRuleName!=null ) {
-			updateParseTreeFromDoc(grammarFile);
+		// if the saved grammar is not a pure lexer and there is a start rule, reparse
+		// means that switching grammars must refresh preview
+		if ( previewState.g!=null && previewState.startRuleName!=null ) {
+			updateParseTreeFromDoc(previewState.grammarFile);
 		}
 		else {
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
@@ -131,8 +139,7 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void ensureStartRuleExists(VirtualFile grammarFile) {
-		String grammarFileName = grammarFile.getPath();
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
 		// if start rule no longer exists, reset display/state.
 		if ( previewState.g!=ParsingUtils.BAD_PARSER_GRAMMAR && previewState.startRuleName!=null ) {
 			Rule rule = previewState.g.getRule(previewState.startRuleName);
@@ -152,7 +159,8 @@ public class PreviewPanel extends JPanel {
 	public void switchToGrammar(VirtualFile oldFile, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFileName);
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile);
 
 		inputPanel.switchToGrammar(grammarFile);
 
@@ -164,6 +172,28 @@ public class PreviewPanel extends JPanel {
 		}
 
 		profilerPanel.switchToGrammar(previewState, grammarFile);
+
+		if ( previewState.g==null && previewState.lg!=null ) {
+			setEnabled(false);
+		}
+		else {
+			setEnabled(true);
+		}
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		this.setEnabledRecursive(this, enabled);
+	}
+
+	public void setEnabledRecursive(Component component, boolean enabled) {
+		if (component instanceof Container) {
+			for (Component child : ((Container) component).getComponents()) {
+				child.setEnabled(enabled);
+				setEnabledRecursive(child, enabled);
+			}
+		}
 	}
 
 	public void closeGrammar(VirtualFile grammarFile) {
@@ -175,7 +205,7 @@ public class PreviewPanel extends JPanel {
 		clearParseTree(); // wipe tree
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
+		PreviewState previewState = controller.getPreviewState(grammarFile);
 		inputPanel.releaseEditor(previewState);
 	}
 
@@ -199,7 +229,7 @@ public class PreviewPanel extends JPanel {
 	public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "Issues with grammar prevents parsing with preview")));
+														  "Issues with parser and/or lexer grammar(s) prevent preview")));
 	}
 
 	public void indicateNoStartRuleInParseTreePane() {
@@ -210,8 +240,8 @@ public class PreviewPanel extends JPanel {
 
 	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		PreviewState previewState = controller.getPreviewState(grammarFile.getPath());
-		LOG.info("updateParseTreeFromDoc "+previewState.grammarFileName+" rule "+previewState.startRuleName);
+		PreviewState previewState = controller.getPreviewState(grammarFile);
+		LOG.info("updateParseTreeFromDoc "+grammarFile+" rule "+previewState.startRuleName);
 		try {
 			final String inputText = previewState.getEditor().getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);

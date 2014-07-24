@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
 
@@ -20,7 +21,7 @@ import org.antlr.v4.tool.Grammar;
  *  for example.
  */
 public class PreviewState {
-	public String grammarFileName;
+	public VirtualFile grammarFile;
 	public Grammar g;
 	public Grammar lg;
 	public String startRuleName;
@@ -32,8 +33,8 @@ public class PreviewState {
 	/** The current input editor (inputEditor or fileEditor) for this grammar */
 	private Editor editor;
 
-	public PreviewState(String grammarFileName) {
-		this.grammarFileName = grammarFileName;
+	public PreviewState(VirtualFile grammarFile) {
+		this.grammarFile = grammarFile;
 	}
 
 	public synchronized Editor getEditor() {

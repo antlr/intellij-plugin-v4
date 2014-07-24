@@ -5,7 +5,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -73,7 +72,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		final PreviewState previewState = controller.getPreviewState(fullyQualifiedInputFileName);
+		final PreviewState previewState = controller.getPreviewState(grammarFile);
 		// Grammar should be updated in the preview state before calling this function
 		if ( previewState.g==null ) {
 			return false;
@@ -137,14 +136,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		}
 
 		if ( listener.hasOutput ) {
-			ApplicationManager.getApplication().invokeLater(
-				new Runnable() {
-					@Override
-					public void run() {
-						ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
-					}
-				}
-			);
+			ANTLRv4PluginController.showConsoleWindow(project);
 		}
 	}
 

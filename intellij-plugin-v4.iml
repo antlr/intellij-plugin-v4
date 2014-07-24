@@ -26,7 +26,10 @@
           <root url="jar://$MODULE_DIR$/lib/antlr-4.4.1-dev-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
+          <root url="file://$MODULE_DIR$/../stringtemplate4/src" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>
