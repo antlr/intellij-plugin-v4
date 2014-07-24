@@ -93,7 +93,7 @@ For really big files and
       ]]></description>
 
   <change-notes><![CDATA[
-	Add profiler.
+	Separate lexers weren't working.
       ]]>
   </change-notes>
 
