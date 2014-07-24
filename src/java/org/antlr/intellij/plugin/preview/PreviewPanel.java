@@ -26,6 +26,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -166,7 +168,8 @@ public class PreviewPanel extends JPanel {
 	public void switchToGrammar(VirtualFile oldFile, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
-		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		PreviewState previewState = controller.getPreviewState(grammarFile);
 
 		inputPanel.switchToGrammar(grammarFile);
 
@@ -178,6 +181,28 @@ public class PreviewPanel extends JPanel {
 		}
 
 		profilerPanel.switchToGrammar(previewState, grammarFile);
+
+		if ( previewState.g==null && previewState.lg!=null ) {
+			setEnabled(false);
+		}
+		else {
+			setEnabled(true);
+		}
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		this.setEnabledRecursive(this, enabled);
+	}
+
+	public void setEnabledRecursive(Component component, boolean enabled) {
+		if (component instanceof Container) {
+			for (Component child : ((Container) component).getComponents()) {
+				child.setEnabled(enabled);
+				setEnabledRecursive(child, enabled);
+			}
+		}
 	}
 
 	public void closeGrammar(VirtualFile grammarFile) {
