@@ -234,7 +234,10 @@ public class ParsingUtils {
 
 		if ( previewState.g==null || previewState.lg==null ) {
 			ANTLRv4PluginController.LOG.info("parseText can't parse: missing lexer or parser no Grammar object for "+grammarFileName);
-			previewPanel.inputPanel.displayErrorInParseErrorConsole("Plugin can only show preview for combined lexer/parser grammars");
+			return null;
+		}
+
+		if ( previewState.g==BAD_PARSER_GRAMMAR || previewState.lg==BAD_LEXER_GRAMMAR ) {
 			return null;
 		}
 
