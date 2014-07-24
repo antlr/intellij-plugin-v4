@@ -118,26 +118,18 @@ public class PreviewPanel extends JPanel {
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
-		ensureStartRuleExists(grammarFile);
 		String grammarFileName = grammarFile.getPath();
-		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
+		LOG.info("grammarFileSaved " + grammarFileName+" "+project.getName());
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
+		ensureStartRuleExists(grammarFile);
 		inputPanel.grammarFileSaved(grammarFile);
 
-		PreviewState parserState = null;
-		if ( previewState.startRuleName!=null ) {
-			parserState = previewState; // previewState is combined or parser
-		}
-		else {// are we lexer and have a parser loaded?
-			PreviewState associatedParserIfLexer = controller.getAssociatedParserIfLexer(grammarFileName);
-			if ( associatedParserIfLexer!=null ) {
-				parserState = associatedParserIfLexer; // need to
-			}
-		}
-		if ( parserState!=null ) { // if we can parse
-			updateParseTreeFromDoc(parserState.grammarFile);
+		// if the saved grammar is not a pure lexer and there is a start rule, reparse
+		// means that switching grammars must refresh preview
+		if ( previewState.g!=null && previewState.startRuleName!=null ) {
+			updateParseTreeFromDoc(previewState.grammarFile);
 		}
 		else {
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
@@ -147,7 +139,6 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public void ensureStartRuleExists(VirtualFile grammarFile) {
-		String grammarFileName = grammarFile.getPath();
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
 		// if start rule no longer exists, reset display/state.
 		if ( previewState.g!=ParsingUtils.BAD_PARSER_GRAMMAR && previewState.startRuleName!=null ) {
@@ -238,7 +229,7 @@ public class PreviewPanel extends JPanel {
 	public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "Issues with grammar prevents parsing with preview")));
+														  "Issues with parser and/or lexer grammar(s) prevent preview")));
 	}
 
 	public void indicateNoStartRuleInParseTreePane() {
