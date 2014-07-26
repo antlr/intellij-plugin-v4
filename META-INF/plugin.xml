@@ -93,7 +93,7 @@ For really big files and
       ]]></description>
 
   <change-notes><![CDATA[
-	Separate lexers weren't working.
+	Separate lexers weren't working. Bug fixes.
       ]]>
   </change-notes>
 

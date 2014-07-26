@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Type "python bild.py" to build all of the parsers needed by the plugin.
+
 # bootstrap by downloading bilder.py if not found
 import urllib
 import os
