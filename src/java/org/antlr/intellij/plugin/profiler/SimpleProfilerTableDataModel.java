@@ -55,7 +55,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 			case 2:
 				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
 			case 3:
-				return decisionInfo.LL_MaxLook+decisionInfo.SLL_MaxLook;
+				return Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
 			case 4:
 				return decisionInfo.ambiguities.size();
 			case 5:
