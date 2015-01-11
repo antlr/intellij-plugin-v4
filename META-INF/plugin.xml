@@ -1,12 +1,12 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.5.1</version>
+  <version>1.6</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars. Features: syntax highlighting,
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.5. Features: syntax highlighting,
       syntax error checking, semantic error checking, navigation window,
       live preview, parse tree view, profiler, goto-declaration, find usages,
       rename tokens, rename rules.
@@ -18,7 +18,7 @@
           shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
           for grammar preview. Right click on rule and say "Test ANTLR Rule".
           Changes to grammar seen in parse tree upon save of grammar. Works with
-          Intellij 13.x and requires 12.1.x.
+          Intellij 12.1.x, 13.x, and 14.x.
   <p>
           You can configure the ANTLR tool options per grammar file; right-click
           in a grammar or on a grammar element within the structured view.
@@ -56,8 +56,6 @@ You can type input into an editor or select a file for testing in preview window
 Meta-key while moving the mouse shows token info per above, but now you can
 click on the token that's underlined and it will show the location in the ANTLR
 grammar editor window of the grammar element that matched that token.
-This required a change to ANTLR 4 itself and therefore includes a
-prerelease version of ANTLR 4.2.3.
 
   <p>
 Alt-key while moving the mouse shows the region of input associated with
@@ -93,7 +91,7 @@ For really big files and
       ]]></description>
 
   <change-notes><![CDATA[
-	Separate lexers weren't working. Bug fixes.
+	Update internal ANTLR to 4.5.
       ]]>
   </change-notes>
 
