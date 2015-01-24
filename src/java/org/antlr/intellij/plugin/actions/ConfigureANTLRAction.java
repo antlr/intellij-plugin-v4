@@ -7,6 +7,8 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
+import org.antlr.v4.Tool;
+import org.antlr.v4.runtime.RuntimeMetaData;
 
 public class ConfigureANTLRAction extends AnAction implements DumbAware {
 	public static final Logger LOG = Logger.getInstance("ANTLR ConfigureANTLRAction");
@@ -27,7 +29,7 @@ public class ConfigureANTLRAction extends AnAction implements DumbAware {
 		LOG.info("actionPerformed "+grammarFile);
 
 		ConfigANTLRPerGrammar configDialog = new ConfigANTLRPerGrammar(e.getProject(), grammarFile.getPath());
-		configDialog.getPeer().setTitle("Configure ANTLR for "+ grammarFile.getName());
+		configDialog.getPeer().setTitle("Configure ANTLR Tool "+ Tool.VERSION+" for "+ grammarFile.getName());
 
 		configDialog.show();
 
