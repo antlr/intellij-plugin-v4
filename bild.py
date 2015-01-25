@@ -19,12 +19,12 @@ from bilder import *
 def latest_antlr4():
     mkdir("lib")
     # grab the lib that the plugin needs
-    jarname = "antlr-4.4-complete.jar"
+    jarname = "antlr-4.5-complete.jar"
     download("http://www.antlr.org/download/" + jarname, "lib")
 
 def parsers():
     require(latest_antlr4)
-    antlr4("src/grammars", "gen", version="4.4",
+    antlr4("src/grammars", "gen", version="4.5",
            package="org.antlr.intellij.plugin.parser")
 
 
