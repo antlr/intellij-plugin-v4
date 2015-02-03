@@ -114,6 +114,7 @@ stack leading to that parse region.
   <extensions defaultExtensionNs="com.intellij">
       <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
       <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+      <lang.commenter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4Commenter" />
       <colorSettingsPage implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4ColorsPage"/>
       <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
       <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
