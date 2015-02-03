@@ -20,6 +20,11 @@ public abstract class ANTLRv4FoldingSettings {
         public boolean isCollapseEndOfLineComments() {
             return true;
         }
+
+        @Override
+        public boolean isCollapseRuleBlocks() {
+            return false;
+        }
     };
 
     public static ANTLRv4FoldingSettings getInstance() {
@@ -31,4 +36,6 @@ public abstract class ANTLRv4FoldingSettings {
     public abstract boolean isCollapseDocComments();
 
     public abstract boolean isCollapseEndOfLineComments();
+
+    public abstract boolean isCollapseRuleBlocks();
 }
