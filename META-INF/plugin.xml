@@ -123,7 +123,7 @@ stack leading to that parse region.
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
-
+      <lang.foldingBuilder language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.folding.ANTLRv4FoldingBuilder" />
 	  <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
