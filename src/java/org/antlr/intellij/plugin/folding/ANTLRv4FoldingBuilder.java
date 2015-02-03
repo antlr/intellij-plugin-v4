@@ -3,10 +3,8 @@ package org.antlr.intellij.plugin.folding;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.CustomFoldingBuilder;
 import com.intellij.lang.folding.FoldingDescriptor;
-import com.intellij.lang.folding.NamedFoldingDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.FoldingGroup;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.UnfairTextRange;
 import com.intellij.psi.*;
@@ -14,6 +12,7 @@ import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import org.antlr.intellij.adaptor.lexer.ElementTypeFactory;
@@ -22,16 +21,13 @@ import org.antlr.intellij.plugin.ANTLRv4Language;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.psi.AtAction;
 import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
-import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.RuleSpecNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by jason on 1/7/15.
@@ -52,6 +48,57 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             Arrays.asList(ANTLRv4Lexer.tokenNames),
             ANTLRv4Parser.RULE_lexerBlock, ANTLRv4Parser.RULE_ruleBlock);
 
+    private static Iterable<PsiElement> findChildrenOfType(final PsiElement parent, final TokenSet types) {
+        return new Iterable<PsiElement>() {
+            @NotNull
+            @Override
+            public Iterator<PsiElement> iterator() {
+                return _findChildrenOfType(parent, types);
+            }
+        };
+    }
+
+    private static Iterator<PsiElement> _findChildrenOfType(final PsiElement parent, final TokenSet types) {
+        return new Iterator<PsiElement>() {
+            ArrayDeque<PsiElement> q = new ArrayDeque<PsiElement>(Arrays.asList(parent.getChildren()));
+
+            PsiElement next;
+            boolean nextComputed = false;
+
+            void computeNext() {
+                PsiElement nxt = null;
+                while (!q.isEmpty()) {
+                    PsiElement element = q.pop();
+                    Collections.addAll(q, element.getChildren());
+                    if (types.contains(element.getNode().getElementType())) {
+                        nxt = element;
+                        break;
+                    }
+                }
+                next = nxt;
+                nextComputed = true;
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (!nextComputed) computeNext();
+                return next != null;
+            }
+
+            @Override
+            public PsiElement next() {
+                if (!hasNext()) throw new IllegalStateException("no more!");
+                nextComputed = false;
+                return next;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
     @Override
     protected void buildLanguageFoldRegions(@NotNull List<FoldingDescriptor> descriptors,
                                             @NotNull PsiElement root,
@@ -63,23 +110,11 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         ANTLRv4FileRoot file = (ANTLRv4FileRoot) root;
 
 
-        for (RuleSpecNode specNode : PsiTreeUtil.findChildrenOfType(root, RuleSpecNode.class)) {
-            GrammarElementRefNode refNode = PsiTreeUtil.findChildOfAnyType(specNode, GrammarElementRefNode.class);
-            if (refNode == null) continue;
-            PsiElement nextSibling = refNode.getNextSibling();
-            if (nextSibling == null) continue;
-            int startOffset = nextSibling.getTextOffset();
+        addRuleRefFoldingDescriptors(descriptors, root);
 
-            ASTNode backward = TreeUtil.findChildBackward(specNode.getNode(), SEMICOLON);
-            if (backward == null) continue;
-            int endOffset = backward.getTextRange().getEndOffset();
-            if (startOffset >= endOffset) continue;
+        addActionFoldingDescriptors(descriptors, root);
 
-            descriptors.add(new FoldingDescriptor(specNode, new TextRange(startOffset, endOffset)));
-
-
-        }
-
+        addCommentDescriptors(descriptors, root);
 
         TextRange range = getFileHeader(file);
 
@@ -105,6 +140,46 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
 
 
+    }
+
+    private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
+        PsiElement[] comments = PsiTreeUtil.collectElements(root, new PsiElementFilter() {
+            @Override
+            public boolean isAccepted(PsiElement element) {
+                return ANTLRv4TokenTypes.COMMENTS.contains(element.getNode().getElementType());
+            }
+        });
+        boolean first = true;
+        for (PsiElement comment : comments) {
+            if (!first) {
+                descriptors.add(new FoldingDescriptor(comment, comment.getTextRange()));
+            } else first = false;
+        }
+    }
+
+    private static void addActionFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
+        for (AtAction atAction : PsiTreeUtil.findChildrenOfType(root, AtAction.class)) {
+            PsiElement action = atAction.getLastChild();
+            descriptors.add(new FoldingDescriptor(atAction, action.getTextRange()));
+        }
+    }
+
+    private static void addRuleRefFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
+        for (RuleSpecNode specNode : PsiTreeUtil.findChildrenOfType(root, RuleSpecNode.class)) {
+            GrammarElementRefNode refNode = PsiTreeUtil.findChildOfAnyType(specNode, GrammarElementRefNode.class);
+            if (refNode == null) continue;
+            PsiElement nextSibling = refNode.getNextSibling();
+            if (nextSibling == null) continue;
+            int startOffset = nextSibling.getTextOffset();
+
+            ASTNode backward = TreeUtil.findChildBackward(specNode.getNode(), SEMICOLON);
+            if (backward == null) continue;
+            int endOffset = backward.getTextRange().getEndOffset();
+            if (startOffset >= endOffset) continue;
+
+            descriptors.add(new FoldingDescriptor(specNode, new TextRange(startOffset, endOffset)));
+
+        }
     }
 
     @Nullable
@@ -156,6 +231,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         ANTLRv4FoldingSettings settings = ANTLRv4FoldingSettings.getInstance();
 
         if (RULE_BLOCKS.contains(node.getElementType())) return settings.isCollapseRuleBlocks();
+
+        if (element instanceof AtAction) return true;
 
 
         if (element instanceof ANTLRv4FileRoot) {
@@ -273,6 +350,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             return "//...";
         } else if (element instanceof RuleSpecNode) {
             return ":...";
+        } else if (element instanceof AtAction) {
+            return "{...}";
         }
         return "...";
     }
