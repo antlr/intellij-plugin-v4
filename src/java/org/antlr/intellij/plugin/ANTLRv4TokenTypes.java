@@ -7,10 +7,11 @@ import org.antlr.intellij.adaptor.lexer.RuleElementType;
 import org.antlr.intellij.adaptor.lexer.TokenElementType;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.intellij.lang.annotations.MagicConstant;
 
 import java.util.Arrays;
 import java.util.List;
-
+@SuppressWarnings("MagicConstant")
 public class ANTLRv4TokenTypes {
 	public static IElementType BAD_TOKEN_TYPE = new IElementType("BAD_TOKEN", ANTLRv4Language.INSTANCE);
 
@@ -20,6 +21,20 @@ public class ANTLRv4TokenTypes {
 	public static final List<RuleElementType> RULE_ELEMENT_TYPES =
 		ElementTypeFactory.getRuleElementTypes(ANTLRv4Language.INSTANCE,
 											   Arrays.asList(ANTLRv4Parser.ruleNames));
+
+    public static RuleElementType getRuleElementType(@MagicConstant(valuesFromClass = ANTLRv4Parser.class)int ruleIndex){
+        String ruleName = ANTLRv4Parser.ruleNames[ruleIndex];
+        for (RuleElementType type : RULE_ELEMENT_TYPES) {
+            if(ruleName.equals(type.toString())) return type;
+        }
+        return RULE_ELEMENT_TYPES.get(ruleIndex);
+    }
+    public static TokenElementType getTokenElementType(@MagicConstant(valuesFromClass = ANTLRv4Lexer.class)int ruleIndex){
+        for (TokenElementType type : TOKEN_ELEMENT_TYPES) {
+            if(type.getType()==ruleIndex) return type;
+        }
+        return TOKEN_ELEMENT_TYPES.get(ruleIndex);
+    }
 
     public static final TokenSet COMMENTS =
 		ElementTypeFactory.createTokenSet(
