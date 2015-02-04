@@ -3,11 +3,9 @@ package org.antlr.intellij.plugin.folding;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.CustomFoldingBuilder;
 import com.intellij.lang.folding.FoldingDescriptor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.UnfairTextRange;
-import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.TokenType;
@@ -15,14 +13,16 @@ import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.antlr.intellij.adaptor.lexer.RuleElementType;
+import org.antlr.intellij.adaptor.lexer.TokenElementType;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.psi.AtAction;
 import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
+import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.psi.RuleSpecNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,14 +38,19 @@ import java.util.Set;
  * @see com.intellij.codeInsight.folding.impl.JavaFoldingBuilderBase
  */
 public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
-    private static final Logger LOG = Logger.getInstance(ANTLRv4FoldingBuilder.class.getName());
 
-    private static final IElementType DOC_COMMENT_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.DOC_COMMENT);
-    private static final IElementType BLOCK_COMMENT_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.BLOCK_COMMENT);
-    private static final IElementType LINE_COMMENT_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.LINE_COMMENT);
+    private static final TokenElementType DOC_COMMENT_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.DOC_COMMENT);
+    private static final TokenElementType BLOCK_COMMENT_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.BLOCK_COMMENT);
+    private static final TokenElementType LINE_COMMENT_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.LINE_COMMENT);
 
+    private static final RuleElementType OPTIONSSPEC = ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_optionsSpec);
+    private static final TokenElementType OPTIONS = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.OPTIONS);
 
-    private static final IElementType SEMICOLON = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI);
+    private static final RuleElementType TOKENSSPEC = ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_tokensSpec);
+    private static final TokenElementType TOKENS = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.TOKENS);
+
+    private static final TokenElementType RBRACE = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.RBRACE);
+    private static final TokenElementType SEMICOLON = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI);
 
     private static final TokenSet RULE_BLOCKS = TokenSet.create(
             ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_lexerBlock),
@@ -64,53 +69,58 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
         addActionFoldingDescriptors(descriptors, root);
 
-        addCommentDescriptors(descriptors, root,document);
+        addHeaderFoldingDescriptor(descriptors, root, document);
+
+        addCommentDescriptors(descriptors, root);
+
+        addOptionsFoldingDescriptor(descriptors, root);
+
+        addTokensFoldingDescriptor(descriptors, root);
 
 
     }
 
-    private static boolean isComment(PsiElement element) {
-        IElementType type = element.getNode().getElementType();
-       return ANTLRv4TokenTypes.COMMENTS.contains(type);
+    private static void addTokensFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root) {
+        PsiElement tokensSpec = MyPsiUtils.findFirstChildOfType(root, TOKENSSPEC);
+        if (tokensSpec != null) {
+            PsiElement tokens = tokensSpec.getFirstChild();
+            assert tokens.getNode().getElementType() == TOKENS;
+            PsiElement rbrace = tokensSpec.getLastChild();
+            assert rbrace.getNode().getElementType() == RBRACE;
+            descriptors.add(new FoldingDescriptor(tokensSpec,
+                    new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+        }
     }
 
-    private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root,Document document) {
-        ANTLRv4FileRoot file = (ANTLRv4FileRoot) root;
-        TextRange range = getFileHeader(file);
-        Set<PsiElement> processedComments = new HashSet<PsiElement>();
+    private static void addOptionsFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root) {
+        PsiElement optionsSpec = MyPsiUtils.findFirstChildOfType(root, OPTIONSSPEC);
+        if (optionsSpec != null) {
+            PsiElement options = optionsSpec.getFirstChild();
+            assert options.getNode().getElementType() == OPTIONS;
+            PsiElement rbrace = optionsSpec.getLastChild();
+            assert rbrace.getNode().getElementType() == RBRACE;
+            descriptors.add(new FoldingDescriptor(optionsSpec,
+                    new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+        }
+    }
 
-        //TODO: is this relevant to antlr?
+    private static void addHeaderFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root, Document document) {
+        TextRange range = getFileHeader(root);
         if (range != null && range.getLength() > 1 && document.getLineNumber(range.getEndOffset()) > document.getLineNumber(range.getStartOffset())) {
-            PsiElement anchorElementToUse = file;
-            PsiElement candidate = file.getFirstChild();
-
-            // We experienced the following problem situation:
-            //     1. There is a collapsed class-level javadoc;
-            //     2. User starts typing at class definition line (e.g. we had definition like 'public class Test' and user starts
-            //        typing 'abstract' between 'public' and 'class');
-            //     3. Collapsed class-level javadoc automatically expanded. That happened because PSI structure became invalid (because
-            //        class definition line at start looks like 'public class Test');
-            // So, our point is to preserve fold descriptor referencing javadoc PSI element.
-            if (candidate != null && candidate.getTextRange().equals(range)) {
-                ASTNode node = candidate.getNode();
-                if (node != null && node.getElementType() == DOC_COMMENT_TOKEN) {
-                    anchorElementToUse = candidate;
-                }
-            }
-            processedComments.add(anchorElementToUse);
-            descriptors.add(new FoldingDescriptor(anchorElementToUse, range));
+            descriptors.add(new FoldingDescriptor(root, range));
         }
+    }
 
-        PsiElement[] comments = PsiTreeUtil.collectElements(root, new PsiElementFilter() {
-            @Override
-            public boolean isAccepted(PsiElement element) {
-                return isComment(element);
+    private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
+        Set<PsiElement> processedComments = new HashSet<PsiElement>();
+        for (PsiElement comment : MyPsiUtils.findChildrenOfType(root, ANTLRv4TokenTypes.COMMENTS)) {
+            IElementType type = comment.getNode().getElementType();
+            if (processedComments.contains(comment)) continue;
+            if (type == DOC_COMMENT_TOKEN || type == BLOCK_COMMENT_TOKEN) {
+                descriptors.add(new FoldingDescriptor(comment, comment.getTextRange()));
             }
-        });
-        for(PsiElement comment:comments){
-            addCommentFolds(comment,processedComments,descriptors);
+            addCommentFolds(comment, processedComments, descriptors);
         }
-
 
     }
 
@@ -141,24 +151,18 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     }
 
 
-    @SuppressWarnings("RedundantIfStatement")
-    private static boolean headerCandidate(PsiElement element) {
-        if (element instanceof PsiComment) return true;
+    private static boolean isComment(PsiElement element) {
         IElementType type = element.getNode().getElementType();
-        if (type == BLOCK_COMMENT_TOKEN) return true;
-        if (type == DOC_COMMENT_TOKEN) return true;
-        if (type == LINE_COMMENT_TOKEN) return true;
-        return false;
-
+        return ANTLRv4TokenTypes.COMMENTS.contains(type);
     }
 
     @SuppressWarnings("ConstantConditions")
     @Nullable
-    private static TextRange getFileHeader(ANTLRv4FileRoot file) {
+    private static TextRange getFileHeader(PsiElement file) {
         PsiElement first = file.getFirstChild();
         if (first instanceof PsiWhiteSpace) first = first.getNextSibling();
         PsiElement element = first;
-        while (headerCandidate(element)) {
+        while (isComment(element)) {
             element = element.getNextSibling();
             if (element instanceof PsiWhiteSpace) {
                 element = element.getNextSibling();
@@ -186,9 +190,9 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         ANTLRv4FoldingSettings settings = ANTLRv4FoldingSettings.getInstance();
 
         if (RULE_BLOCKS.contains(node.getElementType())) return settings.isCollapseRuleBlocks();
+        if (node.getElementType() == TOKENSSPEC) return settings.isCollapseTokens();
 
-        if (element instanceof AtAction) return true;
-
+        if (element instanceof AtAction) return settings.isCollapseActions();
 
         if (element instanceof ANTLRv4FileRoot) {
             return settings.isCollapseFileHeader();
@@ -208,8 +212,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             }
             return settings.isCollapseDocComments();
         }
-        if (element instanceof PsiComment) {
-            return settings.isCollapseEndOfLineComments();
+        if (isComment(element)) {
+            return settings.isCollapseComments();
         }
         return false;
 
@@ -265,44 +269,9 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
     }
 
-//    private boolean addToFold(List<FoldingDescriptor> list, PsiElement elementToFold, Document document, boolean allowOneLiners) {
-//        PsiUtilCore.ensureValid(elementToFold);
-//        TextRange range = getRangeToFold(elementToFold);
-//        if (range == null) return false;
-//        return addFoldRegion(list, elementToFold, document, allowOneLiners, range);
-//    }
-
-//    private static boolean addFoldRegion(final List<FoldingDescriptor> list, final PsiElement elementToFold, final Document document,
-//                                         final boolean allowOneLiners,
-//                                         final TextRange range) {
-//        final TextRange fileRange = elementToFold.getContainingFile().getTextRange();
-//        if (range.equals(fileRange)) return false;
-//
-//        LOG.assertTrue(range.getStartOffset() >= 0 && range.getEndOffset() <= fileRange.getEndOffset());
-//        // PSI element text ranges may be invalid because of reparse exception (see, for example, IDEA-10617)
-//        if (range.getStartOffset() < 0 || range.getEndOffset() > fileRange.getEndOffset()) {
-//            return false;
-//        }
-//        if (!allowOneLiners) {
-//            int startLine = document.getLineNumber(range.getStartOffset());
-//            int endLine = document.getLineNumber(range.getEndOffset() - 1);
-//            if (startLine < endLine && range.getLength() > 1) {
-//                list.add(new FoldingDescriptor(elementToFold, range));
-//                return true;
-//            }
-//            return false;
-//        } else {
-//            if (range.getLength() > getPlaceholderText(elementToFold).length()) {
-//                list.add(new FoldingDescriptor(elementToFold, range));
-//                return true;
-//            }
-//            return false;
-//        }
-//    }
-
     private static String getPlaceholderText(PsiElement element) {
 
-        if (element.getNode().getElementType()==LINE_COMMENT_TOKEN) {
+        if (element.getNode().getElementType() == LINE_COMMENT_TOKEN) {
             return "//...";
         } else if (element instanceof RuleSpecNode) {
             return ":...";

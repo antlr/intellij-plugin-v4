@@ -4,7 +4,7 @@ package org.antlr.intellij.plugin.folding;
  * Created by jason on 2/2/15.
  */
 public abstract class ANTLRv4FoldingSettings {
-    //TODO ServiceManager
+    //TODO ServiceManager,UI
     private static final ANTLRv4FoldingSettings INSTANCE= new ANTLRv4FoldingSettings() {
         @Override
         public boolean isCollapseFileHeader() {
@@ -17,13 +17,23 @@ public abstract class ANTLRv4FoldingSettings {
         }
 
         @Override
-        public boolean isCollapseEndOfLineComments() {
-            return true;
+        public boolean isCollapseComments() {
+            return false;
         }
 
         @Override
         public boolean isCollapseRuleBlocks() {
             return false;
+        }
+
+        @Override
+        public boolean isCollapseActions() {
+            return true;
+        }
+
+        @Override
+        public boolean isCollapseTokens() {
+            return true;
         }
     };
 
@@ -35,7 +45,11 @@ public abstract class ANTLRv4FoldingSettings {
 
     public abstract boolean isCollapseDocComments();
 
-    public abstract boolean isCollapseEndOfLineComments();
+    public abstract boolean isCollapseComments();
 
     public abstract boolean isCollapseRuleBlocks();
+
+    public abstract boolean isCollapseActions();
+
+    public abstract boolean isCollapseTokens();
 }
