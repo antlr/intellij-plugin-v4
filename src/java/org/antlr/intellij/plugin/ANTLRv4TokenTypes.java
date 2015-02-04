@@ -23,16 +23,9 @@ public class ANTLRv4TokenTypes {
 											   Arrays.asList(ANTLRv4Parser.ruleNames));
 
     public static RuleElementType getRuleElementType(@MagicConstant(valuesFromClass = ANTLRv4Parser.class)int ruleIndex){
-        String ruleName = ANTLRv4Parser.ruleNames[ruleIndex];
-        for (RuleElementType type : RULE_ELEMENT_TYPES) {
-            if(ruleName.equals(type.toString())) return type;
-        }
         return RULE_ELEMENT_TYPES.get(ruleIndex);
     }
     public static TokenElementType getTokenElementType(@MagicConstant(valuesFromClass = ANTLRv4Lexer.class)int ruleIndex){
-        for (TokenElementType type : TOKEN_ELEMENT_TYPES) {
-            if(type.getType()==ruleIndex) return type;
-        }
         return TOKEN_ELEMENT_TYPES.get(ruleIndex);
     }
 

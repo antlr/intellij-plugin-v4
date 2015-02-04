@@ -48,7 +48,7 @@ public class MyPsiUtils {
     }
 
     /**
-     * Like PsiTreeUtil.findChildrenOfType, except no collection is created.
+     * Like PsiTreeUtil.findChildrenOfType, except no collection is created and it doesnt use recursion.
      * @param parent the element whose children will be searched
      * @param types the types to search for
      * @return an iterable that will traverse the psi tree depth-first, including only the elements
