@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.components.Magnificator;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -25,9 +26,7 @@ import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -101,6 +100,28 @@ public class PreviewPanel extends JPanel {
 		int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
 		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
 										  -999,1000,sliderValue);
+
+        treeViewer.putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, new Magnificator() {
+
+            @Override
+            public Point magnify(double scale, Point at) {
+                double mag = treeViewer.getScale();
+                int val = 0;
+                double d = 0;
+                if (scale < 1.0 && mag < scale) {
+                    d = Math.min(0, mag - 0.1);
+                } else if (scale > 1.0 && mag > scale) {
+                    d = mag + 0.1;
+                } else {
+                    d = scale * mag;
+                }
+                val = (int) ((d - 1.0) * 1000d);
+                scaleSlider.setValue(val);
+                return at;
+
+            }
+        });
+
 		scaleSlider.addChangeListener(
 			new ChangeListener() {
 				@Override
@@ -229,7 +250,7 @@ public class PreviewPanel extends JPanel {
 	public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "Issues with parser and/or lexer grammar(s) prevent preview")));
+                             "Issues with parser and/or lexer grammar(s) prevent preview")));
 	}
 
 	public void indicateNoStartRuleInParseTreePane() {
