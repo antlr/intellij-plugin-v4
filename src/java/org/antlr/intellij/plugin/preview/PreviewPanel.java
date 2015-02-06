@@ -219,14 +219,14 @@ public class PreviewPanel extends JPanel {
 	}
 
 
-    void mySetParseTree(final PreviewState preview, final ParsingResult result) {
+    void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
 
         ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
                 lastTree = result.tree;
                 if (result.parser instanceof PreviewParser) {
-                    treeViewer.setTreeTextProvider(new ALTLabelTextProvider(((PreviewParser) result.parser).inputTokenToStateMap, preview.g));
+                    treeViewer.setTreeTextProvider(new AltLabelTextProvider(((PreviewParser) result.parser).inputTokenToStateMap, preview.g));
                     treeViewer.setTree(result.tree);
                 } else {
                     treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
@@ -262,7 +262,7 @@ public class PreviewPanel extends JPanel {
 			final String inputText = previewState.getEditor().getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if ( results!=null) {
-                mySetParseTree(previewState,results);
+                updateTreeViewer(previewState, results);
 			}
 			else if ( previewState.startRuleName==null ) {
 				indicateNoStartRuleInParseTreePane();
