@@ -16,13 +16,13 @@ import java.util.*;
 /**
  * Created by jason on 2/4/15.
  */
-public class ALTLabelTextProvider implements TreeTextProvider {
+public class AltLabelTextProvider implements TreeTextProvider {
     final Map<Token, Integer> tokenStates;
     final BitSet rulesWithAlts;
     final Grammar grammar;
     final Map<Integer, String> state2Name = new HashMap<Integer, String>();
 
-    public ALTLabelTextProvider(Map<Token, Integer> tokenStates, Grammar grammar) {
+    public AltLabelTextProvider(Map<Token, Integer> tokenStates, Grammar grammar) {
         this.tokenStates = tokenStates;
         this.grammar = grammar;
 
@@ -55,7 +55,26 @@ public class ALTLabelTextProvider implements TreeTextProvider {
         Integer state = null;
 
         if(ruleNode instanceof ParserRuleContext && ((ParserRuleContext) ruleNode).exception!=null){
-            return "???";
+            //EXCLAMATION QUESTION MARK
+           // Unicode: U+2049 U+FE0F, UTF-8: E2 81 89 EF B8 8F
+            return "⁉️";
+
+            /*
+           NO ENTRY SIGN
+           Unicode: U+1F6AB (U+D83D U+DEAB), UTF-8: F0 9F 9A AB
+
+            ‽
+            INTERROBANG
+            Unicode: U+203D, UTF-8: E2 80 BD
+
+            ☕︎
+            HOT BEVERAGE
+            Unicode: U+2615 U+FE0E, UTF-8: E2 98 95 EF B8 8E
+
+            ☭
+            HAMMER AND SICKLE
+            Unicode: U+262D, UTF-8: E2 98 AD
+             */
         }
         if (lastChild instanceof RuleContext) {
             state = ((RuleContext) lastChild).invokingState;
