@@ -52,3 +52,4 @@ YYYY/MM/DD, github id, Full name, email
 2014/01/30, sharwell, Sam Harwell, sam@tunnelvisionlabs.com
 2014/04/04, migulorama, Miguel Marques, migulorama@gmail.com
 2014/04/21, mhordecki, Mike Hordecki, mike@hordecki.com
+2014/12/22, ponomandr, Andrey Ponomarev, ponomandr@gmail.com

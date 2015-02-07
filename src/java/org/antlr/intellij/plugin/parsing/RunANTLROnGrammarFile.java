@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.parsing;
 
+import com.google.common.base.Strings;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
@@ -9,6 +10,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
@@ -159,6 +161,12 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
 
 		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_PACKAGE, MISSING);
+		if ( package_==MISSING) {
+			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
+			if (Strings.isNullOrEmpty(package_)) {
+				package_ = MISSING;
+			}
+		}
 		if ( package_!=MISSING) {
 			args.put("-package", package_);
 		}
