@@ -10,6 +10,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.Magnificator;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.parsing.MagnifyingTreeViewport;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
@@ -20,10 +21,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JTabbedPane;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
@@ -92,35 +90,18 @@ public class PreviewPanel extends JPanel {
 		JPanel treePanel = new JPanel(new BorderLayout(0,0));
 		treePanel.setBackground(JBColor.white);
 		// Wrap tree viewer component in scroll pane
-		treeViewer = new TreeViewer(null, null);
-		JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
+		treeViewer =new TreeViewer(null, null);
+
+        // Add scale slider to bottom, under tree view scroll panel
+        int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
+        final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
+                -999,1000,sliderValue);
+
+		JScrollPane scrollPane = new JBScrollPane(); // use Intellij's scroller
+        scrollPane.setViewport(new MagnifyingTreeViewport(scaleSlider.getModel()));
+        scrollPane.setViewportView(treeViewer);
 		treePanel.add(scrollPane, BorderLayout.CENTER);
 
-		// Add scale slider to bottom, under tree view scroll panel
-		int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
-		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
-										  -999,1000,sliderValue);
-
-        treeViewer.putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, new Magnificator() {
-
-            @Override
-            public Point magnify(double scale, Point at) {
-                double mag = treeViewer.getScale();
-                int val = 0;
-                double d = 0;
-                if (scale < 1.0 && mag < scale) {
-                    d = Math.min(0, mag - 0.1);
-                } else if (scale > 1.0 && mag > scale) {
-                    d = mag + 0.1;
-                } else {
-                    d = scale * mag;
-                }
-                val = (int) ((d - 1.0) * 1000d);
-                scaleSlider.setValue(val);
-                return at;
-
-            }
-        });
 
 		scaleSlider.addChangeListener(
 			new ChangeListener() {
