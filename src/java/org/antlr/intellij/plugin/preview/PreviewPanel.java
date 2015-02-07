@@ -4,13 +4,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.components.Magnificator;
+import com.intellij.util.PlatformUtils;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.intellij.plugin.parsing.MagnifyingTreeViewport;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
@@ -84,39 +84,45 @@ public class PreviewPanel extends JPanel {
         return tabbedPane;
     }
 
-	public JPanel createParseTreePanel() {
-		LOG.info("createParseTreePanel"+" "+project.getName());
-		// wrap tree and slider in panel
-		JPanel treePanel = new JPanel(new BorderLayout(0,0));
-		treePanel.setBackground(JBColor.white);
-		// Wrap tree viewer component in scroll pane
-		treeViewer =new TreeViewer(null, null);
+    public JPanel createParseTreePanel() {
+        LOG.info("createParseTreePanel" + " " + project.getName());
+        // wrap tree and slider in panel
+        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
+        treePanel.setBackground(JBColor.white);
 
-        // Add scale slider to bottom, under tree view scroll panel
-        int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
-        final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
-                -999,1000,sliderValue);
+        JSlider scaleSlider;
 
-		JScrollPane scrollPane = new JBScrollPane(); // use Intellij's scroller
-        scrollPane.setViewport(new MagnifyingTreeViewport(scaleSlider.getModel()));
-        scrollPane.setViewportView(treeViewer);
-		treePanel.add(scrollPane, BorderLayout.CENTER);
+        if (SystemInfo.isMac) {
+            scaleSlider = new JSlider();
+            MyTreeView myTree = new MyTreeView(null, null);
+            treeViewer = myTree;
+            scaleSlider.setModel(myTree.scaleModel);
+        } else {
+            treeViewer = new TreeViewer(null, null);
+            int sliderValue = (int) ((treeViewer.getScale() - 1.0) * 1000);
+            scaleSlider = new JSlider(JSlider.HORIZONTAL,
+                    -999, 1000, sliderValue);
 
+            scaleSlider.addChangeListener(
+                    new ChangeListener() {
+                        @Override
+                        public void stateChanged(ChangeEvent e) {
+                            int v = ((JSlider) e.getSource()).getValue();
+                            if (lastTree != null) {
+                                treeViewer.setScale(v / 1000.0 + 1.0);
+                            }
+                        }
+                    });
+        }
 
-		scaleSlider.addChangeListener(
-			new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					int v = scaleSlider.getValue();
-					if ( lastTree!=null ) {
-						treeViewer.setScale(v / 1000.0 + 1.0);
-					}
-				}
-			}
-									 );
-		treePanel.add(scaleSlider, BorderLayout.SOUTH);
-		return treePanel;
-	}
+        // Wrap tree viewer component in scroll pane
+        JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
+
+        treePanel.add(scrollPane, BorderLayout.CENTER);
+
+        treePanel.add(scaleSlider, BorderLayout.SOUTH);
+        return treePanel;
+    }
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
