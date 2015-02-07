@@ -163,7 +163,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_PACKAGE, MISSING);
 		if ( package_==MISSING) {
 			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
-			if (Strings.isNullOrEmpty(package_)) {
+			if ( Strings.isNullOrEmpty(package_)) {
 				package_ = MISSING;
 			}
 		}
