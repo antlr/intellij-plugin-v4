@@ -91,8 +91,12 @@ public class PreviewPanel extends JPanel {
         treePanel.setBackground(JBColor.white);
 
         JSlider scaleSlider;
-
-        if (SystemInfo.isMac) {
+        //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
+        //perhaps in a few more years they will get around to backporting whatever it was they fixed in 1.9.
+        // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
+        boolean trackpadZoomSupported = SystemInfo.isMac &&
+                (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
+        if (trackpadZoomSupported) {
             scaleSlider = new JSlider();
             MyTreeView myTree = new MyTreeView(null, null);
             treeViewer = myTree;
