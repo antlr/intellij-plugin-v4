@@ -274,7 +274,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         if (element.getNode().getElementType() == LINE_COMMENT_TOKEN) {
             return "//...";
         } else if (element instanceof RuleSpecNode) {
-            return ":...";
+            return ":...;";
         } else if (element instanceof AtAction) {
             return "{...}";
         }
