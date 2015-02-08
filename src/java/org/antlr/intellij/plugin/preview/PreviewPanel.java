@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
@@ -89,33 +90,48 @@ public class PreviewPanel extends JPanel {
     }
 
 	public JPanel createParseTreePanel() {
-		LOG.info("createParseTreePanel"+" "+project.getName());
-		// wrap tree and slider in panel
-		JPanel treePanel = new JPanel(new BorderLayout(0,0));
-		treePanel.setBackground(JBColor.white);
-		// Wrap tree viewer component in scroll pane
-		treeViewer = new TreeViewer(null, null);
-		JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
-		treePanel.add(scrollPane, BorderLayout.CENTER);
+        LOG.info("createParseTreePanel" + " " + project.getName());
+        // wrap tree and slider in panel
+        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
+        treePanel.setBackground(JBColor.white);
 
-		// Add scale slider to bottom, under tree view scroll panel
-		int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
-		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
-										  -999,1000,sliderValue);
-		scaleSlider.addChangeListener(
-			new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					int v = scaleSlider.getValue();
-					if ( lastTree!=null ) {
-						treeViewer.setScale(v / 1000.0 + 1.0);
-					}
-				}
-			}
-									 );
-		treePanel.add(scaleSlider, BorderLayout.SOUTH);
-		return treePanel;
-	}
+        JSlider scaleSlider;
+        //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
+        //perhaps in a few more years they will get around to backporting whatever it was they fixed.
+        // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
+        boolean trackpadZoomSupported = SystemInfo.isMac &&
+                (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
+        if (trackpadZoomSupported) {
+            scaleSlider = new JSlider();
+            TrackpadZoomingTreeView myTree = new TrackpadZoomingTreeView(null, null);
+            treeViewer = myTree;
+            scaleSlider.setModel(myTree.scaleModel);
+        } else {
+            treeViewer = new TreeViewer(null, null);
+            int sliderValue = (int) ((treeViewer.getScale() - 1.0) * 1000);
+            scaleSlider = new JSlider(JSlider.HORIZONTAL,
+                    -999, 1000, sliderValue);
+
+            scaleSlider.addChangeListener(
+                    new ChangeListener() {
+                        @Override
+                        public void stateChanged(ChangeEvent e) {
+                            int v = ((JSlider) e.getSource()).getValue();
+                            if (lastTree != null) {
+                                treeViewer.setScale(v / 1000.0 + 1.0);
+                            }
+                        }
+                    });
+        }
+
+        // Wrap tree viewer component in scroll pane
+        JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
+
+        treePanel.add(scrollPane, BorderLayout.CENTER);
+
+        treePanel.add(scaleSlider, BorderLayout.SOUTH);
+        return treePanel;
+    }
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
@@ -190,7 +206,7 @@ public class PreviewPanel extends JPanel {
 
 	public void setEnabledRecursive(Component component, boolean enabled) {
 		if (component instanceof Container) {
-			for (Component child : ((Container) component).getComponents()) {
+            for (Component child : ((Container) component).getComponents()) {
 				child.setEnabled(enabled);
 				setEnabledRecursive(child, enabled);
 			}
@@ -245,9 +261,9 @@ public class PreviewPanel extends JPanel {
 
     public void clearParseTree() {
 		setParseTree(Arrays.asList(new String[0]), null);
-	}
+    }
 
-	public void indicateInvalidGrammarInParseTreePane() {
+    public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
 														  "Issues with parser and/or lexer grammar(s) prevent preview")));
