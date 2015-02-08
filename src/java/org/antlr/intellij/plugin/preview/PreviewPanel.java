@@ -4,10 +4,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.PlatformUtils;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -19,15 +21,10 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JTabbedPane;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,34 +84,49 @@ public class PreviewPanel extends JPanel {
         return tabbedPane;
     }
 
-	public JPanel createParseTreePanel() {
-		LOG.info("createParseTreePanel"+" "+project.getName());
-		// wrap tree and slider in panel
-		JPanel treePanel = new JPanel(new BorderLayout(0,0));
-		treePanel.setBackground(JBColor.white);
-		// Wrap tree viewer component in scroll pane
-		treeViewer = new TreeViewer(null, null);
-		JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
-		treePanel.add(scrollPane, BorderLayout.CENTER);
+    public JPanel createParseTreePanel() {
+        LOG.info("createParseTreePanel" + " " + project.getName());
+        // wrap tree and slider in panel
+        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
+        treePanel.setBackground(JBColor.white);
 
-		// Add scale slider to bottom, under tree view scroll panel
-		int sliderValue = (int) ((treeViewer.getScale()-1.0) * 1000);
-		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL,
-										  -999,1000,sliderValue);
-		scaleSlider.addChangeListener(
-			new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					int v = scaleSlider.getValue();
-					if ( lastTree!=null ) {
-						treeViewer.setScale(v / 1000.0 + 1.0);
-					}
-				}
-			}
-									 );
-		treePanel.add(scaleSlider, BorderLayout.SOUTH);
-		return treePanel;
-	}
+        JSlider scaleSlider;
+        //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
+        //perhaps in a few more years they will get around to backporting whatever it was they fixed in 1.9.
+        // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
+        boolean trackpadZoomSupported = SystemInfo.isMac &&
+                (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
+        if (trackpadZoomSupported) {
+            scaleSlider = new JSlider();
+            MyTreeView myTree = new MyTreeView(null, null);
+            treeViewer = myTree;
+            scaleSlider.setModel(myTree.scaleModel);
+        } else {
+            treeViewer = new TreeViewer(null, null);
+            int sliderValue = (int) ((treeViewer.getScale() - 1.0) * 1000);
+            scaleSlider = new JSlider(JSlider.HORIZONTAL,
+                    -999, 1000, sliderValue);
+
+            scaleSlider.addChangeListener(
+                    new ChangeListener() {
+                        @Override
+                        public void stateChanged(ChangeEvent e) {
+                            int v = ((JSlider) e.getSource()).getValue();
+                            if (lastTree != null) {
+                                treeViewer.setScale(v / 1000.0 + 1.0);
+                            }
+                        }
+                    });
+        }
+
+        // Wrap tree viewer component in scroll pane
+        JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
+
+        treePanel.add(scrollPane, BorderLayout.CENTER);
+
+        treePanel.add(scaleSlider, BorderLayout.SOUTH);
+        return treePanel;
+    }
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
@@ -229,7 +241,7 @@ public class PreviewPanel extends JPanel {
 	public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "Issues with parser and/or lexer grammar(s) prevent preview")));
+                             "Issues with parser and/or lexer grammar(s) prevent preview")));
 	}
 
 	public void indicateNoStartRuleInParseTreePane() {
