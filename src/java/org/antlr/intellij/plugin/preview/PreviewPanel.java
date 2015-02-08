@@ -11,6 +11,7 @@ import com.intellij.ui.components.JBTabbedPane;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
+import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.Token;
@@ -222,7 +223,27 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
-	public void clearParseTree() {
+    void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
+
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                lastTree = result.tree;
+                if (result.parser instanceof PreviewParser) {
+                    treeViewer.setTreeTextProvider(new AltLabelTextProvider(((PreviewParser) result.parser).inputTokenToStateMap, preview.g));
+                    treeViewer.setTree(result.tree);
+                } else {
+                    treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+                    treeViewer.setTree(result.tree);
+
+                }
+            }
+        });
+
+    }
+
+
+    public void clearParseTree() {
 		setParseTree(Arrays.asList(new String[0]), null);
 	}
 
@@ -230,10 +251,10 @@ public class PreviewPanel extends JPanel {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
 														  "Issues with parser and/or lexer grammar(s) prevent preview")));
-	}
+    }
 
-	public void indicateNoStartRuleInParseTreePane() {
-		setParseTree(Arrays.asList(new String[0]),
+    public void indicateNoStartRuleInParseTreePane() {
+        setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
 														  "No start rule is selected")));
 	}
@@ -246,7 +267,7 @@ public class PreviewPanel extends JPanel {
 			final String inputText = previewState.getEditor().getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if ( results!=null) {
-				setParseTree(Arrays.asList(previewState.g.getRuleNames()), results.tree);
+                updateTreeViewer(previewState,results);
 			}
 			else if ( previewState.startRuleName==null ) {
 				indicateNoStartRuleInParseTreePane();
