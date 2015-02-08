@@ -1,16 +1,26 @@
 package org.antlr.intellij.plugin.actions;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Generate parser from ANTLR grammar;
  *  learned how to do from Grammar-Kit by Gregory Shrago.
@@ -25,7 +35,8 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 
 	@Override
 	public void actionPerformed(final AnActionEvent e) {
-		if ( e.getProject()==null ) {
+		Project project = e.getData(PlatformDataKeys.PROJECT);
+		if ( project==null ) {
 			LOG.error("actionPerformed no project for "+e);
 			return; // whoa!
 		}
@@ -36,15 +47,44 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 		boolean canBeCancelled = true;
 
 		// commit changes to PSI and file system
-		PsiDocumentManager.getInstance(e.getProject()).commitAllDocuments();
-		FileDocumentManager.getInstance().saveAllDocuments();
+		PsiDocumentManager psiMgr = PsiDocumentManager.getInstance(project);
+		FileDocumentManager docMgr = FileDocumentManager.getInstance();
+		Document doc = docMgr.getDocument(grammarFile);
+		if ( doc==null ) return;
 
-		Task.Backgroundable gen =
+		boolean wasStale = !psiMgr.isCommitted(doc) || docMgr.isDocumentUnsaved(doc);
+		if ( wasStale ) {
+			// save event triggers ANTLR run if autogen on
+			psiMgr.commitDocument(doc);
+			docMgr.saveDocument(doc);
+		}
+
+		boolean forceGeneration = true; // from action, they really mean it
+		RunANTLROnGrammarFile gen =
 			new RunANTLROnGrammarFile(grammarFile,
-									  e.getProject(),
+									  project,
 									  title,
 									  canBeCancelled,
-									  new BackgroundFromStartOption());
-		ProgressManager.getInstance().run(gen);
+									  forceGeneration);
+		boolean autogen = ConfigANTLRPerGrammar.getBooleanProp(project, grammarFile.getPath(), ConfigANTLRPerGrammar.PROP_AUTO_GEN, false);
+
+		if ( !wasStale || (wasStale && !autogen) ) {
+			// if everything already saved (!stale) then run ANTLR
+			// if had to be saved and autogen NOT on, then run ANTLR
+			// Otherwise, the save file event will have or will run ANTLR.
+			ProgressManager.getInstance().run(gen); //, "Generating", canBeCancelled, e.getData(PlatformDataKeys.PROJECT));
+
+			// refresh from disk to see new files
+			Set<File> generatedFiles = new HashSet<File>();
+			generatedFiles.add(new File(gen.getOutputDirName()));
+			LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
+			// pop up a notification
+			Notification notification =
+				new Notification(RunANTLROnGrammarFile.groupDisplayId,
+								 "parser for " + grammarFile.getName() + " generated",
+								 "to " + gen.getOutputDirName(),
+								 NotificationType.INFORMATION);
+			Notifications.Bus.notify(notification, project);
+		}
 	}
 }

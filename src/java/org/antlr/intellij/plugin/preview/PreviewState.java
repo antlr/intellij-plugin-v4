@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
 
@@ -20,18 +21,20 @@ import org.antlr.v4.tool.Grammar;
  *  for example.
  */
 public class PreviewState {
-	public String grammarFileName;
+	public VirtualFile grammarFile;
 	public Grammar g;
 	public Grammar lg;
 	public String startRuleName;
+	public CharSequence manualInputText = ""; // save input when switching grammars
+	public String inputFileName = ""; 	// save input file when switching grammars
 
 	public ParsingResult parsingResult;
 
 	/** The current input editor (inputEditor or fileEditor) for this grammar */
 	private Editor editor;
 
-	public PreviewState(String grammarFileName) {
-		this.grammarFileName = grammarFileName;
+	public PreviewState(VirtualFile grammarFile) {
+		this.grammarFile = grammarFile;
 	}
 
 	public synchronized Editor getEditor() {
@@ -44,8 +47,8 @@ public class PreviewState {
 	}
 
 	public synchronized void releaseEditor() {
-		// It would appear that the project closed event occurs before these close grammars. Very strange.
-		// check for null editor.
+		// It would appear that the project closed event occurs before these
+		// close grammars sometimes. Very strange. check for null editor.
 		if (editor != null) {
 			final EditorFactory factory = EditorFactory.getInstance();
 			factory.releaseEditor(editor);

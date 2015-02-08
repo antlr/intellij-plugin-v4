@@ -7,25 +7,26 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
-import org.antlr.v4.tool.ANTLRToolListener;
-import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarSemanticsMessage;
 import org.antlr.v4.tool.GrammarSyntaxMessage;
 import org.antlr.v4.tool.LeftRecursionCyclesMessage;
 import org.antlr.v4.tool.Rule;
+import org.antlr.v4.tool.ToolMessage;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.ST;
 
+import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +34,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
-	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4ExternalAnnotator");
+    // NOTE: can't use instance var as only 1 instance
+
+    public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4ExternalAnnotator");
 
 	public static class Issue {
 		String annotation;
@@ -42,11 +45,16 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
 	}
 
-	// can't use instance var as only 1 instance
-
-	/** Called first; return file; idea 12*/
+	/** Called first; return file; idea 12 */
 	@Nullable
 	public PsiFile collectionInformation(@NotNull PsiFile file) {
+		LOG.info("collectionInformation "+file.getVirtualFile());
+		return file;
+	}
+
+	/** Called first; return file; idea 13; can't use @Override */
+	@Nullable
+	public PsiFile collectInformation(@NotNull PsiFile file) {
 		LOG.info("collectionInformation "+file.getVirtualFile());
 		return file;
 	}
@@ -56,15 +64,17 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	@Override
 	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(final PsiFile file) {
 		String fileContents = file.getText();
-		final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<Issue>();
-		final Tool antlr = new Tool();
-		// getContainingDirectory() must be identified as a read operation on file system
-		ApplicationManager.getApplication().runReadAction(new Runnable() {
-			@Override
-			public void run() {
-				antlr.libDirectory = file.getContainingDirectory().toString();
-			}
-		});
+		List<String> args = RunANTLROnGrammarFile.getANTLRArgsAsList(file.getProject(), file.getVirtualFile());
+		final Tool antlr = new Tool(args.toArray(new String[args.size()]));
+		if ( !args.contains("-lib") ) {
+			// getContainingDirectory() must be identified as a read operation on file system
+			ApplicationManager.getApplication().runReadAction(new Runnable() {
+				@Override
+				public void run() {
+					antlr.libDirectory = file.getContainingDirectory().toString();
+				}
+			});
+		}
 
 		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
 		ApplicationManager.getApplication().runReadAction(findVocabAction);
@@ -72,24 +82,9 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			// for now, just turn off undef token warnings
 		}
 
-		antlr.addListener(new ANTLRToolListener() {
-			@Override
-			public void info(String msg) {
-			}
-			@Override
-			public void error(ANTLRMessage msg) {
-				if ( (msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION&&
-					  msg.getErrorType()!=ErrorType.IMPLICIT_STRING_DEFINITION) ||
-					findVocabAction.vocabName==null )
-				{
-					issues.add(new Issue(msg));
-				}
-			}
-			@Override
-			public void warning(ANTLRMessage msg) {
-				issues.add(new Issue(msg));
-			}
-		});
+		antlr.removeListeners();
+        AnnotatorToolListener listener = new AnnotatorToolListener(findVocabAction.vocabName);
+        antlr.addListener(listener);
 		try {
 			StringReader sr = new StringReader(fileContents);
 			ANTLRReaderStream in = new ANTLRReaderStream(sr);
@@ -100,19 +95,19 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			VirtualFile vfile = file.getVirtualFile();
 			if ( vfile==null ) {
 				LOG.error("doAnnotate no virtual file for "+file);
-				return issues;
+				return listener.issues;
 			}
 			g.fileName = vfile.getPath();
 			antlr.process(g, false);
 
-			for (Issue issue : issues) {
-				processIssue(issue);
+			for (Issue issue : listener.issues) {
+				processIssue(file, issue);
 			}
 		}
 		catch (Exception e) {
 			LOG.error("antlr can't process "+file.getName(), e);
 		}
-		return issues;
+		return listener.issues;
 	}
 
 	/** Called 3rd */
@@ -154,8 +149,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		super.apply(file, issues, holder);
 	}
 
-	public void processIssue(Issue issue) {
-		Tool antlr = new Tool();
+	public void processIssue(final PsiFile file, Issue issue) {
+		File grammarFile = new File(file.getVirtualFile().getPath());
+		File issueFile = new File(issue.msg.fileName);
+		if ( !grammarFile.getName().equals(issueFile.getName()) ) {
+			return; // ignore errors from external files
+		}
 		if ( issue.msg instanceof GrammarSemanticsMessage ) {
 			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
 			issue.offendingTokens.add(t);
@@ -163,25 +162,25 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		else if ( issue.msg instanceof LeftRecursionCyclesMessage ) {
 			List<String> rulesToHighlight = new ArrayList<String>();
 			LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage)issue.msg;
-			for (Collection<Rule> cycle : lmsg.cycles) {
+			Collection<? extends Collection<Rule>> cycles =
+				(Collection<? extends Collection<Rule>>)lmsg.getArgs()[0];
+			for (Collection<Rule> cycle : cycles) {
 				for (Rule r : cycle) {
 					rulesToHighlight.add(r.name);
 					GrammarAST nameNode = (GrammarAST)r.ast.getChild(0);
 					issue.offendingTokens.add(nameNode.getToken());
-//					Collection<RulesNode> ruless =
-//						PsiTreeUtil.collectElementsOfType(file, new Class[]{RulesNode.class});
-//					RulesNode rules =
-//						(RulesNode)MyPsiUtils.findRuleSpecNode(r.name,
-//															   (RulesNode)ruless.toArray()[0]);
-//					PsiElement rule = MyPsiUtils.findRuleSpecNode(r.name, rules);
 				}
 			}
 		}
 		else if ( issue.msg instanceof GrammarSyntaxMessage ) {
-			Token t = ((GrammarSyntaxMessage)issue.msg).offendingToken;
+			Token t = issue.msg.offendingToken;
 			issue.offendingTokens.add(t);
 		}
+		else if ( issue.msg instanceof ToolMessage ) {
+			issue.offendingTokens.add(issue.msg.offendingToken);
+		}
 
+		Tool antlr = new Tool();
 		ST msgST = antlr.errMgr.getMessageTemplate(issue.msg);
 		String outputMsg = msgST.render();
 		if (antlr.errMgr.formatWantsSingleLineMessage()) {

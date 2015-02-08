@@ -104,12 +104,12 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 		final LiteralChooser chooser =
 			new LiteralChooser(project, new ArrayList<String>(lexerRules.values()));
 		chooser.show();
+		List<String> selectedElements = chooser.getSelectedElements();
+		// chooser disposed automatically.
 
 		final Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		final Document doc = editor.getDocument();
 		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-
-		List<String> selectedElements = chooser.getSelectedElements();
 //		System.out.println(selectedElements);
 		if (selectedElements != null) {
 			String text = doc.getText();

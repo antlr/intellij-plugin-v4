@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PLUGIN_MODULE" version="4">
   <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" />
+  <component name="FacetManager">
+    <facet type="Python" name="Python">
+      <configuration sdkName="" />
+    </facet>
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -8,22 +13,20 @@
       <sourceFolder url="file://$MODULE_DIR$/src/grammars" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/templates" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/gen/antlr4" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/adaptor" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/liveTemplates" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.2.3-dev-complete.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/antlr-4.5-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="file://$USER_HOME$/antlr/code/antlr4/runtime/Java/src" />
-          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
@@ -32,4 +35,3 @@
     <option name="PLUGIN_ID" />
   </component>
 </module>
-

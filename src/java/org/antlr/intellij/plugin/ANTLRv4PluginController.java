@@ -3,9 +3,17 @@ package org.antlr.intellij.plugin;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.EditorFactoryAdapter;
+import com.intellij.openapi.editor.event.EditorFactoryEvent;
+import com.intellij.openapi.editor.event.EditorMouseAdapter;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -13,7 +21,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vcs.changes.BackgroundFromStartOption;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
@@ -30,12 +38,12 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.intellij.plugin.profiler.ProfilerPanel;
+import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.Grammar;
-import org.antlr.v4.tool.LexerGrammar;
-import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -55,22 +63,12 @@ import java.util.Map;
  *  the grammars and editors are consistently associated with the same window.
  */
 public class ANTLRv4PluginController implements ProjectComponent {
+	public static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
 	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
 
-	static {
-		try {
-			ParsingUtils.BAD_PARSER_GRAMMAR = new Grammar("grammar BAD; a : 'bad' ;");
-			ParsingUtils.BAD_PARSER_GRAMMAR.name = "BAD_PARSER_GRAMMAR";
-			ParsingUtils.BAD_LEXER_GRAMMAR = new LexerGrammar("lexer grammar BADLEXER; A : 'bad' ;");
-			ParsingUtils.BAD_LEXER_GRAMMAR.name = "BAD_LEXER_GRAMMAR";
-		}
-		catch (org.antlr.runtime.RecognitionException re) {
-			LOG.error("can't init bad grammar markers");
-		}
-	}
-
-	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
-	public static final String CONSOLE_WINDOW_ID = "ANTLR Tool Output";
+	public static final String PREVIEW_WINDOW_ID = "Preview";
+	public static final String CONSOLE_WINDOW_ID = "Tool Output";
+	public static final String PROFILER_WINDOW_ID = "Profiler";
 
 	public boolean projectIsClosed = false;
 
@@ -127,8 +125,35 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		content = contentFactory.createContent(consoleComponent, "", false);
 
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-		consoleWindow.getContentManager().addContent(content);
+        consoleWindow.getContentManager().addContent(content);
 		consoleWindow.setIcon(Icons.FILE);
+
+//		ToolWindow profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+//		JPanel panel = new JPanel(new BorderLayout());
+//		profilerWindow.getComponent().add(panel);
+//		profilerWindow.setIcon(Icons.FILE);
+//		final EditorFactory edfactory = EditorFactory.getInstance();
+//		Document doc = edfactory.createDocument("foo\nbar\n");
+//		RangeMarker rangeMarker = doc.createRangeMarker(2, 5);
+//		final Editor editor = edfactory.createEditor(doc, previewPanel.project);
+//		EditorSettings settings = editor.getSettings();
+//		settings.setWhitespacesShown(true);
+//		settings.setLineNumbersShown(true);
+//		settings.setLineMarkerAreaShown(true);
+//		MarkupModel markupModel = editor.getMarkupModel();
+//		panel.add(editor.getComponent());
+//
+//
+//
+//		TextAttributes textAttributes =
+//			new TextAttributes(JBColor.BLACK, JBColor.WHITE, JBColor.RED, EffectType.WAVE_UNDERSCORE, 1);
+//		textAttributes.setErrorStripeColor(JBColor.RED);
+//		final RangeHighlighter lineHighlighter =
+//			markupModel.addRangeHighlighter(2,
+//											5,
+//											HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
+//											HighlighterTargetArea.EXACT_RANGE);
+//		lineHighlighter.setErrorStripeMarkColor(JBColor.BLUE);
 	}
 
 	@Override
@@ -154,6 +179,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	// seems that intellij can kill and reload a project w/o user knowing.
 	// a ptr was left around that pointed at a disposed project. led to
 	// problem in switchGrammar. Probably was a listener still attached and trigger
+	// editor listeners released in editorReleased() events.
 	public void uninstallListeners() {
 		VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
 		MessageBusConnection msgBus = project.getMessageBus().connect(project);
@@ -184,16 +210,31 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			myFileEditorManagerAdapter
 		);
 
-		// for now let's leave the grammar loading in the selectionChanged event
-		// as jetbrains says that I should not rely on event order.
-//		msgBus.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
-//						 new FileEditorManagerListener.Before.Adapter() {
-//							 @Override
-//							 public void beforeFileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-//								 fileOpenedEvent(file);
-//							 }
-//						 }
-//						 );
+		EditorFactory factory = EditorFactory.getInstance();
+		factory.addEditorFactoryListener(
+			new EditorFactoryAdapter() {
+				@Override
+				public void editorCreated(@NotNull EditorFactoryEvent event) {
+					Editor editor = event.getEditor();
+					GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
+					editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
+					editor.addEditorMouseListener(listener);
+				}
+
+				@Override
+				public void editorReleased(@NotNull EditorFactoryEvent event) {
+					Editor editor = event.getEditor();
+					GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
+					if (editor.getProject() != null && editor.getProject() != project) {
+						return;
+					}
+					if (listener != null) {
+						editor.removeEditorMouseListener(listener);
+						editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
+					}
+				}
+			}
+		);
 	}
 
 	/** The test ANTLR rule action triggers this event. This can occur
@@ -203,7 +244,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 */
 	public void setStartRuleNameEvent(VirtualFile grammarFile, String startRuleName) {
 		LOG.info("setStartRuleNameEvent " + startRuleName+" "+project.getName());
-		PreviewState previewState = getPreviewState(grammarFile.getPath());
+		PreviewState previewState = getPreviewState(grammarFile);
 		previewState.startRuleName = startRuleName;
 		if ( previewPanel!=null ) {
 			previewPanel.getInputPanel().setStartRuleName(grammarFile, startRuleName); // notify the view
@@ -216,7 +257,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public void grammarFileSavedEvent(VirtualFile grammarFile) {
 		LOG.info("grammarFileSavedEvent "+grammarFile.getPath()+" "+project.getName());
-		updateGrammarObjectsFromFile(grammarFile.getPath()); // force reload
+		updateGrammarObjectsFromFile(grammarFile); // force reload
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(grammarFile);
 		}
@@ -241,31 +282,26 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			previewWindow.hide(null);
 			return;
 		}
-		PreviewState previewState = getPreviewState(newFile.getPath());
-		if ( previewState.g==null ) { // only load grammars if not there
-			updateGrammarObjectsFromFile(newFile.getPath());
+		PreviewState previewState = getPreviewState(newFile);
+		if ( previewState.g==null && previewState.lg==null ) { // only load grammars if none is there
+			updateGrammarObjectsFromFile(newFile);
 		}
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
 		}
 	}
 
-//	public void fileOpenedEvent(VirtualFile vfile) {
-//		String grammarFileName = vfile.getPath();
-//		LOG.info("fileOpenedEvent "+ grammarFileName+" "+project.getName());
-//		if ( !vfile.getName().endsWith(".g4") ) {
-//			ApplicationManager.getApplication().invokeLater(
-//				new Runnable() {
-//					@Override
-//					public void run() {
-//						previewWindow.hide(null);
-//					}
-//				}
-//			);
-//		}
-//	}
-//
+	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
+		if ( previewPanel!=null ) {
+			ProfilerPanel profilerPanel = previewPanel.getProfilerPanel();
+			if ( profilerPanel!=null ) {
+				profilerPanel.mouseEnteredGrammarEditorEvent(vfile, e);
+			}
+		}
+	}
+
 	public void editorFileClosedEvent(VirtualFile vfile) {
+		// hopefully called only from swing EDT
 		String grammarFileName = vfile.getPath();
 		LOG.info("editorFileClosedEvent "+ grammarFileName+" "+project.getName());
 		if ( !vfile.getName().endsWith(".g4") ) {
@@ -279,6 +315,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			return;
 		}
 
+		previewState.g = null; // wack old ref to the Grammar for text in editor
+		previewState.lg = null;
+
 		previewPanel.closeGrammar(vfile);
 
 		grammarToPreviewState.remove(grammarFileName);
@@ -287,16 +326,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewWindow.hide(null);
 	}
 
+	/** Make sure to run after updating grammars in previewState */
 	public void runANTLRTool(final VirtualFile grammarFile) {
-		LOG.info("runANTLRTool launch on "+grammarFile.getPath()+" "+project.getName());
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
-		Task.Backgroundable gen =
+		boolean forceGeneration = false;
+		Task gen =
 			new RunANTLROnGrammarFile(grammarFile,
 									  project,
 									  title,
 									  canBeCancelled,
-									  new BackgroundFromStartOption());
+									  forceGeneration);
 		ProgressManager.getInstance().run(gen);
 	}
 
@@ -306,22 +346,52 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  this grammar or we will have seen a grammar file changed event.
 	 *  (I hope!)
 	 */
-	public void updateGrammarObjectsFromFile(String grammarFileName) {
-		PreviewState previewState = getPreviewState(grammarFileName);
+	public void updateGrammarObjectsFromFile(VirtualFile grammarFile) {
+		updateGrammarObjectsFromFile_(grammarFile);
+
+		// if grammarFileName is a separate lexer, we need to look for
+		// its matching parser, if any, that is loaded in an editor
+		// (don't go looking on disk).
+		PreviewState s = getAssociatedParserIfLexer(grammarFile.getPath());
+		if ( s!=null ) {
+			// try to load lexer again and associate with this parser grammar.
+			// must update parser too as tokens have changed
+			updateGrammarObjectsFromFile_(s.grammarFile);
+		}
+	}
+
+	public String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
+		PreviewState previewState = getPreviewState(grammarFile);
 		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
 		if (grammars != null) {
 			synchronized (previewState) { // build atomically
 				previewState.lg = grammars[0];
 				previewState.g = grammars[1];
-				GrammarRootAST ast = previewState.g.ast;
 			}
 		}
+		return grammarFileName;
+	}
+
+	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
+		for (PreviewState s : grammarToPreviewState.values()) {
+			if ( s!=null && s.lg!=null &&
+				(grammarFileName.equals(s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
+			{
+				// s has a lexer with same filename, see if there is a parser grammar
+				// (not a combined grammar)
+				if ( s.g!=null && s.g.getType()==ANTLRParser.PARSER ) {
+					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
+					return s;
+				}
+			}
+		}
+		return null;
 	}
 
 	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
-		// TODO:Try to reuse the same parser and lexer.
 		String grammarFileName = grammarFile.getPath();
-		final PreviewState previewState = getPreviewState(grammarFileName);
+		final PreviewState previewState = getPreviewState(grammarFile);
 		if (!new File(grammarFileName).exists()) {
 			LOG.error("parseText grammar doesn't exit " + grammarFileName);
 			return null;
@@ -330,13 +400,19 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// Wipes out the console and also any error annotations
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
-		previewState.parsingResult = ParsingUtils.parseText(previewState, grammarFile, inputText);
+        long start = System.nanoTime();
+		previewState.parsingResult = ParsingUtils.parseText(previewState, previewPanel, grammarFile, inputText);
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}
+        long stop = System.nanoTime();
+
+		previewPanel.profilerPanel.setProfilerData(previewState, stop-start);
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
+
+		previewPanel.getProfilerPanel().tagAmbiguousDecisionsInGrammar(previewState);
 
 		return previewState.parsingResult;
 	}
@@ -353,11 +429,23 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return consoleWindow;
 	}
 
+	public static void showConsoleWindow(final Project project) {
+		ApplicationManager.getApplication().invokeLater(
+			new Runnable() {
+				@Override
+				public void run() {
+					ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
+				}
+			}
+		);
+	}
+
 	public ToolWindow getPreviewWindow() {
 		return previewWindow;
 	}
 
-	public @NotNull PreviewState getPreviewState(String grammarFileName) {
+	public @NotNull PreviewState getPreviewState(VirtualFile grammarFile) {
+		String grammarFileName = grammarFile.getPath();
 		// Have we seen this grammar before?
 		PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
 		if ( stateForCurrentGrammar!=null ) {
@@ -365,7 +453,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 
 		// not seen, must create state
-		stateForCurrentGrammar = new PreviewState(grammarFileName);
+		stateForCurrentGrammar = new PreviewState(grammarFile);
 		grammarToPreviewState.put(grammarFileName, stateForCurrentGrammar);
 
 		return stateForCurrentGrammar;
@@ -385,7 +473,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		if ( currentGrammarFileName==null ) {
 			return null; // we are not looking at a grammar file
 		}
-		return getPreviewState(currentGrammarFileName);
+		return getPreviewState(currentGrammarFile);
 	}
 
 	// These "get current editor file" routines should only be used
@@ -417,6 +505,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		if ( f.getName().endsWith(".g4") ) return f;
 		return null;
+	}
+
+	private class GrammarEditorMouseAdapter extends EditorMouseAdapter {
+		@Override
+		public void mouseClicked(EditorMouseEvent e) {
+			Document doc = e.getEditor().getDocument();
+			VirtualFile vfile = FileDocumentManager.getInstance().getFile(doc);
+			if ( vfile!=null && vfile.getName().endsWith(".g4") ) {
+				mouseEnteredGrammarEditorEvent(vfile, e);
+			}
+		}
 	}
 
 	private class MyVirtualFileAdapter extends VirtualFileAdapter {
