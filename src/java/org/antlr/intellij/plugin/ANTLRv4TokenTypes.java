@@ -7,6 +7,7 @@ import org.antlr.intellij.adaptor.lexer.RuleElementType;
 import org.antlr.intellij.adaptor.lexer.TokenElementType;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.intellij.lang.annotations.MagicConstant;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,4 +44,11 @@ public class ANTLRv4TokenTypes {
 			ANTLRv4Lexer.PRIVATE,ANTLRv4Lexer.FRAGMENT,ANTLRv4Lexer.PUBLIC,ANTLRv4Lexer.MODE,
 			ANTLRv4Lexer.FINALLY,ANTLRv4Lexer.RETURNS,ANTLRv4Lexer.THROWS,ANTLRv4Lexer.GRAMMAR,
 			ANTLRv4Lexer.LOCALS,ANTLRv4Lexer.PARSER);
+
+    public static RuleElementType getRuleElementType(@MagicConstant(valuesFromClass = ANTLRv4Parser.class)int ruleIndex){
+        return RULE_ELEMENT_TYPES.get(ruleIndex);
+    }
+    public static TokenElementType getTokenElementType(@MagicConstant(valuesFromClass = ANTLRv4Lexer.class)int ruleIndex){
+        return TOKEN_ELEMENT_TYPES.get(ruleIndex);
+    }
 }
