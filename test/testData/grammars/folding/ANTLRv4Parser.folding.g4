@@ -37,7 +37,7 @@ options {<fold text='...' expand='true'>
 }</fold>
 
 <fold text='//...' expand='true'>// The main entry point for parsing a v4 grammar.</fold>
-grammarSpec<fold text=':...' expand='true'>
+grammarSpec<fold text=':...;' expand='true'>
 	:	DOC_COMMENT?
 		grammarType id SEMI
 		prequelConstruct*
@@ -46,7 +46,7 @@ grammarSpec<fold text=':...' expand='true'>
 		EOF
 	;</fold>
 
-grammarType<fold text=':...' expand='true'>
+grammarType<fold text=':...;' expand='true'>
 	:	(	LEXER GRAMMAR
 		|	PARSER GRAMMAR
 		|	GRAMMAR
@@ -56,7 +56,7 @@ grammarType<fold text=':...' expand='true'>
 <fold text='//...' expand='true'>// This is the list of all constructs that can be declared before
 // the set of rules that compose the grammar, and is invoked 0..n
 // times by the grammarPrequel rule.</fold>
-prequelConstruct<fold text=':...' expand='true'>
+prequelConstruct<fold text=':...;' expand='true'>
 	:	optionsSpec
 	|	delegateGrammars
 	|	tokensSpec
@@ -64,62 +64,62 @@ prequelConstruct<fold text=':...' expand='true'>
 	;</fold>
 
 <fold text='//...' expand='true'>// A list of options that affect analysis and/or code generation</fold>
-optionsSpec<fold text=':...' expand='true'>
+optionsSpec<fold text=':...;' expand='true'>
 	:	OPTIONS (option SEMI)* RBRACE
 	;</fold>
 
-option<fold text=':...' expand='true'>
+option<fold text=':...;' expand='true'>
 	:	id ASSIGN optionValue
 	;</fold>
 
-optionValue<fold text=':...' expand='true'>
+optionValue<fold text=':...;' expand='true'>
 	:	id (DOT id)*
 	|	STRING_LITERAL
 	|	ACTION
 	|	INT
 	;</fold>
 
-delegateGrammars<fold text=':...' expand='true'>
+delegateGrammars<fold text=':...;' expand='true'>
 	:	IMPORT delegateGrammar (COMMA delegateGrammar)* SEMI
 	;</fold>
 
-delegateGrammar<fold text=':...' expand='true'>
+delegateGrammar<fold text=':...;' expand='true'>
 	:	id ASSIGN id
 	|	id
 	;</fold>
 
-tokensSpec<fold text=':...' expand='true'>
+tokensSpec<fold text=':...;' expand='true'>
 	:	TOKENS id (COMMA id)* COMMA? RBRACE
 	;</fold>
 
 <fold text='...' expand='true'>/** Match stuff like @parser::members {int i;} */</fold>
-action<fold text=':...' expand='true'>
+action<fold text=':...;' expand='true'>
 	:	AT (actionScopeName COLONCOLON)? id ACTION
 	;</fold>
 
 <fold text='...' expand='true'>/** Sometimes the scope names will collide with keywords; allow them as
  *  ids for action scopes.
  */</fold>
-actionScopeName<fold text=':...' expand='true'>
+actionScopeName<fold text=':...;' expand='true'>
 	:	id
 	|	LEXER
 	|	PARSER
 	;</fold>
 
-modeSpec<fold text=':...' expand='true'>
+modeSpec<fold text=':...;' expand='true'>
 	:	MODE id SEMI lexerRule*
 	;</fold>
 
-rules<fold text=':...' expand='true'>
+rules<fold text=':...;' expand='true'>
 	:	ruleSpec*
 	;</fold>
 
-ruleSpec<fold text=':...' expand='true'>
+ruleSpec<fold text=':...;' expand='true'>
 	:	parserRuleSpec
 	|	lexerRule
 	;</fold>
 
-parserRuleSpec<fold text=':...' expand='true'>
+parserRuleSpec<fold text=':...;' expand='true'>
 	:	DOC_COMMENT?
         ruleModifiers? RULE_REF ARG_ACTION?
         ruleReturns? throwsSpec? localsSpec?
@@ -130,41 +130,41 @@ parserRuleSpec<fold text=':...' expand='true'>
 		exceptionGroup
 	;</fold>
 
-exceptionGroup<fold text=':...' expand='true'>
+exceptionGroup<fold text=':...;' expand='true'>
 	:	exceptionHandler* finallyClause?
 	;</fold>
 
-exceptionHandler<fold text=':...' expand='true'>
+exceptionHandler<fold text=':...;' expand='true'>
 	:	CATCH ARG_ACTION ACTION
 	;</fold>
 
-finallyClause<fold text=':...' expand='true'>
+finallyClause<fold text=':...;' expand='true'>
 	:	FINALLY ACTION
 	;</fold>
 
-rulePrequel<fold text=':...' expand='true'>
+rulePrequel<fold text=':...;' expand='true'>
 	:	optionsSpec
 	|	ruleAction
 	;</fold>
 
-ruleReturns<fold text=':...' expand='true'>
+ruleReturns<fold text=':...;' expand='true'>
 	:	RETURNS ARG_ACTION
 	;</fold>
 
-throwsSpec<fold text=':...' expand='true'>
+throwsSpec<fold text=':...;' expand='true'>
 	:	THROWS id (COMMA id)*
 	;</fold>
 
-localsSpec<fold text=':...' expand='true'>
+localsSpec<fold text=':...;' expand='true'>
 	:	LOCALS ARG_ACTION
 	;</fold>
 
 <fold text='...' expand='true'>/** Match stuff like @init {int i;} */</fold>
-ruleAction<fold text=':...' expand='true'>
+ruleAction<fold text=':...;' expand='true'>
 	:	AT id ACTION
 	;</fold>
 
-ruleModifiers<fold text=':...' expand='true'>
+ruleModifiers<fold text=':...;' expand='true'>
 	:	ruleModifier+
 	;</fold>
 
@@ -174,48 +174,48 @@ ruleModifiers<fold text=':...' expand='true'>
 // reuse for certain lexical patterns. The other modifiers are passed
 // to the code generation templates and may be ignored by the template
 // if they are of no use in that language.</fold>
-ruleModifier<fold text=':...' expand='true'>
+ruleModifier<fold text=':...;' expand='true'>
 	:	PUBLIC
 	|	PRIVATE
 	|	PROTECTED
 	|	FRAGMENT
 	;</fold>
 
-ruleBlock<fold text=':...' expand='true'>
+ruleBlock<fold text=':...;' expand='true'>
 	:	ruleAltList
 	;</fold>
 
-ruleAltList<fold text=':...' expand='true'>
+ruleAltList<fold text=':...;' expand='true'>
 	:	labeledAlt (OR labeledAlt)*
 	;</fold>
 
-labeledAlt<fold text=':...' expand='true'>
+labeledAlt<fold text=':...;' expand='true'>
 	:	alternative (POUND id)?
 	;</fold>
 
-lexerRule<fold text=':...' expand='true'>
+lexerRule<fold text=':...;' expand='true'>
 	:	DOC_COMMENT? FRAGMENT?
 		TOKEN_REF COLON lexerRuleBlock SEMI
 	;</fold>
 
-lexerRuleBlock<fold text=':...' expand='true'>
+lexerRuleBlock<fold text=':...;' expand='true'>
 	:	lexerAltList
 	;</fold>
 
-lexerAltList<fold text=':...' expand='true'>
+lexerAltList<fold text=':...;' expand='true'>
 	:	lexerAlt (OR lexerAlt)*
 	;</fold>
 
-lexerAlt<fold text=':...' expand='true'>
+lexerAlt<fold text=':...;' expand='true'>
 	:	lexerElements lexerCommands?
 	|
 	;</fold>
 
-lexerElements<fold text=':...' expand='true'>
+lexerElements<fold text=':...;' expand='true'>
 	:	lexerElement+
 	;</fold>
 
-lexerElement<fold text=':...' expand='true'>
+lexerElement<fold text=':...;' expand='true'>
 	:	labeledLexerElement ebnfSuffix?
 	|	lexerAtom ebnfSuffix?
 	|	lexerBlock ebnfSuffix?
@@ -223,46 +223,46 @@ lexerElement<fold text=':...' expand='true'>
                          // but preds can be anywhere</fold>
 	;</fold>
 
-labeledLexerElement<fold text=':...' expand='true'>
+labeledLexerElement<fold text=':...;' expand='true'>
 	:	id (ASSIGN|PLUS_ASSIGN)
 		(	lexerAtom
 		|	block
 		)
 	;</fold>
 
-lexerBlock<fold text=':...' expand='true'>
+lexerBlock<fold text=':...;' expand='true'>
 	:	LPAREN lexerAltList RPAREN
 	;</fold>
 
 <fold text='//...' expand='true'>// E.g., channel(HIDDEN), skip, more, mode(INSIDE), push(INSIDE), pop</fold>
-lexerCommands<fold text=':...' expand='true'>
+lexerCommands<fold text=':...;' expand='true'>
 	:	RARROW lexerCommand (COMMA lexerCommand)*
 	;</fold>
 
-lexerCommand<fold text=':...' expand='true'>
+lexerCommand<fold text=':...;' expand='true'>
 	:	lexerCommandName LPAREN lexerCommandExpr RPAREN
 	|	lexerCommandName
 	;</fold>
 
-lexerCommandName<fold text=':...' expand='true'>
+lexerCommandName<fold text=':...;' expand='true'>
 	:	id
 	|	MODE
 	;</fold>
 
-lexerCommandExpr<fold text=':...' expand='true'>
+lexerCommandExpr<fold text=':...;' expand='true'>
 	:	id
 	|	INT
 	;</fold>
 
-altList<fold text=':...' expand='true'>
+altList<fold text=':...;' expand='true'>
 	:	alternative (OR alternative)*
 	;</fold>
 
-alternative<fold text=':...' expand='true'>
+alternative<fold text=':...;' expand='true'>
 	:	elementOptions? element*
 	;</fold>
 
-element<fold text=':...' expand='true'>
+element<fold text=':...;' expand='true'>
 	:	labeledElement
 		(	ebnfSuffix
 		|
@@ -275,27 +275,27 @@ element<fold text=':...' expand='true'>
 	|	ACTION QUESTION? <fold text='//...' expand='true'>// SEMPRED is ACTION followed by QUESTION</fold>
 	;</fold>
 
-labeledElement<fold text=':...' expand='true'>
+labeledElement<fold text=':...;' expand='true'>
 	:	id (ASSIGN|PLUS_ASSIGN)
 		(	atom
 		|	block
 		)
 	;</fold>
 
-ebnf<fold text=':...' expand='true'>:	block blockSuffix?
+ebnf<fold text=':...;' expand='true'>:	block blockSuffix?
 	;</fold>
 
-blockSuffix<fold text=':...' expand='true'>
+blockSuffix<fold text=':...;' expand='true'>
 	:	ebnfSuffix <fold text='//...' expand='true'>// Standard EBNF</fold>
 	;</fold>
 
-ebnfSuffix<fold text=':...' expand='true'>
+ebnfSuffix<fold text=':...;' expand='true'>
 	:	QUESTION QUESTION?
   	|	STAR QUESTION?
    	|	PLUS QUESTION?
 	;</fold>
 
-lexerAtom<fold text=':...' expand='true'>
+lexerAtom<fold text=':...;' expand='true'>
 	:	range
 	|	terminal
 	|	RULE_REF
@@ -304,7 +304,7 @@ lexerAtom<fold text=':...' expand='true'>
 	|	DOT elementOptions?
 	;</fold>
 
-atom<fold text=':...' expand='true'>
+atom<fold text=':...;' expand='true'>
 	:	range <fold text='//...' expand='true'>// Range x..y - only valid in lexers</fold>
 	|	terminal
 	|	ruleref
@@ -312,55 +312,55 @@ atom<fold text=':...' expand='true'>
 	|	DOT elementOptions?
 	;</fold>
 
-notSet<fold text=':...' expand='true'>
+notSet<fold text=':...;' expand='true'>
 	:	NOT setElement
 	|	NOT blockSet
 	;</fold>
 
-blockSet<fold text=':...' expand='true'>
+blockSet<fold text=':...;' expand='true'>
 	:	LPAREN setElement (OR setElement)* RPAREN
 	;</fold>
 
-setElement<fold text=':...' expand='true'>
+setElement<fold text=':...;' expand='true'>
 	:	TOKEN_REF elementOptions?
 	|	STRING_LITERAL elementOptions?
 	|	range
 	|	LEXER_CHAR_SET
 	;</fold>
 
-block<fold text=':...' expand='true'>
+block<fold text=':...;' expand='true'>
 	:	LPAREN
 		( optionsSpec? ruleAction* COLON )?
 		altList
 		RPAREN
 	;</fold>
 
-ruleref<fold text=':...' expand='true'>
+ruleref<fold text=':...;' expand='true'>
 	:	RULE_REF ARG_ACTION? elementOptions?
 	;</fold>
 
-range<fold text=':...' expand='true'>
+range<fold text=':...;' expand='true'>
 	: STRING_LITERAL RANGE STRING_LITERAL
 	;</fold>
 
-terminal<fold text=':...' expand='true'>
+terminal<fold text=':...;' expand='true'>
 	:   TOKEN_REF elementOptions?
 	|   STRING_LITERAL elementOptions?
 	;</fold>
 
 <fold text='//...' expand='true'>// Terminals may be adorned with certain options when
 // reference in the grammar: TOK<,,,></fold>
-elementOptions<fold text=':...' expand='true'>
+elementOptions<fold text=':...;' expand='true'>
 	:	LT elementOption (COMMA elementOption)* GT
 	;</fold>
 
-elementOption<fold text=':...' expand='true'>
+elementOption<fold text=':...;' expand='true'>
 	:	<fold text='//...' expand='true'>// This format indicates the default node option</fold>
 		id
 	|	<fold text='//...' expand='true'>// This format indicates option assignment</fold>
 		id ASSIGN (id | STRING_LITERAL)
 	;</fold>
 
-id<fold text=':...' expand='true'>	:	RULE_REF
+id<fold text=':...;' expand='true'>	:	RULE_REF
 	|	TOKEN_REF
 	;</fold>

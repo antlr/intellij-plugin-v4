@@ -102,19 +102,19 @@ tokens <fold text='...' expand='false'>{
 	}
 }</fold>
 
-DOC_COMMENT<fold text=':...' expand='true'>
+DOC_COMMENT<fold text=':...;' expand='true'>
 	:	'/**' .*? ('*/' | EOF)
 	;</fold>
 
-BLOCK_COMMENT<fold text=':...' expand='true'>
+BLOCK_COMMENT<fold text=':...;' expand='true'>
 	:	'/*' .*? ('*/' | EOF)  -> channel(HIDDEN)
 	;</fold>
 
-LINE_COMMENT<fold text=':...' expand='true'>
+LINE_COMMENT<fold text=':...;' expand='true'>
 	:	'//' ~[\r\n]*  -> channel(HIDDEN)
 	;</fold>
 
-BEGIN_ARG_ACTION<fold text=':...' expand='true'>
+BEGIN_ARG_ACTION<fold text=':...;' expand='true'>
 	:	'[' {handleBeginArgAction();}
 	;</fold>
 
@@ -122,52 +122,52 @@ BEGIN_ARG_ACTION<fold text=':...' expand='true'>
 // their option block, as this is teh easiest way to parse it separate
 // to an ACTION block, despite it usingthe same {} delimiters.
 //</fold>
-OPTIONS<fold text=':...' expand='true'>      : 'options' [ \t\f\n\r]* '{'  ;</fold>
-TOKENS<fold text=':...' expand='true'>		 : 'tokens'  [ \t\f\n\r]* '{'  ;</fold>
+<fold text='OPTIONS, TOKENS' expand='true'>OPTIONS      : 'options' [ \t\f\n\r]* '{'  ;
+TOKENS		 : 'tokens'  [ \t\f\n\r]* '{'  ;</fold>
 
-IMPORT<fold text=':...' expand='true'>       : 'import'               ;</fold>
-FRAGMENT<fold text=':...' expand='true'>     : 'fragment'             ;</fold>
-LEXER<fold text=':...' expand='true'>        : 'lexer'                ;</fold>
-PARSER<fold text=':...' expand='true'>       : 'parser'               ;</fold>
-GRAMMAR<fold text=':...' expand='true'>      : 'grammar'              ;</fold>
-PROTECTED<fold text=':...' expand='true'>    : 'protected'            ;</fold>
-PUBLIC<fold text=':...' expand='true'>       : 'public'               ;</fold>
-PRIVATE<fold text=':...' expand='true'>      : 'private'              ;</fold>
-RETURNS<fold text=':...' expand='true'>      : 'returns'              ;</fold>
-LOCALS<fold text=':...' expand='true'>       : 'locals'               ;</fold>
-THROWS<fold text=':...' expand='true'>       : 'throws'               ;</fold>
-CATCH<fold text=':...' expand='true'>        : 'catch'                ;</fold>
-FINALLY<fold text=':...' expand='true'>      : 'finally'              ;</fold>
-MODE<fold text=':...' expand='true'>         : 'mode'                 ;</fold>
+<fold text='IMPORT, FRAGMENT, LEXER, PARSER, GRAMMAR, PROTECTED, PUBLIC, PRIVATE, RETURNS, LOCALS, THROWS, CATCH, FINALLY, MODE' expand='true'>IMPORT       : 'import'               ;
+FRAGMENT     : 'fragment'             ;
+LEXER        : 'lexer'                ;
+PARSER       : 'parser'               ;
+GRAMMAR      : 'grammar'              ;
+PROTECTED    : 'protected'            ;
+PUBLIC       : 'public'               ;
+PRIVATE      : 'private'              ;
+RETURNS      : 'returns'              ;
+LOCALS       : 'locals'               ;
+THROWS       : 'throws'               ;
+CATCH        : 'catch'                ;
+FINALLY      : 'finally'              ;
+MODE         : 'mode'                 ;</fold>
 
-COLON<fold text=':...' expand='true'>        : ':'                    ;</fold>
-COLONCOLON<fold text=':...' expand='true'>   : '::'                   ;</fold>
-COMMA<fold text=':...' expand='true'>        : ','                    ;</fold>
-SEMI<fold text=':...' expand='true'>         : ';'                    ;</fold>
-LPAREN<fold text=':...' expand='true'>       : '('                    ;</fold>
-RPAREN<fold text=':...' expand='true'>       : ')'                    ;</fold>
-RARROW<fold text=':...' expand='true'>       : '->'                   ;</fold>
-LT<fold text=':...' expand='true'>           : '<'                    ;</fold>
-GT<fold text=':...' expand='true'>           : '>'                    ;</fold>
-ASSIGN<fold text=':...' expand='true'>       : '='                    ;</fold>
-QUESTION<fold text=':...' expand='true'>     : '?'                    ;</fold>
-STAR<fold text=':...' expand='true'>         : '*'                    ;</fold>
-PLUS<fold text=':...' expand='true'>         : '+'                    ;</fold>
-PLUS_ASSIGN<fold text=':...' expand='true'>  : '+='                   ;</fold>
-OR<fold text=':...' expand='true'>           : '|'                    ;</fold>
-DOLLAR<fold text=':...' expand='true'>       : '$'                    ;</fold>
-DOT<fold text=':...' expand='true'>		     : '.'                    ;</fold>
-RANGE<fold text=':...' expand='true'>        : '..'                   ;</fold>
-AT<fold text=':...' expand='true'>           : '@'                    ;</fold>
-POUND<fold text=':...' expand='true'>        : '#'                    ;</fold>
-NOT<fold text=':...' expand='true'>          : '~'                    ;</fold>
-RBRACE<fold text=':...' expand='true'>       : '}'                    ;</fold>
+<fold text='COLON, COLONCOLON, COMMA, SEMI, LPAREN, RPAREN, RARROW, LT, GT, ASSIGN, QUESTION, STAR, PLUS, PLUS_ASSIGN, OR, DOLLAR, DOT, RANGE, AT, POUND, NOT, RBRACE' expand='true'>COLON        : ':'                    ;
+COLONCOLON   : '::'                   ;
+COMMA        : ','                    ;
+SEMI         : ';'                    ;
+LPAREN       : '('                    ;
+RPAREN       : ')'                    ;
+RARROW       : '->'                   ;
+LT           : '<'                    ;
+GT           : '>'                    ;
+ASSIGN       : '='                    ;
+QUESTION     : '?'                    ;
+STAR         : '*'                    ;
+PLUS         : '+'                    ;
+PLUS_ASSIGN  : '+='                   ;
+OR           : '|'                    ;
+DOLLAR       : '$'                    ;
+DOT		     : '.'                    ;
+RANGE        : '..'                   ;
+AT           : '@'                    ;
+POUND        : '#'                    ;
+NOT          : '~'                    ;
+RBRACE       : '}'                    ;</fold>
 
 <fold text='...' expand='true'>/** Allow unicode rule/token names */</fold>
-ID<fold text=':...' expand='true'>	:	NameStartChar NameChar*;</fold>
+ID<fold text=':...;' expand='true'>	:	NameStartChar NameChar*;</fold>
 
 fragment
-NameChar<fold text=':...' expand='true'>
+NameChar<fold text=':...;' expand='true'>
 	:   NameStartChar
 	|   '0'..'9'
 	|   '_'
@@ -177,7 +177,7 @@ NameChar<fold text=':...' expand='true'>
 	;</fold>
 
 fragment
-NameStartChar<fold text=':...' expand='true'>
+NameStartChar<fold text=':...;' expand='true'>
 	:   'A'..'Z'
 	|   'a'..'z'
 	|   '\u00C0'..'\u00D6'
@@ -193,25 +193,25 @@ NameStartChar<fold text=':...' expand='true'>
 	|   '\uFDF0'..'\uFFFD'
 	;</fold> <fold text='//...' expand='true'>// ignores | ['\u10000-'\uEFFFF] ;</fold>
 
-INT<fold text=':...' expand='true'>	: [0-9]+
+INT<fold text=':...;' expand='true'>	: [0-9]+
 	;</fold>
 
 <fold text='//...' expand='true'>// ANTLR makes no distinction between a single character literal and a
 // multi-character string. All literals are single quote delimited and
 // may contain unicode escape sequences of the form \uxxxx, where x
 // is a valid hexadecimal number (as per Java basically).</fold>
-STRING_LITERAL<fold text=':...' expand='true'>
+STRING_LITERAL<fold text=':...;' expand='true'>
 	:  '\'' (ESC_SEQ | ~['\r\n\\])* '\''
 	;</fold>
 
-UNTERMINATED_STRING_LITERAL<fold text=':...' expand='true'>
+UNTERMINATED_STRING_LITERAL<fold text=':...;' expand='true'>
 	:  '\'' (ESC_SEQ | ~['\r\n\\])*
 	;</fold>
 
 <fold text='//...' expand='true'>// Any kind of escaped character that we can embed within ANTLR
 // literal strings.</fold>
 fragment
-ESC_SEQ<fold text=':...' expand='true'>
+ESC_SEQ<fold text=':...;' expand='true'>
 	:	'\\'
 		(	<fold text='//...' expand='true'>// The standard escaped character set such as tab, newline, etc.</fold>
 			[btnfr"'\\]
@@ -225,14 +225,14 @@ ESC_SEQ<fold text=':...' expand='true'>
 	;</fold>
 
 fragment
-UNICODE_ESC<fold text=':...' expand='true'>
+UNICODE_ESC<fold text=':...;' expand='true'>
     :   'u' (HEX_DIGIT (HEX_DIGIT (HEX_DIGIT HEX_DIGIT?)?)?)?
     ;</fold>
 
 fragment
-HEX_DIGIT<fold text=':...' expand='true'> : [0-9a-fA-F]	;</fold>
+HEX_DIGIT<fold text=':...;' expand='true'> : [0-9a-fA-F]	;</fold>
 
-WS<fold text=':...' expand='true'>  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;</fold>
+WS<fold text=':...;' expand='true'>  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;</fold>
 
 <fold text='//...' expand='true'>// Many language targets use {} as block delimiters and so we
 // must recursively match {} delimited blocks to balance the
@@ -241,7 +241,7 @@ WS<fold text=':...' expand='true'>  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;</fold>
 // that they are delimited by ' or " and so consume these
 // in their own alts so as not to inadvertantly match {}.</fold>
 
-ACTION<fold text=':...' expand='true'>
+ACTION<fold text=':...;' expand='true'>
 	:	'{'
 		(	ACTION
 		|	ACTION_ESCAPE
@@ -255,17 +255,17 @@ ACTION<fold text=':...' expand='true'>
 	;</fold>
 
 fragment
-ACTION_ESCAPE<fold text=':...' expand='true'>
+ACTION_ESCAPE<fold text=':...;' expand='true'>
 		:   '\\' .
 		;</fold>
 
 fragment
-ACTION_STRING_LITERAL<fold text=':...' expand='true'>
+ACTION_STRING_LITERAL<fold text=':...;' expand='true'>
         :	'"' (ACTION_ESCAPE | ~["\\])* '"'
         ;</fold>
 
 fragment
-ACTION_CHAR_LITERAL<fold text=':...' expand='true'>
+ACTION_CHAR_LITERAL<fold text=':...;' expand='true'>
         :	'\'' (ACTION_ESCAPE | ~['\\])* '\''
         ;</fold>
 
@@ -280,54 +280,54 @@ ACTION_CHAR_LITERAL<fold text=':...' expand='true'>
 // but we will not try to analyse or code generate from a file with lexical
 // errors.
 //</fold>
-ERRCHAR<fold text=':...' expand='true'>
+ERRCHAR<fold text=':...;' expand='true'>
 	:	.	-> channel(HIDDEN)
 	;</fold>
 
 mode ArgAction; <fold text='//...' expand='true'>// E.g., [int x, List<String> a[]]</fold>
 
-	NESTED_ARG_ACTION<fold text=':...' expand='true'>
+	NESTED_ARG_ACTION<fold text=':...;' expand='true'>
 		:	'['                         -> more, pushMode(ArgAction)
 		;</fold>
 
-	ARG_ACTION_ESCAPE<fold text=':...' expand='true'>
+	ARG_ACTION_ESCAPE<fold text=':...;' expand='true'>
 		:   '\\' .                      -> more
 		;</fold>
 
-    ARG_ACTION_STRING_LITERAL<fold text=':...' expand='true'>
+    ARG_ACTION_STRING_LITERAL<fold text=':...;' expand='true'>
         :	('"' ('\\' . | ~["\\])* '"')-> more
         ;</fold>
 
-    ARG_ACTION_CHAR_LITERAL<fold text=':...' expand='true'>
+    ARG_ACTION_CHAR_LITERAL<fold text=':...;' expand='true'>
         :	('"' '\\' . | ~["\\] '"')   -> more
         ;</fold>
 
-    ARG_ACTION<fold text=':...' expand='true'>
+    ARG_ACTION<fold text=':...;' expand='true'>
 		:   ']'                         -> popMode
 		;</fold>
 
-	UNTERMINATED_ARG_ACTION<fold text=':...' expand='true'> <fold text='//...' expand='true'>// added this to return non-EOF token type here. EOF did something weird</fold>
+	UNTERMINATED_ARG_ACTION<fold text=':...;' expand='true'> <fold text='//...' expand='true'>// added this to return non-EOF token type here. EOF did something weird</fold>
 		:	EOF							-> popMode
 		;</fold>
 
-    ARG_ACTION_CHAR<fold text=':...' expand='true'> <fold text='//...' expand='true'>// must be last</fold>
+    ARG_ACTION_CHAR<fold text=':...;' expand='true'> <fold text='//...' expand='true'>// must be last</fold>
         :   .                           -> more
         ;</fold>
 
 
 mode LexerCharSet;
 
-	LEXER_CHAR_SET_BODY<fold text=':...' expand='true'>
+	LEXER_CHAR_SET_BODY<fold text=':...;' expand='true'>
 		:	(	~[\]\\]
 			|	'\\' .
 			)
                                         -> more
 		;</fold>
 
-	LEXER_CHAR_SET<fold text=':...' expand='true'>
+	LEXER_CHAR_SET<fold text=':...;' expand='true'>
 		:   ']'                         -> popMode
 		;</fold>
 
-	UNTERMINATED_CHAR_SET<fold text=':...' expand='true'>
+	UNTERMINATED_CHAR_SET<fold text=':...;' expand='true'>
 		:	EOF							-> popMode
 		;</fold>

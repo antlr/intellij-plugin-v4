@@ -50,7 +50,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     private static final TokenElementType RBRACE = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.RBRACE);
     private static final TokenElementType SEMICOLON = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI);
 
-    private static final RuleElementType RULESPEC = ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_ruleSpec);
+    //private static final RuleElementType RULESPEC = ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_ruleSpec);
 
     private static final TokenSet RULE_BLOCKS = TokenSet.create(
             ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_lexerBlock),
@@ -75,13 +75,13 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
         addActionFoldingDescriptors(descriptors, grammarSpec);
 
-        addCommentDescriptors(descriptors, grammarSpec, document);
+        addCommentDescriptors(descriptors, grammarSpec);
 
         addOptionsFoldingDescriptor(descriptors, grammarSpec);
 
         addTokensFoldingDescriptor(descriptors, grammarSpec);
 
-        //todo make lexer modes foldable.
+        //todo make lexer modes foldable. (?)
 
 
     }
@@ -149,8 +149,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
                 if (nextRange == TextRange.EMPTY_RANGE) break;
 
                 if (lastLine + 1 == document.getLineNumber(candidate.getTextRange().getStartOffset())) {
-                    rulesInGroup.add(candidate);
-                    candidate = iterator.next(); //pop from iterator
+                    rulesInGroup.add(iterator.next());//consume next
+
                     endOfs = nextRange.getEndOffset();
                     lastLine = document.getLineNumber(endOfs);
                     count++;
@@ -185,6 +185,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     }
 
 
+    @SuppressWarnings("unchecked")
     private static TextRange rangeForRule(RuleSpecNode specNode) {
         GrammarElementRefNode refNode = PsiTreeUtil.findChildOfAnyType(specNode, GrammarElementRefNode.class);
         if (refNode == null) return TextRange.EMPTY_RANGE;
@@ -261,7 +262,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
     }
 
-    private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root, Document document) {
+    private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         Set<PsiElement> processedComments = new HashSet<PsiElement>();
         for (PsiElement comment : MyPsiUtils.findChildrenOfType(root, ANTLRv4TokenTypes.COMMENTS)) {
             IElementType type = comment.getNode().getElementType();

@@ -34,7 +34,8 @@ public class TrackpadZoomingTreeView extends TreeViewer implements Magnificator{
     static final double SCALE_MIN = 0.1;
     static final double SCALE_MAX = 2.5;
     static final double SCALE_RANGE = SCALE_MAX - SCALE_MIN;
-
+    //TODO: this is totally wrong,mathematically
+    //however, since it seems to produce the desired outcome, im going to leave it be for now.
     class ScaleModel extends DefaultBoundedRangeModel {
         ScaleModel(int ticks) {
             super(ticks / 2, 0, 1, ticks);
