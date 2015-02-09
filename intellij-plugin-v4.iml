@@ -16,6 +16,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/adaptor" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources/liveTemplates" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test/testData" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
     </content>
     <orderEntry type="inheritedJdk" />

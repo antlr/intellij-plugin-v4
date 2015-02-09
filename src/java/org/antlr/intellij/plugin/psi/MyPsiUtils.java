@@ -2,7 +2,8 @@ package org.antlr.intellij.plugin.psi;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.PeekingIterator;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -27,6 +28,38 @@ import java.util.List;
 @SuppressWarnings("SimplifiableIfStatement")
 public class MyPsiUtils {
 
+   public static Iterable<PsiElement> directChildren(final PsiElement parent){
+        return new Iterable<PsiElement>() {
+            @NotNull
+            @Override
+            public Iterator<PsiElement> iterator() {
+              return directChildrenIterator(parent);
+            }
+        };
+    }
+
+    static Iterator<PsiElement> directChildrenIterator(final PsiElement parent) {
+        return new AbstractIterator<PsiElement>() {
+            boolean first = true;
+            PsiElement sibling;
+
+            @Override
+            protected PsiElement computeNext() {
+                PsiElement psiElement;
+                if (first) {
+                    psiElement = this.sibling = parent.getFirstChild();
+                    first = false;
+
+                } else {
+                    psiElement = this.sibling = this.sibling.getNextSibling();
+                }
+                return psiElement==null ? endOfData() : psiElement;
+
+            }
+        };
+    }
+
+
     @Nullable
     public static PsiElement findFirstChildOfType(final PsiElement parent, IElementType type){
         return findFirstChildOfType(parent, TokenSet.create(type));
@@ -47,6 +80,18 @@ public class MyPsiUtils {
     public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent,IElementType type){
         return findChildrenOfType(parent, TokenSet.create(type));
     }
+	public static <T extends PsiElement> Iterable<T> findChildrenOfType(final PsiElement parent, final Class<T> cls){
+		return Iterables.filter(depthFirst(parent),cls);
+	}
+
+	public static Iterable<PsiElement> depthFirst(final PsiElement parent){
+		return new Iterable<PsiElement>() {
+			@Override
+			public Iterator<PsiElement> iterator() {
+				return new DepthFirstPsiIterator(parent);
+			}
+		};
+	}
 
     /**
      * Like PsiTreeUtil.findChildrenOfType, except no collection is created and it doesnt use recursion.
@@ -56,13 +101,7 @@ public class MyPsiUtils {
      * whose type is contained in the provided tokenset.
      */
     public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent, final TokenSet types) {
-        return new Iterable<PsiElement>() {
-            @NotNull
-            @Override
-            public Iterator<PsiElement> iterator() {
-                return Iterators.filter(new DepthFirstPsiIterator(parent), includeElementTypes(types));
-            }
-        };
+		return Iterables.filter(depthFirst(parent),includeElementTypes(types));
     }
 
     static Predicate<PsiElement> includeElementTypes(final TokenSet tokenSet){
@@ -78,7 +117,7 @@ public class MyPsiUtils {
         };
     }
 
-    static class DepthFirstPsiIterator extends AbstractIterator<PsiElement> {
+    static class DepthFirstPsiIterator extends AbstractIterator<PsiElement> implements PeekingIterator<PsiElement>{
 
         final PsiElement startFrom;
         DepthFirstPsiIterator(PsiElement startFrom){
