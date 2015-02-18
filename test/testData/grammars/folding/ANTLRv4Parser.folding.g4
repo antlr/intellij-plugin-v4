@@ -28,8 +28,8 @@
  *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */</fold>
 
-/** A grammar for ANTLR v4 written in ANTLR v4.
-*/
+<fold text='...' expand='true'>/** A grammar for ANTLR v4 written in ANTLR v4.
+*/</fold>
 parser grammar ANTLRv4Parser;
 
 options {<fold text='...' expand='true'>

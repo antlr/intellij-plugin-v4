@@ -1,162 +1,23 @@
 package org.antlr.intellij.plugin.psi;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.PeekingIterator;
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiFileFactoryImpl;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiElementFilter;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4Language;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @SuppressWarnings("SimplifiableIfStatement")
 public class MyPsiUtils {
-
-   public static Iterable<PsiElement> directChildren(final PsiElement parent){
-        return new Iterable<PsiElement>() {
-            @NotNull
-            @Override
-            public Iterator<PsiElement> iterator() {
-              return directChildrenIterator(parent);
-            }
-        };
-    }
-
-    static Iterator<PsiElement> directChildrenIterator(final PsiElement parent) {
-        return new AbstractIterator<PsiElement>() {
-            boolean first = true;
-            PsiElement sibling;
-
-            @Override
-            protected PsiElement computeNext() {
-                PsiElement psiElement;
-                if (first) {
-                    psiElement = this.sibling = parent.getFirstChild();
-                    first = false;
-
-                } else {
-                    psiElement = this.sibling = this.sibling.getNextSibling();
-                }
-                return psiElement==null ? endOfData() : psiElement;
-
-            }
-        };
-    }
-
-
-    @Nullable
-    public static PsiElement findFirstChildOfType(final PsiElement parent, IElementType type){
-        return findFirstChildOfType(parent, TokenSet.create(type));
-    }
-    /**
-     * traverses the psi tree depth-first, returning the first it finds with the given types
-     * @param parent the element whose children will be searched
-     * @param types the types to search for
-     * @return the first child, or null;
-     */
-    @Nullable
-    public static PsiElement findFirstChildOfType(final PsiElement parent, final TokenSet types){
-        Iterator<PsiElement> iterator = findChildrenOfType(parent, types).iterator();
-        if(iterator.hasNext()) return iterator.next();
-        return null;
-    }
-
-    public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent,IElementType type){
-        return findChildrenOfType(parent, TokenSet.create(type));
-    }
-	public static <T extends PsiElement> Iterable<T> findChildrenOfType(final PsiElement parent, final Class<T> cls){
-		return Iterables.filter(depthFirst(parent),cls);
-	}
-
-	public static Iterable<PsiElement> depthFirst(final PsiElement parent){
-		return new Iterable<PsiElement>() {
-			@Override
-			public Iterator<PsiElement> iterator() {
-				return new DepthFirstPsiIterator(parent);
-			}
-		};
-	}
-
-    /**
-     * Like PsiTreeUtil.findChildrenOfType, except no collection is created and it doesnt use recursion.
-     * @param parent the element whose children will be searched
-     * @param types the types to search for
-     * @return an iterable that will traverse the psi tree depth-first, including only the elements
-     * whose type is contained in the provided tokenset.
-     */
-    public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent, final TokenSet types) {
-		return Iterables.filter(depthFirst(parent),includeElementTypes(types));
-    }
-
-    static Predicate<PsiElement> includeElementTypes(final TokenSet tokenSet){
-        return new Predicate<PsiElement>() {
-
-            @Override
-            public boolean apply(@Nullable PsiElement input) {
-                if(input==null) return false;
-                ASTNode node = input.getNode();
-                if(node==null)return false;
-                return tokenSet.contains(node.getElementType());
-            }
-        };
-    }
-
-    static class DepthFirstPsiIterator extends AbstractIterator<PsiElement> implements PeekingIterator<PsiElement>{
-
-        final PsiElement startFrom;
-        DepthFirstPsiIterator(PsiElement startFrom){
-            this.startFrom=this.element=startFrom;
-
-        }
-
-        PsiElement element;
-
-        private
-        boolean tryNext(PsiElement candidate) {
-            if (candidate != null) {
-                element = candidate;
-                return true;
-            }
-            else return false;
-
-        }
-
-        private
-        boolean upAndOver(PsiElement parent) {
-            while (parent != null && !parent.equals(startFrom)) {
-                if (tryNext(parent.getNextSibling())) return true;
-                else parent = parent.getParent();
-            }
-            return false;
-
-        }
-
-        @Override
-        protected
-        PsiElement computeNext() {
-            if (tryNext(element.getFirstChild()) ||
-                    tryNext(element.getNextSibling()) ||
-                    upAndOver(element.getParent())) return element;
-            return endOfData();
-
-        }
-    }
 
 	public static PsiElement findRuleSpecNodeAbove(GrammarElementRefNode element, final String ruleName) {
 		RulesNode rules = PsiTreeUtil.getContextOfType(element, RulesNode.class);

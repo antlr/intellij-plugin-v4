@@ -28,7 +28,7 @@
  *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */</fold>
 
-/** A grammar for ANTLR v4 tokens */
+<fold text='...' expand='true'>/** A grammar for ANTLR v4 tokens */</fold>
 lexer grammar ANTLRv4Lexer;
 
 tokens <fold text='...' expand='false'>{
