@@ -83,28 +83,12 @@ public abstract class ASTIterable implements Iterable<ASTNode> {
     }
 
     public ASTIterable filter(IElementType type) {
-        return filter(Tokens.of(type));
+        return filter(CommonFilters.acceptingNodes(type));
     }
 
     public ASTIterable filter(final TokenSet tokenSet) {
-        return filter(new ASTFilter() {
-
-            @Override
-            public boolean accept(ASTNode node) {
-                return tokenSet.contains(node.getElementType());
-            }
-        });
+        return filter(CommonFilters.acceptingNodes(tokenSet));
     }
-
-    public ASTIterable filter(final Tokens tokens) {
-        return filter(new ASTFilter() {
-            @Override
-            public boolean accept(ASTNode node) {
-                return tokens.contains(node.getElementType());
-            }
-        });
-    }
-
 
     public ASTIterable filter(ASTFilter filter) {
         return from(ASTFilterIterator.createIterable(myIterable, filter));
@@ -136,7 +120,7 @@ public abstract class ASTIterable implements Iterable<ASTNode> {
         protected ASTNode computeNext() {
             while (source.hasNext()) {
                 ASTNode next = source.next();
-                if (filter.accept(next)) return next;
+                if (filter.acceptNode(next)) return next;
             }
             return endOfData();
         }

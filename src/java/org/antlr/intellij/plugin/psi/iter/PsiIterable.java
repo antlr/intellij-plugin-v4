@@ -93,7 +93,7 @@ public abstract class PsiIterable<E extends PsiElement> implements Iterable<E> {
         protected T computeNext() {
             while (source.hasNext()) {
                 T next = source.next();
-                if (filter.accept(next())) return next;
+                if (filter.acceptElement(next())) return next;
             }
             return endOfData();
         }
@@ -128,7 +128,7 @@ public abstract class PsiIterable<E extends PsiElement> implements Iterable<E> {
         final PsiFilter<T> filter;
 
         public PsiClassFilterIterator(Iterator<? super PsiElement> source, Class<T> type) {
-            this(source, type, PsiFilter.<T>acceptingAll());
+            this(source, type, CommonFilters.<T>acceptingAllElements());
         }
 
         protected PsiClassFilterIterator(Iterator<? super PsiElement> source, Class<T> type, PsiFilter<T> filter) {

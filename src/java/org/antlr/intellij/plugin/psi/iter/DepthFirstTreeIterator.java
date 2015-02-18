@@ -13,6 +13,52 @@ import java.util.Iterator;
  */
 public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> implements PeekingIterator<T> {
 
+    interface TreeNavigator<T> {
+        T nextSiblingOf(T element);
+
+        T parentOf(T element);
+
+        T firstChildOf(T element);
+
+        enum ForAST implements TreeNavigator<ASTNode> {
+            INSTANCE;
+
+            @Override
+            public ASTNode nextSiblingOf(ASTNode element) {
+                return element.getTreeNext();
+            }
+
+            @Override
+            public ASTNode parentOf(ASTNode element) {
+                return element.getTreeParent();
+            }
+
+            @Override
+            public ASTNode firstChildOf(ASTNode element) {
+                return element.getFirstChildNode();
+            }
+        }
+
+        enum ForPsi implements TreeNavigator<PsiElement> {
+            INSTANCE;
+
+            @Override
+            public PsiElement nextSiblingOf(PsiElement element) {
+                return element.getNextSibling();
+            }
+
+            @Override
+            public PsiElement parentOf(PsiElement element) {
+                return element.getParent();
+            }
+
+            @Override
+            public PsiElement firstChildOf(PsiElement element) {
+                return element.getFirstChild();
+            }
+        }
+    }
+
     static class ASTIterator extends DepthFirstTreeIterator<ASTNode> {
         static Iterable<ASTNode> createIterable(final ASTNode start) {
             return new Iterable<ASTNode>() {
@@ -25,22 +71,7 @@ public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> impl
         }
 
         ASTIterator(ASTNode startFrom) {
-            super(startFrom);
-        }
-
-        @Override
-        protected ASTNode nextSiblingOf(ASTNode element) {
-            return element.getTreeNext();
-        }
-
-        @Override
-        protected ASTNode parentOf(ASTNode element) {
-            return element.getTreeParent();
-        }
-
-        @Override
-        protected ASTNode firstChildOf(ASTNode element) {
-            return element.getFirstChildNode();
+            super(startFrom, TreeNavigator.ForAST.INSTANCE);
         }
     }
 
@@ -56,39 +87,35 @@ public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> impl
         }
 
         PsiIterator(PsiElement startFrom) {
-            super(startFrom);
+            super(startFrom, TreeNavigator.ForPsi.INSTANCE);
         }
 
-        @Override
-        protected PsiElement nextSiblingOf(PsiElement element) {
-            return element.getNextSibling();
-        }
-
-        @Override
-        protected PsiElement parentOf(PsiElement element) {
-            return element.getParent();
-        }
-
-        @Override
-        protected PsiElement firstChildOf(PsiElement element) {
-            return element.getFirstChild();
-        }
     }
 
-    final T startFrom;
 
-    DepthFirstTreeIterator(T startFrom) {
+    DepthFirstTreeIterator(T startFrom, TreeNavigator<T> navigator) {
+        this.navigator = navigator;
         this.startFrom = this.element = startFrom;
 
     }
 
+    final T startFrom;
+
     T element;
 
-    protected abstract T nextSiblingOf(T element);
+    final TreeNavigator<T> navigator;
 
-    protected abstract T parentOf(T element);
+    protected T nextSiblingOf(T element) {
+        return navigator.nextSiblingOf(element);
+    }
 
-    protected abstract T firstChildOf(T element);
+    protected T parentOf(T element) {
+        return navigator.parentOf(element);
+    }
+
+    protected T firstChildOf(T element) {
+        return navigator.firstChildOf(element);
+    }
 
     private boolean tryNext(T candidate) {
         if (candidate != null) {

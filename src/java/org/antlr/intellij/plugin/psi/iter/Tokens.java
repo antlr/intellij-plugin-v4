@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin.psi.iter;
 
+import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
@@ -11,8 +13,19 @@ import java.util.TreeSet;
 /**
  * Created by jason on 2/17/15.
  */
-public abstract class Tokens {
+public abstract class Tokens implements ASTFilter, PsiFilter {
     public abstract boolean contains(IElementType type);
+
+    @Override
+    public boolean acceptNode(ASTNode node) {
+        return contains(node.getElementType());
+    }
+
+    @Override
+    public boolean acceptElement(PsiElement element) {
+        ASTNode node = element.getNode();
+        return node != null && contains(node.getElementType());
+    }
 
     static final Comparator<IElementType> ELEMENT_TYPE_COMPARATOR = new Comparator<IElementType>() {
         @Override
