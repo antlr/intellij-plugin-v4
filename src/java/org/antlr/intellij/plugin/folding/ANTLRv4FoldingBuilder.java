@@ -24,13 +24,13 @@ import org.antlr.intellij.plugin.psi.AtAction;
 import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
 import org.antlr.intellij.plugin.psi.RuleSpecNode;
-import org.antlr.intellij.plugin.psi.iter.ASTIterable;
-import org.antlr.intellij.plugin.psi.iter.PsiIterable;
-import org.antlr.intellij.plugin.psi.iter.Tokens;
+import org.antlr.intellij.plugin.psi.iter.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static org.antlr.intellij.plugin.psi.iter.CommonFilters.acceptingNodesWithElementType;
 
 /**
  * Created by jason on 1/7/15.
@@ -52,10 +52,21 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
     private static final TokenElementType RBRACE = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.RBRACE);
     private static final TokenElementType SEMICOLON = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI);
-
+    private static final TokenElementType COLON = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.COLON);
+    private static final RuleElementType ACTION = ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_action);
+    private static final TokenElementType ACTION_TOKEN = ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.ACTION);
     private static final Tokens RULE_BLOCKS = Tokens.of(
             ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_lexerBlock),
             ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_ruleBlock)
+    );
+    private static final Tokens RULE_REFS = Tokens.of(
+            ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.TOKEN_REF),
+            ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.RULE_REF)
+    );
+
+    private static final Tokens RULESPECS = Tokens.of(
+            ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_parserRuleSpec),
+            ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_lexerRule)
     );
 
 
@@ -70,23 +81,138 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         ASTNode rootNode = root.getNode();
         final Set<ASTNode> processedComments = new HashSet<ASTNode>();
 
+
         addHeaderFoldingDescriptor(descriptors, rootNode, document, processedComments);
-        addCommentDescriptors(descriptors, rootNode, processedComments);
-
-        if (grammarSpec == null) return;
-
-        ASTNode grammarSpecNode = grammarSpec.getNode();
-
         addRuleSpecFoldingDescriptors(descriptors, grammarSpec, document);
 
-        addActionFoldingDescriptors(descriptors, grammarSpec);
+        singlePass(rootNode, descriptors, processedComments);
 
-        addOptionsFoldingDescriptor(descriptors, grammarSpecNode);
+        // addCommentDescriptors(descriptors, rootNode, processedComments);
 
-        addTokensFoldingDescriptor(descriptors, grammarSpecNode);
+        //  if (grammarSpec == null) return;
 
-        //todo make lexer modes foldable. (?)
 
+        //  addActionFoldingDescriptors(descriptors, grammarSpec);
+
+        // addOptionsFoldingDescriptor(descriptors, grammarSpecNode);
+
+        // addTokensFoldingDescriptor(descriptors, grammarSpecNode);
+
+
+    }
+
+    static void singlePass(ASTNode root, List<FoldingDescriptor> descriptors, Set<ASTNode> processedComments) {
+        final FoldCtx ctx = new FoldCtx(descriptors, processedComments);
+        for (ASTNode node : ASTIterable.depthFirst(root).excludingWhitespace()) {
+            Iterator<Folder> folderIterator = ctx.folderIterator();
+            while (folderIterator.hasNext()) {
+                Folder folder = folderIterator.next();
+                if (folder.predicate.acceptNode(node)) folder.fold(node, ctx);
+            }
+
+        }
+
+    }
+
+
+    static class FoldCtx {
+        final List<FoldingDescriptor> descriptors;
+        final Set<ASTNode> processedComments;
+        Iterator<Folder> folderIterator;
+        private final Set<Folder> folders = EnumSet.allOf(Folder.class);
+
+        Iterator<Folder> folderIterator() {
+            return this.folderIterator = folders.iterator();
+        }
+
+        void removeThisFoler() {
+            folderIterator.remove();
+        }
+
+        FoldCtx(List<FoldingDescriptor> descriptors, Set<ASTNode> processedComments) {
+            this.descriptors = descriptors;
+            this.processedComments = processedComments;
+        }
+    }
+
+    enum Folder {
+
+        Options(acceptingNodesWithElementType(OPTIONSSPEC)) {
+            @Override
+            void fold(ASTNode node, FoldCtx ctx) {
+
+
+                ASTNode options = node.getFirstChildNode();
+                assert options.getElementType() == ANTLRv4FoldingBuilder.OPTIONS;
+                ASTNode rbrace = node.getLastChildNode();
+                assert rbrace.getElementType() == ANTLRv4FoldingBuilder.RBRACE;
+
+                ctx.descriptors.add(new FoldingDescriptor(options,
+                        new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                ctx.removeThisFoler();
+            }
+        },
+        Tokens(acceptingNodesWithElementType(TOKENSSPEC)) {
+            @Override
+            void fold(ASTNode node, FoldCtx ctx) {
+
+
+                ASTNode tokens = node.getFirstChildNode();
+                assert tokens.getElementType() == TOKENS;
+                ASTNode rbrace = node.getLastChildNode();
+                assert rbrace.getElementType() == RBRACE;
+                //the last char of tokens should be the left brace, so subtract 1 from the end offset.
+                ctx.descriptors.add(new FoldingDescriptor(node,
+                        new TextRange(tokens.getTextRange().getEndOffset() - 1, rbrace.getTextRange().getEndOffset())));
+                ctx.removeThisFoler();
+
+            }
+        },
+        Comments(COMMENTS) {
+            @Override
+            void fold(ASTNode comment, FoldCtx ctx) {
+                if (ctx.processedComments.contains(comment)) return;
+                IElementType type = comment.getElementType();
+                if (type == DOC_COMMENT_TOKEN || type == BLOCK_COMMENT_TOKEN) {
+                    ctx.processedComments.add(comment);
+                    ctx.descriptors.add(new FoldingDescriptor(comment, comment.getTextRange()));
+                } else {
+                    addCommentFolds(comment, ctx.processedComments, ctx.descriptors);
+
+                }
+            }
+
+        },
+        Actions(acceptingNodesWithElementType(ACTION)) {
+            @Override
+            void fold(ASTNode node, FoldCtx ctx) {
+                ASTNode code = TreeUtil.findChildBackward(node, ACTION_TOKEN);
+                ctx.descriptors.add(new FoldingDescriptor(node, code.getTextRange()));
+
+            }
+        };
+        //        Rules(RULESPECS) {
+//            @Override
+//            void fold(ASTNode node, FoldCtx ctx) {
+//
+//                List<RuleSpecNode> rulesInGroup = new LinkedList<RuleSpecNode>();
+//
+//                TextRange ruleRange = rangeForRule(node);
+//
+//                for (ASTNode next = node.getTreeNext(); node != null; next = next.getTreeNext()) {
+//
+//                }
+//
+//
+//            }
+//        };
+        final ASTFilter predicate;
+
+        Folder(ASTFilter predicate) {
+            this.predicate = predicate;
+        }
+
+        abstract void fold(ASTNode node, FoldCtx ctx);
 
     }
 
@@ -140,7 +266,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             rulesInGroup.clear();
             RuleSpecNode ruleSpec = iterator.next();
 
-            TextRange ruleBodyRange = rangeForRule(ruleSpec);
+            TextRange ruleBodyRange = rangeForRuleSpec(ruleSpec.getNode());
             if (ruleBodyRange == TextRange.EMPTY_RANGE) continue;
             int endOfs = ruleBodyRange.getEndOffset();
 
@@ -150,7 +276,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
             while (iterator.hasNext()) {
                 RuleSpecNode candidate = iterator.peek();
-                TextRange nextRange = rangeForRule(candidate);
+                TextRange nextRange = rangeForRuleSpec(candidate.getNode());
                 if (nextRange == TextRange.EMPTY_RANGE) break;
 
                 if (lastLine + 1 == document.getLineNumber(candidate.getTextRange().getStartOffset())) {
@@ -167,10 +293,19 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
                 TextRange range = new TextRange(ruleSpec.getTextRange().getStartOffset(), endOfs);
                 FoldingDescriptor descriptor = new NamedFoldingDescriptor(ruleSpec.getNode(), range, null, makeRuleGroupPlaceholderText(rulesInGroup));
                 descriptors.add(descriptor);
-            } else addRule(descriptors, ruleSpec);
+            } else addRule(descriptors, ruleSpec.getNode());
 
         }
 
+    }
+
+    private static String myMakeRuleGroupPlaceholderText(Iterable<ASTNode> refs) {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<ASTNode> iterator = refs.iterator(); iterator.hasNext(); ) {
+            sb.append(iterator.next().getChars());
+            if (iterator.hasNext()) sb.append(", ");
+        }
+        return sb.toString();
     }
 
     private static String makeRuleGroupPlaceholderText(List<RuleSpecNode> rest) {
@@ -182,26 +317,56 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         return sb.toString();
     }
 
-    private static void addRule(List<FoldingDescriptor> descriptors, RuleSpecNode ruleSpec) {
-        TextRange range = rangeForRule(ruleSpec);
+    private static void addRule(List<FoldingDescriptor> descriptors, ASTNode ruleSpec) {
+        TextRange range = rangeForRuleSpec(ruleSpec);
         if (range != TextRange.EMPTY_RANGE) {
             descriptors.add(new FoldingDescriptor(ruleSpec, range));
         }
     }
 
+    /*
+    ruleSpec
+	:	parserRuleSpec
+	|	lexerRule
+	;
 
+    parserRuleSpec
+        :	DOC_COMMENT?
+            ruleModifiers? RULE_REF ARG_ACTION?
+            ruleReturns? throwsSpec? localsSpec?
+            rulePrequel*
+            COLON
+                ruleBlock
+            SEMI
+            exceptionGroup
+        ;
+
+
+    lexerRule
+        :	DOC_COMMENT? FRAGMENT?
+            TOKEN_REF COLON lexerRuleBlock SEMI
+     */
     @SuppressWarnings("unchecked")
-    private static TextRange rangeForRule(RuleSpecNode specNode) {
-        GrammarElementRefNode refNode = PsiIterable.depthFirst(specNode).filter(GrammarElementRefNode.class).first();
-        if (refNode == null) return TextRange.EMPTY_RANGE;
-        PsiElement nextSibling = refNode.getNextSibling();
-        if (nextSibling == null) return TextRange.EMPTY_RANGE;
-        int startOffset = nextSibling.getTextOffset();
+    private static TextRange rangeForRuleSpec(ASTNode specNode) {
 
-        ASTNode semiColon = TreeUtil.findChildBackward(specNode.getNode(), SEMICOLON);
+        ASTNode myRef = MyTreeUtil.findChild(specNode, RULE_REFS);
+        assert myRef != null;
+        assert myRef.getPsi() instanceof GrammarElementRefNode;
+
+        if (myRef == null) return TextRange.EMPTY_RANGE;
+        ASTNode nextSiblingNode = myRef.getTreeNext();
+        assert nextSiblingNode != null;
+        if (nextSiblingNode == null) return TextRange.EMPTY_RANGE;
+        int startOffset = nextSiblingNode.getStartOffset();
+
+        ASTNode semiColon = TreeUtil.findChildBackward(specNode, SEMICOLON);
+        assert semiColon != null;
         if (semiColon == null) return TextRange.EMPTY_RANGE;
         int endOffset = semiColon.getTextRange().getEndOffset();
-        if (startOffset >= endOffset) return TextRange.EMPTY_RANGE;
+        if (startOffset >= endOffset) {
+            assert false;
+            return TextRange.EMPTY_RANGE;
+        }
         return new TextRange(startOffset, endOffset);
     }
 

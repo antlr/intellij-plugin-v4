@@ -96,7 +96,6 @@ public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> impl
     DepthFirstTreeIterator(T startFrom, TreeNavigator<T> navigator) {
         this.navigator = navigator;
         this.startFrom = this.element = startFrom;
-
     }
 
     final T startFrom;
@@ -122,7 +121,6 @@ public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> impl
             element = candidate;
             return true;
         } else return false;
-
     }
 
 
@@ -132,7 +130,6 @@ public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> impl
             else parent = parentOf(parent);
         }
         return false;
-
     }
 
     @Override
@@ -141,7 +138,6 @@ public abstract class DepthFirstTreeIterator<T> extends AbstractIterator<T> impl
                 tryNext(nextSiblingOf(element)) ||
                 upAndOver(parentOf(element))) return element;
         return endOfData();
-
     }
 
 }

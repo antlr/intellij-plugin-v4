@@ -31,7 +31,7 @@ public class CommonFilters {
         return ExcludeWhitespace.INSTANCE;
     }
 
-    public static ASTFilter acceptingNodes(TokenSet tokenSet) {
+    public static ASTFilter acceptingNodesWithElementTypes(TokenSet tokenSet) {
         return new TokenSetFilter(tokenSet);
     }
 
@@ -40,7 +40,7 @@ public class CommonFilters {
         return new TokenSetFilter(tokenSet);
     }
 
-    public static ASTFilter acceptingNodes(IElementType type) {
+    public static ASTFilter acceptingNodesWithElementType(IElementType type) {
         return new ElementTypeFilter(type);
     }
 
