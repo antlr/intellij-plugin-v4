@@ -74,4 +74,8 @@ public abstract class ASTIterable implements Iterable<ASTNode> {
     public ASTIterable excludingWhitespace() {
         return filter(CommonFilters.excludingWhitespace());
     }
+
+    public ASTIterable excludingWhitespaceAndComments() {
+        return filter(CommonFilters.excludingWhitespaceAndComments());
+    }
 }

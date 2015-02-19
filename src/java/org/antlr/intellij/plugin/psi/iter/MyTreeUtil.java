@@ -1,12 +1,21 @@
 package org.antlr.intellij.plugin.psi.iter;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 
 /**
  * Created by jason on 2/18/15.
  */
 public class MyTreeUtil {
+
+    public static ASTNode nextNonWhitespaceNode(ASTNode node) {
+        for (ASTNode next = node.getTreeNext(); next != null; next = next.getTreeNext()) {
+            if (!(next instanceof PsiWhiteSpace)) return next;
+        }
+        return null;
+    }
+
     public static ASTNode findChild(ASTNode parent, ASTFilter filter) {
         return findSibling(parent.getFirstChildNode(), filter);
     }

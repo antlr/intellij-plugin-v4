@@ -74,6 +74,7 @@ public class IteratorUtil {
         }
 
         ASTNode node;
+        boolean first = true;
 
         @Override
         public boolean hasNext() {
@@ -87,6 +88,10 @@ public class IteratorUtil {
 
         @Override
         public ASTNode next() {
+            if (first) {
+                first = false;
+                return node;
+            }
             return node = node.getTreeNext();
         }
 

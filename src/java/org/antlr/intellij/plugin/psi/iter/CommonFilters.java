@@ -6,6 +6,7 @@ import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 
 /**
  * Created by jason on 2/18/15.
@@ -24,6 +25,9 @@ public class CommonFilters {
 
     public static ASTFilter excludingWhitespace() {
         return ExcludeWhitespace.INSTANCE;
+    }
+    public static ASTFilter excludingWhitespaceAndComments(){
+        return ExcludeWhitespaceAndComments.INSTANCE;
     }
 
     @SuppressWarnings("unchecked")
@@ -99,6 +103,22 @@ public class CommonFilters {
         @Override
         public boolean acceptElement(PsiElement element) {
             return element instanceof PsiWhiteSpace;
+        }
+    }
+
+    enum ExcludeWhitespaceAndComments implements ASTFilter, PsiFilter {
+        INSTANCE;
+
+        @Override
+        public boolean acceptNode(ASTNode node) {
+            IElementType type = node.getElementType();
+            return type != TokenType.WHITE_SPACE && !ANTLRv4TokenTypes.COMMENTS.contains(type);
+        }
+
+        @Override
+        public boolean acceptElement(PsiElement element) {
+            ASTNode node = element.getNode();
+            return node != null && acceptNode(node);
         }
     }
 
