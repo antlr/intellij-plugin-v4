@@ -7,11 +7,124 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 /**
  * Created by jason on 2/18/15.
  */
 public class IteratorUtil {
+    @SuppressWarnings("unchecked")
+    static <T> Iterable<T> emptyIterable() {
+        return EmptyIter.INSTANCE;
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> Iterator<T> emptyIterator() {
+        return EmptyIter.INSTANCE;
+    }
+
+    enum EmptyIter implements Iterable, Iterator, PeekingIterator {
+        INSTANCE;
+
+        @Override
+        public Object peek() {
+            throw new NoSuchElementException();
+        }
+
+        @NotNull
+        @Override
+        public Iterator iterator() {
+            return this;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+    static Iterable<ASTNode> directChildrenOf(final ASTNode parent) {
+        if (parent == null) return emptyIterable();
+        return new ASTIterable() {
+            @NotNull
+            @Override
+            public Iterator<ASTNode> iterator() {
+                ASTNode firstChild = parent.getFirstChildNode();
+                if (firstChild == null) return emptyIterator();
+                return new DirectChildrenIterator(firstChild);
+            }
+        };
+    }
+
+    static class DirectChildrenIterator implements ListIterator<ASTNode>, PeekingIterator<ASTNode> {
+        public DirectChildrenIterator(ASTNode node) {
+            this.node = node;
+        }
+
+        ASTNode node;
+
+        @Override
+        public boolean hasNext() {
+            return node.getTreeNext() != null;
+        }
+
+        @Override
+        public ASTNode peek() {
+            return node.getTreeNext();
+        }
+
+        @Override
+        public ASTNode next() {
+            return node = node.getTreeNext();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return node.getTreePrev() != null;
+        }
+
+        @Override
+        public ASTNode previous() {
+            return node = node.getTreePrev();
+        }
+
+        @Override
+        public int nextIndex() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int previousIndex() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void set(ASTNode node) {
+
+        }
+
+        @Override
+        public void add(ASTNode node) {
+
+        }
+    }
 
     static Iterable<PsiElement> ast2Psi(final Iterable<ASTNode> astIterable) {
         return new PsiIterable<PsiElement>() {

@@ -41,6 +41,10 @@ public abstract class ASTIterable implements Iterable<ASTNode> {
         return from(DepthFirstTreeIterator.ASTIterator.createIterable(start));
     }
 
+    public static ASTIterable directChildrenOf(ASTNode parent) {
+        return from(IteratorUtil.directChildrenOf(parent));
+    }
+
     @SuppressWarnings("LoopStatementThatDoesntLoop")
     public ASTNode first() {
         for (ASTNode node : this) return node;
