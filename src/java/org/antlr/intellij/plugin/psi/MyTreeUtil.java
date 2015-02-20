@@ -1,8 +1,9 @@
-package org.antlr.intellij.plugin.psi.iter;
+package org.antlr.intellij.plugin.psi;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
+import org.antlr.intellij.plugin.psi.iter.ASTFilter;
 
 /**
  * Created by jason on 2/18/15.

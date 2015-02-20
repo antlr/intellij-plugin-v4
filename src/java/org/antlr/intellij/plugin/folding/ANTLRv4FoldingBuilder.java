@@ -20,10 +20,7 @@ import org.antlr.intellij.adaptor.lexer.TokenElementType;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.intellij.plugin.psi.AtAction;
-import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
-import org.antlr.intellij.plugin.psi.GrammarSpecNode;
-import org.antlr.intellij.plugin.psi.RuleSpecNode;
+import org.antlr.intellij.plugin.psi.*;
 import org.antlr.intellij.plugin.psi.iter.ASTIterable;
 import org.antlr.intellij.plugin.psi.iter.Tokens;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +64,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             getTokenElementType(ANTLRv4Lexer.TOKEN_REF),
             getTokenElementType(ANTLRv4Lexer.RULE_REF)
     );
-    static final   TokenSet SPECS = TokenSet.create(
+    static final TokenSet SPECS = TokenSet.create(
             getRuleElementType(ANTLRv4Parser.RULE_parserRuleSpec),
             getRuleElementType(ANTLRv4Parser.RULE_lexerRule)
     );
@@ -171,7 +168,6 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
                 .peekingIterator();
 
 
-
         while (ruleSpecIterator.hasNext()) {
 
             ASTNode ruleSpec = ruleSpecIterator.next();
@@ -194,10 +190,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             while (ruleSpecIterator.hasNext()) {
                 ASTNode nextSpec = ruleSpecIterator.peek();
                 ASTNode nextRule = nextSpec.findChildByType(SPECS);
-                if (nextRule == null) {
-                    System.out.println("rule was null!");
-                    break;
-                }
+                assert nextRule != null;
                 ASTNode nextRef = nextRule.findChildByType(REFS);
                 assert nextRef != null;
 
@@ -216,7 +209,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
             if (ruleRefsInGroup.size() > 1) {
                 TextRange groupRange = new TextRange(ruleSpec.getStartOffset(), endOfs);
-                FoldingDescriptor descriptor = new NamedFoldingDescriptor(rule, groupRange, null, myMakeRuleGroupPlaceholderText(ruleRefsInGroup));
+                FoldingDescriptor descriptor = new NamedFoldingDescriptor(rule, groupRange, null, makeRuleGroupPlaceholderText(ruleRefsInGroup));
                 descriptors.add(descriptor);
             } else {
                 descriptors.add(new FoldingDescriptor(rule, range));
@@ -274,8 +267,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
     }
 
-
-    private static String myMakeRuleGroupPlaceholderText(Iterable<ASTNode> refs) {
+// it looks like placeholder text can only be one line long so there's no point in wrapping
+    private static String makeRuleGroupPlaceholderText(Iterable<ASTNode> refs) {
         StringBuilder sb = new StringBuilder();
         for (Iterator<ASTNode> iterator = refs.iterator(); iterator.hasNext(); ) {
             sb.append(iterator.next().getChars());
