@@ -42,15 +42,17 @@ public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
     @Override
     public StructureViewBuilder getStructureViewBuilder(final PsiFile psiFile) {
         return new TreeBasedStructureViewBuilder() {
-            @NotNull
+
+	        @NotNull
             @Override
-            public StructureViewModel createStructureViewModel(@NotNull Editor editor) { // the nondeprecated method in 13 won't compile in 12.
+            public StructureViewModel createStructureViewModel(@Nullable Editor editor) { // the nondeprecated method in 13 won't compile in 12.
 				VirtualFile grammarFile = psiFile.getVirtualFile();
 				if ( grammarFile==null || !grammarFile.getName().endsWith(".g4") ) {
 					return new StructureViewModelBase(psiFile, new DummyViewTreeElement(psiFile));
 				}
                 return new ANTLRv4StructureViewModel((ANTLRv4FileRoot)psiFile);
             }
+
         };
     }
 }
