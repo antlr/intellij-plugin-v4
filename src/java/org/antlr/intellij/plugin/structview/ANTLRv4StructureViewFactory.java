@@ -7,6 +7,7 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.TreeBasedStructureViewBuilder;
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase;
 import com.intellij.lang.PsiStructureViewFactory;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -43,7 +44,7 @@ public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
         return new TreeBasedStructureViewBuilder() {
             @NotNull
             @Override
-            public StructureViewModel createStructureViewModel() { // the nondeprecated method in 13 won't compile in 12.
+            public StructureViewModel createStructureViewModel(@NotNull Editor editor) { // the nondeprecated method in 13 won't compile in 12.
 				VirtualFile grammarFile = psiFile.getVirtualFile();
 				if ( grammarFile==null || !grammarFile.getName().endsWith(".g4") ) {
 					return new StructureViewModelBase(psiFile, new DummyViewTreeElement(psiFile));
