@@ -54,3 +54,4 @@ YYYY/MM/DD, github id, Full name, email
 2014/04/21, mhordecki, Mike Hordecki, mike@hordecki.com
 2014/12/22, ponomandr, Andrey Ponomarev, ponomandr@gmail.com
 2015/02/07, jasonnn, Jason Markham, jasonmarkham@gmail.com
+2015/03/26, rojaster(alekum), Alexey Kuzmenko, rojaster@yandex.ru(1ikb3zz@gmail.com)
