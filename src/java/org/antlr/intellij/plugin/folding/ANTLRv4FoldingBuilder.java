@@ -119,7 +119,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             if (type == DOC_COMMENT_TOKEN || type == BLOCK_COMMENT_TOKEN) {
                 descriptors.add(new FoldingDescriptor(comment, comment.getTextRange()));
             }
-            addCommentFolds(comment, processedComments, descriptors);
+            //addCommentFolds(comment, processedComments, descriptors);
         }
 
     }
@@ -233,6 +233,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
      *                          skip processing when current method is called for the second element
      * @param foldElements      fold descriptors holder to store newly created descriptor (if any)
      */
+    /* Comment out for now since isCustomRegionElement() not in 13.x i guess.
     private static void addCommentFolds(@NotNull PsiElement comment, @NotNull Set<PsiElement> processedComments,
                                         @NotNull List<FoldingDescriptor> foldElements) {
         if (processedComments.contains(comment)) {
@@ -268,6 +269,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             );
         }
     }
+    */
 
     private static String getPlaceholderText(PsiElement element) {
 
