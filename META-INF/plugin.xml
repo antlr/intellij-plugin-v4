@@ -18,7 +18,7 @@
           shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
           for grammar preview. Right click on rule and say "Test ANTLR Rule".
           Changes to grammar seen in parse tree upon save of grammar. Works with
-          Intellij 12.1.x, 13.x, and 14.x.
+          Intellij 13.x, and 14.x.
   <p>
           You can configure the ANTLR tool options per grammar file; right-click
           in a grammar or on a grammar element within the structured view.
