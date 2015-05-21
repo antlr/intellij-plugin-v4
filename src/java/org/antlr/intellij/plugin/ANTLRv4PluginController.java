@@ -43,7 +43,7 @@ import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -125,7 +125,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		content = contentFactory.createContent(consoleComponent, "", false);
 
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-        consoleWindow.getContentManager().addContent(content);
+		consoleWindow.getContentManager().addContent(content);
 		consoleWindow.setIcon(Icons.FILE);
 
 //		ToolWindow profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
@@ -376,7 +376,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
 		for (PreviewState s : grammarToPreviewState.values()) {
 			if ( s!=null && s.lg!=null &&
-				(grammarFileName.equals(s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
+				 (grammarFileName.equals(s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
 			{
 				// s has a lexer with same filename, see if there is a parser grammar
 				// (not a combined grammar)
@@ -400,12 +400,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// Wipes out the console and also any error annotations
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
-        long start = System.nanoTime();
+		long start = System.nanoTime();
 		previewState.parsingResult = ParsingUtils.parseText(previewState, previewPanel, grammarFile, inputText);
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}
-        long stop = System.nanoTime();
+		long stop = System.nanoTime();
 
 		previewPanel.profilerPanel.setProfilerData(previewState, stop-start);
 

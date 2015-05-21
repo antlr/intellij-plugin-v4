@@ -21,15 +21,10 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JTabbedPane;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,7 +45,7 @@ public class PreviewPanel extends JPanel {
 	public TreeViewer treeViewer;
 	public ParseTree lastTree;
 
-    public ProfilerPanel profilerPanel;
+	public ProfilerPanel profilerPanel;
 
 	public PreviewPanel(Project project) {
 		this.project = project;
@@ -79,59 +74,59 @@ public class PreviewPanel extends JPanel {
 	}
 
 	public JTabbedPane createParseTreeAndProfileTabbedPanel() {
-        JBTabbedPane tabbedPane = new JBTabbedPane();
+		JBTabbedPane tabbedPane = new JBTabbedPane();
 
-        tabbedPane.addTab("Parse tree", createParseTreePanel());
+		tabbedPane.addTab("Parse tree", createParseTreePanel());
 
-        profilerPanel = new ProfilerPanel(project);
-        tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
+		profilerPanel = new ProfilerPanel(project);
+		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
 
-        return tabbedPane;
-    }
+		return tabbedPane;
+	}
 
 	public JPanel createParseTreePanel() {
-        LOG.info("createParseTreePanel" + " " + project.getName());
-        // wrap tree and slider in panel
-        JPanel treePanel = new JPanel(new BorderLayout(0, 0));
-        treePanel.setBackground(JBColor.white);
+		LOG.info("createParseTreePanel" + " " + project.getName());
+		// wrap tree and slider in panel
+		JPanel treePanel = new JPanel(new BorderLayout(0, 0));
+		treePanel.setBackground(JBColor.white);
 
-        JSlider scaleSlider;
-        //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
-        //perhaps in a few more years they will get around to backporting whatever it was they fixed.
-        // until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
-        boolean trackpadZoomSupported = SystemInfo.isMac &&
-                (SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
-        if (trackpadZoomSupported) {
-            scaleSlider = new JSlider();
-            TrackpadZoomingTreeView myTree = new TrackpadZoomingTreeView(null, null);
-            treeViewer = myTree;
-            scaleSlider.setModel(myTree.scaleModel);
-        } else {
-            treeViewer = new TreeViewer(null, null);
-            int sliderValue = (int) ((treeViewer.getScale() - 1.0) * 1000);
-            scaleSlider = new JSlider(JSlider.HORIZONTAL,
-                    -999, 1000, sliderValue);
+		JSlider scaleSlider;
+		//com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
+		//perhaps in a few more years they will get around to backporting whatever it was they fixed.
+		// until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
+		boolean trackpadZoomSupported = SystemInfo.isMac &&
+										(SystemInfo.JAVA_VERSION.startsWith("1.6") || SystemInfo.JAVA_VERSION.startsWith("1.9"));
+		if (trackpadZoomSupported) {
+			scaleSlider = new JSlider();
+			TrackpadZoomingTreeView myTree = new TrackpadZoomingTreeView(null, null);
+			treeViewer = myTree;
+			scaleSlider.setModel(myTree.scaleModel);
+		} else {
+			treeViewer = new TreeViewer(null, null);
+			int sliderValue = (int) ((treeViewer.getScale() - 1.0) * 1000);
+			scaleSlider = new JSlider(JSlider.HORIZONTAL,
+									  -999, 1000, sliderValue);
 
-            scaleSlider.addChangeListener(
-                    new ChangeListener() {
-                        @Override
-                        public void stateChanged(ChangeEvent e) {
-                            int v = ((JSlider) e.getSource()).getValue();
-                            if (lastTree != null) {
-                                treeViewer.setScale(v / 1000.0 + 1.0);
-                            }
-                        }
-                    });
-        }
+			scaleSlider.addChangeListener(
+				new ChangeListener() {
+					@Override
+					public void stateChanged(ChangeEvent e) {
+						int v = ((JSlider) e.getSource()).getValue();
+						if (lastTree != null) {
+							treeViewer.setScale(v / 1000.0 + 1.0);
+						}
+					}
+				});
+		}
 
-        // Wrap tree viewer component in scroll pane
-        JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
+		// Wrap tree viewer component in scroll pane
+		JScrollPane scrollPane = new JBScrollPane(treeViewer); // use Intellij's scroller
 
-        treePanel.add(scrollPane, BorderLayout.CENTER);
+		treePanel.add(scrollPane, BorderLayout.CENTER);
 
-        treePanel.add(scaleSlider, BorderLayout.SOUTH);
-        return treePanel;
-    }
+		treePanel.add(scaleSlider, BorderLayout.SOUTH);
+		return treePanel;
+	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
 	public void grammarFileSaved(VirtualFile grammarFile) {
@@ -206,7 +201,7 @@ public class PreviewPanel extends JPanel {
 
 	public void setEnabledRecursive(Component component, boolean enabled) {
 		if (component instanceof Container) {
-            for (Component child : ((Container) component).getComponents()) {
+			for (Component child : ((Container) component).getComponents()) {
 				child.setEnabled(enabled);
 				setEnabledRecursive(child, enabled);
 			}
@@ -239,38 +234,36 @@ public class PreviewPanel extends JPanel {
 		);
 	}
 
-    void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
+	void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
+		ApplicationManager.getApplication().invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				lastTree = result.tree;
+				if (result.parser instanceof PreviewParser) {
+					treeViewer.setTreeTextProvider(new AltLabelTextProvider(((PreviewParser) result.parser).inputTokenToStateMap, preview.g));
+					treeViewer.setTree(result.tree);
+				} else {
+					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+					treeViewer.setTree(result.tree);
 
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                lastTree = result.tree;
-                if (result.parser instanceof PreviewParser) {
-                    treeViewer.setTreeTextProvider(new AltLabelTextProvider(((PreviewParser) result.parser).inputTokenToStateMap, preview.g));
-                    treeViewer.setTree(result.tree);
-                } else {
-                    treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-                    treeViewer.setTree(result.tree);
-
-                }
-            }
-        });
-
-    }
+				}
+			}
+		});
+	}
 
 
-    public void clearParseTree() {
+	public void clearParseTree() {
 		setParseTree(Arrays.asList(new String[0]), null);
-    }
+	}
 
-    public void indicateInvalidGrammarInParseTreePane() {
+	public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
 														  "Issues with parser and/or lexer grammar(s) prevent preview")));
-    }
+	}
 
-    public void indicateNoStartRuleInParseTreePane() {
-        setParseTree(Arrays.asList(new String[0]),
+	public void indicateNoStartRuleInParseTreePane() {
+		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
 														  "No start rule is selected")));
 	}
@@ -283,7 +276,7 @@ public class PreviewPanel extends JPanel {
 			final String inputText = previewState.getEditor().getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if ( results!=null) {
-                updateTreeViewer(previewState,results);
+				updateTreeViewer(previewState,results);
 			}
 			else if ( previewState.startRuleName==null ) {
 				indicateNoStartRuleInParseTreePane();

@@ -40,14 +40,7 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -57,13 +50,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -131,7 +118,7 @@ public class ProfilerPanel {
 		parseTimeField.setText(String.valueOf(parseTimeMS));
 		int predTimeMS = (int) (parseInfo.getTotalTimeInPrediction() / (1000.0 * 1000.0));
 		predictionTimeField.setText(
-		String.format("%d = %3.2f%%", predTimeMS, 100 * ((double) predTimeMS) / parseTimeMS)
+			String.format("%d = %3.2f%%", predTimeMS, 100 * ((double) predTimeMS) / parseTimeMS)
 		);
 		TokenStream tokens = parser.getInputStream();
 		int numTokens = tokens.size();
@@ -152,14 +139,14 @@ public class ProfilerPanel {
 											 numLines));
 		numTokensField.setText(String.valueOf(numTokens));
 		double look =
-		parseInfo.getTotalSLLLookaheadOps() +
-		parseInfo.getTotalLLLookaheadOps();
+			parseInfo.getTotalSLLLookaheadOps() +
+			parseInfo.getTotalLLLookaheadOps();
 		lookaheadBurdenField.setText(
-		String.format("%d/%d = %3.2f", (long) look, numTokens, look / numTokens)
+			String.format("%d/%d = %3.2f", (long) look, numTokens, look / numTokens)
 		);
 		double atnLook = parseInfo.getTotalATNLookaheadOps();
 		cacheMissRateField.setText(
-		String.format("%d/%d = %3.2f%%", (long) atnLook, (long) look, atnLook * 100.0 / look)
+			String.format("%d/%d = %3.2f%%", (long) atnLook, (long) look, atnLook * 100.0 / look)
 		);
 	}
 
@@ -207,14 +194,14 @@ public class ProfilerPanel {
 		}
 
 		TextAttributes attr =
-		new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
-						   EffectType.ROUNDED_BOX, Font.PLAIN);
+			new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
+							   EffectType.ROUNDED_BOX, Font.PLAIN);
 		markupModel.addRangeHighlighter(
-		startToken.getStartIndex(),
-		stopToken.getStopIndex() + 1,
-		HighlighterLayer.SELECTION, // layer
-		attr,
-		HighlighterTargetArea.EXACT_RANGE
+			startToken.getStartIndex(),
+			stopToken.getStopIndex() + 1,
+			HighlighterLayer.SELECTION, // layer
+			attr,
+			HighlighterTargetArea.EXACT_RANGE
 		);
 
 //		System.out.println("dec " + decision + " from " + startToken + " to " + stopToken);
@@ -330,14 +317,14 @@ public class ProfilerPanel {
 		Token startToken = tokens.get(info.startIndex);
 		Token stopToken = tokens.get(info.stopIndex);
 		TextAttributes textAttributes =
-		new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor,
-						   effectType, Font.PLAIN);
+			new TextAttributes(JBColor.BLACK, JBColor.WHITE, errorStripeColor,
+							   effectType, Font.PLAIN);
 		textAttributes.setErrorStripeColor(errorStripeColor);
 		final RangeHighlighter rangeHighlighter =
-		markupModel.addRangeHighlighter(
-		startToken.getStartIndex(), stopToken.getStopIndex() + 1,
-		HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
-		HighlighterTargetArea.EXACT_RANGE);
+			markupModel.addRangeHighlighter(
+				startToken.getStartIndex(), stopToken.getStopIndex() + 1,
+				HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
+				HighlighterTargetArea.EXACT_RANGE);
 		rangeHighlighter.putUserData(DECISION_EVENT_INFO_KEY, info);
 		rangeHighlighter.setErrorStripeMarkColor(errorStripeColor);
 		return startToken;
@@ -511,32 +498,32 @@ public class ProfilerPanel {
 		};
 		ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
 		selectionModel.addListSelectionListener(
-		new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				// previewState, project set later
-				if (e.getValueIsAdjusting()) {
-					return; // this seems to be "mouse down" but not mouse up
-				}
-				// get state for current grammar editor tab
-				if (project == null) {
-					return;
-				}
-				PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
-				if (previewState != null && profilerDataTable.getModel().getClass() != DefaultTableModel.class) {
-					int selectedRow = profilerDataTable.getSelectedRow();
-					if (selectedRow == -1) {
-						selectedRow = 0;
+			new ListSelectionListener() {
+				@Override
+				public void valueChanged(ListSelectionEvent e) {
+					// previewState, project set later
+					if (e.getValueIsAdjusting()) {
+						return; // this seems to be "mouse down" but not mouse up
 					}
-					int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
-					int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
-					if (decision <= numberOfDecisions) {
-						selectDecisionInGrammar(previewState, decision);
-						highlightPhrases(previewState, decision);
+					// get state for current grammar editor tab
+					if (project == null) {
+						return;
+					}
+					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+					if (previewState != null && profilerDataTable.getModel().getClass() != DefaultTableModel.class) {
+						int selectedRow = profilerDataTable.getSelectedRow();
+						if (selectedRow == -1) {
+							selectedRow = 0;
+						}
+						int decision = profilerDataTable.convertRowIndexToModel(selectedRow);
+						int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
+						if (decision <= numberOfDecisions) {
+							selectDecisionInGrammar(previewState, decision);
+							highlightPhrases(previewState, decision);
+						}
 					}
 				}
 			}
-		}
 		);
 		selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		ambiguityColorLabel = new JBLabel("Ambiguity");
