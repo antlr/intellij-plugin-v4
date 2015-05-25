@@ -18,6 +18,7 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.runtime.misc.Utils;
+import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.misc.Misc;
@@ -64,6 +65,19 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
 		}
+		else {
+			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+			final PreviewState previewState = controller.getPreviewState(grammarFile);
+			// is lexer file? gen .tokens file no matter what as tokens might have changed;
+			// a parser that feeds off of that file will need to see the changes.
+			if ( previewState.g==null && previewState.lg!=null) {
+				Grammar g = previewState.lg;
+				String language = g.getOptionString(ConfigANTLRPerGrammar.PROP_LANGUAGE);
+				Tool tool = ParsingUtils.createANTLRToolForLoadingGrammars();
+				CodeGenerator gen = new CodeGenerator(tool, g, language);
+				gen.writeVocabFile();
+			}
+		}
 	}
 
 	// TODO: lots of duplication with antlr() function.
@@ -75,12 +89,14 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		final PreviewState previewState = controller.getPreviewState(grammarFile);
+		Grammar g = previewState.getMainGrammar();
 		// Grammar should be updated in the preview state before calling this function
-		if ( previewState.g==null ) {
+		if ( g==null ) {
 			return false;
 		}
-		String language = previewState.g.getOptionString(ConfigANTLRPerGrammar.PROP_LANGUAGE);
-		CodeGenerator generator = new CodeGenerator(null, previewState.g, language);
+
+		String language = g.getOptionString(ConfigANTLRPerGrammar.PROP_LANGUAGE);
+		CodeGenerator generator = new CodeGenerator(null, g, language);
 		String recognizerFileName = generator.getRecognizerFileName();
 
 		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, grammarFile);
@@ -107,6 +123,12 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
 		String fullyQualifiedInputFileName = sourcePath+File.separator+vfile.getName();
 		args.add(fullyQualifiedInputFileName); // add grammar file last
+
+		String lexerGrammarFileName = ParsingUtils.getLexerNameFromParserFileName(fullyQualifiedInputFileName);
+		if ( new File(lexerGrammarFileName).exists() ) {
+			// build the lexer too as the grammar surely uses it if it exists
+			args.add(lexerGrammarFileName);
+		}
 
 		LOG.info("args: " + Utils.join(args.iterator(), " "));
 

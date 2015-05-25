@@ -46,6 +46,10 @@ public class PreviewState {
 		this.editor = editor;
 	}
 
+	public Grammar getMainGrammar() {
+		return g!=null ? g : lg;
+	}
+
 	public synchronized void releaseEditor() {
 		// It would appear that the project closed event occurs before these
 		// close grammars sometimes. Very strange. check for null editor.

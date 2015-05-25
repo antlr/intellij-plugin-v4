@@ -52,8 +52,8 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 		Document doc = docMgr.getDocument(grammarFile);
 		if ( doc==null ) return;
 
-		boolean wasStale = !psiMgr.isCommitted(doc) || docMgr.isDocumentUnsaved(doc);
-		if ( wasStale ) {
+		boolean unsaved = !psiMgr.isCommitted(doc) || docMgr.isDocumentUnsaved(doc);
+		if ( unsaved ) {
 			// save event triggers ANTLR run if autogen on
 			psiMgr.commitDocument(doc);
 			docMgr.saveDocument(doc);
@@ -66,10 +66,14 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 									  title,
 									  canBeCancelled,
 									  forceGeneration);
-		boolean autogen = ConfigANTLRPerGrammar.getBooleanProp(project, grammarFile.getPath(), ConfigANTLRPerGrammar.PROP_AUTO_GEN, false);
 
-		if ( !wasStale || (wasStale && !autogen) ) {
-			// if everything already saved (!stale) then run ANTLR
+		boolean autogen =
+			ConfigANTLRPerGrammar.getBooleanProp(project,
+												 grammarFile.getPath(),
+												 ConfigANTLRPerGrammar.PROP_AUTO_GEN,
+												 false);
+		if ( !unsaved || (unsaved && !autogen) ) {
+			// if everything already saved (not stale) then run ANTLR
 			// if had to be saved and autogen NOT on, then run ANTLR
 			// Otherwise, the save file event will have or will run ANTLR.
 			ProgressManager.getInstance().run(gen); //, "Generating", canBeCancelled, e.getData(PlatformDataKeys.PROJECT));

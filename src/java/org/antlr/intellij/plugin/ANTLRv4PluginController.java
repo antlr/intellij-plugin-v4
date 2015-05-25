@@ -70,7 +70,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static final String PLUGIN_ID = "org.antlr.intellij.plugin";
 
 	public static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
-	public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4PluginController");
+	public static final Logger LOG = Logger.getInstance("ANTLRv4PluginController");
 
 	public static final String PREVIEW_WINDOW_ID = "Preview";
 	public static final String CONSOLE_WINDOW_ID = "Tool Output";

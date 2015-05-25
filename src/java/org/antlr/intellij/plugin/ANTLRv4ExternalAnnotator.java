@@ -36,7 +36,7 @@ import java.util.List;
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
     // NOTE: can't use instance var as only 1 instance
 
-    public static final Logger LOG = Logger.getInstance("ANTLR ANTLRv4ExternalAnnotator");
+    public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
 
 	public static class Issue {
 		String annotation;
@@ -45,17 +45,10 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
 	}
 
-	/** Called first; return file; idea 12 */
-	@Nullable
-	public PsiFile collectionInformation(@NotNull PsiFile file) {
-		LOG.info("collectionInformation "+file.getVirtualFile());
-		return file;
-	}
-
-	/** Called first; return file; idea 13; can't use @Override */
+	/** Called first; return file */
+	@Override
 	@Nullable
 	public PsiFile collectInformation(@NotNull PsiFile file) {
-		LOG.info("collectionInformation "+file.getVirtualFile());
 		return file;
 	}
 
@@ -63,6 +56,8 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	@Nullable
 	@Override
 	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(final PsiFile file) {
+		String grammarFileName = file.getVirtualFile().getPath();
+		LOG.info("doAnnotate "+grammarFileName);
 		String fileContents = file.getText();
 		List<String> args = RunANTLROnGrammarFile.getANTLRArgsAsList(file.getProject(), file.getVirtualFile());
 		final Tool antlr = new Tool(args.toArray(new String[args.size()]));
@@ -76,14 +71,8 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			});
 		}
 
-		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
-		ApplicationManager.getApplication().runReadAction(findVocabAction);
-		if ( findVocabAction.vocabName!=null ) { // need to generate other file?
-			// for now, just turn off undef token warnings
-		}
-
 		antlr.removeListeners();
-        AnnotatorToolListener listener = new AnnotatorToolListener(findVocabAction.vocabName);
+        AnnotatorToolListener listener = new AnnotatorToolListener();
         antlr.addListener(listener);
 		try {
 			StringReader sr = new StringReader(fileContents);
@@ -92,6 +81,14 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			GrammarRootAST ast = antlr.parse(file.getName(), in);
 			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
 			Grammar g = antlr.createGrammar(ast);
+			g.fileName = grammarFileName;
+
+			String vocabName = g.getOptionString("tokenVocab");
+			if ( vocabName!=null ) { // import vocab to avoid spurious warnings
+				LOG.info("token vocab file "+vocabName);
+				g.importTokensFromTokensFile();
+			}
+
 			VirtualFile vfile = file.getVirtualFile();
 			if ( vfile==null ) {
 				LOG.error("doAnnotate no virtual file for "+file);
@@ -187,6 +184,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			outputMsg = outputMsg.replace('\n', ' ');
 		}
 		issue.annotation = outputMsg;
+	}
+
+	public static String getFindVocabFileNameFromGrammarFile(PsiFile file) {
+		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
+		ApplicationManager.getApplication().runReadAction(findVocabAction);
+		return findVocabAction.vocabName;
 	}
 
 	protected static class FindVocabFileRunnable implements Runnable {
