@@ -25,6 +25,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 	@Override
 	public void mouseClicked(EditorMouseEvent e) {
 		int offset = getEditorCharOffset(e);
+		if ( e.getMouseEvent().getButton()!=MouseEvent.BUTTON1 ) return; // ignore right click
 		if ( offset<0 ) return;
 
 		Editor editor=e.getEditor();
