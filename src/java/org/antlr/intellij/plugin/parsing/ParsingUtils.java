@@ -34,6 +34,7 @@ import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarRootAST;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -218,6 +219,37 @@ public class ParsingUtils {
 		return new ParsingResult(parser, t, listener);
 	}
 
+	/** Parse grammar text into v4 parse tree then look for tokenVocab=X */
+	public static String getTokenVocabFromGrammar(String text) {
+		// TODO: unneeded. use antlr Tool. Kill?
+//		ParsingResult r = parseANTLRGrammar(text);
+//		if ( r.tree!=null ) { //&& r.syntaxErrorListener.getSyntaxErrors().size()==0 ) {
+//			// option : id ASSIGN optionValue ;
+//			Collection<ParseTree> options = XPath.findAll(r.tree, "//option", r.parser);
+//			for (Iterator<ParseTree> it = options.iterator(); it.hasNext(); ) {
+//				ANTLRv4Parser.OptionContext option = (ANTLRv4Parser.OptionContext)it.next();
+//				if ( option.id().getText().equals("tokenVocab") ) {
+//					/*
+//					optionValue
+//						:	id (DOT id)*
+//						|	STRING_LITERAL
+//						|	ACTION
+//						|	INT
+//						;
+//					 */
+//					ANTLRv4Parser.OptionValueContext optionValue = option.optionValue();
+//					if ( optionValue.STRING_LITERAL()!=null ) {
+//						String s = optionValue.STRING_LITERAL().getText();
+//						return RefactorUtils.getLexerRuleNameFromLiteral(s);
+//					}
+//					if ( optionValue.id(0)!=null ) {
+//						return optionValue.id(0).getText();
+//					}
+//				}
+//			}
+//		}
+		return null;
+	}
 	public static ParsingResult parseText(PreviewState previewState,
 										  PreviewPanel previewPanel,
 										  final VirtualFile grammarFile,
@@ -296,6 +328,19 @@ public class ParsingUtils {
 		// Create a grammar from the AST so we can figure out what type it is
 		Grammar g = antlr.createGrammar(grammarRootAST);
 		g.fileName = grammarFileName;
+
+		// see if a lexer is hanging around somewhere; don't want implicit token defs to make us bail
+		LexerGrammar lg = null;
+		if ( g.getType()==ANTLRParser.PARSER ) {
+			lg = loadLexerGrammarFor(g, project);
+			if ( lg!=null ) {
+				g.importVocab(lg);
+			}
+			else {
+				lg = BAD_LEXER_GRAMMAR;
+			}
+		}
+
 		antlr.process(g, false);
 		if ( listener.grammarErrorMessages.size()!=0 ) {
 			String msg = Utils.join(listener.grammarErrorMessages.iterator(), "\n");
@@ -303,21 +348,11 @@ public class ParsingUtils {
 			return null; // upon error, bail
 		}
 
-
-		LexerGrammar lg = null;
 		// Examine's Grammar AST constructed by v3 for a v4 grammar.
 		// Use ANTLR v3's ANTLRParser not ANTLRv4Parser from this plugin
 		switch ( g.getType() ) {
 			case ANTLRParser.PARSER :
 				ANTLRv4PluginController.LOG.info("loadGrammars parser "+g.name);
-				lg = loadLexerGrammarFor(g, project);
-				if ( lg==null ) {
-					lg = BAD_LEXER_GRAMMAR;
-				}
-				else {
-					// reload parser grammar g with knowledge of lexer grammar
-					g = loadGrammar(antlr, grammarFileName, lg);
-				}
 				return new Grammar[] {lg, g};
 			case ANTLRParser.LEXER :
 				ANTLRv4PluginController.LOG.info("loadGrammars lexer "+g.name);
@@ -336,21 +371,27 @@ public class ParsingUtils {
 	}
 
 	/** Try to load a LexerGrammar given a parser grammar g. Derive lexer name
-	 *  as XLexer given XParser.g4 filename or X grammar name.
+	 *  as:
+	 *  	V given tokenVocab=V in grammar or
+	 *   	XLexer given XParser.g4 filename or
+	 *     	XLexer given grammar name X
 	 */
 	public static LexerGrammar loadLexerGrammarFor(Grammar g, Project project) {
 		Tool antlr = createANTLRToolForLoadingGrammars();
 		LoadGrammarsToolListener listener = (LoadGrammarsToolListener)antlr.getListeners().get(0);
 		LexerGrammar lg = null;
 		String lexerGrammarFileName;
-		int i = g.fileName.indexOf("Parser");
-		File parentDir = new File(g.fileName).getParentFile();
-		if ( i>=0 ) { // is filename XParser.g4?
-			lexerGrammarFileName = g.fileName.substring(0, i) + "Lexer.g4";
+		
+		String vocabName = g.getOptionString("tokenVocab");
+		if ( vocabName!=null ) {
+			File f = new File(g.fileName);
+			File lexerF = new File(f.getParentFile(), vocabName + ".g4");
+			lexerGrammarFileName = lexerF.getAbsolutePath();
 		}
-		else { // if not, try using the grammar name, XLexer.g4
-			lexerGrammarFileName = new File(parentDir, g.name+"Lexer.g4").getAbsolutePath();
+		else {
+			lexerGrammarFileName = getLexerNameFromParserFileName(g.fileName);
 		}
+		
 		File lf = new File(lexerGrammarFileName);
 		if ( lf.exists() ) {
 			try {
@@ -374,6 +415,24 @@ public class ParsingUtils {
 			}
 		}
 		return lg;
+	}
+
+	@NotNull
+	public static String getLexerNameFromParserFileName(String parserFileName) {
+		String lexerGrammarFileName;
+		int i = parserFileName.indexOf("Parser.g4");
+		if ( i>=0 ) { // is filename XParser.g4?
+			lexerGrammarFileName = parserFileName.substring(0, i) + "Lexer.g4";
+		}
+		else { // if not, try using the grammar name, XLexer.g4
+			File f = new File(parserFileName);
+			String fname = f.getName();
+			int dot = fname.lastIndexOf(".g4");
+			String parserName = fname.substring(0, dot);
+			File parentDir = f.getParentFile();
+			lexerGrammarFileName = new File(parentDir, parserName+"Lexer.g4").getAbsolutePath();
+		}
+		return lexerGrammarFileName;
 	}
 
 	/** Same as loadGrammar(fileName) except import vocab from existing lexer */

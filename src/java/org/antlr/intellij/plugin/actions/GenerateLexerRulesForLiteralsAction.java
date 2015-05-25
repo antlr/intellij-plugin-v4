@@ -36,7 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class GenerateLexerRulesForLiteralsAction extends AnAction {
-	public static final Logger LOG = Logger.getInstance("ANTLR GenerateLexerRulesForLiterals");
+	public static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
 
 	/** Only show if selection is a literal */
 	@Override

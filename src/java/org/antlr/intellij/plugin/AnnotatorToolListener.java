@@ -2,7 +2,6 @@ package org.antlr.intellij.plugin;
 
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
-import org.antlr.v4.tool.ErrorType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +12,7 @@ import java.util.List;
  *  which are indicated with error nodes in the PSI.
  */
 class AnnotatorToolListener implements ANTLRToolListener {
-    public final String vocabName;
-    public final List<ANTLRv4ExternalAnnotator.Issue> issues =
-        new ArrayList<ANTLRv4ExternalAnnotator.Issue>();
-
-    public AnnotatorToolListener(String vocabName) {
-        this.vocabName = vocabName;
-    }
+    public final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<>();
 
     @Override
     public void info(String msg) {
@@ -32,11 +25,6 @@ class AnnotatorToolListener implements ANTLRToolListener {
 
     @Override
     public void warning(ANTLRMessage msg) {
-        if ( (msg.getErrorType()!=ErrorType.IMPLICIT_TOKEN_DEFINITION &&
-            msg.getErrorType()!=ErrorType.IMPLICIT_STRING_DEFINITION) ||
-            vocabName==null )
-		{
-            issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
-        }
+        issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
     }
 }
