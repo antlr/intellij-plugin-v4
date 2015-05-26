@@ -26,7 +26,13 @@
           <root url="jar://$MODULE_DIR$/lib/antlr-4.5.1-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../antlr4/gen3" />
+          <root url="file://$MODULE_DIR$/../antlr4/gen4" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/target/generated-sources/antlr4" />
+          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

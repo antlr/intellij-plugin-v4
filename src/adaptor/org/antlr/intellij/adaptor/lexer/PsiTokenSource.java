@@ -72,7 +72,7 @@ public class PsiTokenSource implements TokenSource {
 	}
 
 	@Override
-	public void setTokenFactory(@org.antlr.v4.runtime.misc.NotNull TokenFactory<?> factory) {
+	public void setTokenFactory(TokenFactory<?> factory) {
 		this.factory = factory;
 	}
 

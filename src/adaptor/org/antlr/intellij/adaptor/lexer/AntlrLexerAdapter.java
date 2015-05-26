@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -195,7 +194,7 @@ public abstract class AntlrLexerAdapter<State extends AntlrLexerState> extends c
 	 * @param input The new input stream for the lexer.
 	 * @param state A {@code State} instance containing the starting state for the lexer.
 	 */
-	protected void applyLexerState(@NotNull CharStream input, @NotNull State state) {
+	protected void applyLexerState(CharStream input, State state) {
 		lexer.setInputStream(input);
 		state.apply(lexer);
 	}

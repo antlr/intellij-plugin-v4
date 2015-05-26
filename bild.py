@@ -24,15 +24,15 @@ def latest_antlr4():
 
 
 def latest_antlr4_sources():
-    download("https://github.com/antlr/antlr4/archive/4.5.zip", "lib")
+    download("https://github.com/antlr/antlr4/archive/4.5.1.zip", "lib")
     mkdir("lib/src")
-    unjar("lib/4.5.zip", "lib/src")
-    rmfile("lib/4.5.zip")
+    unjar("lib/4.5.1.zip", "lib/src")
+    rmfile("lib/4.5.1.zip")
 
 
 def parsers():
     require(latest_antlr4)
-    antlr4("src/grammars", "gen", version="4.5",
+    antlr4("src/grammars", "gen", version="4.5.1",
            package="org.antlr.intellij.plugin.parser")
 
 

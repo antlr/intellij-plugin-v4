@@ -3,7 +3,6 @@ package org.antlr.intellij.adaptor.lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.misc.NotNull;
 
 /**
  * This class provides a basic implementation of
@@ -42,7 +41,7 @@ class CharSequenceCharStream implements CharStream {
 	}
 
 	@Override
-	public String getText(@NotNull Interval interval) {
+	public String getText(Interval interval) {
 		int start = interval.a;
 		int stop = interval.b;
 		int n = size();
