@@ -36,7 +36,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		MouseEvent mouseEvent=e.getMouseEvent();
-		if ( mouseEvent.isMetaDown() ) {
+		if ( mouseEvent.isControlDown() ) {
 			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), previewState, offset);
 		}
         else if ( mouseEvent.isAltDown() ) {
@@ -59,7 +59,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 		MouseEvent mouseEvent=e.getMouseEvent();
 		InputPanel.removeTokenInfoHighlighters(editor);
-		if ( mouseEvent.isMetaDown() && previewState.parsingResult!=null ) {
+		if ( mouseEvent.isControlDown() && previewState.parsingResult!=null ) {
 			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
 		}
         else if ( mouseEvent.isAltDown() && previewState.parsingResult!=null ) {
