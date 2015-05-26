@@ -5,10 +5,18 @@ import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.event.EditorMouseMotionListener;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.PopupChooserBuilder;
+import com.intellij.ui.components.JBList;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
+import org.antlr.v4.runtime.atn.AmbiguityInfo;
 
+import javax.swing.*;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMotionListener {
 	private InputPanel inputPanel;
@@ -24,14 +32,18 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 	@Override
 	public void mouseClicked(EditorMouseEvent e) {
-		int offset = getEditorCharOffset(e);
-		if ( e.getMouseEvent().getButton()!=MouseEvent.BUTTON1 ) return; // ignore right click
+		final int offset = getEditorCharOffset(e);
 		if ( offset<0 ) return;
 
-		Editor editor=e.getEditor();
+		final Editor editor=e.getEditor();
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(editor.getProject());
-		PreviewState previewState =	controller.getPreviewState();
+		final PreviewState previewState = controller.getPreviewState();
 		if ( previewState==null ) {
+			return;
+		}
+
+		if ( e.getMouseEvent().getButton()==MouseEvent.BUTTON3 ) { // right click
+			rightClick(previewState, editor, offset);
 			return;
 		}
 
@@ -39,10 +51,45 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		if ( mouseEvent.isControlDown() ) {
 			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), previewState, offset);
 		}
-        else if ( mouseEvent.isAltDown() ) {
-            inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), previewState, offset);
-        }
+		else if ( mouseEvent.isAltDown() ) {
+			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), previewState, offset);
+		}
 		editor.getMarkupModel().removeAllHighlighters();
+	}
+
+	public void rightClick(final PreviewState previewState, Editor editor, int offset) {
+		if (previewState.parsingResult == null) return;
+		final List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
+		if (highlightersAtOffset.size() == 0) {
+			return;
+		}
+
+		final AmbiguityInfo ambigEvent =
+			(AmbiguityInfo)MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
+																			 AmbiguityInfo.class);
+		if ( ambigEvent==null ) {
+			return;
+		}
+
+		// Show popup menu to choose "show trees"
+		final JBList list = new JBList("Show all phrase interpretations");
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JBPopupFactory factory = JBPopupFactory.getInstance();
+		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
+		builder.setItemChoosenCallback(
+			new Runnable() {
+				@Override
+				public void run() {
+					// pop up subtrees for ambig intrepretation
+					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+					dialog.setTrees(previewState, ambigEvent);
+					dialog.pack();
+					dialog.setVisible(true);
+				}
+			}
+		);
+		JBPopup popup = builder.createPopup();
+		popup.showInBestPositionFor(editor);
 	}
 
 	@Override
@@ -62,9 +109,9 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		if ( mouseEvent.isControlDown() && previewState.parsingResult!=null ) {
 			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
 		}
-        else if ( mouseEvent.isAltDown() && previewState.parsingResult!=null ) {
-            inputPanel.showParseRegion(e, editor, previewState, offset);
-        }
+		else if ( mouseEvent.isAltDown() && previewState.parsingResult!=null ) {
+			inputPanel.showParseRegion(e, editor, previewState, offset);
+		}
 		else { // just moving around, show any errors or hints
 			InputPanel.showTooltips(e, editor, previewState, offset);
 		}

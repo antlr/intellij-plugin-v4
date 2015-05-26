@@ -35,6 +35,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
@@ -58,20 +59,8 @@ import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Point;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -559,23 +548,6 @@ public class InputPanel {
 							  JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
 
 
-		// Code for a pop up list with selectable elements
-
-//		final JList list = new JBList(stack);
-////		PopupChooserBuilder builder = new PopupChooserBuilder(list);
-//		JBPopupFactory factory = JBPopupFactory.getInstance();
-//		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
-//		JBPopup popup = builder.createPopup();
-//
-//		MouseEvent mouseEvent = event.getMouseEvent();
-//		Point point = mouseEvent.getPoint();
-//		Dimension dimension = popup.getContent().getLayout().preferredLayoutSize(builder.getScrollPane());
-//		System.out.println(dimension);
-//		int height = dimension.height;
-//		point.translate(10, -height);
-//		RelativePoint where = new RelativePoint(mouseEvent.getComponent(), point);
-//		popup.show(where);
-
 		// Code for a balloon.
 
 //		JBPopupFactory popupFactory = JBPopupFactory.getInstance();
@@ -674,20 +646,8 @@ public class InputPanel {
 		if (previewState.parsingResult == null) return; // no results?
 
 		// Turn off any tooltips if none under the cursor
-		HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
-
-		// find the highlighter associated with this error by finding error at this offset
-		MarkupModel markupModel = editor.getMarkupModel();
-		// collect all highlighters and combine to make a single tool tip
-		List<RangeHighlighter> highlightersAtOffset = new ArrayList<RangeHighlighter>();
-		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			int a = r.getStartOffset();
-			int b = r.getEndOffset();
-//			System.out.printf("#%d: %d..%d %s\n", i, a, b, r.toString());
-			if (offset >= a && offset < b) { // cursor is over some kind of highlighting
-				highlightersAtOffset.add(r);
-			}
-		}
+		// find the highlighter associated with this offset
+		List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
 		if (highlightersAtOffset.size() == 0) {
 			return;
 		}
@@ -737,6 +697,7 @@ public class InputPanel {
 			msgList.add(msg);
 		}
 		String combinedMsg = Utils.join(msgList.iterator(), "\n");
+		HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
 		if (foundDecisionEvent) {
 			showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg.toString());
 		}
