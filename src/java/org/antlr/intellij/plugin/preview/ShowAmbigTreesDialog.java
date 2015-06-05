@@ -14,7 +14,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.util.List;
 
 public class ShowAmbigTreesDialog extends JDialog {
@@ -63,7 +62,10 @@ public class ShowAmbigTreesDialog extends JDialog {
 				}
 				ParserRuleContext ctx = ambiguousParseTrees.get(i);
 				String[] ruleNames = previewState.parsingResult.parser.getRuleNames();
-				treeViewers[i] = new TreeViewer(Arrays.asList(ruleNames), ctx);
+				treeViewers[i] = new TrackpadZoomingTreeView(null, null);
+//				treeViewers[i] = new TreeViewer(Arrays.asList(ruleNames), ctx);
+				treeViewers[i].setTreeTextProvider(new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g));
+				treeViewers[i].setTree(ctx);
 				panelOfTrees.add(treeViewers[i]);
 			}
 
