@@ -99,7 +99,7 @@ public class ParsingUtils {
 	public static Token getTokenUnderCursor(PreviewState previewState, int offset) {
 		if ( previewState==null || previewState.parsingResult == null) return null;
 
-		PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
+		PreviewParser parser = (PreviewParser)previewState.parsingResult.parser;
 		CommonTokenStream tokenStream =	(CommonTokenStream) parser.getInputStream();
 		return ParsingUtils.getTokenUnderCursor(tokenStream, offset);
 	}
@@ -277,7 +277,7 @@ public class ParsingUtils {
 		LexerInterpreter lexEngine;
 		lexEngine = previewState.lg.createLexerInterpreter(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
-		PreviewParser parser = new PreviewParser(previewState, tokens);
+		PreviewParser parser = new PreviewParser(previewState.g, tokens);
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		parser.setProfile(true);
 
@@ -291,6 +291,7 @@ public class ParsingUtils {
 		if ( start==null ) {
 			return null; // can't find start rule
 		}
+//		System.out.println("parse test ----------------------------");
 		ParseTree t = parser.parse(start.index);
 
 		if ( t!=null ) {
@@ -381,7 +382,7 @@ public class ParsingUtils {
 		LoadGrammarsToolListener listener = (LoadGrammarsToolListener)antlr.getListeners().get(0);
 		LexerGrammar lg = null;
 		String lexerGrammarFileName;
-		
+
 		String vocabName = g.getOptionString("tokenVocab");
 		if ( vocabName!=null ) {
 			File f = new File(g.fileName);
@@ -391,7 +392,7 @@ public class ParsingUtils {
 		else {
 			lexerGrammarFileName = getLexerNameFromParserFileName(g.fileName);
 		}
-		
+
 		File lf = new File(lexerGrammarFileName);
 		if ( lf.exists() ) {
 			try {

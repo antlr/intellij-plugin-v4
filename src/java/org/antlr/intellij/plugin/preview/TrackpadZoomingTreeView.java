@@ -21,7 +21,6 @@ public class TrackpadZoomingTreeView extends TreeViewer implements Magnificator{
         putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
     }
 
-
     public final ScaleModel scaleModel = new ScaleModel(1000);
 
     @Override

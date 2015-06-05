@@ -240,12 +240,12 @@ public class PreviewPanel extends JPanel {
 			public void run() {
 				lastTree = result.tree;
 				if (result.parser instanceof PreviewParser) {
-					treeViewer.setTreeTextProvider(new AltLabelTextProvider(((PreviewParser) result.parser).inputTokenToStateMap, preview.g));
+					treeViewer.setTreeTextProvider(new AltLabelTextProvider(result.parser, preview.g));
 					treeViewer.setTree(result.tree);
-				} else {
+				}
+				else {
 					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
 					treeViewer.setTree(result.tree);
-
 				}
 			}
 		});
