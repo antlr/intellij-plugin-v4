@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +23,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 	private JPanel contentPane;
 	private JButton buttonOK;
 	protected JScrollPane treeScrollPane;
+	protected JSlider treeSizeSlider;
 	public List<ParserRuleContext> ambiguousParseTrees;
 	public TreeViewer[] treeViewers;
 	public PreviewState previewState;
@@ -36,6 +39,22 @@ public class ShowAmbigTreesDialog extends JDialog {
 				onOK();
 			}
 		});
+
+		treeSizeSlider.addChangeListener(
+			new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					int v = ((JSlider) e.getSource()).getValue();
+					setScale(v / 1000.0 + 1.0);
+				}
+			});
+	}
+
+	public void setScale(double scale) {
+		for (TreeViewer viewer : treeViewers) {
+			viewer.setScale(scale);
+		}
+		treeScrollPane.revalidate();
 	}
 
 	public void setTrees(PreviewState previewState, AmbiguityInfo ambigEvent) {
@@ -53,7 +72,6 @@ public class ShowAmbigTreesDialog extends JDialog {
 			}
 			setTitle(numTrees + " Interpretations of Ambiguous Input Phrase: " + phrase);
 			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
-			int numComponentsIncludingSeparators = 2 * numTrees - 1;
 			JBPanel panelOfTrees = new JBPanel();
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
 			for (int i = 0; i < numTrees; i++) {
@@ -61,9 +79,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 					panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
 				}
 				ParserRuleContext ctx = ambiguousParseTrees.get(i);
-				String[] ruleNames = previewState.parsingResult.parser.getRuleNames();
 				treeViewers[i] = new TrackpadZoomingTreeView(null, null);
-//				treeViewers[i] = new TreeViewer(Arrays.asList(ruleNames), ctx);
 				treeViewers[i].setTreeTextProvider(new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g));
 				treeViewers[i].setTree(ctx);
 				panelOfTrees.add(treeViewers[i]);
@@ -88,10 +104,10 @@ public class ShowAmbigTreesDialog extends JDialog {
 	 */
 	private void $$$setupUI$$$() {
 		contentPane = new JPanel();
-		contentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+		contentPane.setLayout(new GridLayoutManager(3, 1, new Insets(10, 10, 10, 10), -1, -1));
 		final JPanel panel1 = new JPanel();
 		panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-		contentPane.add(panel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
+		contentPane.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
 		final Spacer spacer1 = new Spacer();
 		panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
 		final JPanel panel2 = new JPanel();
@@ -102,6 +118,11 @@ public class ShowAmbigTreesDialog extends JDialog {
 		panel2.add(buttonOK, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		treeScrollPane = new JScrollPane();
 		contentPane.add(treeScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+		treeSizeSlider = new JSlider();
+		treeSizeSlider.setMaximum(1000);
+		treeSizeSlider.setMinimum(-400);
+		treeSizeSlider.setValue(0);
+		contentPane.add(treeSizeSlider, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 	}
 
 	/**
