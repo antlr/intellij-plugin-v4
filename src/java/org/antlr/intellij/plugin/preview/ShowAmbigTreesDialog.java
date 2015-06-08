@@ -28,7 +28,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 	public ShowAmbigTreesDialog() {
 		$$$setupUI$$$();
 		setContentPane(contentPane);
-		setModal(true);
+		setModal(false);
 		getRootPane().setDefaultButton(buttonOK);
 
 		buttonOK.addActionListener(new ActionListener() {
