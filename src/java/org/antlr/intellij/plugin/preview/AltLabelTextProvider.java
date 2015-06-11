@@ -44,14 +44,17 @@ public class AltLabelTextProvider implements TreeTextProvider {
 	@Override
 	public String getText(Tree node) {
 		if ( node instanceof PreviewInterpreterRuleContext) {
-			PreviewInterpreterRuleContext uberNode = (PreviewInterpreterRuleContext)node;
-			Rule r = g.getRule(uberNode.getRuleIndex());
+			PreviewInterpreterRuleContext inode = (PreviewInterpreterRuleContext)node;
+			Rule r = g.getRule(inode.getRuleIndex());
 			String[] altLabels = getAltLabels(r);
 			if ( altLabels!=null ) {
-				return r.name+":"+altLabels[uberNode.getOuterAltNum()];
+				return r.name+":"+altLabels[inode.getOuterAltNum()];
+			}
+			else if ( r.getOriginalNumberOfAlts()>1 ) {
+				return r.name + ":" + inode.getOuterAltNum();
 			}
 			else {
-				return r.name + ":" + uberNode.getOuterAltNum();
+				return r.name; // don't display an alternative number if there's only one
 			}
 		}
 		return Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));

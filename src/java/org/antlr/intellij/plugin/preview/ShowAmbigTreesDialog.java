@@ -1,12 +1,20 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.PopupChooserBuilder;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
+import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -50,6 +58,85 @@ public class ShowAmbigTreesDialog extends JDialog {
 			});
 	}
 
+	public static JBPopup createAmbigTreesPopup(final PreviewState previewState,
+												final AmbiguityInfo ambigInfo) {
+		final JBList list = new JBList("Show all phrase interpretations");
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JBPopupFactory factory = JBPopupFactory.getInstance();
+		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
+		builder.setItemChoosenCallback(
+			new Runnable() {
+				@Override
+				public void run() {
+					// pop up subtrees for ambig intrepretation
+					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+					Parser parser = previewState.parsingResult.parser;
+					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
+					List<ParserRuleContext> ambiguousParseTrees =
+						Parser.getAllPossibleParseTrees(parser,
+														parser.getTokenStream(),
+														ambigInfo.decision,
+														ambigInfo.ambigAlts,
+														ambigInfo.startIndex,
+														ambigInfo.stopIndex,
+														startRuleIndex);
+
+					TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+					String phrase = tokens.getText(Interval.of(ambigInfo.startIndex, ambigInfo.stopIndex));
+					if (phrase.length() > MAX_PHRASE_WIDTH) {
+						phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
+					}
+					String title = ambiguousParseTrees.size() +
+								   " Interpretations of Ambiguous Input Phrase: " +
+								   phrase;
+					dialog.setTrees(previewState, ambiguousParseTrees, title);
+					dialog.pack();
+					dialog.setVisible(true);
+				}
+			}
+		);
+		JBPopup popup = builder.createPopup();
+		return popup;
+	}
+
+	public static JBPopup createLookaheadTreesPopup(final PreviewState previewState,
+													final LookaheadEventInfo lookaheadInfo) {
+		final JBList list = new JBList("Show all lookahead interpretations");
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JBPopupFactory factory = JBPopupFactory.getInstance();
+		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
+		builder.setItemChoosenCallback(
+			new Runnable() {
+				@Override
+				public void run() {
+					// pop up subtrees for lookahead
+					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+					ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
+					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
+					List<ParserRuleContext> ambiguousParseTrees =
+						ParsingUtils.getLookaheadParseTrees(parser,
+															startRuleIndex,
+															lookaheadInfo.decision,
+															lookaheadInfo.startIndex,
+															lookaheadInfo.stopIndex);
+					String phrase = parser.getTokenStream().getText(Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex));
+					if (phrase.length() > MAX_PHRASE_WIDTH) {
+						phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
+					}
+					String title = ambiguousParseTrees.size() +
+								   " Interpretations of Lookahead Phrase: " +
+								   phrase;
+					dialog.setTrees(previewState, ambiguousParseTrees, title);
+					dialog.pack();
+					dialog.setVisible(true);
+				}
+			}
+		);
+
+		JBPopup popup = builder.createPopup();
+		return popup;
+	}
+
 	public void setScale(double scale) {
 		for (TreeViewer viewer : treeViewers) {
 			viewer.setScale(scale);
@@ -57,20 +144,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 		treeScrollPane.revalidate();
 	}
 
-	public void setTrees(PreviewState previewState, AmbiguityInfo ambigEvent) {
-		Parser parser = previewState.parsingResult.parser;
-		int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-		List<ParserRuleContext> ambiguousParseTrees =
-			Parser.getAmbiguousParseTrees(parser, ambigEvent, startRuleIndex);
+	public void setTrees(PreviewState previewState,
+						 List<ParserRuleContext> trees,
+						 String title) {
 		this.previewState = previewState;
-		this.ambiguousParseTrees = ambiguousParseTrees;
+		this.ambiguousParseTrees = trees;
 		if (ambiguousParseTrees != null) {
 			int numTrees = ambiguousParseTrees.size();
-			String phrase = ambigEvent.input.getText(Interval.of(ambigEvent.startIndex, ambigEvent.stopIndex));
-			if (phrase.length() > MAX_PHRASE_WIDTH) {
-				phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
-			}
-			setTitle(numTrees + " Interpretations of Ambiguous Input Phrase: " + phrase);
+			setTitle(title);
 			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
 			JBPanel panelOfTrees = new JBPanel();
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));

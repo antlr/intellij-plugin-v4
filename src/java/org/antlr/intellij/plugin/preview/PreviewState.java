@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
+import org.antlr.v4.tool.LexerGrammar;
 
 /** Track everything associated with the state of the preview window.
  *  For each grammar, we need to track an InputPanel (with <= 2 editor objects)
@@ -23,7 +24,7 @@ import org.antlr.v4.tool.Grammar;
 public class PreviewState {
 	public VirtualFile grammarFile;
 	public Grammar g;
-	public Grammar lg;
+	public LexerGrammar lg;
 	public String startRuleName;
 	public CharSequence manualInputText = ""; // save input when switching grammars
 	public String inputFileName = ""; 	// save input file when switching grammars

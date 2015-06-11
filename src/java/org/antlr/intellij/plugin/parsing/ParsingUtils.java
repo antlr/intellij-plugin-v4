@@ -10,25 +10,33 @@ import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.intellij.plugin.test.InterpreterRuleContextTextProvider;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.LexerNoViableAltException;
+import org.antlr.v4.runtime.ParserInterpreter;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.PredictionMode;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Utils;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
@@ -38,10 +46,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
@@ -183,7 +194,7 @@ public class ParsingUtils {
 	public static CommonTokenStream tokenizeANTLRGrammar(String text) {
 		ANTLRInputStream input = new ANTLRInputStream(text);
 		ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		CommonTokenStream tokens = new TokenStreamSubset(lexer);
 		tokens.fill();
 		return tokens;
 	}
@@ -206,7 +217,7 @@ public class ParsingUtils {
     public static ParsingResult parseANTLRGrammar(String text) {
 	    ANTLRInputStream input = new ANTLRInputStream(text);
 		ANTLRv4Lexer lexer = new ANTLRv4Lexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		CommonTokenStream tokens = new TokenStreamSubset(lexer);
 		ANTLRv4Parser parser = new ANTLRv4Parser(tokens);
 
 		SyntaxErrorListener listener = new SyntaxErrorListener();
@@ -250,44 +261,59 @@ public class ParsingUtils {
 //		}
 		return null;
 	}
-	public static ParsingResult parseText(PreviewState previewState,
-										  PreviewPanel previewPanel,
+
+	public static ParsingResult parseText(Grammar g,
+										  LexerGrammar lg,
+										  String startRuleName,
 										  final VirtualFile grammarFile,
 										  String inputText)
 		throws IOException
 	{
-		ANTLRv4PluginController.LOG.info("parseText("+grammarFile.getName()+
-										 ", input="+inputText.subSequence(0,Math.min(30, inputText.length()))+"...)");
-		String grammarFileName = grammarFile.getPath();
+		ANTLRInputStream input = new ANTLRInputStream(inputText);
+		LexerInterpreter lexEngine;
+		lexEngine = lg.createLexerInterpreter(input);
+		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
+		lexEngine.removeErrorListeners();
+		lexEngine.addErrorListener(syntaxErrorListener);
+		CommonTokenStream tokens = new TokenStreamSubset(lexEngine);
+		return parseText(g, lg, startRuleName, grammarFile, syntaxErrorListener, tokens, 0);
+	}
+
+	public static ParsingResult parseText(Grammar g,
+										  LexerGrammar lg,
+										  String startRuleName,
+										  final VirtualFile grammarFile,
+										  SyntaxErrorListener syntaxErrorListener,
+										  TokenStream tokens,
+										  int startIndex)
+		throws IOException
+	{
+		if ( g==null || lg==null ) {
+			ANTLRv4PluginController.LOG.info("parseText can't parse: missing lexer or parser no Grammar object for " +
+											 (grammarFile != null ? grammarFile.getName() : "<unknown file>"));
+			return null;
+		}
+
+		String grammarFileName = g.fileName;
 		if (!new File(grammarFileName).exists()) {
 			ANTLRv4PluginController.LOG.info("parseText grammar doesn't exist "+grammarFileName);
 			return null;
 		}
 
-		if ( previewState.g==null || previewState.lg==null ) {
-			ANTLRv4PluginController.LOG.info("parseText can't parse: missing lexer or parser no Grammar object for "+grammarFileName);
+		if ( g==BAD_PARSER_GRAMMAR || lg==BAD_LEXER_GRAMMAR ) {
 			return null;
 		}
 
-		if ( previewState.g==BAD_PARSER_GRAMMAR || previewState.lg==BAD_LEXER_GRAMMAR ) {
-			return null;
-		}
+		tokens.seek(startIndex);
 
-		ANTLRInputStream input = new ANTLRInputStream(inputText);
-		LexerInterpreter lexEngine;
-		lexEngine = previewState.lg.createLexerInterpreter(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexEngine);
-		PreviewParser parser = new PreviewParser(previewState.g, tokens);
+		PreviewParser parser = new PreviewParser(g, tokens);
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 		parser.setProfile(true);
 
-		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
 		parser.removeErrorListeners();
 		parser.addErrorListener(syntaxErrorListener);
-		lexEngine.removeErrorListeners();
-		lexEngine.addErrorListener(syntaxErrorListener);
 
-		Rule start = previewState.g.getRule(previewState.startRuleName);
+		Rule start = g.getRule(startRuleName);
 		if ( start==null ) {
 			return null; // can't find start rule
 		}
@@ -299,6 +325,96 @@ public class ParsingUtils {
 		}
 		return null;
 	}
+
+	/*
+	public static ATNConfigSet getReachableParsePositions(Grammar g,
+														  LexerGrammar lg,
+														  String startRuleName,
+														  String inputText)
+	{
+		ParsingResult parsingResult;
+		try {
+			parsingResult = parseText(g, lg, startRuleName, null, inputText);
+		}
+		catch (IOException ioe) {
+			ANTLRv4PluginController.LOG.info("getReachableParsePositions can't parse: "+ioe.getMessage());
+			return null;
+		}
+		SyntaxErrorListener errs = parsingResult.syntaxErrorListener;
+		System.out.println("errors="+errs);
+		// presumption is that we'll get either InputMismatch or NoViableAlt since we're clipping input
+		int nerrors = errs.getSyntaxErrors().size();
+		if ( nerrors>0 ) {
+			SyntaxError lastError = errs.getSyntaxErrors().get(nerrors - 1);
+			SyntaxError error = lastError;
+			RecognitionException e = lastError.getException();
+			if ( e instanceof InputMismatchException ) { //  && ((NoViableAltException)e).getStartToken().getType()==Token.EOF ) {
+				error = errs.getSyntaxErrors().get(nerrors - 2); // skip this one
+				e = error.getException();
+			}
+			// it will always be NoViableAltException because we are asking it to
+			// parse (until last token) within a lookahead decision.
+			ATNConfigSet deadEndConfigs = ((NoViableAltException) e).getDeadEndConfigs();
+			deadEndConfigs.getAlts();
+			System.out.println("noviable "+deadEndConfigs);
+			return deadEndConfigs;
+		}
+
+		return null;
+
+//		try {
+//			// Create a new parser interpreter to parse the ambiguous subphrase
+//			ParserInterpreter parser;
+//			if (originalParser instanceof ParserInterpreter) {
+//				parser = ((ParserInterpreter) originalParser).copyFrom((ParserInterpreter) originalParser);
+//			}
+//			else {
+//				char[] serializedAtn = ATNSerializer.getSerializedAsChars(originalParser.getATN());
+//				ATN deserialized = new ATNDeserializer().deserialize(serializedAtn);
+//				parser = new ParserInterpreter(originalParser.getGrammarFileName(),
+//											   originalParser.getVocabulary(),
+//											   Arrays.asList(originalParser.getRuleNames()),
+//											   deserialized,
+//											   tokens);
+//			}
+//
+//			// Make sure that we don't get any error messages from using this temporary parser
+//			parser.removeErrorListeners();
+//			parser.removeParseListeners();
+//			SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
+//			parser.addErrorListener(syntaxErrorListener);
+//			parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+//
+//			ParserRuleContext t = parser.parse(startRuleIndex);
+//			System.out.println(t.toStringTree(parser));
+//
+//			System.out.println("errors="+syntaxErrorListener);
+//			// presumption is that we'll get either InputMismatch or NoViableAlt since we're clipping input
+//			int nerrors = syntaxErrorListener.getSyntaxErrors().size();
+//			if ( nerrors>0 ) {
+//				SyntaxError lastError = syntaxErrorListener.getSyntaxErrors().get(nerrors - 1);
+//				SyntaxError error = lastError;
+//				RecognitionException e = lastError.getException();
+//				if ( e instanceof InputMismatchException ) { //  && ((NoViableAltException)e).getStartToken().getType()==Token.EOF ) {
+//					error = syntaxErrorListener.getSyntaxErrors().get(nerrors - 2); // skip this one
+//					e = error.getException();
+//				}
+//				// it will always be NoViableAltException because we are asking it to
+//				// parse (until last token) within a lookahead decision.
+//				ATNConfigSet deadEndConfigs = ((NoViableAltException) e).getDeadEndConfigs();
+//				deadEndConfigs.getAlts();
+//				System.out.println("noviable "+deadEndConfigs);
+//				return deadEndConfigs;
+//			}
+//		}
+//		finally {
+//			tokens.undoClip();
+//			tokens.seek(saveTokenInputPosition);
+//		}
+//
+//		return null;
+	}
+	*/
 
 	public static Tool createANTLRToolForLoadingGrammars() {
 		Tool antlr = new Tool();
@@ -447,5 +563,170 @@ public class ParsingUtils {
         }
 		tool.process(g, false);
 		return g;
+	}
+
+	/** Must have already parsed so that we had DFA available */
+	@NotNull
+	public static List<ParserRuleContext> getLookaheadParseTrees(ParserInterpreter originalParser,
+																 int startRuleIndex,
+																 int decision,
+																 int startIndex,
+																 int stopIndex)
+	{
+		ParserInterpreter parser = originalParser.copyFrom(originalParser);
+		TokenStreamSubset tokens = (TokenStreamSubset) parser.getTokenStream();
+//		parser.setErrorHandler(new BailErrorStrategy());
+		parser.removeErrorListeners();
+		parser.removeParseListeners();
+		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+
+		DecisionState decisionState = originalParser.getATN().decisionToState.get(decision);
+		Set<Integer> altSet = new HashSet<>();
+		for (int i=1; i<=decisionState.getTransitions().length; i++) {
+			altSet.add(i);
+		}
+
+		// First, figure out which alts are viable at the start of the lookahead
+		// We can figure that out by simply looking at the alternatives within
+		// the start state of the decision DFA.
+//		DFA dfa = originalParser.getInterpreter().decisionToDFA[decision];
+//		Set<Integer> altSet = dfa.s0.getAltSet();
+
+//		if ( stopIndex>=tokens.size()-1 ) { // lookahead must have hit EOF (which is included in size())
+//			stopIndex = tokens.size() - 2;  // drop it back in range
+//		}
+		System.out.println("dfa alts = "+altSet+", range = "+startIndex+".."+stopIndex);
+
+		tokens.seek(0); // rewind the input all the way for re-parsing
+
+		// Now, we re-parse from the beginning until
+		// the last lookahead token.
+
+		// we must parse the entire input now with decision overrides
+		// we cannot parse a subset because it could be that a decision
+		// above our decision of interest needs to read way past
+		// lookaheadInfo.stopIndex. It seems like there is no escaping
+		// the use of a full and complete token stream if we are
+		// resetting to token index 0 and re-parsing from the start symbol.
+		// It's not easy to restart parsing somewhere in the middle like a
+		// continuation because our call stack does not match the
+		// tree stack because of left recursive rule rewriting. grrrr!
+
+		parser.setErrorHandler(new DefaultErrorStrategy());
+		// get ambig trees
+		List<ParserRuleContext> trees = new ArrayList<>();
+		int min = Integer.MAX_VALUE;
+		int max = Integer.MIN_VALUE;
+		InterpreterRuleContextTextProvider nodeTextProvider =
+			new InterpreterRuleContextTextProvider(parser.getRuleNames());
+		for (Integer alt : altSet) {
+			// re-parse entire input for all ambiguous alternatives
+			// (don't have to do first as it's been parsed, but do again for simplicity
+			//  using this temp parser.)
+			parser.reset();
+			System.out.print("parsing alt " + alt + " for 0.."+(tokens.size()-1));
+			parser.addDecisionOverride(decision, startIndex, alt);
+			ParserRuleContext tt = parser.parse(startRuleIndex);
+			System.out.print("\t\t"+Trees.toStringTree(tt, nodeTextProvider));
+			ParserRuleContext subtree =
+				Trees.getRootOfSubtreeEnclosingRegion(tt,
+													  startIndex,
+													  stopIndex);
+			System.out.print("\t\t"+Trees.toStringTree(subtree, nodeTextProvider));
+//			stripChildrenOutOfRange(tokens, subtree, startIndex, stopIndex);
+			System.out.println("\t\t" + Trees.toStringTree(subtree, nodeTextProvider));
+			Interval range = subtree.getSourceInterval();
+			System.out.println("range after strip: " + range);
+			if ( range.a>=0 ) min = Math.min(min, range.a);
+			if ( range.b>=0 ) max = Math.max(max, range.b);
+
+			trees.add(tt); // add unmolested tree as we'll adjust below; we just compute max range here
+//			System.out.println("alt "+alt+": "+Trees.toStringTree(subtree, nodeTextProvider));
+		}
+		System.out.println("min/max = "+min+"/"+max);
+
+		List<ParserRuleContext> strippedTrees = new ArrayList<>();
+		for (int i = 0; i < trees.size(); i++) {
+			ParserRuleContext t = trees.get(i);
+
+			ParserRuleContext subtree =
+				Trees.getRootOfSubtreeEnclosingRegion(t,
+													  min,
+													  max);
+			System.out.println("enclosing "+Trees.toStringTree(subtree, nodeTextProvider));
+//			stripChildrenOutOfRange(tokens,	subtree, startIndex, stopIndex);
+			System.out.println("stripped "+Trees.toStringTree(subtree, nodeTextProvider));
+			strippedTrees.add(t);
+//			strippedTrees.add(subtree);
+		}
+		return strippedTrees;
+	}
+
+	/** Replace any subtree siblings of root that are completely to left
+	 *  or right of lookahead range with a "..." node. The source interval
+	 *  for t is reset if needed.
+	 *
+	 *  WARNING: destructive to t.
+	 */
+	public static void stripChildrenOutOfRange(TokenStreamSubset tokens,
+											   ParserRuleContext t,
+											   int startIndex,
+											   int stopIndex)
+	{
+		if ( t==null ) return;
+		// strip on left first (and separately from right)
+		int lastAbbrev = -1;
+		for (int i = 0; i < t.getChildCount(); i++) {
+			ParseTree child = t.getChild(i);
+			Interval range = child.getSourceInterval();
+			if ( child instanceof ParserRuleContext && range.b < startIndex ) {
+				CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
+				t.children.set(i, new TerminalNodeImpl(abbrev));
+				lastAbbrev = i;
+			}
+		}
+		// strip away everything but one "..." on left
+		if ( lastAbbrev>=0 ) t.children = t.children.subList(lastAbbrev, t.getChildCount());
+
+		// strip on right
+		int firstAbbrev = Integer.MAX_VALUE;
+		int firstError = Integer.MAX_VALUE;
+		for (int i = t.getChildCount()-1; i>=0; --i) {
+			ParseTree child = t.getChild(i);
+			if ( child instanceof ErrorNode ) {
+				firstError = i;
+			}
+			Interval range = child.getSourceInterval();
+			if ( child instanceof ParserRuleContext && range.a > stopIndex ) {
+				CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
+				t.children.set(i, new TerminalNodeImpl(abbrev));
+				firstAbbrev = i;
+			}
+		}
+		// strip away everything but one "..." on right
+		int last = Math.min(firstAbbrev, firstError);
+		if ( last!=Integer.MAX_VALUE ) t.children = t.children.subList(0, last + 1);
+
+//		for (int i = 0; i < t.getChildCount(); i++) {
+//			ParseTree child = t.getChild(i);
+//			Interval range = child.getSourceInterval();
+//			if ( child instanceof ParserRuleContext && (range.b < startIndex || range.a > stopIndex) ) {
+//				CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
+//				t.children.set(i, new TerminalNodeImpl(abbrev));
+//				// once we do a "..." replacement, chop off remaining siblings
+////				t.children = t.children.subList(0, i);
+//			}
+//		}
+		int min = Integer.MAX_VALUE;
+		int max = Integer.MIN_VALUE;
+		for (int i = 0; i < t.getChildCount(); i++) {
+			ParseTree child = t.getChild(i);
+			Interval range = child.getSourceInterval();
+			if ( range.a>=0 ) min = Math.min(min, range.a);
+			if ( range.b>=0 ) max = Math.max(max, range.b);
+		}
+
+		if ( min != Integer.MAX_VALUE ) t.start = tokens.get(min);
+		if ( max != Integer.MIN_VALUE ) t.stop = tokens.get(max);
 	}
 }

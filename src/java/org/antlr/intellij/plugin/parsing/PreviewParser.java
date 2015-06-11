@@ -34,13 +34,15 @@ public class PreviewParser extends ParserInterpreter {
 	 */
 	public Map<Token, Integer> inputTokenToStateMap = new HashMap<Token, Integer>();
 
-	protected final BitSet decisionStatesThatSetOuterAltNumInContext;
+	protected BitSet decisionStatesThatSetOuterAltNumInContext;
 
 	/** Cache {@link LeftRecursiveRule#getPrimaryAlts()} and
 	 *  {@link LeftRecursiveRule#getRecursiveOpAlts()} for states in
 	 *  {@link #decisionStatesThatSetOuterAltNumInContext}.
 	 */
 	protected final Map<DecisionState, int[]> stateToAltsMap = new HashMap<>();
+
+	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER;
 
 	public PreviewParser(Grammar g, TokenStream input) {
 		super(g.fileName, g.getVocabulary(),
@@ -49,7 +51,9 @@ public class PreviewParser extends ParserInterpreter {
 			  new ATNDeserializer().deserialize(ATNSerializer.getSerializedAsChars(g.atn)),
 			  input);
 		this.g = g;
-		decisionStatesThatSetOuterAltNumInContext = findOuterMostDecisionStates();
+		if ( decisionStatesThatSetOuterAltNumInContext==null ) {
+			decisionStatesThatSetOuterAltNumInContext = findOuterMostDecisionStates();
+		}
 	}
 
 	@Override
@@ -59,8 +63,20 @@ public class PreviewParser extends ParserInterpreter {
 	}
 
 	@Override
+	public void reset() {
+		super.reset();
+		if ( inputTokenToStateMap!=null ) inputTokenToStateMap.clear();
+	}
+
+	@Override
 	protected InterpreterRuleContext createInterpreterRuleContext(ParserRuleContext parent, int invokingStateNumber, int ruleIndex) {
 		return new PreviewInterpreterRuleContext(parent, invokingStateNumber, ruleIndex);
+	}
+
+	@Override
+	public void enterRule(ParserRuleContext localctx, int state, int ruleIndex) {
+		super.enterRule(localctx, state, ruleIndex);
+//		System.out.println("enter "+getRuleNames()[ruleIndex]);
 	}
 
 	/**In the case of left-recursive rules,
@@ -91,8 +107,8 @@ public class PreviewParser extends ParserInterpreter {
 	 * predicted alternative coming back from adaptivePredict().
 	 */
 	@Override
-	protected int visitDecisionsState(DecisionState p) {
-		int predictedAlt = super.visitDecisionsState(p);
+	protected int visitDecisionState(DecisionState p) {
+		int predictedAlt = super.visitDecisionState(p);
 		PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext)_ctx;
 		if ( decisionStatesThatSetOuterAltNumInContext.get(p.stateNumber) ) {
 			ctx.outerAltNum = predictedAlt;
@@ -153,18 +169,21 @@ public class PreviewParser extends ParserInterpreter {
 
 	@Override
 	public Token match(int ttype) throws RecognitionException {
+//		System.out.println("match ATOM state " + getState() + ": " + _input.LT(1));
 		Token t = super.match(ttype);
 		// track which ATN state matches each token
 		inputTokenToStateMap.put(t, getState());
+		lastSuccessfulMatchState = getState();
 //		CommonToken tokenInGrammar = previewState.stateToGrammarRegionMap.get(getState());
-//		System.out.println("match ATOM state " + getState() + ": " + tokenInGrammar);
 		return t;
 	}
+
 
 	@Override
 	public Token matchWildcard() throws RecognitionException {
 //		System.out.println("match anything state "+getState());
 		inputTokenToStateMap.put(_input.LT(1), getState());
+		lastSuccessfulMatchState = getState();
 		return super.matchWildcard();
 	}
 }

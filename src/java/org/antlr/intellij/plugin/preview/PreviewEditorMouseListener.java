@@ -7,14 +7,11 @@ import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.event.EditorMouseMotionListener;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.PopupChooserBuilder;
-import com.intellij.ui.components.JBList;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
+import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 
-import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
@@ -43,7 +40,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		if ( e.getMouseEvent().getButton()==MouseEvent.BUTTON3 ) { // right click
-			rightClick(previewState, editor, offset);
+			rightClick(e, previewState, editor, offset);
 			return;
 		}
 
@@ -57,39 +54,30 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		editor.getMarkupModel().removeAllHighlighters();
 	}
 
-	public void rightClick(final PreviewState previewState, Editor editor, int offset) {
+	public void rightClick(final EditorMouseEvent e,
+						   final PreviewState previewState,
+						   Editor editor, int offset)
+	{
 		if (previewState.parsingResult == null) return;
 		final List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
 		if (highlightersAtOffset.size() == 0) {
 			return;
 		}
 
-		final AmbiguityInfo ambigEvent =
+		final AmbiguityInfo ambigInfo =
 			(AmbiguityInfo)MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
 																			 AmbiguityInfo.class);
-		if ( ambigEvent==null ) {
-			return;
+		final LookaheadEventInfo lookaheadInfo =
+			(LookaheadEventInfo)MyActionUtils.getHighlighterWithDecisionEventType(highlightersAtOffset,
+																				  LookaheadEventInfo.class);
+		if ( ambigInfo!=null ) {
+			JBPopup popup = ShowAmbigTreesDialog.createAmbigTreesPopup(previewState, ambigInfo);
+			popup.showInBestPositionFor(editor);
 		}
-
-		// Show popup menu to choose "show trees"
-		final JBList list = new JBList("Show all phrase interpretations");
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JBPopupFactory factory = JBPopupFactory.getInstance();
-		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
-		builder.setItemChoosenCallback(
-			new Runnable() {
-				@Override
-				public void run() {
-					// pop up subtrees for ambig intrepretation
-					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
-					dialog.setTrees(previewState, ambigEvent);
-					dialog.pack();
-					dialog.setVisible(true);
-				}
-			}
-		);
-		JBPopup popup = builder.createPopup();
-		popup.showInBestPositionFor(editor);
+		else if ( lookaheadInfo != null ) {
+			JBPopup popup = ShowAmbigTreesDialog.createLookaheadTreesPopup(previewState, lookaheadInfo);
+			popup.showInBestPositionFor(editor);
+		}
 	}
 
 	@Override

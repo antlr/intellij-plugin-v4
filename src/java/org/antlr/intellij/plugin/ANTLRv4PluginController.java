@@ -45,6 +45,7 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.Grammar;
+import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -378,7 +379,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
 		if (grammars != null) {
 			synchronized (previewState) { // build atomically
-				previewState.lg = grammars[0];
+				previewState.lg = (LexerGrammar)grammars[0];
 				previewState.g = grammars[1];
 			}
 		}
@@ -413,7 +414,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewPanel.inputPanel.clearParseErrors(grammarFile);
 
 		long start = System.nanoTime();
-		previewState.parsingResult = ParsingUtils.parseText(previewState, previewPanel, grammarFile, inputText);
+		previewState.parsingResult =
+			ParsingUtils.parseText(previewState.g, previewState.lg,
+								   previewState.startRuleName,
+								   grammarFile, inputText);
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}
