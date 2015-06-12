@@ -10,6 +10,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
+import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -18,6 +19,7 @@ import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
 import javax.swing.*;
@@ -26,6 +28,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ShowAmbigTreesDialog extends JDialog {
@@ -51,109 +54,109 @@ public class ShowAmbigTreesDialog extends JDialog {
 		});
 
 		treeSizeSlider.addChangeListener(
-		new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int v = ((JSlider) e.getSource()).getValue();
-				setScale(v/1000.0+1.0);
-			}
-		});
+			new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					int v = ((JSlider) e.getSource()).getValue();
+					setScale(v / 1000.0 + 1.0);
+				}
+			});
 	}
 
 	public static JBPopup createAmbigTreesPopup(final PreviewState previewState,
-	                                            final AmbiguityInfo ambigInfo) {
+												final AmbiguityInfo ambigInfo) {
 		final JBList list = new JBList("Show all phrase interpretations");
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JBPopupFactory factory = JBPopupFactory.getInstance();
 		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
 		builder.setItemChoosenCallback(
-		new Runnable() {
-			@Override
-			public void run() {
-				// pop up subtrees for ambig intrepretation
-				ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
-				Parser parser = previewState.parsingResult.parser;
-				int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-				List<ParserRuleContext> ambiguousParseTrees = null;
-				try {
-					ambiguousParseTrees =
-						Parser.getAllPossibleParseTrees(parser,
-						                                parser.getTokenStream(),
-						                                ambigInfo.decision,
-						                                ambigInfo.ambigAlts,
-						                                ambigInfo.startIndex,
-						                                ambigInfo.stopIndex,
-						                                startRuleIndex);
-				}
-				catch (ParseCancellationException pce) {
-					// should be no errors for ambiguities, unless original
-					// input itself has errors. Just display error in this case.
-					JBPanel errPanel = new JBPanel(new BorderLayout());
-					errPanel.add(new JBLabel("Cannot display ambiguous trees while there are syntax errors in your input."));
-					dialog.treeScrollPane.setViewportView(errPanel);
-				}
-
-				if ( ambiguousParseTrees!=null ) {
-					TokenStream tokens = previewState.parsingResult.parser.getInputStream();
-					String phrase = tokens.getText(Interval.of(ambigInfo.startIndex, ambigInfo.stopIndex));
-					if ( phrase.length()>MAX_PHRASE_WIDTH ) {
-						phrase = phrase.substring(0, MAX_PHRASE_WIDTH)+"...";
+			new Runnable() {
+				@Override
+				public void run() {
+					// pop up subtrees for ambig intrepretation
+					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+					Parser parser = previewState.parsingResult.parser;
+					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
+					List<ParserRuleContext> ambiguousParseTrees = null;
+					try {
+						ambiguousParseTrees =
+							ParsingUtils.getAllPossibleParseTrees((PreviewParser) parser,
+																  parser.getTokenStream(),
+																  ambigInfo.decision,
+																  ambigInfo.ambigAlts,
+																  ambigInfo.startIndex,
+																  ambigInfo.stopIndex,
+																  startRuleIndex);
 					}
-					String title = ambiguousParseTrees.size()+
-					" Interpretations of Ambiguous Input Phrase: "+
-					phrase;
-					dialog.setTrees(previewState, ambiguousParseTrees, title);
-				}
+					catch (ParseCancellationException pce) {
+						// should be no errors for ambiguities, unless original
+						// input itself has errors. Just display error in this case.
+						JBPanel errPanel = new JBPanel(new BorderLayout());
+						errPanel.add(new JBLabel("Cannot display ambiguous trees while there are syntax errors in your input."));
+						dialog.treeScrollPane.setViewportView(errPanel);
+					}
 
-				dialog.pack();
-				dialog.setVisible(true);
+					if (ambiguousParseTrees != null) {
+						TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+						String phrase = tokens.getText(Interval.of(ambigInfo.startIndex, ambigInfo.stopIndex));
+						if (phrase.length() > MAX_PHRASE_WIDTH) {
+							phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
+						}
+						String title = ambiguousParseTrees.size() +
+									   " Interpretations of Ambiguous Input Phrase: " +
+									   phrase;
+						dialog.setTrees(previewState, ambiguousParseTrees, title);
+					}
+
+					dialog.pack();
+					dialog.setVisible(true);
+				}
 			}
-		}
-		                              );
+		);
 		JBPopup popup = builder.createPopup();
 		return popup;
 	}
 
 	public static JBPopup createLookaheadTreesPopup(final PreviewState previewState,
-	                                                final LookaheadEventInfo lookaheadInfo) {
+													final LookaheadEventInfo lookaheadInfo) {
 		final JBList list = new JBList("Show all lookahead interpretations");
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JBPopupFactory factory = JBPopupFactory.getInstance();
 		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
 		builder.setItemChoosenCallback(
-		new Runnable() {
-			@Override
-			public void run() {
-				// pop up subtrees for lookahead
-				ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
-				ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
-				int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-				List<ParserRuleContext> ambiguousParseTrees =
-				ParsingUtils.getLookaheadParseTrees(parser,
-				                                    startRuleIndex,
-				                                    lookaheadInfo.decision,
-				                                    lookaheadInfo.startIndex,
-				                                    lookaheadInfo.stopIndex);
-				String phrase = parser.getTokenStream().getText(Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex));
-				if ( phrase.length()>MAX_PHRASE_WIDTH ) {
-					phrase = phrase.substring(0, MAX_PHRASE_WIDTH)+"...";
+			new Runnable() {
+				@Override
+				public void run() {
+					// pop up subtrees for lookahead
+					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+					ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
+					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
+					List<ParserRuleContext> lookaheadParseTrees =
+						ParsingUtils.getLookaheadParseTrees(parser,
+															startRuleIndex,
+															lookaheadInfo.decision,
+															lookaheadInfo.startIndex,
+															lookaheadInfo.stopIndex);
+					String phrase = parser.getTokenStream().getText(Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex));
+					if (phrase.length() > MAX_PHRASE_WIDTH) {
+						phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
+					}
+					String title = lookaheadParseTrees.size() +
+								   " Interpretations of Lookahead Phrase: " +
+								   phrase;
+					dialog.setTrees(previewState, lookaheadParseTrees, title);
+					dialog.pack();
+					dialog.setVisible(true);
 				}
-				String title = ambiguousParseTrees.size()+
-				" Interpretations of Lookahead Phrase: "+
-				phrase;
-				dialog.setTrees(previewState, ambiguousParseTrees, title);
-				dialog.pack();
-				dialog.setVisible(true);
 			}
-		}
-		                              );
+		);
 
 		JBPopup popup = builder.createPopup();
 		return popup;
 	}
 
 	public void setScale(double scale) {
-		if ( treeViewers==null ) return;
+		if (treeViewers == null) return;
 		for (TreeViewer viewer : treeViewers) {
 			viewer.setScale(scale);
 		}
@@ -161,24 +164,38 @@ public class ShowAmbigTreesDialog extends JDialog {
 	}
 
 	public void setTrees(PreviewState previewState,
-	                     List<ParserRuleContext> trees,
-	                     String title) {
+						 List<ParserRuleContext> trees,
+						 String title) {
 		this.previewState = previewState;
 		this.ambiguousParseTrees = trees;
-		if ( ambiguousParseTrees!=null ) {
+		if (ambiguousParseTrees != null) {
 			int numTrees = ambiguousParseTrees.size();
 			setTitle(title);
 			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
 			JBPanel panelOfTrees = new JBPanel();
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
-			for (int i = 0; i<numTrees; i++) {
-				if ( i>0 ) {
+			for (int i = 0; i < numTrees; i++) {
+				if (i > 0) {
 					panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
 				}
 				ParserRuleContext ctx = ambiguousParseTrees.get(i);
 				treeViewers[i] = new TrackpadZoomingTreeView(null, null);
-				treeViewers[i].setTreeTextProvider(new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g));
+				AltLabelTextProvider treeText =
+					new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
+				treeViewers[i].setTreeTextProvider(treeText);
 				treeViewers[i].setTree(ctx);
+				// highlight root so people can see it across trees; might not be top node
+				final Tree root = ParsingUtils.findOverriddenDecisionRoot(ctx);
+				if (root == null) {
+					// I saw this when a (...)+ exit branch was taken here
+//					declarationSpecifiers
+//					    :   declarationSpecifier+
+//					    ;
+
+				}
+				treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
+					add(root);
+				}});
 				panelOfTrees.add(treeViewers[i]);
 			}
 
@@ -204,17 +221,17 @@ public class ShowAmbigTreesDialog extends JDialog {
 		contentPane.setLayout(new GridLayoutManager(3, 1, new Insets(10, 10, 10, 10), -1, -1));
 		final JPanel panel1 = new JPanel();
 		panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-		contentPane.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
+		contentPane.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
 		final Spacer spacer1 = new Spacer();
 		panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
 		final JPanel panel2 = new JPanel();
 		panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-		panel1.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+		panel1.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
 		buttonOK = new JButton();
 		buttonOK.setText("OK");
-		panel2.add(buttonOK, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		panel2.add(buttonOK, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		treeScrollPane = new JScrollPane();
-		contentPane.add(treeScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+		contentPane.add(treeScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 		treeSizeSlider = new JSlider();
 		treeSizeSlider.setMaximum(1000);
 		treeSizeSlider.setMinimum(-400);

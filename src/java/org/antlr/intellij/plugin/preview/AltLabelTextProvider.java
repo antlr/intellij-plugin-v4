@@ -2,7 +2,6 @@ package org.antlr.intellij.plugin.preview;
 
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
@@ -12,14 +11,13 @@ import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.AltAST;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AltLabelTextProvider implements TreeTextProvider {
 	protected final Parser parser;
 	protected final Grammar g;
-	protected final Map<DecisionState, String[]> stateToAltLabels = new HashMap<>();
+//	protected final Map<DecisionState, String[]> stateToAltLabels = new HashMap<>();
 
 	public AltLabelTextProvider(Parser parser, Grammar g) {
 		this.parser = parser;
@@ -47,14 +45,15 @@ public class AltLabelTextProvider implements TreeTextProvider {
 			PreviewInterpreterRuleContext inode = (PreviewInterpreterRuleContext)node;
 			Rule r = g.getRule(inode.getRuleIndex());
 			String[] altLabels = getAltLabels(r);
+			String name = r.name;
 			if ( altLabels!=null ) {
-				return r.name+":"+altLabels[inode.getOuterAltNum()];
+				return name +":"+altLabels[inode.getOuterAltNum()];
 			}
-			else if ( r.getOriginalNumberOfAlts()>1 ) {
-				return r.name + ":" + inode.getOuterAltNum();
+			else if ( r.getOriginalNumberOfAlts()>0 ) { // show all alt numbers for now
+				return name + ":" + inode.getOuterAltNum();
 			}
 			else {
-				return r.name; // don't display an alternative number if there's only one
+				return name; // don't display an alternative number if there's only one
 			}
 		}
 		return Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
