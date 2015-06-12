@@ -49,14 +49,6 @@
           </grid>
         </children>
       </grid>
-      <component id="37477" class="javax.swing.JTextArea" binding="errorConsole">
-        <constraints border-constraint="South"/>
-        <properties>
-          <editable value="false"/>
-          <lineWrap value="true"/>
-          <rows value="3"/>
-        </properties>
-      </component>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
         <constraints border-constraint="West"/>
         <properties>
@@ -66,6 +58,21 @@
           <text value=""/>
         </properties>
       </component>
+      <scrollpane id="77094">
+        <constraints border-constraint="South"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="37477" class="javax.swing.JTextArea" binding="errorConsole">
+            <constraints/>
+            <properties>
+              <editable value="false"/>
+              <lineWrap value="true"/>
+              <rows value="3"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
     </children>
   </grid>
   <buttonGroups>

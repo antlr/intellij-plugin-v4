@@ -18,7 +18,6 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.ParserInterpreter;
@@ -573,10 +572,10 @@ public class ParsingUtils {
 																 int startIndex,
 																 int stopIndex)
 	{
-		ParserInterpreter parser = originalParser.copyFrom(originalParser);
+		PreviewParser parser = (PreviewParser)originalParser.copyFrom(originalParser);
 		TokenStreamSubset tokens = (TokenStreamSubset) parser.getTokenStream();
 //		parser.setErrorHandler(new BailErrorStrategy());
-		parser.removeErrorListeners();
+//		parser.removeErrorListeners();
 		parser.removeParseListeners();
 		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
 
@@ -589,12 +588,7 @@ public class ParsingUtils {
 		// First, figure out which alts are viable at the start of the lookahead
 		// We can figure that out by simply looking at the alternatives within
 		// the start state of the decision DFA.
-//		DFA dfa = originalParser.getInterpreter().decisionToDFA[decision];
-//		Set<Integer> altSet = dfa.s0.getAltSet();
 
-//		if ( stopIndex>=tokens.size()-1 ) { // lookahead must have hit EOF (which is included in size())
-//			stopIndex = tokens.size() - 2;  // drop it back in range
-//		}
 		System.out.println("dfa alts = "+altSet+", range = "+startIndex+".."+stopIndex);
 
 		tokens.seek(0); // rewind the input all the way for re-parsing
@@ -612,7 +606,7 @@ public class ParsingUtils {
 		// continuation because our call stack does not match the
 		// tree stack because of left recursive rule rewriting. grrrr!
 
-		parser.setErrorHandler(new DefaultErrorStrategy());
+//		parser.setErrorHandler(new DefaultErrorStrategy());
 		// get ambig trees
 		List<ParserRuleContext> trees = new ArrayList<>();
 		int min = Integer.MAX_VALUE;
@@ -624,26 +618,27 @@ public class ParsingUtils {
 			// (don't have to do first as it's been parsed, but do again for simplicity
 			//  using this temp parser.)
 			parser.reset();
-			System.out.print("parsing alt " + alt + " for 0.."+(tokens.size()-1));
+			System.err.print("parsing alt " + alt + " for 0.."+(tokens.size()-1));
 			parser.addDecisionOverride(decision, startIndex, alt);
 			ParserRuleContext tt = parser.parse(startRuleIndex);
-			System.out.print("\t\t"+Trees.toStringTree(tt, nodeTextProvider));
+			System.out.println("ctx at override: "+Trees.toStringTree(parser.overrideDecisionContext, nodeTextProvider));
+			System.err.print("\t\t"+Trees.toStringTree(tt, nodeTextProvider));
 			ParserRuleContext subtree =
 				Trees.getRootOfSubtreeEnclosingRegion(tt,
 													  startIndex,
 													  stopIndex);
-			System.out.print("\t\t"+Trees.toStringTree(subtree, nodeTextProvider));
+			System.err.print("\t\t"+Trees.toStringTree(subtree, nodeTextProvider));
 //			stripChildrenOutOfRange(tokens, subtree, startIndex, stopIndex);
-			System.out.println("\t\t" + Trees.toStringTree(subtree, nodeTextProvider));
+			System.err.println("\t\t" + Trees.toStringTree(subtree, nodeTextProvider));
 			Interval range = subtree.getSourceInterval();
-			System.out.println("range after strip: " + range);
+			System.err.println("range after strip: " + range);
 			if ( range.a>=0 ) min = Math.min(min, range.a);
 			if ( range.b>=0 ) max = Math.max(max, range.b);
 
 			trees.add(tt); // add unmolested tree as we'll adjust below; we just compute max range here
 //			System.out.println("alt "+alt+": "+Trees.toStringTree(subtree, nodeTextProvider));
 		}
-		System.out.println("min/max = "+min+"/"+max);
+		System.err.println("min/max = "+min+"/"+max);
 
 		List<ParserRuleContext> strippedTrees = new ArrayList<>();
 		for (int i = 0; i < trees.size(); i++) {
@@ -656,8 +651,7 @@ public class ParsingUtils {
 			System.out.println("enclosing "+Trees.toStringTree(subtree, nodeTextProvider));
 //			stripChildrenOutOfRange(tokens,	subtree, startIndex, stopIndex);
 			System.out.println("stripped "+Trees.toStringTree(subtree, nodeTextProvider));
-			strippedTrees.add(t);
-//			strippedTrees.add(subtree);
+			strippedTrees.add(subtree);
 		}
 		return strippedTrees;
 	}
@@ -704,7 +698,8 @@ public class ParsingUtils {
 			}
 		}
 		// strip away everything but one "..." on right
-		int last = Math.min(firstAbbrev, firstError);
+//		int last = Math.min(firstAbbrev, firstError);
+		int last = firstAbbrev;
 		if ( last!=Integer.MAX_VALUE ) t.children = t.children.subList(0, last + 1);
 
 //		for (int i = 0; i < t.getChildCount(); i++) {

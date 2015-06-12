@@ -42,7 +42,12 @@ public class PreviewParser extends ParserInterpreter {
 	 */
 	protected final Map<DecisionState, int[]> stateToAltsMap = new HashMap<>();
 
-	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER;
+	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER; // not sure about error nodes
+
+	/** What is the current context when we override a decisions?  This tells
+	 *  us what the root of the parse tree is for an ambiguity/lookahead check.
+	 */
+	protected InterpreterRuleContext overrideDecisionContext = null;
 
 	public PreviewParser(Grammar g, TokenStream input) {
 		super(g.fileName, g.getVocabulary(),
@@ -72,6 +77,92 @@ public class PreviewParser extends ParserInterpreter {
 	protected InterpreterRuleContext createInterpreterRuleContext(ParserRuleContext parent, int invokingStateNumber, int ruleIndex) {
 		return new PreviewInterpreterRuleContext(parent, invokingStateNumber, ruleIndex);
 	}
+
+	@Override
+	protected void recover(RecognitionException e) {
+		super.recover(e);
+	}
+
+	/** Begin parsing at startRuleIndex */
+	/*
+	public ParserRuleContext parse(int startRuleIndex) {
+		RuleStartState startRuleStartState = atn.ruleToStartState[startRuleIndex];
+
+		rootContext = createInterpreterRuleContext(null, ATNState.INVALID_STATE_NUMBER, startRuleIndex);
+		if (startRuleStartState.isLeftRecursiveRule) {
+			enterRecursionRule(rootContext, startRuleStartState.stateNumber, startRuleIndex, 0);
+		}
+		else {
+			enterRule(rootContext, startRuleStartState.stateNumber, startRuleIndex);
+		}
+
+		while ( true ) {
+			ATNState p = getATNState();
+			switch ( p.getStateType() ) {
+			case ATNState.RULE_STOP :
+				// pop; return from rule
+				if ( _ctx.isEmpty() ) {
+					if (startRuleStartState.isLeftRecursiveRule) {
+						ParserRuleContext result = _ctx;
+						Pair<ParserRuleContext, Integer> parentContext = _parentContextStack.pop();
+						unrollRecursionContexts(parentContext.a);
+						return result;
+					}
+					else {
+						exitRule();
+						return rootContext;
+					}
+				}
+
+				visitRuleStopState(p);
+				break;
+
+			default :
+				try {
+					visitState(p);
+				}
+				catch (RecognitionException e) {
+					setState(atn.ruleToStopState[p.ruleIndex].stateNumber);
+					getContext().exception = e;
+					getErrorHandler().reportError(this, e);
+					int i = _input.index();
+					getErrorHandler().recover(this, e);
+					if ( _input.index()==i ) {
+						// no input consumed, better add an error node
+						if ( e instanceof InputMismatchException ) {
+							InputMismatchException ime = (InputMismatchException)e;
+							Token tok = e.getOffendingToken();
+							int expectedTokenType = ime.getExpectedTokens().getMinElement(); // get any element
+							String tokenText;
+							if ( expectedTokenType== Token.EOF ) tokenText = "<missing EOF>";
+							else tokenText = "<mismatched "+getVocabulary().getDisplayName(expectedTokenType)+">";
+
+							Token errToken =
+								getTokenFactory().create(new Pair<>(tok.getTokenSource(), tok.getTokenSource().getInputStream()),
+							                             expectedTokenType, tokenText,
+							                             Token.DEFAULT_CHANNEL,
+							                            -1, -1, // invalid start/stop
+							                             tok.getLine(), tok.getCharPositionInLine());
+							_ctx.addErrorNode(errToken);
+						}
+						else { // NoViableAlt
+							Token tok = e.getOffendingToken();
+							Token errToken =
+								getTokenFactory().create(new Pair<>(tok.getTokenSource(), tok.getTokenSource().getInputStream()),
+							                             Token.INVALID_TYPE, "<nonviable "+tok.getText()+">",
+							                             Token.DEFAULT_CHANNEL,
+							                            -1, -1, // invalid start/stop
+							                             tok.getLine(), tok.getCharPositionInLine());
+							_ctx.addErrorNode(errToken);
+						}
+					}
+				}
+
+				break;
+			}
+		}
+	}
+	*/
 
 	@Override
 	public void enterRule(ParserRuleContext localctx, int state, int ruleIndex) {
@@ -109,6 +200,17 @@ public class PreviewParser extends ParserInterpreter {
 	@Override
 	protected int visitDecisionState(DecisionState p) {
 		int predictedAlt = super.visitDecisionState(p);
+		if( p.getNumberOfTransitions() > 1) {
+//			System.out.print("decision "+p.decision+": "+predictedAlt);
+			if( p.decision == this.overrideDecision &&
+				this._input.index() == this.overrideDecisionInputIndex)
+			{
+//				System.out.print(" OVERRIDE");
+				overrideDecisionContext = (InterpreterRuleContext)getContext();
+			}
+//			System.out.println();
+		}
+
 		PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext)_ctx;
 		if ( decisionStatesThatSetOuterAltNumInContext.get(p.stateNumber) ) {
 			ctx.outerAltNum = predictedAlt;
