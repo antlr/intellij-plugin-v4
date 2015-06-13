@@ -49,7 +49,7 @@ public class AltLabelTextProvider implements TreeTextProvider {
 			if ( altLabels!=null ) {
 				return name +":"+altLabels[inode.getOuterAltNum()];
 			}
-			else if ( r.getOriginalNumberOfAlts()>0 ) { // show all alt numbers for now
+			else if ( r.getOriginalNumberOfAlts()>1 ) {
 				return name + ":" + inode.getOuterAltNum();
 			}
 			else {
