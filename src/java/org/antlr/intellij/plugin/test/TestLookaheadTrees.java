@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.test;
 
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
+import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.parsing.TokenStreamSubset;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -90,7 +91,7 @@ public class TestLookaheadTrees {
 //			new LookaheadEventInfo(decision, null, tokens, startRuleIndex, stopTokenIndex, false);
 
 
-		List<ParserRuleContext> lookaheadParseTrees =
+		List<PreviewInterpreterRuleContext> lookaheadParseTrees =
 			ParsingUtils.getLookaheadParseTrees(parser, startRuleIndex, lookaheadEventInfo.decision,
 												lookaheadEventInfo.startIndex, lookaheadEventInfo.stopIndex);
 

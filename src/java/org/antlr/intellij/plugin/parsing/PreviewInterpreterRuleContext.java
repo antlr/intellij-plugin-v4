@@ -14,6 +14,11 @@ public class PreviewInterpreterRuleContext extends InterpreterRuleContext {
 	/** Used to mark root of subtree that hits the decision override, if any */
 	protected boolean isDecisionOverrideRoot;
 
+	/** A mark bit used during tree diff walk. If marked, then we reached
+	 *  this node.
+	 */
+	public boolean marked;
+
 	/**
 	 * Constructs a new {@link InterpreterRuleContext} with the specified
 	 * parent, invoking state, and rule index.
@@ -37,5 +42,18 @@ public class PreviewInterpreterRuleContext extends InterpreterRuleContext {
 
 	public boolean isDecisionOverrideRoot() {
 		return isDecisionOverrideRoot;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if ( !(obj instanceof PreviewInterpreterRuleContext) ) return false;
+		PreviewInterpreterRuleContext other = (PreviewInterpreterRuleContext) obj;
+		return this==other ||
+			   (ruleIndex == other.ruleIndex && outerAltNum == other.outerAltNum);
+	}
+
+	@Override
+	public int hashCode() {
+		return ruleIndex << 7 + outerAltNum;
 	}
 }

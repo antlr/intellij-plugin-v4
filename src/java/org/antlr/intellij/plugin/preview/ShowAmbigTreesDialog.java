@@ -11,10 +11,10 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
+import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserInterpreter;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
@@ -38,7 +38,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 	private JButton buttonOK;
 	protected JScrollPane treeScrollPane;
 	protected JSlider treeSizeSlider;
-	public List<ParserRuleContext> ambiguousParseTrees;
+	public List<PreviewInterpreterRuleContext> ambiguousParseTrees;
 	public TreeViewer[] treeViewers;
 	public PreviewState previewState;
 
@@ -78,7 +78,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
 					Parser parser = previewState.parsingResult.parser;
 					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-					List<ParserRuleContext> ambiguousParseTrees = null;
+					List<PreviewInterpreterRuleContext> ambiguousParseTrees = null;
 					try {
 						ambiguousParseTrees =
 							ParsingUtils.getAllPossibleParseTrees((PreviewParser) parser,
@@ -133,13 +133,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
 					ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
 					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-					List<ParserRuleContext> lookaheadParseTrees =
+					List<PreviewInterpreterRuleContext> lookaheadParseTrees =
 						ParsingUtils.getLookaheadParseTrees(parser,
 															startRuleIndex,
 															lookaheadInfo.decision,
 															lookaheadInfo.startIndex,
 															lookaheadInfo.stopIndex);
-					String phrase = parser.getTokenStream().getText(Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex));
+					Interval range = Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex);
+					String phrase = parser.getTokenStream().getText(range);
 					if (phrase.length() > MAX_PHRASE_WIDTH) {
 						phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
 					}
@@ -166,10 +167,9 @@ public class ShowAmbigTreesDialog extends JDialog {
 	}
 
 	public void setTrees(PreviewState previewState,
-						 List<ParserRuleContext> trees,
+						 List<PreviewInterpreterRuleContext> trees,
 						 String title,
-						 int highlightTreeIndex)
-	{
+						 int highlightTreeIndex) {
 		this.previewState = previewState;
 		this.ambiguousParseTrees = trees;
 		if (ambiguousParseTrees != null) {
@@ -177,12 +177,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 			setTitle(title);
 			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
 			JBPanel panelOfTrees = new JBPanel();
+			PreviewInterpreterRuleContext chosenTree =
+				ambiguousParseTrees.get(highlightTreeIndex);
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
 			for (int i = 0; i < numTrees; i++) {
 				if (i > 0) {
 					panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
 				}
-				ParserRuleContext ctx = ambiguousParseTrees.get(i);
+				PreviewInterpreterRuleContext ctx = ambiguousParseTrees.get(i);
 				treeViewers[i] = new TrackpadZoomingTreeView(null, null);
 				AltLabelTextProvider treeText =
 					new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
@@ -197,6 +199,9 @@ public class ShowAmbigTreesDialog extends JDialog {
 //					    ;
 					// TODO: display a message?
 				}
+				if (ctx != chosenTree) {
+					mark(chosenTree, ctx);
+				}
 				treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
 					add(root);
 				}});
@@ -210,6 +215,41 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 			// Wrap tree viewer components in scroll pane
 			treeScrollPane.setViewportView(panelOfTrees);
+		}
+	}
+
+	/**
+	 * Given two trees, t and u, compare them starting from the leaves and the decision root
+	 */
+	public static void mark(PreviewInterpreterRuleContext t,
+							PreviewInterpreterRuleContext u) {
+		// Get leaves and the root so we can do a difference between the trees starting at the bottom and top
+		final List<Tree> tleaves = ParsingUtils.getAllLeaves(t);
+		final List<Tree> uleaves = ParsingUtils.getAllLeaves(u);
+		final Tree troot = ParsingUtils.findOverriddenDecisionRoot(t);
+		final Tree uroot = ParsingUtils.findOverriddenDecisionRoot(u);
+
+		int n = tleaves.size();
+		assert uleaves.size() == n;
+		for (int i = 0; i < n; i++) {
+			Tree tleaf = tleaves.get(i);
+			Tree uleaf = uleaves.get(i);
+			List<? extends Tree> tancestors = ParsingUtils.getAncestors(tleaf);
+			List<? extends Tree> uancestors = ParsingUtils.getAncestors(uleaf);
+			int a = 0;
+			int nta = tancestors.size();
+			int nua = uancestors.size();
+			PreviewInterpreterRuleContext tancestor;
+			PreviewInterpreterRuleContext uancestor;
+			while (a < nta && a < nua) {
+				tancestor = (PreviewInterpreterRuleContext) tancestors.get(a);
+				uancestor = (PreviewInterpreterRuleContext) uancestors.get(a);
+				if (tancestor == t || uancestor == u) break;
+				if (!tancestor.equals(uancestor)) break;
+				uancestor.marked = true;
+				a++;
+			}
+			System.out.println("diff at " + a);
 		}
 	}
 

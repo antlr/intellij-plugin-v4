@@ -629,16 +629,16 @@ public class ParsingUtils {
 	 *  @throws RecognitionException Throws upon syntax error while matching
 	 *                               ambig input.
 	 */
-	public static List<ParserRuleContext> getAllPossibleParseTrees(PreviewParser originalParser,
-																   TokenStream tokens,
-																   int decision,
-																   BitSet alts,
-																   int startIndex,
-																   int stopIndex,
-																   int startRuleIndex)
+	public static List<PreviewInterpreterRuleContext> getAllPossibleParseTrees(PreviewParser originalParser,
+																			   TokenStream tokens,
+																			   int decision,
+																			   BitSet alts,
+																			   int startIndex,
+																			   int stopIndex,
+																			   int startRuleIndex)
 		throws RecognitionException
 	{
-		List<ParserRuleContext> trees = new ArrayList<ParserRuleContext>();
+		List<PreviewInterpreterRuleContext> trees = new ArrayList<>();
 //		int saveTokenInputPosition = tokens.index();
 		try {
 			// Create a new parser interpreter to parse the ambiguous subphrase
@@ -662,8 +662,8 @@ public class ParsingUtils {
 				parser.getTokenStream().seek(0); // rewind the input all the way for re-parsing
 				parser.addDecisionOverride(decision, startIndex, alt);
 				ParserRuleContext t = parser.parse(startRuleIndex);
-				ParserRuleContext ambigSubTree =
-					Trees.getRootOfSubtreeEnclosingRegion(t, startIndex, stopIndex);
+				PreviewInterpreterRuleContext ambigSubTree =
+					(PreviewInterpreterRuleContext)Trees.getRootOfSubtreeEnclosingRegion(t, startIndex, stopIndex);
 				// Use higher of overridden decision tree or tree enclosing all tokens
 				if ( isAncestorOf(parser.overrideDecisionContext, ambigSubTree) ) {
 					ambigSubTree = parser.overrideDecisionContext;
@@ -691,11 +691,11 @@ public class ParsingUtils {
 		// tree stack because of left recursive rule rewriting. grrrr!
 
 	@NotNull
-	public static List<ParserRuleContext> getLookaheadParseTrees(ParserInterpreter originalParser,
-																 int startRuleIndex,
-																 int decision,
-																 int startIndex,
-																 int stopIndex)
+	public static List<PreviewInterpreterRuleContext> getLookaheadParseTrees(ParserInterpreter originalParser,
+																			 int startRuleIndex,
+																			 int decision,
+																			 int startIndex,
+																			 int stopIndex)
 	{
 		PreviewParser parser = (PreviewParser)originalParser.copyFrom(originalParser);
 		TokenStreamSubset tokens = (TokenStreamSubset) parser.getTokenStream();
@@ -721,7 +721,7 @@ public class ParsingUtils {
 		// Now, we re-parse from the beginning until
 		// the last lookahead token.
 
-		List<ParserRuleContext> trees = new ArrayList<>();
+		List<PreviewInterpreterRuleContext> trees = new ArrayList<>();
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
 		InterpreterRuleContextTextProvider nodeTextProvider =
@@ -743,8 +743,8 @@ public class ParsingUtils {
 			if ( errorHandler.firstErrorTokenIndex>=0 ) {
 				stopTreeAt = errorHandler.firstErrorTokenIndex; // cut off rest at first error
 			}
-			ParserRuleContext subtree =
-				Trees.getRootOfSubtreeEnclosingRegion(tt,
+			PreviewInterpreterRuleContext subtree =
+				(PreviewInterpreterRuleContext)Trees.getRootOfSubtreeEnclosingRegion(tt,
 													  startIndex,
 													  stopTreeAt);
 			// Use higher of overridden decision tree or tree enclosing all tokens
@@ -860,6 +860,35 @@ public class ParsingUtils {
 					false;
 			}
 		});
+	}
+
+	public static List<Tree> getAllLeaves(Tree t){
+		List<Tree> leaves = new ArrayList<>();
+		_getAllLeaves(t, leaves);
+		return leaves;
+	}
+
+	public static void _getAllLeaves(Tree t, List<? super Tree> leaves) {
+		int n = t.getChildCount();
+		if ( n==0 ) {
+			leaves.add(t);
+			return;
+		}
+		for (int i = 0 ; i < n ; i++){
+			_getAllLeaves(t.getChild(i), leaves);
+		}
+	}
+
+	/** Get ancestors where the first element of the list is the parent of t */
+	public static List<? extends Tree> getAncestors(Tree t) {
+		if ( t.getParent()==null ) return Collections.emptyList();
+		List<Tree> ancestors = new ArrayList<Tree>();
+		t = t.getParent();
+		while ( t!=null ) {
+			ancestors.add(t); // insert at start
+			t = t.getParent();
+		}
+		return ancestors;
 	}
 
 	public static class TrackingErrorStrategy extends DefaultErrorStrategy {
