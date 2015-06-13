@@ -825,52 +825,6 @@ public class ParsingUtils {
 				}
 			}
 		}
-
-//		// strip on left first (and separately from right)
-//		int lastAbbrev = -1;
-//		for (int i = 0; i < t.getChildCount(); i++) {
-//			ParseTree child = t.getChild(i);
-//			Interval range = child.getSourceInterval();
-//			if ( child instanceof ParserRuleContext && range.b < startIndex ) {
-//				CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
-//				t.children.set(i, new TerminalNodeImpl(abbrev));
-//				lastAbbrev = i;
-//			}
-//		}
-//		// strip away everything but one "..." on left
-//		if ( lastAbbrev>=0 ) t.children = t.children.subList(lastAbbrev, t.getChildCount());
-//
-//		// strip on right
-//		int firstAbbrev = Integer.MAX_VALUE;
-//		int firstError = Integer.MAX_VALUE;
-//		for (int i = t.getChildCount()-1; i>=0; --i) {
-//			ParseTree child = t.getChild(i);
-//			if ( child instanceof ErrorNode ) {
-//				firstError = i;
-//			}
-//			Interval range = child.getSourceInterval();
-//			if ( child instanceof ParserRuleContext && range.a > stopIndex ) {
-//				CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
-//				t.children.set(i, new TerminalNodeImpl(abbrev));
-//				firstAbbrev = i;
-//			}
-//		}
-//		// strip away everything but one "..." on right
-////		int last = Math.min(firstAbbrev, firstError);
-//		int last = firstAbbrev;
-//		if ( last!=Integer.MAX_VALUE ) t.children = t.children.subList(0, last + 1);
-//
-//		int min = Integer.MAX_VALUE;
-//		int max = Integer.MIN_VALUE;
-//		for (int i = 0; i < t.getChildCount(); i++) {
-//			ParseTree child = t.getChild(i);
-//			Interval range = child.getSourceInterval();
-//			if ( range.a>=0 ) min = Math.min(min, range.a);
-//			if ( range.b>=0 ) max = Math.max(max, range.b);
-//		}
-//
-//		if ( min != Integer.MAX_VALUE ) t.start = tokens.get(min);
-//		if ( max != Integer.MIN_VALUE ) t.stop = tokens.get(max);
 	}
 
 	/** Return true if t is u's parent or a node on path to root from u.
@@ -916,7 +870,7 @@ public class ParsingUtils {
 			if ( firstErrorTokenIndex == -1 ) {
 				firstErrorTokenIndex = errIndex; // latch
 			}
-			System.err.println("recover: error at " + errIndex);
+//			System.err.println("recover: error at " + errIndex);
 			TokenStream input = recognizer.getInputStream();
 			if ( input.index()<input.size()-1 ) { // don't consume() eof
 				recognizer.consume(); // just kill this bad token and let it continue.
@@ -929,7 +883,7 @@ public class ParsingUtils {
 			if ( firstErrorTokenIndex == -1 ) {
 				firstErrorTokenIndex = errIndex; // latch
 			}
-			System.err.println("recoverInline: error at " + errIndex);
+//			System.err.println("recoverInline: error at " + errIndex);
 			InputMismatchException e = new InputMismatchException(recognizer);
 			TokenStream input = recognizer.getInputStream(); // seek EOF
 			input.seek(input.size() - 1);

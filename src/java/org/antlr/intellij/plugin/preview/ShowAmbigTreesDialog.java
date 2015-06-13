@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupChooserBuilder;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -105,7 +106,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 						String title = ambiguousParseTrees.size() +
 									   " Interpretations of Ambiguous Input Phrase: " +
 									   phrase;
-						dialog.setTrees(previewState, ambiguousParseTrees, title);
+						int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
+						dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt - 1);
 					}
 
 					dialog.pack();
@@ -144,7 +146,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 					String title = lookaheadParseTrees.size() +
 								   " Interpretations of Lookahead Phrase: " +
 								   phrase;
-					dialog.setTrees(previewState, lookaheadParseTrees, title);
+					dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1);
 					dialog.pack();
 					dialog.setVisible(true);
 				}
@@ -165,7 +167,9 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 	public void setTrees(PreviewState previewState,
 						 List<ParserRuleContext> trees,
-						 String title) {
+						 String title,
+						 int highlightTreeIndex)
+	{
 		this.previewState = previewState;
 		this.ambiguousParseTrees = trees;
 		if (ambiguousParseTrees != null) {
@@ -191,12 +195,17 @@ public class ShowAmbigTreesDialog extends JDialog {
 //					declarationSpecifiers
 //					    :   declarationSpecifier+
 //					    ;
-
+					// TODO: display a message?
 				}
 				treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
 					add(root);
 				}});
-				panelOfTrees.add(treeViewers[i]);
+				JBPanel wrapper = new JBPanel(new BorderLayout());
+				if (i == highlightTreeIndex) {
+					wrapper.setBackground(JBColor.white);
+				}
+				wrapper.add(treeViewers[i], BorderLayout.CENTER);
+				panelOfTrees.add(wrapper);
 			}
 
 			// Wrap tree viewer components in scroll pane
