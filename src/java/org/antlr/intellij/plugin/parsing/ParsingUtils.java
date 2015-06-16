@@ -788,7 +788,7 @@ public class ParsingUtils {
 
 	/** Replace any subtree siblings of root that are completely to left
 	 *  or right of lookahead range with a "..." node. The source interval
-	 *  for t is reset if needed.
+	 *  for t is not altered!
 	 *
 	 *  WARNING: destructive to t.
 	 */
@@ -798,23 +798,6 @@ public class ParsingUtils {
 											   int stopIndex)
 	{
 		if ( t==null ) return;
-
-//		for (int i = 0; i < t.getChildCount(); i++) {
-//			ParseTree child = t.getChild(i);
-//			Interval range = child.getSourceInterval();
-//			if ( child instanceof ParserRuleContext && (range.b < startIndex || range.a > stopIndex) ) {
-//				CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
-//				if ( range.b < startIndex ) { // set to first token of next child so we ignore "..."
-////					t.start = t.getChild(i + 1)
-////					abbrev.setTokenIndex(t.start);
-//				}
-//				else { // range.a > stopIndex so set to last token of previous child so we ignore "..."
-////					abbrev.setTokenIndex(t.getChild(i-1).getSourceInterval().b);
-//				}
-//				t.children.set(i, new TerminalNodeImpl(abbrev));
-//			}
-//		}
-//
 		for (int i = 0; i < t.getChildCount(); i++) {
 			ParseTree child = t.getChild(i);
 			Interval range = child.getSourceInterval();
@@ -840,19 +823,19 @@ public class ParsingUtils {
 		return false;
 	}
 
-	public static Tree findTreeSuchThat(Tree t, Predicate<Tree> pred) {
+	public static Tree findNodeSuchThat(Tree t, Predicate<Tree> pred) {
 		if ( pred.apply(t) ) return t;
 
 		int n = t.getChildCount();
 		for (int i = 0 ; i < n ; i++){
-			Tree u = findTreeSuchThat(t.getChild(i), pred);
+			Tree u = findNodeSuchThat(t.getChild(i), pred);
 			if ( u!=null ) return u;
 		}
 		return null;
 	}
 
 	public static Tree findOverriddenDecisionRoot(Tree ctx) {
-		return findTreeSuchThat(ctx, new Predicate<Tree>() {
+		return findNodeSuchThat(ctx, new Predicate<Tree>() {
 			@Override
 			public boolean apply(Tree t) {
 				return t instanceof PreviewInterpreterRuleContext ?
@@ -862,7 +845,34 @@ public class ParsingUtils {
 		});
 	}
 
-	public static List<Tree> getAllLeaves(Tree t){
+	public static List<Tree> getAllLeaves(Tree t,
+								final int startIndex,
+								final int stopIndex)
+	{
+		List<Tree> leaves = new ArrayList<>();
+		_getAllLeaves(t, leaves, startIndex, stopIndex);
+		return leaves;
+	}
+
+	public static void _getAllLeaves(Tree t, List<? super Tree> leaves,
+								final int startIndex,
+								final int stopIndex)
+	{
+		int n = t.getChildCount();
+		if ( n==0 ) { // must be leaf
+			Token tok = ((TerminalNode)t).getSymbol();
+			int i = tok.getTokenIndex();
+			if ( i>=startIndex && i<=stopIndex && tok.getType() != Token.INVALID_TYPE ) {
+				leaves.add(t);
+			}
+			return;
+		}
+		for (int i = 0 ; i < n ; i++){
+			_getAllLeaves(t.getChild(i), leaves, startIndex, stopIndex);
+		}
+	}
+
+	public static List<Tree> getAllLeaves(Tree t) {
 		List<Tree> leaves = new ArrayList<>();
 		_getAllLeaves(t, leaves);
 		return leaves;
@@ -870,14 +880,45 @@ public class ParsingUtils {
 
 	public static void _getAllLeaves(Tree t, List<? super Tree> leaves) {
 		int n = t.getChildCount();
-		if ( n==0 ) {
-			leaves.add(t);
+		if ( n==0 ) { // must be leaf
+			Token tok = ((TerminalNode)t).getSymbol();
+			if ( tok.getType() != Token.INVALID_TYPE ) {
+				leaves.add(t);
+			}
 			return;
 		}
 		for (int i = 0 ; i < n ; i++){
 			_getAllLeaves(t.getChild(i), leaves);
 		}
 	}
+
+//	public static TerminalNode getLeftmostLeaf(Tree t) {
+//		int n = t.getChildCount();
+//		if ( n==0 ) { // must be leaf
+//			return (TerminalNode)t;
+//		}
+//		for (int i = 0 ; i < n ; i++){
+//			TerminalNode found = getLeftmostLeaf(t.getChild(i));
+//			if ( found!=null ) return found;
+//		}
+//		return null; // none
+//	}
+//
+//	public static TerminalNode getRightmostLeaf(Tree t) {
+//		int n = t.getChildCount();
+//		if ( n==0 ) { // must be leaf
+//			return (TerminalNode)t;
+//		}
+//		Tree lastChild = t.getChild(n - 1);
+//		if ( lastChild instanceof TerminalNode ) {
+//			return (TerminalNode)lastChild;
+//		}
+//		for (int i = 0 ; i < n ; i++) {
+//			TerminalNode found = getLeftmostLeaf(t.getChild(i));
+//			if ( found!=null ) return found;
+//		}
+//		return null; // none
+//	}
 
 	/** Get ancestors where the first element of the list is the parent of t */
 	public static List<? extends Tree> getAncestors(Tree t) {

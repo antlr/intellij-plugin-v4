@@ -51,7 +51,7 @@ public class PreviewPanel extends JPanel {
 
 	public InputPanel inputPanel;
 
-	public TreeViewer treeViewer;
+	public UberTreeViewer treeViewer;
 	public ParseTree lastTree;
 
 	public ProfilerPanel profilerPanel;
@@ -86,7 +86,7 @@ public class PreviewPanel extends JPanel {
 		JBTabbedPane tabbedPane = new JBTabbedPane();
 
 		LOG.info("createParseTreePanel" + " " + project.getName());
-		Pair<TreeViewer, JPanel> pair = createParseTreePanel();
+		Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
 		treeViewer = pair.a;
 		tabbedPane.addTab("Parse tree", pair.b);
 
@@ -96,15 +96,15 @@ public class PreviewPanel extends JPanel {
 		return tabbedPane;
 	}
 
-	public static Pair<TreeViewer,JPanel> createParseTreePanel() {
+	public static Pair<UberTreeViewer,JPanel> createParseTreePanel() {
 		// wrap tree and slider in panel
 		JPanel treePanel = new JPanel(new BorderLayout(0, 0));
 		treePanel.setBackground(JBColor.white);
 
-		final TreeViewer viewer =
+		final UberTreeViewer viewer =
 			isTrackpadZoomSupported ?
-				new TrackpadZoomingTreeView(null, null) :
-				new TreeViewer(null, null);
+				new TrackpadZoomingTreeView(null, null, false) :
+				new UberTreeViewer(null, null, false);
 
 		JSlider scaleSlider = createTreeViewSlider(viewer);
 

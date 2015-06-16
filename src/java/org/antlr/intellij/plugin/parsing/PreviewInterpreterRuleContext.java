@@ -17,7 +17,7 @@ public class PreviewInterpreterRuleContext extends InterpreterRuleContext {
 	/** A mark bit used during tree diff walk. If marked, then we reached
 	 *  this node.
 	 */
-	public boolean marked;
+	public boolean reached;
 
 	/**
 	 * Constructs a new {@link InterpreterRuleContext} with the specified

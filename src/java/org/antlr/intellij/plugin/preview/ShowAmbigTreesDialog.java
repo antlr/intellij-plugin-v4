@@ -10,16 +10,20 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import com.intellij.util.containers.Predicate;
+import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserInterpreter;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
@@ -107,7 +111,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 									   " Interpretations of Ambiguous Input Phrase: " +
 									   phrase;
 						int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
-						dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt - 1);
+						dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt - 1,
+										ambigInfo.startIndex, ambigInfo.stopIndex, true);
 					}
 
 					dialog.pack();
@@ -147,7 +152,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 					String title = lookaheadParseTrees.size() +
 								   " Interpretations of Lookahead Phrase: " +
 								   phrase;
-					dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1);
+					dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1,
+									lookaheadInfo.startIndex, lookaheadInfo.stopIndex, false);
 					dialog.pack();
 					dialog.setVisible(true);
 				}
@@ -169,7 +175,11 @@ public class ShowAmbigTreesDialog extends JDialog {
 	public void setTrees(PreviewState previewState,
 						 List<PreviewInterpreterRuleContext> trees,
 						 String title,
-						 int highlightTreeIndex) {
+						 int highlightTreeIndex,
+						 int startIndex,
+						 int stopIndex,
+						 boolean highlightDiffs)
+	{
 		this.previewState = previewState;
 		this.ambiguousParseTrees = trees;
 		if (ambiguousParseTrees != null) {
@@ -185,7 +195,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 					panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
 				}
 				PreviewInterpreterRuleContext ctx = ambiguousParseTrees.get(i);
-				treeViewers[i] = new TrackpadZoomingTreeView(null, null);
+				treeViewers[i] = new TrackpadZoomingTreeView(null, null, highlightDiffs && ctx != chosenTree);
 				AltLabelTextProvider treeText =
 					new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
 				treeViewers[i].setTreeTextProvider(treeText);
@@ -200,7 +210,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 					// TODO: display a message?
 				}
 				if (ctx != chosenTree) {
-					mark(chosenTree, ctx);
+					mark(chosenTree, ctx, startIndex, stopIndex);
 				}
 				treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
 					add(root);
@@ -220,18 +230,42 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 	/**
 	 * Given two trees, t and u, compare them starting from the leaves and the decision root
+	 * Tree t is considered the "truth" and we are comparing u to it. That
+	 * means u might contain fewer in-range leaves. t's leaves should be
+	 * start..stop indexes.
 	 */
-	public static void mark(PreviewInterpreterRuleContext t,
-							PreviewInterpreterRuleContext u) {
+	public static void mark(final PreviewInterpreterRuleContext t,
+							final PreviewInterpreterRuleContext u,
+							final int startIndex,
+							final int stopIndex) {
 		// Get leaves and the root so we can do a difference between the trees starting at the bottom and top
-		final List<Tree> tleaves = ParsingUtils.getAllLeaves(t);
-		final List<Tree> uleaves = ParsingUtils.getAllLeaves(u);
+		List<Tree> tleaves = ParsingUtils.getAllLeaves(t);
+		List<Tree> uleaves = ParsingUtils.getAllLeaves(u);
 		final Tree troot = ParsingUtils.findOverriddenDecisionRoot(t);
 		final Tree uroot = ParsingUtils.findOverriddenDecisionRoot(u);
 
-		int n = tleaves.size();
-		assert uleaves.size() == n;
-		for (int i = 0; i < n; i++) {
+		TerminalNode first_tleaf = (TerminalNode) tleaves.get(0);
+		TerminalNode first_uleaf = (TerminalNode) uleaves.get(0);
+		final int first = Math.max(first_tleaf.getSymbol().getTokenIndex(),
+								   first_uleaf.getSymbol().getTokenIndex());
+
+		// filter so we start in same place
+		tleaves = Utils.filter(tleaves,
+							   new Predicate<Tree>() {
+								   @Override
+								   public boolean apply(Tree t) {
+									   return ((Token) t.getPayload()).getTokenIndex() >= first;
+								   }
+							   });
+		uleaves = Utils.filter(uleaves,
+							   new Predicate<Tree>() {
+								   @Override
+								   public boolean apply(Tree t) {
+									   return ((Token) t.getPayload()).getTokenIndex() >= first;
+								   }
+							   });
+		int n = Math.min(tleaves.size(), uleaves.size());
+		for (int i = 0; i < n; i++) { // for each leaf in t and u
 			Tree tleaf = tleaves.get(i);
 			Tree uleaf = uleaves.get(i);
 			List<? extends Tree> tancestors = ParsingUtils.getAncestors(tleaf);
@@ -241,12 +275,13 @@ public class ShowAmbigTreesDialog extends JDialog {
 			int nua = uancestors.size();
 			PreviewInterpreterRuleContext tancestor;
 			PreviewInterpreterRuleContext uancestor;
-			while (a < nta && a < nua) {
+			while (a < nta && a < nua) { // walk ancestor chain for each leaf until not equal
 				tancestor = (PreviewInterpreterRuleContext) tancestors.get(a);
 				uancestor = (PreviewInterpreterRuleContext) uancestors.get(a);
-				if (tancestor == t || uancestor == u) break;
 				if (!tancestor.equals(uancestor)) break;
-				uancestor.marked = true;
+				uancestor.reached = true;
+				if (tancestor == t || uancestor == u)
+					break; // stop if we hit incoming root nodes
 				a++;
 			}
 			System.out.println("diff at " + a);

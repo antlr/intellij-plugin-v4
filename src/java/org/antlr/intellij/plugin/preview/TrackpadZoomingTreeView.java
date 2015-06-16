@@ -2,7 +2,6 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.ui.components.Magnificator;
 import org.antlr.v4.runtime.tree.Tree;
-import org.antlr.v4.runtime.tree.gui.TreeViewer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,13 +9,9 @@ import java.awt.*;
 /**
  * Created by jason on 2/7/15.
  */
-public class TrackpadZoomingTreeView extends TreeViewer implements Magnificator{
-
-    public TrackpadZoomingTreeView(){
-        this(null,null);
-    }
-    public TrackpadZoomingTreeView(java.util.List<String> ruleNames, Tree tree) {
-        super(ruleNames, tree);
+public class TrackpadZoomingTreeView extends UberTreeViewer implements Magnificator {
+    public TrackpadZoomingTreeView(java.util.List<String> ruleNames, Tree tree, boolean highlightUnreachedNodes) {
+        super(ruleNames, tree, highlightUnreachedNodes);
         //TODO: memory leak?
         putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
     }
