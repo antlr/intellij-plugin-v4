@@ -71,6 +71,8 @@ public class PreviewParser extends ParserInterpreter {
 	public void reset() {
 		super.reset();
 		if ( inputTokenToStateMap!=null ) inputTokenToStateMap.clear();
+		overrideDecisionContext = null;
+		lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER;
 	}
 
 	@Override
