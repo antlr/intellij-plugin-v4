@@ -14,7 +14,6 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -23,23 +22,17 @@ import org.antlr.v4.runtime.InputMismatchException;
 import org.antlr.v4.runtime.LexerInterpreter;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.ParserInterpreter;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenFactory;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.UnbufferedTokenStream;
-import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.PredictionMode;
-import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Predicate;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.tool.Grammar;
@@ -51,13 +44,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
@@ -574,7 +564,7 @@ public class ParsingUtils {
 	public static Tree findOverriddenDecisionRoot(Tree ctx) {
 		return Trees.findNodeSuchThat(ctx, new Predicate<Tree>() {
 			@Override
-			public boolean apply(Tree t) {
+			public boolean test(Tree t) {
 				return t instanceof PreviewInterpreterRuleContext ?
 					((PreviewInterpreterRuleContext) t).isDecisionOverrideRoot() :
 					false;

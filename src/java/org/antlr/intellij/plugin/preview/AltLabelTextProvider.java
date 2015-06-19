@@ -17,7 +17,6 @@ import java.util.Map;
 public class AltLabelTextProvider implements TreeTextProvider {
 	protected final Parser parser;
 	protected final Grammar g;
-//	protected final Map<DecisionState, String[]> stateToAltLabels = new HashMap<>();
 
 	public AltLabelTextProvider(Parser parser, Grammar g) {
 		this.parser = parser;
