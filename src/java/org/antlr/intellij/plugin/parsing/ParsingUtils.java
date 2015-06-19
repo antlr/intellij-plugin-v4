@@ -4,7 +4,6 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.Predicate;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -12,7 +11,6 @@ import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
-import org.antlr.intellij.plugin.test.InterpreterRuleContextTextProvider;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -37,6 +35,7 @@ import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.misc.Predicate;
 import org.antlr.v4.runtime.misc.Utils;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -572,270 +571,8 @@ public class ParsingUtils {
 	}
 
 
-	/** Given an AmbiguityInfo object that contains information about an
-	 *  ambiguous decision event, return the list of ambiguous parse trees.
-	 *  An ambiguity occurs when a specific token sequence can be recognized
-	 *  in more than one way by the grammar. These ambiguities are detected only
-	 *  at decision points.
-	 *
-	 *  The list of trees includes the actual interpretation (that for
-	 *  the minimum alternative number) and all ambiguous alternatives.
-	 *  The actual interpretation is always first.
-	 *
-	 *  This method reuses the same physical input token stream used to
-	 *  detect the ambiguity by the original parser in the first place.
-	 *  This method resets/seeks within but does not alter originalParser.
-	 *  The input position is restored upon exit from this method.
-	 *  Parsers using a {@link UnbufferedTokenStream} may not be able to
-	 *  perform the necessary save index() / seek(saved_index) operation.
-	 *
-	 *  The trees are rooted at the node whose start..stop token indices
-	 *  include the start and stop indices of this ambiguity event. That is,
-	 *  the trees returns will always include the complete ambiguous subphrase
-	 *  identified by the ambiguity event.
-	 *
-	 *  Be aware that this method does NOT notify error or parse listeners as
-	 *  it would trigger duplicate or otherwise unwanted events.
-	 *
-	 *  This uses a temporary ParserATNSimulator and a ParserInterpreter
-	 *  so we don't mess up any statistics, event lists, etc...
-	 *  The parse tree constructed while identifying/making ambiguityInfo is
-	 *  not affected by this method as it creates a new parser interp to
-	 *  get the ambiguous interpretations.
-	 *
-	 *  Nodes in the returned ambig trees are independent of the original parse
-	 *  tree (constructed while identifying/creating ambiguityInfo).
-	 *
-	 *  @since 4.5.1
-	 *
-	 *  @param originalParser The parser used to create ambiguityInfo; it
-	 *                        is not modified by this routine and can be either
-	 *                        a generated or interpreted parser. It's token
-	 *                        stream *is* reset/seek()'d.
-	 *  @param ambiguityInfo  The information about an ambiguous decision event
-	 *                        for which you want ambiguous parse trees.
-	 *  @param startRuleIndex The start rule for the entire grammar, not
-	 *                        the ambiguous decision. We re-parse the entire input
-	 *                        and so we need the original start rule.
-	 *
-	 *  @return               The list of all possible interpretations of
-	 *                        the input for the decision in ambiguityInfo.
-	 *                        The actual interpretation chosen by the parser
-	 *                        is always given first because this method
-	 *                        retests the input in alternative order and
-	 *                        ANTLR always resolves ambiguities by choosing
-	 *                        the first alternative that matches the input.
-	 *
-	 *  @throws RecognitionException Throws upon syntax error while matching
-	 *                               ambig input.
-	 */
-	public static List<PreviewInterpreterRuleContext> getAllPossibleParseTrees(PreviewParser originalParser,
-																			   TokenStream tokens,
-																			   int decision,
-																			   BitSet alts,
-																			   int startIndex,
-																			   int stopIndex,
-																			   int startRuleIndex)
-		throws RecognitionException
-	{
-		List<PreviewInterpreterRuleContext> trees = new ArrayList<>();
-//		int saveTokenInputPosition = tokens.index();
-		try {
-			// Create a new parser interpreter to parse the ambiguous subphrase
-			PreviewParser parser = originalParser.copyFrom(originalParser);
-
-			parser.setInputStream(tokens);
-
-			// Make sure that we don't get any error messages from using this temporary parser
-			parser.setErrorHandler(new BailErrorStrategy());
-			parser.removeErrorListeners();
-			parser.removeParseListeners();
-			parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
-			// get ambig trees
-			int alt = alts.nextSetBit(0);
-			while (alt >= 0) {
-				// re-parse entire input for all ambiguous alternatives
-				// (don't have to do first as it's been parsed, but do again for simplicity
-				//  using this temp parser.)
-				parser.reset();
-				parser.getTokenStream().seek(0); // rewind the input all the way for re-parsing
-				parser.addDecisionOverride(decision, startIndex, alt);
-				ParserRuleContext t = parser.parse(startRuleIndex);
-				PreviewInterpreterRuleContext ambigSubTree =
-					(PreviewInterpreterRuleContext)Trees.getRootOfSubtreeEnclosingRegion(t, startIndex, stopIndex);
-				// Use higher of overridden decision tree or tree enclosing all tokens
-				if ( isAncestorOf(parser.overrideDecisionContext, ambigSubTree) ) {
-					ambigSubTree = parser.overrideDecisionContext;
-				}
-				trees.add(ambigSubTree);
-				alt = alts.nextSetBit(alt + 1);
-			}
-		}
-		finally {
-//			originalParser.setInputStream(saveStream);
-//			tokens.seek(saveTokenInputPosition);
-		}
-
-		return trees;
-	}
-
-		// we must parse the entire input now with decision overrides
-		// we cannot parse a subset because it could be that a decision
-		// above our decision of interest needs to read way past
-		// lookaheadInfo.stopIndex. It seems like there is no escaping
-		// the use of a full and complete token stream if we are
-		// resetting to token index 0 and re-parsing from the start symbol.
-		// It's not easy to restart parsing somewhere in the middle like a
-		// continuation because our call stack does not match the
-		// tree stack because of left recursive rule rewriting. grrrr!
-
-	@NotNull
-	public static List<PreviewInterpreterRuleContext> getLookaheadParseTrees(ParserInterpreter originalParser,
-																			 int startRuleIndex,
-																			 int decision,
-																			 int startIndex,
-																			 int stopIndex)
-	{
-		PreviewParser parser = (PreviewParser)originalParser.copyFrom(originalParser);
-		TokenStreamSubset tokens = (TokenStreamSubset) parser.getTokenStream();
-//		parser.setErrorHandler(new BailErrorStrategy());
-//		parser.removeErrorListeners();
-		parser.removeParseListeners();
-		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
-
-		DecisionState decisionState = originalParser.getATN().decisionToState.get(decision);
-		Set<Integer> altSet = new HashSet<>();
-		for (int i=1; i<=decisionState.getTransitions().length; i++) {
-			altSet.add(i);
-		}
-
-		// First, figure out which alts are viable at the start of the lookahead
-		// We can figure that out by simply looking at the alternatives within
-		// the start state of the decision DFA.
-
-		System.out.println("dfa alts = "+altSet+", range = "+startIndex+".."+stopIndex);
-
-		tokens.seek(0); // rewind the input all the way for re-parsing
-
-		// Now, we re-parse from the beginning until
-		// the last lookahead token.
-
-		List<PreviewInterpreterRuleContext> trees = new ArrayList<>();
-		int min = Integer.MAX_VALUE;
-		int max = Integer.MIN_VALUE;
-		InterpreterRuleContextTextProvider nodeTextProvider =
-			new InterpreterRuleContextTextProvider(parser.getRuleNames());
-		for (Integer alt : altSet) {
-			// re-parse entire input for all ambiguous alternatives
-			// (don't have to do first as it's been parsed, but do again for simplicity
-			//  using this temp parser.)
-			parser.reset();
-			TrackingErrorStrategy errorHandler = new TrackingErrorStrategy();
-			parser.setErrorHandler(errorHandler);
-			System.out.print("parsing alt " + alt);
-			parser.addDecisionOverride(decision, startIndex, alt);
-			ParserRuleContext tt = parser.parse(startRuleIndex);
-			System.out.println("first error "+errorHandler.firstErrorTokenIndex);
-			System.out.println("ctx at override: "+Trees.toStringTree(parser.overrideDecisionContext, nodeTextProvider));
-			System.out.print("\t\t" + Trees.toStringTree(tt, nodeTextProvider));
-			int stopTreeAt = stopIndex;
-			if ( errorHandler.firstErrorTokenIndex>=0 ) {
-				stopTreeAt = errorHandler.firstErrorTokenIndex; // cut off rest at first error
-			}
-			PreviewInterpreterRuleContext subtree =
-				(PreviewInterpreterRuleContext)Trees.getRootOfSubtreeEnclosingRegion(tt,
-													  startIndex,
-													  stopTreeAt);
-			// Use higher of overridden decision tree or tree enclosing all tokens
-			if ( isAncestorOf(parser.overrideDecisionContext, subtree) ) {
-				subtree = parser.overrideDecisionContext;
-			}
-			System.out.println("\t\t"+Trees.toStringTree(subtree, nodeTextProvider));
-			stripChildrenOutOfRange(tokens, subtree, startIndex, stopTreeAt);
-//			System.out.println("\t\t" + Trees.toStringTree(subtree, nodeTextProvider));
-//			Interval range = subtree.getSourceInterval();
-//			if ( errorHandler.firstErrorTokenIndex>=0 ) {
-//				range.b = errorHandler.firstErrorTokenIndex; // cut off rest at first error
-//			}
-//			System.out.println("range after strip: " + range);
-//			if ( range.a>=0 ) min = Math.min(min, range.a);
-//			if ( range.b>=0 ) max = Math.max(max, range.b);
-
-//			trees.add(tt); // add unmolested tree as we'll adjust below; we just compute max range here
-			trees.add(subtree);
-//			System.out.println("alt "+alt+": "+Trees.toStringTree(subtree, nodeTextProvider));
-		}
-
-		return trees;
-//		System.out.println("min/max = "+min+"/"+max);
-//
-//		List<ParserRuleContext> strippedTrees = new ArrayList<>();
-//		for (int i = 0; i < trees.size(); i++) {
-//			ParserRuleContext t = trees.get(i);
-//
-//			ParserRuleContext subtree =
-//				Trees.getRootOfSubtreeEnclosingRegion(t,
-//													  min,
-//													  max);
-//			System.out.println("enclosing "+Trees.toStringTree(subtree, nodeTextProvider));
-////			stripChildrenOutOfRange(tokens,	subtree, startIndex, stopIndex);
-//			System.out.println("stripped "+Trees.toStringTree(subtree, nodeTextProvider));
-//			strippedTrees.add(subtree);
-//		}
-//		return strippedTrees;
-	}
-
-	/** Replace any subtree siblings of root that are completely to left
-	 *  or right of lookahead range with a "..." node. The source interval
-	 *  for t is not altered!
-	 *
-	 *  WARNING: destructive to t.
-	 */
-	public static void stripChildrenOutOfRange(TokenStreamSubset tokens,
-											   ParserRuleContext t,
-											   int startIndex,
-											   int stopIndex)
-	{
-		if ( t==null ) return;
-		for (int i = 0; i < t.getChildCount(); i++) {
-			ParseTree child = t.getChild(i);
-			Interval range = child.getSourceInterval();
-			if ( child instanceof ParserRuleContext && (range.b < startIndex || range.a > stopIndex) ) {
-				if ( findOverriddenDecisionRoot(child)==null ) { // replace only if subtree doesn't have displayed root
-					CommonToken abbrev = new CommonToken(Token.INVALID_TYPE, "...");
-					t.children.set(i, new TerminalNodeImpl(abbrev));
-				}
-			}
-		}
-	}
-
-	/** Return true if t is u's parent or a node on path to root from u.
-	 *  Use == not equals().
-	 */
-	public static boolean isAncestorOf(Tree t, Tree u) {
-		if ( t==null || u==null || t.getParent()==null ) return false;
-		Tree p = u.getParent();
-		while ( p!=null ) {
-			if ( t == p ) return true;
-			p = p.getParent();
-		}
-		return false;
-	}
-
-	public static Tree findNodeSuchThat(Tree t, Predicate<Tree> pred) {
-		if ( pred.apply(t) ) return t;
-
-		int n = t.getChildCount();
-		for (int i = 0 ; i < n ; i++){
-			Tree u = findNodeSuchThat(t.getChild(i), pred);
-			if ( u!=null ) return u;
-		}
-		return null;
-	}
-
 	public static Tree findOverriddenDecisionRoot(Tree ctx) {
-		return findNodeSuchThat(ctx, new Predicate<Tree>() {
+		return Trees.findNodeSuchThat(ctx, new Predicate<Tree>() {
 			@Override
 			public boolean apply(Tree t) {
 				return t instanceof PreviewInterpreterRuleContext ?

@@ -15,8 +15,11 @@ import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
+import org.antlr.v4.runtime.InterpreterRuleContext;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserInterpreter;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
@@ -26,6 +29,8 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
+import org.antlr.v4.tool.GrammarInterpreterRuleContext;
+import org.antlr.v4.tool.GrammarParserInterpreter;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -42,7 +47,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 	private JButton buttonOK;
 	protected JScrollPane treeScrollPane;
 	protected JSlider treeSizeSlider;
-	public List<PreviewInterpreterRuleContext> ambiguousParseTrees;
+	public List<? extends RuleContext> ambiguousParseTrees;
 	public TreeViewer[] treeViewers;
 	public PreviewState previewState;
 
@@ -82,16 +87,17 @@ public class ShowAmbigTreesDialog extends JDialog {
 					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
 					Parser parser = previewState.parsingResult.parser;
 					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-					List<PreviewInterpreterRuleContext> ambiguousParseTrees = null;
+					List<ParserRuleContext> ambiguousParseTrees = null;
 					try {
 						ambiguousParseTrees =
-							ParsingUtils.getAllPossibleParseTrees((PreviewParser) parser,
-																  parser.getTokenStream(),
-																  ambigInfo.decision,
-																  ambigInfo.ambigAlts,
-																  ambigInfo.startIndex,
-																  ambigInfo.stopIndex,
-																  startRuleIndex);
+							GrammarParserInterpreter.getAllPossibleParseTrees(previewState.g,
+																			  parser,
+																			  parser.getTokenStream(),
+																			  ambigInfo.decision,
+																			  ambigInfo.ambigAlts,
+																			  ambigInfo.startIndex,
+																			  ambigInfo.stopIndex,
+																			  startRuleIndex);
 					}
 					catch (ParseCancellationException pce) {
 						// should be no errors for ambiguities, unless original
@@ -138,12 +144,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
 					ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
 					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-					List<PreviewInterpreterRuleContext> lookaheadParseTrees =
-						ParsingUtils.getLookaheadParseTrees(parser,
-															startRuleIndex,
-															lookaheadInfo.decision,
-															lookaheadInfo.startIndex,
-															lookaheadInfo.stopIndex);
+					List<ParserRuleContext> lookaheadParseTrees =
+						GrammarParserInterpreter.getLookaheadParseTrees(previewState.g,
+																		parser,
+																		parser.getTokenStream(),
+																		startRuleIndex,
+																		lookaheadInfo.decision,
+																		lookaheadInfo.startIndex,
+																		lookaheadInfo.stopIndex);
 					Interval range = Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex);
 					String phrase = parser.getTokenStream().getText(range);
 					if (phrase.length() > MAX_PHRASE_WIDTH) {
@@ -173,13 +181,12 @@ public class ShowAmbigTreesDialog extends JDialog {
 	}
 
 	public void setTrees(PreviewState previewState,
-						 List<PreviewInterpreterRuleContext> trees,
+						 List<? extends RuleContext> trees,
 						 String title,
 						 int highlightTreeIndex,
 						 int startIndex,
 						 int stopIndex,
-						 boolean highlightDiffs)
-	{
+						 boolean highlightDiffs) {
 		this.previewState = previewState;
 		this.ambiguousParseTrees = trees;
 		if (ambiguousParseTrees != null) {
@@ -187,14 +194,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 			setTitle(title);
 			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
 			JBPanel panelOfTrees = new JBPanel();
-			PreviewInterpreterRuleContext chosenTree =
+			GrammarInterpreterRuleContext chosenTree = (GrammarInterpreterRuleContext)
 				ambiguousParseTrees.get(highlightTreeIndex);
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
 			for (int i = 0; i < numTrees; i++) {
 				if (i > 0) {
 					panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
 				}
-				PreviewInterpreterRuleContext ctx = ambiguousParseTrees.get(i);
+				GrammarInterpreterRuleContext ctx = (GrammarInterpreterRuleContext) ambiguousParseTrees.get(i);
 				treeViewers[i] = new TrackpadZoomingTreeView(null, null, highlightDiffs && ctx != chosenTree);
 				AltLabelTextProvider treeText =
 					new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
@@ -234,8 +241,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 	 * means u might contain fewer in-range leaves. t's leaves should be
 	 * start..stop indexes.
 	 */
-	public static void mark(final PreviewInterpreterRuleContext t,
-							final PreviewInterpreterRuleContext u,
+	public static void mark(final GrammarInterpreterRuleContext t,
+							final GrammarInterpreterRuleContext u,
 							final int startIndex,
 							final int stopIndex) {
 		// Get leaves and the root so we can do a difference between the trees starting at the bottom and top

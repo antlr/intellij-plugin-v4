@@ -2,15 +2,14 @@ package org.antlr.intellij.plugin.parsing;
 
 import org.antlr.v4.runtime.InterpreterRuleContext;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.tool.GrammarInterpreterRuleContext;
 
 /**
  * This class extends {@link InterpreterRuleContext} to track
  * which outermost alternative was used to recognize
  * the subphrase matched by the entire rule.
  */
-public class PreviewInterpreterRuleContext extends InterpreterRuleContext {
-	protected int outerAltNum = 1;
-
+public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext {
 	/** Used to mark root of subtree that hits the decision override, if any */
 	protected boolean isDecisionOverrideRoot;
 
