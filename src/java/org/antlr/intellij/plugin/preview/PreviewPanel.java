@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
@@ -285,7 +286,8 @@ public class PreviewPanel extends JPanel {
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 		LOG.info("updateParseTreeFromDoc "+grammarFile+" rule "+previewState.startRuleName);
 		try {
-			final String inputText = previewState.getEditor().getDocument().getText();
+			Editor editor = inputPanel.getEditor(grammarFile);
+			final String inputText = editor.getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
 			if ( results!=null) {
 				updateTreeViewer(previewState,results);

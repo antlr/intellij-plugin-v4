@@ -35,6 +35,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.Icons;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
@@ -99,7 +100,7 @@ public class InputPanel {
 
 	public static final String missingStartRuleLabelText =
 		"Start rule: <select from navigator or grammar>";
-	public static final String startRuleLabelText = "Start rule: ";
+	public static final String startRuleLabelText = "%s start rule: %s";
 
 	public PreviewPanel previewPanel;
 
@@ -191,6 +192,13 @@ public class InputPanel {
 		}
 
 		// wipe old and make new one
+		createManualInputPreviewEditor(previewState);
+		previewPanel.clearParseTree();
+		clearErrorConsole();
+	}
+
+	public void createManualInputPreviewEditor(final PreviewState previewState) {
+		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(previewState.manualInputText);
 		doc.addDocumentListener(
@@ -202,12 +210,9 @@ public class InputPanel {
 			}
 		);
 
-		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
-
+		Editor editor = createPreviewEditor(previewState.grammarFile, doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setEditor(editor);
-		previewPanel.clearParseTree();
-		clearErrorConsole();
 	}
 
 	public void selectFileEvent() {
@@ -240,21 +245,28 @@ public class InputPanel {
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(inputText);
 		doc.setReadOnly(true);
-		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
+		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setEditor(editor);
 		clearErrorConsole();
 		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
 	}
 
-	public Editor createEditor(final VirtualFile grammarFile, Document doc) {
+	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
 		LOG.info("createEditor: create new editor for " + grammarFile.getPath() + " " + previewPanel.project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
 		doc.addDocumentListener(
 			new DocumentAdapter() {
+				VirtualFile grammarFileForThisPreviewEditor;
+				{
+					{ // faux ctor
+						this.grammarFileForThisPreviewEditor = grammarFile;
+					}
+				}
+
 				@Override
 				public void documentChanged(DocumentEvent event) {
-					previewPanel.updateParseTreeFromDoc(grammarFile);
+					previewPanel.updateParseTreeFromDoc(grammarFileForThisPreviewEditor);
 				}
 			}
 		);
@@ -354,7 +366,13 @@ public class InputPanel {
 	public Editor getEditor(VirtualFile grammarFile) {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
-		return previewState.getEditor();
+		Editor editor = previewState.getEditor();
+		if (editor == null) {
+			createManualInputPreviewEditor(previewState); // ensure we always have an input window
+			editor = previewState.getEditor();
+		}
+
+		return editor;
 	}
 
 	public String getText(VirtualFile grammarFile) {
@@ -391,8 +409,11 @@ public class InputPanel {
 	}
 
 	public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-		startRuleLabel.setText(startRuleLabelText + startRuleName);
+		startRuleLabel.setText(String.format(startRuleLabelText, grammarFile.getName(), startRuleName));
 		startRuleLabel.setForeground(JBColor.BLACK);
+		final Font oldFont = startRuleLabel.getFont();
+		startRuleLabel.setFont(oldFont.deriveFont(Font.BOLD));
+		startRuleLabel.setIcon(Icons.FILE);
 	}
 
 	public void resetStartRuleLabel() {

@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.preview;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.v4.tool.Grammar;
@@ -22,6 +23,7 @@ import org.antlr.v4.tool.LexerGrammar;
  *  for example.
  */
 public class PreviewState {
+	public Project project;
 	public VirtualFile grammarFile;
 	public Grammar g;
 	public LexerGrammar lg;
@@ -31,10 +33,15 @@ public class PreviewState {
 
 	public ParsingResult parsingResult;
 
-	/** The current input editor (inputEditor or fileEditor) for this grammar */
+	/** The current input editor (inputEditor or fileEditor) for this grammar
+	 *  in InputPanel. This can be null when a PreviewState and InputPanel
+	 *  are created out of sync. Depends on order IDE opens files vs
+	 *  creates preview pane.
+	 */
 	private Editor editor;
 
-	public PreviewState(VirtualFile grammarFile) {
+	public PreviewState(Project project, VirtualFile grammarFile) {
+		this.project = project;
 		this.grammarFile = grammarFile;
 	}
 
