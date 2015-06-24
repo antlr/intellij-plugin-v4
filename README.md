@@ -6,23 +6,25 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for ANTLR v4 
 
 This plugin is for ANTLR v4 grammars. 
 
-Features: 
+Features:
 
-- syntax highlighting;
-- syntax error checking;
-- semantic error checking;
-- navigation window;
-- goto-declaration;
-- find usages;
-- rename tokens;
-- rename rules;
-- generates code; 
-- shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
+- syntax highlighting
+- syntax error checking
+- semantic error checking
+- navigation window
+- goto-declaration
+- find usages
+- rename tokens
+- rename rules
+- generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
 - code completion for tokens, rule names;
 - finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
+- handles separate parsers and lectures like TParser.g4 and TLexer.g4
 - shortcut conflicted with grammar-kit plugin; 
 - has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
-- changes to grammar seen in parse tree upon save of grammar. Works with Intellij 13.x and requires 12.1.x.
+- can view parse trees for input matched in more than one way (ambiguities)
+- can view lookahead trees to show how input directed ANTLR to match a particular alternative
+- changes to grammar seen in parse tree upon save of grammar. Works with Intellij 13.x and 14.x; requires 13.x.
 
 You can configure the ANTLR tool options per grammar file; right-click
 in a grammar or on a grammar element within the structured view.
