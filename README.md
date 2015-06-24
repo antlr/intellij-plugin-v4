@@ -1,6 +1,6 @@
 # IntelliJ Idea Plugin for ANTLR v4
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 12.1.x, 13.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
+An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
@@ -16,14 +16,15 @@ Features:
 - find usages
 - rename tokens
 - rename rules
+- comment grammar rule lines with meta-/ (1.7)
 - generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
 - code completion for tokens, rule names;
 - finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
-- handles separate parsers and lectures like TParser.g4 and TLexer.g4
-- shortcut conflicted with grammar-kit plugin; 
+- handles separate parsers and lectures like TParser.g4 and TLexer.g4 (1.7)
+- Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
 - has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
-- can view parse trees for input matched in more than one way (ambiguities)
-- can view lookahead trees to show how input directed ANTLR to match a particular alternative
+- can view parse trees for input matched in more than one way (ambiguities) (1.7)
+- can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
 - changes to grammar seen in parse tree upon save of grammar. Works with Intellij 13.x and 14.x; requires 13.x.
 
 You can configure the ANTLR tool options per grammar file; right-click
