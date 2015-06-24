@@ -35,6 +35,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.Icons;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
@@ -98,10 +99,15 @@ public class InputPanel {
 	public final Object swapEditorComponentLock = new Object();
 
 	public static final String missingStartRuleLabelText =
-		"Start rule: <select from navigator or grammar>";
-	public static final String startRuleLabelText = "Start rule: ";
+		"%s start rule: <select from navigator or grammar>";
+	public static final String startRuleLabelText = "%s start rule: %s";
 
 	public PreviewPanel previewPanel;
+
+	/**
+	 * state for grammar in current editor, not editor where user is typing preview input!
+	 */
+	public PreviewState previewState;
 
 	PreviewEditorMouseListener editorMouseListener;
 
@@ -124,11 +130,9 @@ public class InputPanel {
 				protected void onFileChoosen(VirtualFile chosenFile) {
 					super.onFileChoosen(chosenFile);
 					// get state for grammar in current editor, not editor where user is typing preview input!
-					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-					PreviewState previewState = controller.getPreviewState();
-					if (previewState != null) {
-						previewState.inputFileName = chosenFile.getPath();
-					}
+//					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+//					PreviewState previewState = controller.getPreviewState(chosenFile);
+					previewState.inputFileName = chosenFile.getPath();
 					selectFileEvent();
 				}
 			};
@@ -158,8 +162,7 @@ public class InputPanel {
 			}
 		);
 
-		startRuleLabel.setText(missingStartRuleLabelText);
-		startRuleLabel.setForeground(JBColor.RED);
+		resetStartRuleLabel();
 
 		editorMouseListener = new PreviewEditorMouseListener(this);
 	}
@@ -184,13 +187,19 @@ public class InputPanel {
 		inputRadioButton.setSelected(true);
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		final PreviewState previewState = controller.getPreviewState();
-		if (previewState == null) {
-			return;
-		}
+//		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
+//		final PreviewState previewState = controller.getPreviewState();
+//		if (previewState == null) {
+//			return;
+//		}
 
 		// wipe old and make new one
+		createManualInputPreviewEditor(previewState);
+		previewPanel.clearParseTree();
+		clearErrorConsole();
+	}
+
+	public void createManualInputPreviewEditor(final PreviewState previewState) {
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(previewState.manualInputText);
 		doc.addDocumentListener(
@@ -202,12 +211,9 @@ public class InputPanel {
 			}
 		);
 
-		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
-
+		Editor editor = createPreviewEditor(previewState.grammarFile, doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setEditor(editor);
-		previewPanel.clearParseTree();
-		clearErrorConsole();
 	}
 
 	public void selectFileEvent() {
@@ -231,30 +237,38 @@ public class InputPanel {
 		}
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		PreviewState previewState = controller.getPreviewState();
-		if (previewState == null) {
-			return;
-		}
+//		PreviewState previewState = controller.getPreviewState();
+//		if (previewState == null) {
+//			return;
+//		}
 
 		// wipe old and make new one
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(inputText);
 		doc.setReadOnly(true);
-		Editor editor = createEditor(controller.getCurrentGrammarFile(), doc);
+		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setEditor(editor);
 		clearErrorConsole();
 		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
 	}
 
-	public Editor createEditor(final VirtualFile grammarFile, Document doc) {
+	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
 		LOG.info("createEditor: create new editor for " + grammarFile.getPath() + " " + previewPanel.project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
 		doc.addDocumentListener(
 			new DocumentAdapter() {
+				VirtualFile grammarFileForThisPreviewEditor;
+
+				{
+					{ // faux ctor
+						this.grammarFileForThisPreviewEditor = grammarFile;
+					}
+				}
+
 				@Override
 				public void documentChanged(DocumentEvent event) {
-					previewPanel.updateParseTreeFromDoc(grammarFile);
+					previewPanel.updateParseTreeFromDoc(grammarFileForThisPreviewEditor);
 				}
 			}
 		);
@@ -318,10 +332,11 @@ public class InputPanel {
 		clearParseErrors(grammarFile);
 	}
 
-	public void switchToGrammar(VirtualFile grammarFile) {
+	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar " + grammarFileName + " " + previewPanel.project.getName());
-		PreviewState previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
+//		previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
+		this.previewState = previewState;
 
 		selectInputEvent();
 
@@ -352,9 +367,13 @@ public class InputPanel {
 	}
 
 	public Editor getEditor(VirtualFile grammarFile) {
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-		PreviewState previewState = controller.getPreviewState(grammarFile);
-		return previewState.getEditor();
+		Editor editor = previewState.getEditor();
+		if (editor == null) {
+			createManualInputPreviewEditor(previewState); // ensure we always have an input window
+			editor = previewState.getEditor();
+		}
+
+		return editor;
 	}
 
 	public String getText(VirtualFile grammarFile) {
@@ -391,13 +410,21 @@ public class InputPanel {
 	}
 
 	public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
-		startRuleLabel.setText(startRuleLabelText + startRuleName);
+		startRuleLabel.setText(String.format(startRuleLabelText, grammarFile.getName(), startRuleName));
 		startRuleLabel.setForeground(JBColor.BLACK);
+		final Font oldFont = startRuleLabel.getFont();
+		startRuleLabel.setFont(oldFont.deriveFont(Font.BOLD));
+		startRuleLabel.setIcon(Icons.FILE);
 	}
 
 	public void resetStartRuleLabel() {
-		startRuleLabel.setText(missingStartRuleLabelText); // reset
+		String grammarName = "?.g4";
+		if (previewState != null) {
+			grammarName = previewState.grammarFile.getName();
+		}
+		startRuleLabel.setText(String.format(missingStartRuleLabelText, grammarName));
 		startRuleLabel.setForeground(JBColor.RED);
+		startRuleLabel.setIcon(Icons.FILE);
 	}
 
 	public void clearErrorConsole() {

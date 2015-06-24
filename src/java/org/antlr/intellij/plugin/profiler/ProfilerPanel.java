@@ -86,6 +86,7 @@ public class ProfilerPanel {
 	}
 
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
+		this.previewState = previewState;
 		DefaultTableModel model = new DefaultTableModel();
 		profilerDataTable.setModel(model);
 		profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
@@ -108,8 +109,7 @@ public class ProfilerPanel {
 		this.project = project;
 	}
 
-	public void setProfilerData(PreviewState previewState,
-								long parseTime_ns) {
+	public void setProfilerData(PreviewState previewState, long parseTime_ns) {
 		this.previewState = previewState;
 		Parser parser = previewState.parsingResult.parser;
 		ParseInfo parseInfo = parser.getParseInfo();
@@ -509,7 +509,7 @@ public class ProfilerPanel {
 					if (project == null) {
 						return;
 					}
-					PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
+//				PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState();
 					if (previewState != null && profilerDataTable.getModel().getClass() != DefaultTableModel.class) {
 						int selectedRow = profilerDataTable.getSelectedRow();
 						if (selectedRow == -1) {

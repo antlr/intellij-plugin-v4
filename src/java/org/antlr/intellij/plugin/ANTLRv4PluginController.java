@@ -469,7 +469,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 
 		// not seen, must create state
-		stateForCurrentGrammar = new PreviewState(grammarFile);
+		stateForCurrentGrammar = new PreviewState(project, grammarFile);
 		grammarToPreviewState.put(grammarFileName, stateForCurrentGrammar);
 
 		return stateForCurrentGrammar;
@@ -498,6 +498,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public static VirtualFile getCurrentEditorFile(Project project) {
 		FileEditorManager fmgr = FileEditorManager.getInstance(project);
+		// "If more than one file is selected (split), the file with most recent focused editor is returned first." from IDE doc on method
 		VirtualFile files[] = fmgr.getSelectedFiles();
 		if ( files.length == 0 ) {
 			return null;
