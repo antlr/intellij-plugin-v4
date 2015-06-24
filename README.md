@@ -31,8 +31,8 @@ in the background according to the preferences you have set.  ANTLR
 tool errors appear in a console you can opened by clicking on a button
 in the bottom tab.
 
-You can use the meta-key while moving the mouse and it will show you
-token information in the preview editor box via tooltips.
+You can use the ctrl-key while moving the mouse and it will show you
+token information in the preview editor box via tooltips. Meta-key shows parser call stack.
 
 Errors within the preview editor are now highlighted with tooltips
 and underlining just like a regular editor window. The difference
@@ -91,9 +91,11 @@ live preview.
 ![Live preview](images/live-preview.png)
 ![Live preview](images/live-preview-error.png)
 
-You can also use the meta key while moving the mouse in preview window to get token info.
+You can also use the ctrl key while moving the mouse in preview window to get token info.
 
 ![Live preview](images/token-tooltips.png)
+
+The meta key while moving the mouse shows the parser call stack (path to the root of parse tree).
 
 When there are errors, you will see the output in the small console under the input editor in case you need to cut and paste. But, for general viewing you can however the cursor over an underlined error and it will show you the message in a pop-up. Basically the input window behaves like a regular editor window except that it is subject to the grammar in your other editor.
 
@@ -119,6 +121,24 @@ If you see ambiguities highlighted, those you should definitely take a look
  slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
 
 ![parse-region.png](images/profiler.png)
+
+### Grammar ambiguities and lookahead
+
+A grammar that matches an input phrase more than one way is considered ambiguous and it's generally an error because we want to interpret input phrases in just one way. ANTLR resolves ambiguities on-the-fly to create a single interpretation (parse tree) but sometimes, for debugging purposes, you'd like to know how else to grammar can match some input. When you have selected an ambiguity using the profiler described in the previous section, you can write click in the preview input window like so:
+
+![ambig-right-click.png](images/ambig-right-click.png)
+
+It will pop up a dialog box that looks like this:
+
+![ambig1.png](images/ambig1.png)
+
+The darkened background node is the node for the rule containing the decision that is ambiguous.  The yellow boxes outlining nodes indicates that it differs from the chosen interpretation of the parse tree. Here's another example that shows two interpretations (of `User f() {`):
+
+![ambig2.png](images/ambig2.png)
+
+Even when a grammar is getting a single interpretation of the input, we often wonder why it's not choosing the path we expected.  When you right click on a lookahead sequence in the input window, it will pop up a dialog to show you how ANTLR tried to use the input to match the alternative. The trees with gray backgrounds indicate the parse trees that were attempted but that failed at some input depth. The tree with a white background chose the chosen parse tree:
+
+![lookahead1.png](images/lookahead1.png)
 
 ### Unicode chars are no problem
 
