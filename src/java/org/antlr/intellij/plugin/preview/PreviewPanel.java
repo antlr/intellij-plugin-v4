@@ -187,7 +187,7 @@ public class PreviewPanel extends JPanel {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
-		inputPanel.switchToGrammar(grammarFile);
+		inputPanel.switchToGrammar(previewState, grammarFile);
 
 		if ( previewState.startRuleName!=null ) {
 			updateParseTreeFromDoc(grammarFile);
