@@ -256,8 +256,6 @@ public class ShowAmbigTreesDialog extends JDialog {
 		// Get leaves and the root so we can do a difference between the trees starting at the bottom and top
 		List<Tree> tleaves = ParsingUtils.getAllLeaves(t);
 		List<Tree> uleaves = ParsingUtils.getAllLeaves(u);
-		final Tree troot = ParsingUtils.findOverriddenDecisionRoot(t);
-		final Tree uroot = ParsingUtils.findOverriddenDecisionRoot(u);
 
 		TerminalNode first_tleaf = (TerminalNode) tleaves.get(0);
 		TerminalNode first_uleaf = (TerminalNode) uleaves.get(0);
