@@ -81,51 +81,55 @@ public class ShowAmbigTreesDialog extends JDialog {
 			new Runnable() {
 				@Override
 				public void run() {
-					// pop up subtrees for ambig intrepretation
-					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
-					Parser parser = previewState.parsingResult.parser;
-					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-					List<ParserRuleContext> ambiguousParseTrees = null;
-					try {
-						ambiguousParseTrees =
-							GrammarParserInterpreter.getAllPossibleParseTrees(previewState.g,
-																			  parser,
-																			  parser.getTokenStream(),
-																			  ambigInfo.decision,
-																			  ambigInfo.ambigAlts,
-																			  ambigInfo.startIndex,
-																			  ambigInfo.stopIndex,
-																			  startRuleIndex);
-					}
-					catch (ParseCancellationException pce) {
-						// should be no errors for ambiguities, unless original
-						// input itself has errors. Just display error in this case.
-						JBPanel errPanel = new JBPanel(new BorderLayout());
-						errPanel.add(new JBLabel("Cannot display ambiguous trees while there are syntax errors in your input."));
-						dialog.treeScrollPane.setViewportView(errPanel);
-					}
-
-					if (ambiguousParseTrees != null) {
-						TokenStream tokens = previewState.parsingResult.parser.getInputStream();
-						String phrase = tokens.getText(Interval.of(ambigInfo.startIndex, ambigInfo.stopIndex));
-						if (phrase.length() > MAX_PHRASE_WIDTH) {
-							phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
-						}
-						String title = ambiguousParseTrees.size() +
-									   " Interpretations of Ambiguous Input Phrase: " +
-									   phrase;
-						int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
-						dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt - 1,
-										ambigInfo.startIndex, ambigInfo.stopIndex, true);
-					}
-
-					dialog.pack();
-					dialog.setVisible(true);
+					popupAmbigTreesDialog(previewState, ambigInfo);
 				}
 			}
 		);
 		JBPopup popup = builder.createPopup();
 		return popup;
+	}
+
+	public static void popupAmbigTreesDialog(PreviewState previewState, AmbiguityInfo ambigInfo) {
+		// pop up subtrees for ambig intrepretation
+		ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+		Parser parser = previewState.parsingResult.parser;
+		int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
+		List<ParserRuleContext> ambiguousParseTrees = null;
+		try {
+			ambiguousParseTrees =
+				GrammarParserInterpreter.getAllPossibleParseTrees(previewState.g,
+																  parser,
+																  parser.getTokenStream(),
+																  ambigInfo.decision,
+																  ambigInfo.ambigAlts,
+																  ambigInfo.startIndex,
+																  ambigInfo.stopIndex,
+																  startRuleIndex);
+		}
+		catch (ParseCancellationException pce) {
+			// should be no errors for ambiguities, unless original
+			// input itself has errors. Just display error in this case.
+			JBPanel errPanel = new JBPanel(new BorderLayout());
+			errPanel.add(new JBLabel("Cannot display ambiguous trees while there are syntax errors in your input."));
+			dialog.treeScrollPane.setViewportView(errPanel);
+		}
+
+		if (ambiguousParseTrees != null) {
+			TokenStream tokens = previewState.parsingResult.parser.getInputStream();
+			String phrase = tokens.getText(Interval.of(ambigInfo.startIndex, ambigInfo.stopIndex));
+			if (phrase.length() > MAX_PHRASE_WIDTH) {
+				phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
+			}
+			String title = ambiguousParseTrees.size() +
+						   " Interpretations of Ambiguous Input Phrase: " +
+						   phrase;
+			int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
+			dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt - 1,
+							ambigInfo.startIndex, ambigInfo.stopIndex, true);
+		}
+
+		dialog.pack();
+		dialog.setVisible(true);
 	}
 
 	public static JBPopup createLookaheadTreesPopup(final PreviewState previewState,
@@ -138,46 +142,50 @@ public class ShowAmbigTreesDialog extends JDialog {
 			new Runnable() {
 				@Override
 				public void run() {
-					// pop up subtrees for lookahead
-					ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
-					ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
-					int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
-					List<ParserRuleContext> lookaheadParseTrees =
-						GrammarParserInterpreter.getLookaheadParseTrees(previewState.g,
-																		parser,
-																		parser.getTokenStream(),
-																		startRuleIndex,
-																		lookaheadInfo.decision,
-																		lookaheadInfo.startIndex,
-																		lookaheadInfo.stopIndex);
-					if (parser.getNumberOfSyntaxErrors() > 0) {
-						// should be no errors for ambiguities, unless original
-						// input itself has errors. Just display error in this case.
-						JBPanel errPanel = new JBPanel(new BorderLayout());
-						errPanel.add(new JBLabel("Cannot display lookahead trees while there are syntax errors in your input."));
-						dialog.treeScrollPane.setViewportView(errPanel);
-						lookaheadParseTrees = null;
-					}
-					if (lookaheadParseTrees != null) {
-						Interval range = Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex);
-						String phrase = parser.getTokenStream().getText(range);
-						if (phrase.length() > MAX_PHRASE_WIDTH) {
-							phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
-						}
-						String title = lookaheadParseTrees.size() +
-									   " Interpretations of Lookahead Phrase: " +
-									   phrase;
-						dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1,
-										lookaheadInfo.startIndex, lookaheadInfo.stopIndex, false);
-					}
-					dialog.pack();
-					dialog.setVisible(true);
+					popupLookaheadTreesDialog(previewState, lookaheadInfo);
 				}
 			}
 		);
 
 		JBPopup popup = builder.createPopup();
 		return popup;
+	}
+
+	public static void popupLookaheadTreesDialog(PreviewState previewState, LookaheadEventInfo lookaheadInfo) {
+		// pop up subtrees for lookahead
+		ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
+		ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
+		int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
+		List<ParserRuleContext> lookaheadParseTrees =
+			GrammarParserInterpreter.getLookaheadParseTrees(previewState.g,
+															parser,
+															parser.getTokenStream(),
+															startRuleIndex,
+															lookaheadInfo.decision,
+															lookaheadInfo.startIndex,
+															lookaheadInfo.stopIndex);
+		if (parser.getNumberOfSyntaxErrors() > 0) {
+			// should be no errors for ambiguities, unless original
+			// input itself has errors. Just display error in this case.
+			JBPanel errPanel = new JBPanel(new BorderLayout());
+			errPanel.add(new JBLabel("Cannot display lookahead trees while there are syntax errors in your input."));
+			dialog.treeScrollPane.setViewportView(errPanel);
+			lookaheadParseTrees = null;
+		}
+		if (lookaheadParseTrees != null) {
+			Interval range = Interval.of(lookaheadInfo.startIndex, lookaheadInfo.stopIndex);
+			String phrase = parser.getTokenStream().getText(range);
+			if (phrase.length() > MAX_PHRASE_WIDTH) {
+				phrase = phrase.substring(0, MAX_PHRASE_WIDTH) + "...";
+			}
+			String title = lookaheadParseTrees.size() +
+						   " Interpretations of Lookahead Phrase: " +
+						   phrase;
+			dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1,
+							lookaheadInfo.startIndex, lookaheadInfo.stopIndex, false);
+		}
+		dialog.pack();
+		dialog.setVisible(true);
 	}
 
 	public void setScale(double scale) {
