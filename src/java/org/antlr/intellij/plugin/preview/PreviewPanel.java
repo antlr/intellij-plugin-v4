@@ -188,15 +188,15 @@ public class PreviewPanel extends JPanel {
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
 		inputPanel.switchToGrammar(previewState, grammarFile);
+		profilerPanel.switchToGrammar(previewState, grammarFile);
 
 		if ( previewState.startRuleName!=null ) {
-			updateParseTreeFromDoc(grammarFile);
+			updateParseTreeFromDoc(grammarFile); // regens tree and profile data
 		}
 		else {
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
 		}
 
-		profilerPanel.switchToGrammar(previewState, grammarFile);
 
 		if ( previewState.g==null && previewState.lg!=null ) {
 			setEnabled(false);

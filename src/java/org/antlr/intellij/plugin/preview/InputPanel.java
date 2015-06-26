@@ -469,9 +469,9 @@ public class InputPanel {
 	}
 
 	/**
-	 * Show token information if the meta-key is down and mouse movement occurs
+	 * Show token information if the ctrl-key is down and mouse movement occurs
 	 */
-	public void showTokenInfoUponMeta(Editor editor, PreviewState previewState, int offset) {
+	public void showTokenInfoUponCtrlKey(Editor editor, PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
 		if (tokenUnderCursor == null) {
 			PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
