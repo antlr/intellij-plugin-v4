@@ -479,7 +479,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  editor window. If there is no grammar in the editor window, return null.
 	 *  If there is a grammar, return any existing preview state else
 	 *  create a new one in store in the map.
-	 */
+	 *
+	 *  Too dangerous; turning off but might be useful later.
 	public @org.jetbrains.annotations.Nullable PreviewState getPreviewState() {
 		VirtualFile currentGrammarFile = getCurrentGrammarFile();
 		if ( currentGrammarFile==null ) {
@@ -491,6 +492,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		return getPreviewState(currentGrammarFile);
 	}
+	 */
 
 	// These "get current editor file" routines should only be used
 	// when you are sure the user is in control and is viewing the

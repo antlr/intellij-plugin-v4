@@ -7,7 +7,6 @@ import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.event.EditorMouseMotionListener;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.ui.popup.JBPopup;
-import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
@@ -33,23 +32,21 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		if ( offset<0 ) return;
 
 		final Editor editor=e.getEditor();
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(editor.getProject());
-		final PreviewState previewState = controller.getPreviewState();
-		if ( previewState==null ) {
+		if ( inputPanel.previewState==null ) {
 			return;
 		}
 
 		if ( e.getMouseEvent().getButton()==MouseEvent.BUTTON3 ) { // right click
-			rightClick(e, previewState, editor, offset);
+			rightClick(e, inputPanel.previewState, editor, offset);
 			return;
 		}
 
 		MouseEvent mouseEvent=e.getMouseEvent();
 		if ( mouseEvent.isControlDown() ) {
-			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), previewState, offset);
+			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), inputPanel.previewState, offset);
 		}
 		else if ( mouseEvent.isAltDown() ) {
-			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), previewState, offset);
+			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), inputPanel.previewState, offset);
 		}
 		editor.getMarkupModel().removeAllHighlighters();
 	}
@@ -86,22 +83,20 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		if ( offset<0 ) return;
 
 		Editor editor=e.getEditor();
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(editor.getProject());
-		PreviewState previewState =	controller.getPreviewState();
-		if ( previewState==null ) {
+		if ( inputPanel.previewState==null ) {
 			return;
 		}
 
 		MouseEvent mouseEvent=e.getMouseEvent();
 		InputPanel.removeTokenInfoHighlighters(editor);
-		if ( mouseEvent.isControlDown() && previewState.parsingResult!=null ) {
-			inputPanel.showTokenInfoUponMeta(editor, previewState, offset);
+		if ( mouseEvent.isControlDown() && inputPanel.previewState.parsingResult!=null ) {
+			inputPanel.showTokenInfoUponMeta(editor, inputPanel.previewState, offset);
 		}
-		else if ( mouseEvent.isAltDown() && previewState.parsingResult!=null ) {
-			inputPanel.showParseRegion(e, editor, previewState, offset);
+		else if ( mouseEvent.isAltDown() && inputPanel.previewState.parsingResult!=null ) {
+			inputPanel.showParseRegion(e, editor, inputPanel.previewState, offset);
 		}
 		else { // just moving around, show any errors or hints
-			InputPanel.showTooltips(e, editor, previewState, offset);
+			InputPanel.showTooltips(e, editor, inputPanel.previewState, offset);
 		}
 	}
 

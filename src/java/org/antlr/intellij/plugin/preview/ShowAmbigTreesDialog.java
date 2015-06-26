@@ -299,7 +299,6 @@ public class ShowAmbigTreesDialog extends JDialog {
 					break; // stop if we hit incoming root nodes
 				a++;
 			}
-			System.out.println("diff at " + a);
 		}
 	}
 
