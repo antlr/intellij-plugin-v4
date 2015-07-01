@@ -12,7 +12,7 @@ import java.util.List;
  *  which are indicated with error nodes in the PSI.
  */
 class AnnotatorToolListener implements ANTLRToolListener {
-    public final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<>();
+    public final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<ANTLRv4ExternalAnnotator.Issue>();
 
     @Override
     public void info(String msg) {

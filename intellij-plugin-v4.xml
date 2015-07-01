@@ -189,7 +189,7 @@
   <property name="module.jdk.bin.intellij-plugin-v4" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.intellij-plugin-v4" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.intellij-plugin-v4" value="-encoding UTF-8 -source 1.7 ${compiler.args}"/>
+  <property name="compiler.args.intellij-plugin-v4" value="-encoding UTF-8 -source 1.6 ${compiler.args}"/>
   
   <property name="intellij-plugin-v4.output.dir" value="${module.intellij-plugin-v4.basedir}/out/production/intellij-plugin-v4"/>
   <property name="intellij-plugin-v4.testoutput.dir" value="${module.intellij-plugin-v4.basedir}/out/test/intellij-plugin-v4"/>

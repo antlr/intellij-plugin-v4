@@ -116,7 +116,7 @@ public class PreviewPanel extends JPanel {
 
 		treePanel.add(scaleSlider, BorderLayout.SOUTH);
 
-		return new Pair<>(viewer,treePanel);
+		return new Pair<UberTreeViewer, JPanel>(viewer,treePanel);
 	}
 
 	@NotNull

@@ -576,7 +576,7 @@ public class ParsingUtils {
 								final int startIndex,
 								final int stopIndex)
 	{
-		List<Tree> leaves = new ArrayList<>();
+		List<Tree> leaves = new ArrayList<Tree>();
 		_getAllLeaves(t, leaves, startIndex, stopIndex);
 		return leaves;
 	}
@@ -600,7 +600,7 @@ public class ParsingUtils {
 	}
 
 	public static List<Tree> getAllLeaves(Tree t) {
-		List<Tree> leaves = new ArrayList<>();
+		List<Tree> leaves = new ArrayList<Tree>();
 		_getAllLeaves(t, leaves);
 		return leaves;
 	}
