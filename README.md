@@ -4,7 +4,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x plugin for ANTLR v4 ([
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars. 
+This plugin is for ANTLR v4 grammars and including ANTLR 4.5.1.
 
 Features:
 

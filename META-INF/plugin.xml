@@ -6,13 +6,35 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.5. Features: syntax highlighting,
-      syntax error checking, semantic error checking, navigation window,
-      live preview, parse tree view, profiler, goto-declaration, find usages,
-      rename tokens, rename rules.
-      Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.5.1. It works with
+                Intellij 13.x, and 14.x.
+     </p>
+
+     <ul>
+     <li> syntax highlighting
+     <li> syntax error checking
+     <li> semantic error checking
+     <li> navigation window
+     <li> goto-declaration
+     <li> find usages
+     <li> rename tokens
+     <li> rename rules
+     <li> comment grammar rule lines with meta-/ (1.7)
+     <li> generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
+     <li> code completion for tokens, rule names;
+     <li> finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
+     <li> handles separate parsers and lectures like TParser.g4 and TLexer.g4 (1.7)
+     <li> Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
+     <li> has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
+     <li> can view parse trees for input matched in more than one way (ambiguities) (1.7)
+     <li> can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
+     <li> changes to grammar seen in parse tree upon save of grammar. Works with Intellij 13.x and 14.x; requires 13.x.
+     </ul>
+
+      <p>Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
       unless you override in the configuration dialog.
       Shortcut to generate parsers is ctrl-shift-G / meta-shift-G but it's in Tools menu, popups.
+
       Code completion for tokens, rule names. finds tokenVocab option for code gen
           if there is a tokenVocab option, don't warn about implicit tokens.
           shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
@@ -27,7 +49,7 @@
           tool errors appear in a console you can opened by clicking on a button
           in the bottom tab.
   <p>
-          You can use the meta-key while moving the mouse and it will show you
+          You can use the ctrl-key while moving the mouse and it will show you
           token information in the preview editor box via tooltips.
 
   <p>
@@ -35,52 +57,8 @@
           and underlining just like a regular editor window. The difference
           is that this window's grammar is specified in your grammar file.
 
-  <p>
-meta-j pops up a list of live templates, just like it does for Java programming.
-Currently, there are a number of lexical rules for common tokens such as comments
-and identifiers that you can automatically inject.
-There are shortcuts like rid that lets you jump directly to the
-lexical rule you would like to generate. If you type the shortcut and wait a
-second, intellij should pop up an action you can select for that shortcut.
-
-  <p>
-ctrl-return, or whatever you have configured for the generate pop-up,
-will bring up a list of things you can generate. The only one so far is
-a generator to create lexical rules for any literals, referenced in the parser
-grammar, that have not been defined.
-
-  <p>
-You can type input into an editor or select a file for testing in preview window.
-
-  <p>
-Meta-key while moving the mouse shows token info per above, but now you can
-click on the token that's underlined and it will show the location in the ANTLR
-grammar editor window of the grammar element that matched that token.
-
-  <p>
-Alt-key while moving the mouse shows the region of input associated with
-parser rule that matched it. It finds parent of the token under cursor
-and shows region of that rule parse tree node.  Clicking at the same time
-jumps the grammar to the associated rule.  A pop up shows the parser call
-stack leading to that parse region.
-
-<p>
-Added profiler tab in preview tool window. Selecting a row in the table
- highlights the associated decision in the grammar and highlights important
- regions of the input window to the left. You can sort the columns by clicking
-on the header row. Hover over the header row to get tooltips describing the column.
-If you know a lot about the internals of the parsing strategy, you can click on
-the expert columns to see additional information. This is  the first attempt
- at a profiler so we can learn what is really important and then improve.
- If you see ambiguities highlighted, those you should definitely take a look
- at in your grammar. If you see decisions requiring full context sensitivity,
- when viewing the expert columns, those are very expensive and could be causing
- speed problems. Note that the profiler always tries to keep up-to-date with
- the input. The profiler uses the parser interpreter but is fairly
- consistent with the speed of a generated and compiled parser but it does use
- single-stage full LL parsing which can be slower.  It needs to do that so
- that it gets full and complete profiling information. For those in the know,
- it uses PredictionMode.LL_EXACT_AMBIG_DETECTION.
+<p>See <a href="https://github.com/antlr/intellij-plugin-v4/blob/master/README.md">README.md</a>
+for more details.
 
 <p>
 For really big files and
@@ -91,7 +69,7 @@ For really big files and
       ]]></description>
 
   <change-notes><![CDATA[
-	Update internal ANTLR to 4.5.
+	Add new ambiguous tree and lookahead tree displays. Update internal ANTLR to 4.5.1 and fix bugs.
       ]]>
   </change-notes>
 
