@@ -608,6 +608,10 @@ public class InputPanel {
 			HighlighterTargetArea.EXACT_RANGE
 		);
 
+		if (hintText.contains("<")) {
+			hintText = hintText.replaceAll("<", "&lt;");
+		}
+
 		// HINT
 		caretModel.moveToOffset(offset); // info tooltip only shows at cursor :(
 		HintManager.getInstance().showInformationHint(editor, hintText);
@@ -621,8 +625,8 @@ public class InputPanel {
 
 		PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
 		Integer atnState = parser.inputTokenToStateMap.get(tokenUnderCursor);
-		if (atnState == null) {
-			LOG.error("no ATN state for input token " + tokenUnderCursor);
+		if (atnState == null) { // likely an error token
+			//LOG.error("no ATN state for input token " + tokenUnderCursor);
 			return;
 		}
 
