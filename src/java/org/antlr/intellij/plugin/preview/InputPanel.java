@@ -338,9 +338,13 @@ public class InputPanel {
 //		previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
 		this.previewState = previewState;
 
-		selectInputEvent();
-
-		fileChooser.setText(previewState.inputFileName);
+		if (previewState.inputFileName != null && previewState.inputFileName.length() > 0) {
+			fileChooser.setText(previewState.inputFileName);
+			selectFileEvent();
+		}
+		else {
+			selectInputEvent();
+		}
 
 		clearParseErrors(grammarFile);
 

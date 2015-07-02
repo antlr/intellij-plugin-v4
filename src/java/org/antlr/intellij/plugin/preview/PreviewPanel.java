@@ -124,7 +124,7 @@ public class PreviewPanel extends JPanel {
 		JSlider scaleSlider;
 		if ( isTrackpadZoomSupported ) {
 			scaleSlider = new JSlider();
-			scaleSlider.setModel(((TrackpadZoomingTreeView)viewer).scaleModel);
+			scaleSlider.setModel(((TrackpadZoomingTreeView) viewer).scaleModel);
 		}
 		else {
 			int sliderValue = (int) ((viewer.getScale() - 1.0) * 1000);
@@ -186,6 +186,14 @@ public class PreviewPanel extends JPanel {
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
+
+//		// wipe out highlighters from previous
+//		PreviewState old_previewState = controller.getPreviewState(grammarFile);
+//		final MarkupModel markupModel = old_previewState.getEditor().getMarkupModel();
+//		final RangeHighlighter[] highlighters = markupModel.getAllHighlighters();
+//		if ( highlighters.length>0 ) { // somehow it gets 'interval not found' without this
+//			markupModel.removeAllHighlighters();
+//		}
 
 		inputPanel.switchToGrammar(previewState, grammarFile);
 		profilerPanel.switchToGrammar(previewState, grammarFile);
@@ -272,7 +280,7 @@ public class PreviewPanel extends JPanel {
 	public void indicateInvalidGrammarInParseTreePane() {
 		setParseTree(Arrays.asList(new String[0]),
 					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "Issues with parser and/or lexer grammar(s) prevent preview")));
+														  "Issues with parser and/or lexer grammar(s) prevent preview; see ANTLR 'Tool Output' pane")));
 	}
 
 	public void indicateNoStartRuleInParseTreePane() {
@@ -285,6 +293,11 @@ public class PreviewPanel extends JPanel {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 		LOG.info("updateParseTreeFromDoc "+grammarFile+" rule "+previewState.startRuleName);
+		if ( previewState.g==null || previewState.lg==null ) {
+			// likely error in grammar prevents it from loading properly into previewState; bail
+			indicateInvalidGrammarInParseTreePane();
+			return;
+		}
 		try {
 			Editor editor = inputPanel.getEditor(grammarFile);
 			final String inputText = editor.getDocument().getText();

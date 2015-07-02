@@ -94,7 +94,10 @@ public class ProfilerPanel {
 
 	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
 		MarkupModel markupModel = e.getEditor().getMarkupModel();
-		markupModel.removeAllHighlighters();
+		final RangeHighlighter[] highlighters = markupModel.getAllHighlighters();
+		if (highlighters.length > 0) { // somehow it gets 'interval not found' without this
+			markupModel.removeAllHighlighters();
+		}
 	}
 
 	public JPanel getComponent() {

@@ -11,10 +11,14 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.event.EditorFactoryAdapter;
 import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.markup.MarkupModel;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -228,10 +232,24 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			new EditorFactoryAdapter() {
 				@Override
 				public void editorCreated(@NotNull EditorFactoryEvent event) {
-					Editor editor = event.getEditor();
+					final Editor editor = event.getEditor();
 					GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
 					editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
 					editor.addEditorMouseListener(listener);
+					editor.getDocument().addDocumentListener(
+						new DocumentListener() {
+							@Override
+							public void beforeDocumentChange(DocumentEvent event) {
+								MarkupModel markupModel = editor.getMarkupModel();
+								final RangeHighlighter[] highlighters = markupModel.getAllHighlighters();
+								if ( highlighters.length>0 ) { // somehow it gets 'interval not found' without this
+									markupModel.removeAllHighlighters();
+								}
+							}
+							@Override
+							public void documentChanged(DocumentEvent event) { }
+						}
+					);
 				}
 
 				@Override
