@@ -28,7 +28,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 	@Override
 	public void mouseClicked(EditorMouseEvent e) {
-		final int offset = getEditorCharOffset(e);
+		final int offset = getEditorCharOffsetAndRemoveTokenHighlighters(e);
 		if ( offset<0 ) return;
 
 		final Editor editor=e.getEditor();
@@ -79,7 +79,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 	@Override
 	public void mouseMoved(EditorMouseEvent e){
-		int offset = getEditorCharOffset(e);
+		int offset = getEditorCharOffsetAndRemoveTokenHighlighters(e);
 		if ( offset<0 ) return;
 
 		Editor editor=e.getEditor();
@@ -100,7 +100,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 	}
 
-	public int getEditorCharOffset(EditorMouseEvent e) {
+	public int getEditorCharOffsetAndRemoveTokenHighlighters(EditorMouseEvent e) {
 		if ( e.getArea()!=EditorMouseEventArea.EDITING_AREA ) {
 			return -1;
 		}
