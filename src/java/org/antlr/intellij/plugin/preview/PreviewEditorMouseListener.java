@@ -48,7 +48,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		else if ( mouseEvent.isAltDown() ) {
 			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), inputPanel.previewState, offset);
 		}
-		editor.getMarkupModel().removeAllHighlighters();
+		inputPanel.clearHighlighters();
 	}
 
 	public void rightClick(final EditorMouseEvent e,
@@ -88,7 +88,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		MouseEvent mouseEvent=e.getMouseEvent();
-		InputPanel.removeTokenInfoHighlighters(editor);
+		InputPanel.removeTokenInfoHighlighters(e.getEditor());
 		if ( mouseEvent.isControlDown() && inputPanel.previewState.parsingResult!=null ) {
 			inputPanel.showTokenInfoUponCtrlKey(editor, inputPanel.previewState, offset);
 		}
@@ -115,7 +115,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		// Mouse has moved so make sure we don't show any token information tooltips
-		InputPanel.removeTokenInfoHighlighters(editor);
+		InputPanel.removeTokenInfoHighlighters(e.getEditor());
 		return offset;
 	}
 

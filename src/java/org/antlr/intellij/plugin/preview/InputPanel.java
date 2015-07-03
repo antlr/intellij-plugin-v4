@@ -194,6 +194,7 @@ public class InputPanel {
 //		}
 
 		// wipe old and make new one
+		releaseEditor(previewState);
 		createManualInputPreviewEditor(previewState);
 		previewPanel.clearParseTree();
 		clearErrorConsole();
@@ -243,6 +244,7 @@ public class InputPanel {
 //		}
 
 		// wipe old and make new one
+		releaseEditor(previewState);
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(inputText);
 		doc.setReadOnly(true);
@@ -448,12 +450,17 @@ public class InputPanel {
 		Editor editor = getEditor(grammarFile);
 		if (editor == null) return;
 
-		MarkupModel markupModel = editor.getMarkupModel();
-		markupModel.removeAllHighlighters();
+		clearHighlighters();
 
 		HintManager.getInstance().hideAllHints();
 
 		clearErrorConsole();
+	}
+
+	public void clearHighlighters() {
+		Editor editor = getEditor(previewState.grammarFile);
+		MarkupModel markupModel = editor.getMarkupModel();
+		markupModel.removeAllHighlighters();
 	}
 
 	/**
@@ -463,7 +470,7 @@ public class InputPanel {
 	public void showParseErrors(final VirtualFile grammarFile, final List<SyntaxError> errors) {
 		MarkupModel markupModel = getEditor(grammarFile).getMarkupModel();
 		if (errors.size() == 0) {
-			markupModel.removeAllHighlighters();
+			clearHighlighters();
 			return;
 		}
 		for (SyntaxError e : errors) {
@@ -800,6 +807,16 @@ public class InputPanel {
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			if (r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY) == null &&
 				r.getUserData(SYNTAX_ERROR) == null) {
+				markupModel.removeHighlighter(r);
+			}
+		}
+	}
+
+	public static void removeHighlighters(Editor editor, Key<?> key) {
+		// Remove anything with user data accessible via key
+		MarkupModel markupModel = editor.getMarkupModel();
+		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+			if (r.getUserData(key) != null) {
 				markupModel.removeHighlighter(r);
 			}
 		}

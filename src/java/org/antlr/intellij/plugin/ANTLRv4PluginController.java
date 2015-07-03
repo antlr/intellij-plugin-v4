@@ -11,14 +11,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.event.EditorFactoryAdapter;
 import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
-import com.intellij.openapi.editor.markup.MarkupModel;
-import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -44,6 +40,7 @@ import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
+import org.antlr.intellij.plugin.preview.InputPanel;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
@@ -53,6 +50,8 @@ import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -236,29 +235,35 @@ public class ANTLRv4PluginController implements ProjectComponent {
 					GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
 					editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
 					editor.addEditorMouseListener(listener);
-					editor.getDocument().addDocumentListener(
-						new DocumentListener() {
-							@Override
-							public void beforeDocumentChange(DocumentEvent event) {
-								MarkupModel markupModel = editor.getMarkupModel();
-								final RangeHighlighter[] highlighters = markupModel.getAllHighlighters();
-								if ( highlighters.length>0 ) { // somehow it gets 'interval not found' without this
-									markupModel.removeAllHighlighters();
+					final Document doc = editor.getDocument();
+					VirtualFile vfile = FileDocumentManager.getInstance().getFile(doc);
+					if ( vfile!=null && vfile.getName().endsWith(".g4") ) {
+						editor.getContentComponent().addKeyListener(
+							new KeyAdapter() {
+								@Override
+								public void keyTyped(KeyEvent e) {
+									// if they type in grammar file, remove highlighters
+									ApplicationManager.getApplication().invokeLater(
+										new Runnable() {
+											@Override
+											public void run() {
+												InputPanel.removeHighlighters(editor, ProfilerPanel.DECISION_INFO_KEY);
+											}
+										}
+									);
 								}
 							}
-							@Override
-							public void documentChanged(DocumentEvent event) { }
-						}
-					);
+						);
+					}
 				}
 
 				@Override
 				public void editorReleased(@NotNull EditorFactoryEvent event) {
 					Editor editor = event.getEditor();
-					GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
 					if (editor.getProject() != null && editor.getProject() != project) {
 						return;
 					}
+					GrammarEditorMouseAdapter listener = editor.getUserData(EDITOR_MOUSE_LISTENER_KEY);
 					if (listener != null) {
 						editor.removeEditorMouseListener(listener);
 						editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, null);
@@ -445,8 +450,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
 		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
-
-		previewPanel.getProfilerPanel().tagAmbiguousDecisionsInGrammar(previewState);
 
 		return previewState.parsingResult;
 	}

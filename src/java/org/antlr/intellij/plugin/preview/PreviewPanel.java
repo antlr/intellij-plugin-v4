@@ -91,7 +91,7 @@ public class PreviewPanel extends JPanel {
 		treeViewer = pair.a;
 		tabbedPane.addTab("Parse tree", pair.b);
 
-		profilerPanel = new ProfilerPanel(project);
+		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
 
 		return tabbedPane;
@@ -187,14 +187,6 @@ public class PreviewPanel extends JPanel {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
-//		// wipe out highlighters from previous
-//		PreviewState old_previewState = controller.getPreviewState(grammarFile);
-//		final MarkupModel markupModel = old_previewState.getEditor().getMarkupModel();
-//		final RangeHighlighter[] highlighters = markupModel.getAllHighlighters();
-//		if ( highlighters.length>0 ) { // somehow it gets 'interval not found' without this
-//			markupModel.removeAllHighlighters();
-//		}
-
 		inputPanel.switchToGrammar(previewState, grammarFile);
 		profilerPanel.switchToGrammar(previewState, grammarFile);
 
@@ -204,7 +196,6 @@ public class PreviewPanel extends JPanel {
 		else {
 			setParseTree(Collections.<String>emptyList(), null); // blank tree
 		}
-
 
 		if ( previewState.g==null && previewState.lg!=null ) {
 			setEnabled(false);
