@@ -228,6 +228,7 @@ public class ProfilerPanel {
 		CaretModel caretModel = editor.getCaretModel();
 
 		MarkupModel markupModel = editor.getMarkupModel();
+		markupModel.removeAllHighlighters();
 
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 

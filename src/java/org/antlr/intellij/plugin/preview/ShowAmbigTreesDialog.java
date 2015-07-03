@@ -27,7 +27,6 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.gui.TreeViewer;
-import org.antlr.v4.tool.GrammarInterpreterRuleContext;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 
 import javax.swing.*;
@@ -45,6 +44,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 	private JButton buttonOK;
 	protected JScrollPane treeScrollPane;
 	protected JSlider treeSizeSlider;
+	protected JLabel ambigPhraseLabel;
 	public List<? extends RuleContext> ambiguousParseTrees;
 	public TreeViewer[] treeViewers;
 	public PreviewState previewState;
@@ -124,6 +124,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 						   " Interpretations of Ambiguous Input Phrase: " +
 						   phrase;
 			int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
+			dialog.ambigPhraseLabel.setText(title);
 			dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt - 1,
 							ambigInfo.startIndex, ambigInfo.stopIndex, true);
 		}
@@ -181,6 +182,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 			String title = lookaheadParseTrees.size() +
 						   " Interpretations of Lookahead Phrase: " +
 						   phrase;
+			dialog.ambigPhraseLabel.setText(title);
 			dialog.setTrees(previewState, lookaheadParseTrees, title, lookaheadInfo.predictedAlt - 1,
 							lookaheadInfo.startIndex, lookaheadInfo.stopIndex, false);
 		}
@@ -210,15 +212,15 @@ public class ShowAmbigTreesDialog extends JDialog {
 			setTitle(title);
 			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
 			JBPanel panelOfTrees = new JBPanel();
-			GrammarInterpreterRuleContext chosenTree = (GrammarInterpreterRuleContext)
-				ambiguousParseTrees.get(highlightTreeIndex);
+			PreviewInterpreterRuleContext chosenTree =
+				(PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
 			for (int i = 0; i < numTrees; i++) {
 				if (i > 0) {
 					panelOfTrees.add(new JSeparator(JSeparator.VERTICAL));
 				}
-				GrammarInterpreterRuleContext ctx = (GrammarInterpreterRuleContext) ambiguousParseTrees.get(i);
-				treeViewers[i] = new TrackpadZoomingTreeView(null, null, highlightDiffs && ctx != chosenTree);
+				PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext) ambiguousParseTrees.get(i);
+				treeViewers[i] = new TrackpadZoomingTreeView(null, null, highlightDiffs); // && ctx != chosenTree);
 				AltLabelTextProvider treeText =
 					new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
 				treeViewers[i].setTreeTextProvider(treeText);
@@ -232,12 +234,12 @@ public class ShowAmbigTreesDialog extends JDialog {
 //					    ;
 					// TODO: display a message?
 				}
-				if (ctx != chosenTree) {
-					mark(chosenTree, ctx, startIndex, stopIndex);
-				}
 				treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
 					add(root);
 				}});
+				if (ctx != chosenTree) {
+					mark(chosenTree, ctx, startIndex, stopIndex);
+				}
 				JBPanel wrapper = new JBPanel(new BorderLayout());
 				if (i == highlightTreeIndex) {
 					wrapper.setBackground(JBColor.white);
@@ -257,11 +259,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 	 * means u might contain fewer in-range leaves. t's leaves should be
 	 * start..stop indexes.
 	 */
-	public static void mark(final GrammarInterpreterRuleContext t,
-							final GrammarInterpreterRuleContext u,
+	public static void mark(final PreviewInterpreterRuleContext t,
+							final PreviewInterpreterRuleContext u,
 							final int startIndex,
 							final int stopIndex) {
-		// Get leaves and the root so we can do a difference between the trees starting at the bottom and top
+		// First mark from roots down
+		markFromRoots(t, u);
+
+		// Get leaves so we can do a difference between the trees starting at the bottom and top
 		List<Tree> tleaves = ParsingUtils.getAllLeaves(t);
 		List<Tree> uleaves = ParsingUtils.getAllLeaves(u);
 
@@ -300,10 +305,34 @@ public class ShowAmbigTreesDialog extends JDialog {
 				tancestor = (PreviewInterpreterRuleContext) tancestors.get(a);
 				uancestor = (PreviewInterpreterRuleContext) uancestors.get(a);
 				if (!tancestor.equals(uancestor)) break;
+				tancestor.reached = true;
 				uancestor.reached = true;
-				if (tancestor == t || uancestor == u)
-					break; // stop if we hit incoming root nodes
+//				if (tancestor == t || uancestor == u)
+//					break; // stop if we hit incoming root nodes
 				a++;
+			}
+		}
+	}
+
+	public static void markFromRoots(final PreviewInterpreterRuleContext t, final PreviewInterpreterRuleContext u) {
+		if (t == null || u == null) return;
+		if (!t.equals(u)) return;
+		t.reached = true;
+		u.reached = true;
+		int n = Math.min(t.getChildCount(), u.getChildCount());
+		for (int i = 0; i < n; i++) { // for each leaf of t and u
+			Tree tchild = t.getChild(i);
+			Tree uchild = u.getChild(i);
+			if (!tchild.equals(uchild)) {
+				return; // don't consider other kids if ith doesn't match
+			}
+			if (tchild instanceof PreviewInterpreterRuleContext &&
+				uchild instanceof PreviewInterpreterRuleContext) {
+				markFromRoots((PreviewInterpreterRuleContext) tchild,
+							  (PreviewInterpreterRuleContext) uchild);
+			}
+			else {
+				return; // mismatched kids. should be caught above but...
 			}
 		}
 	}
@@ -324,16 +353,22 @@ public class ShowAmbigTreesDialog extends JDialog {
 		contentPane = new JPanel();
 		contentPane.setLayout(new GridLayoutManager(3, 1, new Insets(10, 10, 10, 10), -1, -1));
 		final JPanel panel1 = new JPanel();
-		panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+		panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
 		contentPane.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
 		final Spacer spacer1 = new Spacer();
 		panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
 		final JPanel panel2 = new JPanel();
 		panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-		panel1.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+		panel1.add(panel2, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
 		buttonOK = new JButton();
 		buttonOK.setText("OK");
 		panel2.add(buttonOK, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		ambigPhraseLabel = new JLabel();
+		ambigPhraseLabel.setFont(new Font(ambigPhraseLabel.getFont().getName(), Font.BOLD, ambigPhraseLabel.getFont().getSize()));
+		ambigPhraseLabel.setText("ambiguity");
+		panel1.add(ambigPhraseLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		final Spacer spacer2 = new Spacer();
+		panel1.add(spacer2, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
 		treeScrollPane = new JScrollPane();
 		contentPane.add(treeScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 		treeSizeSlider = new JSlider();
