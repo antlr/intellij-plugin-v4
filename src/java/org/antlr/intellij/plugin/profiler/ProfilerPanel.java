@@ -96,7 +96,7 @@ public class ProfilerPanel {
 	}
 
 	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
-		previewPanel.inputPanel.clearHighlighters();
+		previewPanel.inputPanel.clearGrammarHighlighters();
 	}
 
 	public JPanel getComponent() {
@@ -166,10 +166,9 @@ public class ProfilerPanel {
 	}
 
 	public void selectDecisionInGrammar(PreviewState previewState, int decision) {
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		Editor grammarEditor = controller.getCurrentGrammarEditor();
-//		FileEditorManager edMgr = FileEditorManager.getInstance(project);
-//		final FileEditor[] editors = edMgr.getEditors(previewState.grammarFile); // hopefully just 1
+		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
+		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
+		if (grammarEditor == null) return;
 
 		DecisionState decisionState = previewState.g.atn.getDecisionState(decision);
 		Interval region = previewState.g.getStateToGrammarRegion(decisionState.stateNumber);
@@ -177,7 +176,7 @@ public class ProfilerPanel {
 			System.err.println("decision " + decision + " has state " + decisionState.stateNumber + " but no region");
 			return;
 		}
-		previewPanel.inputPanel.clearHighlighters();
+		previewPanel.inputPanel.clearGrammarHighlighters();
 
 		org.antlr.runtime.TokenStream tokens = previewState.g.tokenStream;
 		if (region.a >= tokens.size() || region.b >= tokens.size()) {
@@ -224,11 +223,9 @@ public class ProfilerPanel {
 			return;
 		}
 		ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-		Editor editor = previewState.getEditor();
+		Editor editor = previewState.getInputEditor();
 		ScrollingModel scrollingModel = editor.getScrollingModel();
 		CaretModel caretModel = editor.getCaretModel();
-
-		previewPanel.inputPanel.clearHighlighters();
 
 		MarkupModel markupModel = editor.getMarkupModel();
 

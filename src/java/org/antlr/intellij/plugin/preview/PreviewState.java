@@ -38,20 +38,20 @@ public class PreviewState {
 	 *  are created out of sync. Depends on order IDE opens files vs
 	 *  creates preview pane.
 	 */
-	private Editor editor;
+	private Editor inputEditor;
 
 	public PreviewState(Project project, VirtualFile grammarFile) {
 		this.project = project;
 		this.grammarFile = grammarFile;
 	}
 
-	public synchronized Editor getEditor() {
-		return editor;
+	public synchronized Editor getInputEditor() {
+		return inputEditor;
 	}
 
-	public synchronized void setEditor(Editor editor) {
+	public synchronized void setInputEditor(Editor inputEditor) {
 		releaseEditor();
-		this.editor = editor;
+		this.inputEditor = inputEditor;
 	}
 
 	public Grammar getMainGrammar() {
@@ -61,10 +61,10 @@ public class PreviewState {
 	public synchronized void releaseEditor() {
 		// It would appear that the project closed event occurs before these
 		// close grammars sometimes. Very strange. check for null editor.
-		if (editor != null) {
+		if (inputEditor != null) {
 			final EditorFactory factory = EditorFactory.getInstance();
-			factory.releaseEditor(editor);
-			editor = null;
+			factory.releaseEditor(inputEditor);
+			inputEditor = null;
 		}
 	}
 

@@ -40,7 +40,6 @@ import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
-import org.antlr.intellij.plugin.preview.InputPanel;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
@@ -50,8 +49,6 @@ import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -143,33 +140,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
 		consoleWindow.getContentManager().addContent(content);
 		consoleWindow.setIcon(Icons.FILE);
-
-//		ToolWindow profilerWindow = toolWindowManager.registerToolWindow(PROFILER_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-//		JPanel panel = new JPanel(new BorderLayout());
-//		profilerWindow.getComponent().add(panel);
-//		profilerWindow.setIcon(Icons.FILE);
-//		final EditorFactory edfactory = EditorFactory.getInstance();
-//		Document doc = edfactory.createDocument("foo\nbar\n");
-//		RangeMarker rangeMarker = doc.createRangeMarker(2, 5);
-//		final Editor editor = edfactory.createEditor(doc, previewPanel.project);
-//		EditorSettings settings = editor.getSettings();
-//		settings.setWhitespacesShown(true);
-//		settings.setLineNumbersShown(true);
-//		settings.setLineMarkerAreaShown(true);
-//		MarkupModel markupModel = editor.getMarkupModel();
-//		panel.add(editor.getComponent());
-//
-//
-//
-//		TextAttributes textAttributes =
-//			new TextAttributes(JBColor.BLACK, JBColor.WHITE, JBColor.RED, EffectType.WAVE_UNDERSCORE, 1);
-//		textAttributes.setErrorStripeColor(JBColor.RED);
-//		final RangeHighlighter lineHighlighter =
-//			markupModel.addRangeHighlighter(2,
-//											5,
-//											HighlighterLayer.ADDITIONAL_SYNTAX, textAttributes,
-//											HighlighterTargetArea.EXACT_RANGE);
-//		lineHighlighter.setErrorStripeMarkColor(JBColor.BLUE);
 	}
 
 	@Override
@@ -232,28 +202,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				@Override
 				public void editorCreated(@NotNull EditorFactoryEvent event) {
 					final Editor editor = event.getEditor();
-					GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
-					editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
-					editor.addEditorMouseListener(listener);
 					final Document doc = editor.getDocument();
 					VirtualFile vfile = FileDocumentManager.getInstance().getFile(doc);
 					if ( vfile!=null && vfile.getName().endsWith(".g4") ) {
-						editor.getContentComponent().addKeyListener(
-							new KeyAdapter() {
-								@Override
-								public void keyTyped(KeyEvent e) {
-									// if they type in grammar file, remove highlighters
-									ApplicationManager.getApplication().invokeLater(
-										new Runnable() {
-											@Override
-											public void run() {
-												InputPanel.removeHighlighters(editor, ProfilerPanel.DECISION_INFO_KEY);
-											}
-										}
-									);
-								}
-							}
-						);
+						GrammarEditorMouseAdapter listener = new GrammarEditorMouseAdapter();
+						editor.putUserData(EDITOR_MOUSE_LISTENER_KEY, listener);
+						editor.addEditorMouseListener(listener);
 					}
 				}
 
@@ -496,6 +450,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return stateForCurrentGrammar;
 	}
 
+	public Editor getEditor(VirtualFile vfile) {
+		final FileDocumentManager fdm = FileDocumentManager.getInstance();
+		final Document doc = fdm.getDocument(vfile);
+		if (doc == null) return null;
+
+		EditorFactory factory = EditorFactory.getInstance();
+		final Editor[] editors = factory.getEditors(doc, previewPanel.project);
+		return editors[0]; // hope just one
+	}
+
+
 	/** Get the state information associated with the grammar in the current
 	 *  editor window. If there is no grammar in the editor window, return null.
 	 *  If there is a grammar, return any existing preview state else
@@ -529,10 +494,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return files[0];
 	}
 
-	public Editor getCurrentGrammarEditor() {
-		FileEditorManager edMgr = FileEditorManager.getInstance(project);
-		return edMgr.getSelectedTextEditor();
-	}
+//	public Editor getCurrentGrammarEditor() {
+//		FileEditorManager edMgr = FileEditorManager.getInstance(project);
+//		return edMgr.getSelectedTextEditor();
+//	}
 
 	public VirtualFile getCurrentGrammarFile() {
 		return getCurrentGrammarFile(project);

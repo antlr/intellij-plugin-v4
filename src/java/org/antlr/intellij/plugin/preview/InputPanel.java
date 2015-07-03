@@ -214,7 +214,7 @@ public class InputPanel {
 
 		Editor editor = createPreviewEditor(previewState.grammarFile, doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
-		previewState.setEditor(editor);
+		previewState.setInputEditor(editor);
 	}
 
 	public void selectFileEvent() {
@@ -250,7 +250,7 @@ public class InputPanel {
 		doc.setReadOnly(true);
 		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
-		previewState.setEditor(editor);
+		previewState.setInputEditor(editor);
 		clearErrorConsole();
 		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
 	}
@@ -373,10 +373,10 @@ public class InputPanel {
 	}
 
 	public Editor getEditor(VirtualFile grammarFile) {
-		Editor editor = previewState.getEditor();
+		Editor editor = previewState.getInputEditor();
 		if (editor == null) {
 			createManualInputPreviewEditor(previewState); // ensure we always have an input window
-			editor = previewState.getEditor();
+			editor = previewState.getInputEditor();
 		}
 
 		return editor;
@@ -395,7 +395,7 @@ public class InputPanel {
 	}
 
 	public void releaseEditor(PreviewState previewState) {
-		uninstallListeners(previewState.getEditor());
+		uninstallListeners(previewState.getInputEditor());
 
 		// release the editor
 		previewState.releaseEditor();
@@ -450,17 +450,18 @@ public class InputPanel {
 		Editor editor = getEditor(grammarFile);
 		if (editor == null) return;
 
-		clearHighlighters();
+		clearGrammarHighlighters();
 
 		HintManager.getInstance().hideAllHints();
 
 		clearErrorConsole();
 	}
 
-	public void clearHighlighters() {
-		Editor editor = getEditor(previewState.grammarFile);
-		MarkupModel markupModel = editor.getMarkupModel();
-		markupModel.removeAllHighlighters();
+	public void clearGrammarHighlighters() {
+		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
+		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
+		if (grammarEditor == null) return;
+		removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
 	}
 
 	/**
@@ -468,9 +469,8 @@ public class InputPanel {
 	 * to the preview input window.
 	 */
 	public void showParseErrors(final VirtualFile grammarFile, final List<SyntaxError> errors) {
-		MarkupModel markupModel = getEditor(grammarFile).getMarkupModel();
 		if (errors.size() == 0) {
-			clearHighlighters();
+			clearGrammarHighlighters();
 			return;
 		}
 		for (SyntaxError e : errors) {
@@ -671,8 +671,10 @@ public class InputPanel {
 	}
 
 	public void jumpToGrammarPosition(Project project, int start) {
-		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-		Editor grammarEditor = controller.getCurrentGrammarEditor();
+		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
+		if (grammarEditor == null) return;
+
 		CaretModel caretModel = grammarEditor.getCaretModel();
 		caretModel.moveToOffset(start);
 		ScrollingModel scrollingModel = grammarEditor.getScrollingModel();

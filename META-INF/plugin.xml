@@ -20,6 +20,7 @@
      <li> rename tokens
      <li> rename rules
      <li> comment grammar rule lines with meta-/ (1.7)
+     <li> grammar/comment folding (1.7)
      <li> generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
      <li> code completion for tokens, rule names;
      <li> finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
