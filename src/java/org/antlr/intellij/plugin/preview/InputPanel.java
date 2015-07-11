@@ -127,8 +127,8 @@ public class InputPanel {
 				TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
 			) {
 				@Override
-				protected void onFileChoosen(VirtualFile chosenFile) {
-					super.onFileChoosen(chosenFile);
+				protected void onFileChosen(VirtualFile chosenFile) {
+					super.onFileChosen(chosenFile);
 					// get state for grammar in current editor, not editor where user is typing preview input!
 //					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
 //					PreviewState previewState = controller.getPreviewState(chosenFile);
