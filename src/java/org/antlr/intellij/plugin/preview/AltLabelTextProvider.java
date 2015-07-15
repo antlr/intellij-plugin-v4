@@ -1,11 +1,11 @@
 package org.antlr.intellij.plugin.preview;
 
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
+import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
-import org.antlr.v4.runtime.tree.gui.TreeTextProvider;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.AltAST;

@@ -14,6 +14,7 @@ import com.intellij.util.containers.Predicate;
 import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
+import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -26,7 +27,6 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
-import org.antlr.v4.runtime.tree.gui.TreeViewer;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 
 import javax.swing.*;
