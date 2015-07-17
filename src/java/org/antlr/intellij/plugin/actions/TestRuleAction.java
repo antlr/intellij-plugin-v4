@@ -8,7 +8,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.actions.EditorActionUtil;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.Condition;
@@ -16,7 +16,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
@@ -100,13 +99,8 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		}
 
 		PsiElement selectedPsiRuleNode;
-		final Integer offset = editor.getUserData(EditorActionUtil.EXPECTED_CARET_OFFSET);
-		if (offset != null) {
-			selectedPsiRuleNode = file.findElementAt(offset);
-		}
-		else {
-			selectedPsiRuleNode = BaseRefactoringAction.getElementAtCaret(editor, file);
-		}
+		final int offset = ((EditorEx) editor).getExpectedCaretOffset();
+		selectedPsiRuleNode = file.findElementAt(offset);
 //		System.out.println("sel el: "+selectedPsiRuleNode);
 
 ////		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
