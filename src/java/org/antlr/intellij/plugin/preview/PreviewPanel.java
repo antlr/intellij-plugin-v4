@@ -53,6 +53,7 @@ public class PreviewPanel extends JPanel {
 	public InputPanel inputPanel;
 
 	public UberTreeViewer treeViewer;
+	public JTreeViewer jTreeViewer;
 	public ParseTree lastTree;
 
 	public ProfilerPanel profilerPanel;
@@ -89,7 +90,10 @@ public class PreviewPanel extends JPanel {
 		LOG.info("createParseTreePanel" + " " + project.getName());
 		Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
 		treeViewer = pair.a;
-		tabbedPane.addTab("Parse tree", pair.b);
+		tabbedPane.addTab("Parse graph", pair.b);
+
+		jTreeViewer = new JTreeViewer(null, this);
+		tabbedPane.addTab("Parse tree", jTreeViewer);
 
 		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
@@ -252,12 +256,17 @@ public class PreviewPanel extends JPanel {
 			public void run() {
 				lastTree = result.tree;
 				if (result.parser instanceof PreviewParser) {
-					treeViewer.setTreeTextProvider(new AltLabelTextProvider(result.parser, preview.g));
+					AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
+					treeViewer.setTreeTextProvider(provider);
 					treeViewer.setTree(result.tree);
+					jTreeViewer.setTreeTextProvider(provider);
+					jTreeViewer.setTree(result.tree);
 				}
 				else {
 					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
 					treeViewer.setTree(result.tree);
+					jTreeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+					jTreeViewer.setTree(result.tree);
 				}
 			}
 		});
