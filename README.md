@@ -2,7 +2,7 @@
 
 An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
 
-*Given day-job constraints, my time working on this project is limited so I'll have to focus first on fixing bugs rather than changing/improving the feature set. Likely I'll do it in bursts every few months. Please do not be offended if your bug or pull request does not yield a response!*
+*Given day-job constraints, my time working on this project is limited so I'll have to focus first on fixing bugs rather than changing/improving the feature set. Likely I'll do it in bursts every few months. Please do not be offended if your bug or pull request does not yield a response! --parrt*
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
