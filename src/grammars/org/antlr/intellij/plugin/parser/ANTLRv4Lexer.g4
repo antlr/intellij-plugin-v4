@@ -119,11 +119,12 @@ BEGIN_ARG_ACTION
 	;
 
 // OPTIONS and TOKENS must also consume the opening brace that captures
-// their option block, as this is teh easiest way to parse it separate
-// to an ACTION block, despite it usingthe same {} delimiters.
+// their option block, as this is the easiest way to parse it separate
+// to an ACTION block, despite it using the same {} delimiters.
 //
-OPTIONS      : 'options' [ \t\f\n\r]* '{'  ;
-TOKENS		 : 'tokens'  [ \t\f\n\r]* '{'  ;
+OPTIONS      : 'options'  [ \t\f\n\r]* '{'  ;
+TOKENS		 : 'tokens'   [ \t\f\n\r]* '{'  ;
+CHANNELS	 : 'channels' [ \t\f\n\r]* '{'  ;
 
 IMPORT       : 'import'               ;
 FRAGMENT     : 'fragment'             ;
