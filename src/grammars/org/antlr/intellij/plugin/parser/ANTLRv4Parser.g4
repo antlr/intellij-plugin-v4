@@ -60,6 +60,7 @@ prequelConstruct
 	:	optionsSpec
 	|	delegateGrammars
 	|	tokensSpec
+	|	channelsSpec
 	|	action
 	;
 
@@ -89,7 +90,15 @@ delegateGrammar
 	;
 
 tokensSpec
-	:	TOKENS id (COMMA id)* COMMA? RBRACE
+	:	TOKENS idList RBRACE
+	;
+
+channelsSpec
+	:	CHANNELS idList? RBRACE
+	;
+
+idList
+	: id ( COMMA id )* COMMA?
 	;
 
 /** Match stuff like @parser::members {int i;} */
