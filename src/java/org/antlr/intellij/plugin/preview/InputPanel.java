@@ -336,10 +336,6 @@ public class InputPanel {
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar "+grammarFileName+" "+previewPanel.project.getName());
-<<<<<<< HEAD
-=======
-//		previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
->>>>>>> master
 		this.previewState = previewState;
 
 		if ( previewState.inputFileName!=null && previewState.inputFileName.length()>0 ) {
@@ -451,11 +447,7 @@ public class InputPanel {
 	}
 
 	public void clearParseErrors(VirtualFile grammarFile) {
-<<<<<<< HEAD
 		Editor editor = getEditor();
-=======
-		Editor editor = getEditor(grammarFile);
->>>>>>> master
 		if ( editor==null ) return;
 
 		clearGrammarHighlighters();
