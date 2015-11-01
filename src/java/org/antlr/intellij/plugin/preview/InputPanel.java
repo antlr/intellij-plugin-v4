@@ -336,7 +336,6 @@ public class InputPanel {
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar "+grammarFileName+" "+previewPanel.project.getName());
-//		previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
 		this.previewState = previewState;
 
 		if ( previewState.inputFileName!=null && previewState.inputFileName.length()>0 ) {
@@ -371,7 +370,13 @@ public class InputPanel {
 		}
 	}
 
-	public Editor getEditor(VirtualFile grammarFile) {
+	public Editor getEditor() {
+		if ( previewState==null ) {
+			// seems there are some out of sequence issues with InputPanels
+			// being created but before we get a switchToGrammar event, which
+			// creates the previewState.
+			return null;
+		}
 		Editor editor = previewState.getInputEditor();
 		if ( editor==null ) {
 			createManualInputPreviewEditor(previewState); // ensure we always have an input window
@@ -379,10 +384,6 @@ public class InputPanel {
 		}
 
 		return editor;
-	}
-
-	public String getText(VirtualFile grammarFile) {
-		return getEditor(grammarFile).getDocument().getText();
 	}
 
 	public String getChosenFileName() {
@@ -446,7 +447,7 @@ public class InputPanel {
 	}
 
 	public void clearParseErrors(VirtualFile grammarFile) {
-		Editor editor = getEditor(grammarFile);
+		Editor editor = getEditor();
 		if ( editor==null ) return;
 
 		clearGrammarHighlighters();
@@ -457,7 +458,18 @@ public class InputPanel {
 	}
 
 	public void clearGrammarHighlighters() {
+		if ( previewState==null ) {
+			// we must be out of sequence, clicking inside a grammar editor
+			// for which we've not created previewState. That can happen
+			// if PreviewPanel is created which creates InputPanel but no
+			// PreviewPanel.switchToGrammar() event has triggered to
+			// create the PreviewState object. Seems to happen when I
+			// restart.  Editors open but there's no switchToGrammar() event.
+			// Doesn't happen in JDK 7, but does in JDK 6 running Intellij 14.1.x
+			return;
+		}
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
+		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
 		if ( grammarEditor==null ) return;
 		removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
@@ -671,6 +683,7 @@ public class InputPanel {
 
 	public void jumpToGrammarPosition(Project project, int start) {
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
 		if ( grammarEditor==null ) return;
 
@@ -774,7 +787,8 @@ public class InputPanel {
 	}
 
 	public void annotateErrorsInPreviewInputEditor(VirtualFile grammarFile, SyntaxError e) {
-		Editor editor = getEditor(grammarFile);
+		Editor editor = getEditor();
+		if ( editor==null ) return;
 		MarkupModel markupModel = editor.getMarkupModel();
 
 		int a, b; // Start and stop index

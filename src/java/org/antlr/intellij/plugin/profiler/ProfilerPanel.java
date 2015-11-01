@@ -167,6 +167,7 @@ public class ProfilerPanel {
 
 	public void selectDecisionInGrammar(PreviewState previewState, int decision) {
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
+		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
 		if ( grammarEditor==null ) return;
 

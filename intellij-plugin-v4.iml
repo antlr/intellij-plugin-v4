@@ -18,7 +18,7 @@
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="IntelliJ IDEA Community Edition IC-141.SNAPSHOT" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library>
