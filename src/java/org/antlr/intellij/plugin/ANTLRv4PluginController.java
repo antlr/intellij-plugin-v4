@@ -96,7 +96,14 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public static ANTLRv4PluginController getInstance(Project project) {
+		if ( project==null ) {
+			LOG.error("getInstance: project is null");
+			return null;
+		}
 		ANTLRv4PluginController pc = project.getComponent(ANTLRv4PluginController.class);
+		if ( pc==null ) {
+			LOG.error("getInstance: getComponent() for "+project.getName()+" returns null");
+		}
 		return pc;
 	}
 
@@ -436,6 +443,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public @NotNull PreviewState getPreviewState(VirtualFile grammarFile) {
+		// make sure only one thread tries to add a preview state object for a given file
 		String grammarFileName = grammarFile.getPath();
 		// Have we seen this grammar before?
 		PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
@@ -457,6 +465,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		EditorFactory factory = EditorFactory.getInstance();
 		final Editor[] editors = factory.getEditors(doc, previewPanel.project);
+		if ( editors.length==0 ) {
+			// no editor found for this file. likely an out-of-sequence issue
+			// where Intellij is opening a project and doesn't fire events
+			// in order we'd expect.
+			return null;
+		}
 		return editors[0]; // hope just one
 	}
 

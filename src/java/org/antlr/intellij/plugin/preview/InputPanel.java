@@ -152,7 +152,7 @@ public class InputPanel {
 					selectInputEvent();
 				}
 			}
-		);
+		                                  );
 		fileRadioButton.addActionListener(
 			new ActionListener() {
 				@Override
@@ -160,7 +160,7 @@ public class InputPanel {
 					selectFileEvent();
 				}
 			}
-		);
+		                                 );
 
 		resetStartRuleLabel();
 
@@ -210,7 +210,7 @@ public class InputPanel {
 					previewState.manualInputText = e.getDocument().getCharsSequence();
 				}
 			}
-		);
+		                       );
 
 		Editor editor = createPreviewEditor(previewState.grammarFile, doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
@@ -222,7 +222,7 @@ public class InputPanel {
 
 		String inputFileName = fileChooser.getText();
 		char[] inputText = new char[0];
-		if (inputFileName.trim().length() > 0) {
+		if ( inputFileName.trim().length()>0 ) {
 			try {
 				inputText = FileUtil.loadFileText(new File(inputFileName));
 				String s = new String(inputText);
@@ -231,9 +231,8 @@ public class InputPanel {
 				// (setText, insertString, replaceString) must use only \n as
 				// line separators."
 				inputText = s.toCharArray();
-			}
-			catch (IOException ioe) {
-				LOG.error("can't load input file " + inputFileName, ioe);
+			} catch (IOException ioe) {
+				LOG.error("can't load input file "+inputFileName, ioe);
 			}
 		}
 		// get state for grammar in current editor, not editor where user is typing preview input!
@@ -256,7 +255,7 @@ public class InputPanel {
 	}
 
 	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
-		LOG.info("createEditor: create new editor for " + grammarFile.getPath() + " " + previewPanel.project.getName());
+		LOG.info("createEditor: create new editor for "+grammarFile.getPath()+" "+previewPanel.project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
 		doc.addDocumentListener(
 			new DocumentAdapter() {
@@ -273,7 +272,7 @@ public class InputPanel {
 					previewPanel.updateParseTreeFromDoc(grammarFileForThisPreviewEditor);
 				}
 			}
-		);
+		                       );
 		final Editor editor = factory.createEditor(doc, previewPanel.project);
 		// force right margin
 		((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
@@ -336,11 +335,10 @@ public class InputPanel {
 
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
-		LOG.info("switchToGrammar " + grammarFileName + " " + previewPanel.project.getName());
-//		previewState = ANTLRv4PluginController.getInstance(previewPanel.project).getPreviewState(grammarFile);
+		LOG.info("switchToGrammar "+grammarFileName+" "+previewPanel.project.getName());
 		this.previewState = previewState;
 
-		if (previewState.inputFileName != null && previewState.inputFileName.length() > 0) {
+		if ( previewState.inputFileName!=null && previewState.inputFileName.length()>0 ) {
 			fileChooser.setText(previewState.inputFileName);
 			selectFileEvent();
 		}
@@ -350,7 +348,7 @@ public class InputPanel {
 
 		clearParseErrors(grammarFile);
 
-		if (previewState.startRuleName != null) {
+		if ( previewState.startRuleName!=null ) {
 			setStartRuleName(grammarFile, previewState.startRuleName);
 		}
 		else {
@@ -364,7 +362,7 @@ public class InputPanel {
 		// atomically remove old
 		synchronized (swapEditorComponentLock) {
 			Component editorSpotComp = layout.getLayoutComponent(EDITOR_SPOT_COMPONENT);
-			if (editorSpotComp != null) {
+			if ( editorSpotComp!=null ) {
 				editorSpotComp.setVisible(false);
 				outerMostPanel.remove(editorSpotComp); // remove old editor if it's there
 			}
@@ -372,18 +370,20 @@ public class InputPanel {
 		}
 	}
 
-	public Editor getEditor(VirtualFile grammarFile) {
+	public Editor getEditor() {
+		if ( previewState==null ) {
+			// seems there are some out of sequence issues with InputPanels
+			// being created but before we get a switchToGrammar event, which
+			// creates the previewState.
+			return null;
+		}
 		Editor editor = previewState.getInputEditor();
-		if (editor == null) {
+		if ( editor==null ) {
 			createManualInputPreviewEditor(previewState); // ensure we always have an input window
 			editor = previewState.getInputEditor();
 		}
 
 		return editor;
-	}
-
-	public String getText(VirtualFile grammarFile) {
-		return getEditor(grammarFile).getDocument().getText();
 	}
 
 	public String getChosenFileName() {
@@ -410,7 +410,7 @@ public class InputPanel {
 	}
 
 	public void uninstallListeners(Editor editor) {
-		if (editor == null) return;
+		if ( editor==null ) return;
 		editor.removeEditorMouseListener(editorMouseListener);
 		editor.removeEditorMouseMotionListener(editorMouseListener);
 	}
@@ -425,7 +425,7 @@ public class InputPanel {
 
 	public void resetStartRuleLabel() {
 		String grammarName = "?.g4";
-		if (previewState != null) {
+		if ( previewState!=null ) {
 			grammarName = previewState.grammarFile.getName();
 		}
 		startRuleLabel.setText(String.format(missingStartRuleLabelText, grammarName));
@@ -439,16 +439,16 @@ public class InputPanel {
 
 	public void displayErrorInParseErrorConsole(SyntaxError e) {
 		String msg = getErrorDisplayString(e);
-		errorConsole.insert(msg + '\n', errorConsole.getText().length());
+		errorConsole.insert(msg+'\n', errorConsole.getText().length());
 	}
 
 	public void displayErrorInParseErrorConsole(String msg) {
-		errorConsole.insert(msg + '\n', errorConsole.getText().length());
+		errorConsole.insert(msg+'\n', errorConsole.getText().length());
 	}
 
 	public void clearParseErrors(VirtualFile grammarFile) {
-		Editor editor = getEditor(grammarFile);
-		if (editor == null) return;
+		Editor editor = getEditor();
+		if ( editor==null ) return;
 
 		clearGrammarHighlighters();
 
@@ -458,9 +458,20 @@ public class InputPanel {
 	}
 
 	public void clearGrammarHighlighters() {
+		if ( previewState==null ) {
+			// we must be out of sequence, clicking inside a grammar editor
+			// for which we've not created previewState. That can happen
+			// if PreviewPanel is created which creates InputPanel but no
+			// PreviewPanel.switchToGrammar() event has triggered to
+			// create the PreviewState object. Seems to happen when I
+			// restart.  Editors open but there's no switchToGrammar() event.
+			// Doesn't happen in JDK 7, but does in JDK 6 running Intellij 14.1.x
+			return;
+		}
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
+		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
-		if (grammarEditor == null) return;
+		if ( grammarEditor==null ) return;
 		removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
 	}
 
@@ -469,7 +480,7 @@ public class InputPanel {
 	 * to the preview input window.
 	 */
 	public void showParseErrors(final VirtualFile grammarFile, final List<SyntaxError> errors) {
-		if (errors.size() == 0) {
+		if ( errors.size()==0 ) {
 			clearGrammarHighlighters();
 			return;
 		}
@@ -484,41 +495,41 @@ public class InputPanel {
 	 */
 	public void showTokenInfoUponCtrlKey(Editor editor, PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
-		if (tokenUnderCursor == null) {
+		if ( tokenUnderCursor==null ) {
 			PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
 			CommonTokenStream tokenStream = (CommonTokenStream) parser.getInputStream();
 			tokenUnderCursor = ParsingUtils.getSkippedTokenUnderCursor(tokenStream, offset);
 		}
 
-		if (tokenUnderCursor == null) {
+		if ( tokenUnderCursor==null ) {
 			return;
 		}
 
 //		System.out.println("token = "+tokenUnderCursor);
 		String channelInfo = "";
 		int channel = tokenUnderCursor.getChannel();
-		if (channel != Token.DEFAULT_CHANNEL) {
-			String chNum = channel == Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
-			channelInfo = ", Channel " + chNum;
+		if ( channel!=Token.DEFAULT_CHANNEL ) {
+			String chNum = channel==Token.HIDDEN_CHANNEL ? "hidden" : String.valueOf(channel);
+			channelInfo = ", Channel "+chNum;
 		}
 		JBColor color = JBColor.BLUE;
 		String tokenInfo =
 			String.format("#%d Type %s, Line %d:%d%s",
-						  tokenUnderCursor.getTokenIndex(),
-						  previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
-						  tokenUnderCursor.getLine(),
-						  tokenUnderCursor.getCharPositionInLine(),
-						  channelInfo
-			);
-		if (channel == -1) {
+			              tokenUnderCursor.getTokenIndex(),
+			              previewState.g.getTokenDisplayName(tokenUnderCursor.getType()),
+			              tokenUnderCursor.getLine(),
+			              tokenUnderCursor.getCharPositionInLine(),
+			              channelInfo
+			             );
+		if ( channel==-1 ) {
 			tokenInfo = "Skipped";
 			color = JBColor.gray;
 		}
 
 		Interval sourceInterval = Interval.of(tokenUnderCursor.getStartIndex(),
-											  tokenUnderCursor.getStopIndex() + 1);
+		                                      tokenUnderCursor.getStopIndex()+1);
 		highlightAndOfferHint(editor, offset, sourceInterval,
-							  color, EffectType.LINE_UNDERSCORE, tokenInfo);
+		                      color, EffectType.LINE_UNDERSCORE, tokenInfo);
 	}
 
 	/**
@@ -526,16 +537,16 @@ public class InputPanel {
 	 * if the alt-key is down and mouse movement occurs.
 	 */
 	public void showParseRegion(EditorMouseEvent event, Editor editor,
-								PreviewState previewState, int offset) {
+	                            PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
-		if (tokenUnderCursor == null) {
+		if ( tokenUnderCursor==null ) {
 			return;
 		}
 
 		ParseTree tree = previewState.parsingResult.tree;
 		TerminalNode nodeWithToken =
 			(TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
-		if (nodeWithToken == null) {
+		if ( nodeWithToken==null ) {
 			// hidden token
 			return;
 		}
@@ -547,7 +558,7 @@ public class InputPanel {
 		Token startToken = tokenStream.get(tokenInterval.a);
 		Token stopToken = tokenStream.get(tokenInterval.b);
 		Interval sourceInterval =
-			Interval.of(startToken.getStartIndex(), stopToken.getStopIndex() + 1);
+			Interval.of(startToken.getStartIndex(), stopToken.getStopIndex()+1);
 //		int ruleIndex = parent.getRuleIndex();
 //		String ruleName = parser.getRuleNames()[ruleIndex];
 //        System.out.println("parent " + ruleName + " region " + sourceInterval);
@@ -555,15 +566,15 @@ public class InputPanel {
 		List<String> stack = parser.getRuleInvocationStack(parent);
 		Collections.reverse(stack);
 
-		if (stack.size() > MAX_STACK_DISPLAY) {
+		if ( stack.size()>MAX_STACK_DISPLAY ) {
 			// collapse contiguous dups to handle left-recursive stacks
 			List<Pair<String, Integer>> smaller = new ArrayList<Pair<String, Integer>>();
 			int last = 0;
 			smaller.add(new Pair<String, Integer>(stack.get(0), 1)); // init to having first element, count of 1
-			for (int i = 1; i < stack.size(); i++) {
+			for (int i = 1; i<stack.size(); i++) {
 				String s = stack.get(i);
-				if (smaller.get(last).a.equals(s)) {
-					smaller.set(last, new Pair<String, Integer>(s, smaller.get(last).b + 1));
+				if ( smaller.get(last).a.equals(s) ) {
+					smaller.set(last, new Pair<String, Integer>(s, smaller.get(last).b+1));
 				}
 				else {
 					smaller.add(new Pair<String, Integer>(s, 1));
@@ -571,10 +582,10 @@ public class InputPanel {
 				}
 			}
 			stack = new ArrayList<String>();
-			for (int i = 0; i < smaller.size(); i++) {
+			for (int i = 0; i<smaller.size(); i++) {
 				Pair<String, Integer> pair = smaller.get(i);
-				if (pair.b > 1) {
-					stack.add(pair.a + "^" + pair.b);
+				if ( pair.b>1 ) {
+					stack.add(pair.a+"^"+pair.b);
 				}
 				else {
 					stack.add(pair.a);
@@ -583,7 +594,7 @@ public class InputPanel {
 		}
 		String stackS = Utils.join(stack.toArray(), "\n");
 		highlightAndOfferHint(editor, offset, sourceInterval,
-							  JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
+		                      JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
 
 
 		// Code for a balloon.
@@ -602,9 +613,9 @@ public class InputPanel {
 	}
 
 	public void highlightAndOfferHint(Editor editor, int offset,
-									  Interval sourceInterval,
-									  JBColor color,
-									  EffectType effectType, String hintText) {
+	                                  Interval sourceInterval,
+	                                  JBColor color,
+	                                  EffectType effectType, String hintText) {
 		CaretModel caretModel = editor.getCaretModel();
 		final TextAttributes attr = new TextAttributes();
 		attr.setForegroundColor(color);
@@ -617,9 +628,9 @@ public class InputPanel {
 			InputPanel.TOKEN_INFO_LAYER, // layer
 			attr,
 			HighlighterTargetArea.EXACT_RANGE
-		);
+		                               );
 
-		if (hintText.contains("<")) {
+		if ( hintText.contains("<") ) {
 			hintText = hintText.replaceAll("<", "&lt;");
 		}
 
@@ -630,13 +641,13 @@ public class InputPanel {
 
 	public void setCursorToGrammarElement(Project project, PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
-		if (tokenUnderCursor == null) {
+		if ( tokenUnderCursor==null ) {
 			return;
 		}
 
 		PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
 		Integer atnState = parser.inputTokenToStateMap.get(tokenUnderCursor);
-		if (atnState == null) { // likely an error token
+		if ( atnState==null ) { // likely an error token
 			//LOG.error("no ATN state for input token " + tokenUnderCursor);
 			return;
 		}
@@ -649,14 +660,14 @@ public class InputPanel {
 
 	public void setCursorToGrammarRule(Project project, PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
-		if (tokenUnderCursor == null) {
+		if ( tokenUnderCursor==null ) {
 			return;
 		}
 
 		ParseTree tree = previewState.parsingResult.tree;
 		TerminalNode nodeWithToken =
 			(TerminalNode) ParsingUtils.getParseTreeNodeWithToken(tree, tokenUnderCursor);
-		if (nodeWithToken == null) {
+		if ( nodeWithToken==null ) {
 			// hidden token
 			return;
 		}
@@ -672,8 +683,9 @@ public class InputPanel {
 
 	public void jumpToGrammarPosition(Project project, int start) {
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
-		if (grammarEditor == null) return;
+		if ( grammarEditor==null ) return;
 
 		CaretModel caretModel = grammarEditor.getCaretModel();
 		caretModel.moveToOffset(start);
@@ -686,44 +698,44 @@ public class InputPanel {
 	 * Display syntax errors, hints in tooltips if under the cursor
 	 */
 	public static void showTooltips(EditorMouseEvent event, Editor editor,
-									@NotNull PreviewState previewState, int offset) {
-		if (previewState.parsingResult == null) return; // no results?
+	                                @NotNull PreviewState previewState, int offset) {
+		if ( previewState.parsingResult==null ) return; // no results?
 
 		// Turn off any tooltips if none under the cursor
 		// find the highlighter associated with this offset
 		List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
-		if (highlightersAtOffset.size() == 0) {
+		if ( highlightersAtOffset.size()==0 ) {
 			return;
 		}
 
 		List<String> msgList = new ArrayList<String>();
 		boolean foundDecisionEvent = false;
-		for (int i = 0; i < highlightersAtOffset.size(); i++) {
+		for (int i = 0; i<highlightersAtOffset.size(); i++) {
 			RangeHighlighter r = highlightersAtOffset.get(i);
 			DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
 			String msg;
-			if (eventInfo != null) {
+			if ( eventInfo!=null ) {
 				// TODO: move decision event stuff to profiler?
-				if (eventInfo instanceof AmbiguityInfo) {
-					msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
+				if ( eventInfo instanceof AmbiguityInfo ) {
+					msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
 				}
-				else if (eventInfo instanceof ContextSensitivityInfo) {
+				else if ( eventInfo instanceof ContextSensitivityInfo ) {
 					msg = "Context-sensitive";
 				}
-				else if (eventInfo instanceof LookaheadEventInfo) {
-					int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
-					msg = "Deepest lookahead k=" + k;
+				else if ( eventInfo instanceof LookaheadEventInfo ) {
+					int k = eventInfo.stopIndex-eventInfo.startIndex+1;
+					msg = "Deepest lookahead k="+k;
 				}
-				else if (eventInfo instanceof PredicateEvalInfo) {
+				else if ( eventInfo instanceof PredicateEvalInfo ) {
 					PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
 					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
-																		previewState,
-																		evalInfo.semctx, evalInfo.predictedAlt,
-																		evalInfo.evalResult);
-					msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
+					                                                    previewState,
+					                                                    evalInfo.semctx, evalInfo.predictedAlt,
+					                                                    evalInfo.evalResult);
+					msg = msg+(!evalInfo.fullCtx ? " (DFA)" : "");
 				}
 				else {
-					msg = "Unknown decision event: " + eventInfo;
+					msg = "Unknown decision event: "+eventInfo;
 				}
 				foundDecisionEvent = true;
 			}
@@ -731,10 +743,10 @@ public class InputPanel {
 				// error tool tips
 				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 				msg = getErrorDisplayString(errorUnderCursor);
-				if (msg.length() > MAX_HINT_WIDTH) {
-					msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
+				if ( msg.length()>MAX_HINT_WIDTH ) {
+					msg = msg.substring(0, MAX_HINT_WIDTH)+"...";
 				}
-				if (msg.indexOf('<') >= 0) {
+				if ( msg.indexOf('<')>=0 ) {
 					msg = msg.replaceAll("<", "&lt;");
 				}
 			}
@@ -742,7 +754,7 @@ public class InputPanel {
 		}
 		String combinedMsg = Utils.join(msgList.iterator(), "\n");
 		HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
-		if (foundDecisionEvent) {
+		if ( foundDecisionEvent ) {
 			showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg.toString());
 		}
 		else {
@@ -752,20 +764,20 @@ public class InputPanel {
 
 	public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
 		int flags =
-			HintManager.HIDE_BY_ANY_KEY |
-			HintManager.HIDE_BY_TEXT_CHANGE |
-			HintManager.HIDE_BY_SCROLLING;
+			HintManager.HIDE_BY_ANY_KEY|
+				HintManager.HIDE_BY_TEXT_CHANGE|
+				HintManager.HIDE_BY_SCROLLING;
 		int timeout = 0; // default?
 		hintMgr.showErrorHint(editor, msg,
-							  offset, offset + 1,
-							  HintManager.ABOVE, flags, timeout);
+		                      offset, offset+1,
+		                      HintManager.ABOVE, flags, timeout);
 	}
 
 	public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
 		int flags =
-			HintManager.HIDE_BY_ANY_KEY |
-			HintManager.HIDE_BY_TEXT_CHANGE |
-			HintManager.HIDE_BY_SCROLLING;
+			HintManager.HIDE_BY_ANY_KEY|
+				HintManager.HIDE_BY_TEXT_CHANGE|
+				HintManager.HIDE_BY_SCROLLING;
 		int timeout = 0; // default?
 		JComponent infoLabel = HintUtil.createInformationLabel(msg);
 		LightweightHint hint = new LightweightHint(infoLabel);
@@ -775,19 +787,20 @@ public class InputPanel {
 	}
 
 	public void annotateErrorsInPreviewInputEditor(VirtualFile grammarFile, SyntaxError e) {
-		Editor editor = getEditor(grammarFile);
+		Editor editor = getEditor();
+		if ( editor==null ) return;
 		MarkupModel markupModel = editor.getMarkupModel();
 
 		int a, b; // Start and stop index
 		RecognitionException cause = e.getException();
-		if (cause instanceof LexerNoViableAltException) {
+		if ( cause instanceof LexerNoViableAltException ) {
 			a = ((LexerNoViableAltException) cause).getStartIndex();
-			b = ((LexerNoViableAltException) cause).getStartIndex() + 1;
+			b = ((LexerNoViableAltException) cause).getStartIndex()+1;
 		}
 		else {
 			Token offendingToken = (Token) e.getOffendingSymbol();
 			a = offendingToken.getStartIndex();
-			b = offendingToken.getStopIndex() + 1;
+			b = offendingToken.getStopIndex()+1;
 		}
 		final TextAttributes attr = new TextAttributes();
 		attr.setForegroundColor(JBColor.RED);
@@ -795,10 +808,10 @@ public class InputPanel {
 		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
 		RangeHighlighter highlighter =
 			markupModel.addRangeHighlighter(a,
-											b,
-											ERROR_LAYER, // layer
-											attr,
-											HighlighterTargetArea.EXACT_RANGE);
+			                                b,
+			                                ERROR_LAYER, // layer
+			                                attr,
+			                                HighlighterTargetArea.EXACT_RANGE);
 		highlighter.putUserData(SYNTAX_ERROR, e);
 	}
 
@@ -807,8 +820,8 @@ public class InputPanel {
 		// Remove any previous underlining or boxing, but not anything else like errors
 		MarkupModel markupModel = editor.getMarkupModel();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			if (r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY) == null &&
-				r.getUserData(SYNTAX_ERROR) == null) {
+			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null &&
+				r.getUserData(SYNTAX_ERROR)==null ) {
 				markupModel.removeHighlighter(r);
 			}
 		}
@@ -818,14 +831,14 @@ public class InputPanel {
 		// Remove anything with user data accessible via key
 		MarkupModel markupModel = editor.getMarkupModel();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			if (r.getUserData(key) != null) {
+			if ( r.getUserData(key)!=null ) {
 				markupModel.removeHighlighter(r);
 			}
 		}
 	}
 
 	public static String getErrorDisplayString(SyntaxError e) {
-		return "line " + e.getLine() + ":" + e.getCharPositionInLine() + " " + e.getMessage();
+		return "line "+e.getLine()+":"+e.getCharPositionInLine()+" "+e.getMessage();
 	}
 
 	/**
