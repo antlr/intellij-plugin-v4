@@ -48,6 +48,9 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		else if ( mouseEvent.isAltDown() ) {
 			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), inputPanel.previewState, offset);
 		}
+		else {
+			inputPanel.previewPanel.jTreeViewer.selectNodeAtOffset(offset);
+		}
 		inputPanel.clearGrammarHighlighters();
 	}
 
