@@ -90,10 +90,10 @@ public class PreviewPanel extends JPanel {
 		LOG.info("createParseTreePanel" + " " + project.getName());
 		Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
 		treeViewer = pair.a;
-		tabbedPane.addTab("Parse graph", pair.b);
+		tabbedPane.addTab("Parse tree", pair.b);
 
 		jTreeViewer = new JTreeViewer(null, this);
-		tabbedPane.addTab("Parse tree", jTreeViewer);
+		tabbedPane.addTab("Hierarchy", jTreeViewer);
 
 		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());

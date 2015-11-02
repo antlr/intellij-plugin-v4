@@ -694,6 +694,10 @@ public class InputPanel {
 		grammarEditor.getContentComponent().requestFocus();
 	}
 
+	public void setCursorToHierarchyViewElement(int offset) {
+		previewPanel.jTreeViewer.selectNodeAtOffset(offset);
+	}
+
 	/**
 	 * Display syntax errors, hints in tooltips if under the cursor
 	 */

@@ -44,12 +44,13 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		MouseEvent mouseEvent=e.getMouseEvent();
 		if ( mouseEvent.isControlDown() ) {
 			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), inputPanel.previewState, offset);
+			inputPanel.setCursorToHierarchyViewElement(offset);
 		}
 		else if ( mouseEvent.isAltDown() ) {
 			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), inputPanel.previewState, offset);
 		}
 		else {
-			inputPanel.previewPanel.jTreeViewer.selectNodeAtOffset(offset);
+			inputPanel.setCursorToHierarchyViewElement(offset);
 		}
 		inputPanel.clearGrammarHighlighters();
 	}

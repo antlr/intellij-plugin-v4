@@ -1,6 +1,10 @@
 package org.antlr.intellij.plugin.preview;
 
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.Icons;
@@ -13,7 +17,11 @@ import org.antlr.v4.runtime.tree.Tree;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -206,7 +214,7 @@ public class JTreeViewer extends JPanel {
                 return;
             }
 
-            Editor editor = previewPanel.inputPanel.getEditor(null);
+            Editor editor = previewPanel.inputPanel.getEditor();
             editor.getSelectionModel().removeSelection();
             editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
         }
