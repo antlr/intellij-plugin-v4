@@ -125,13 +125,22 @@ public class InputPanel {
 				previewPanel.project,
 				singleFileDescriptor,
 				TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
-			) {
-				@Override
+			)
+			{
 				protected void onFileChoosen(VirtualFile chosenFile) {
-					super.onFileChoosen(chosenFile);
-					// get state for grammar in current editor, not editor where user is typing preview input!
-//					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-//					PreviewState previewState = controller.getPreviewState(chosenFile);
+					// In 13.x, this is defined but they fixed typo (onFileChosen) and
+					// deprecated. In 15.x this method is gone so I add back for
+					// backward compatibility.
+					choose(chosenFile);
+				}
+				protected void onFileChosen(@NotNull VirtualFile chosenFile) {
+					choose(chosenFile);
+				}
+				protected void choose(VirtualFile chosenFile) {
+					// this next line is the code taken from super; pasted in
+					// to avoid compile error on super.onFileCho[o]sen
+					TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
+					                                                    chosenFileToResultingText(chosenFile));
 					previewState.inputFileName = chosenFile.getPath();
 					selectFileEvent();
 				}
