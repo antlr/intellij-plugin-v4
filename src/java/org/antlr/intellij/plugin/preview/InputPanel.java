@@ -125,17 +125,18 @@ public class InputPanel {
 				previewPanel.project,
 				singleFileDescriptor,
 				TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
-			)
-			{
+			) {
 				protected void onFileChoosen(VirtualFile chosenFile) {
 					// In 13.x, this is defined but they fixed typo (onFileChosen) and
 					// deprecated. In 15.x this method is gone so I add back for
 					// backward compatibility.
 					choose(chosenFile);
 				}
+
 				protected void onFileChosen(@NotNull VirtualFile chosenFile) {
 					choose(chosenFile);
 				}
+
 				protected void choose(VirtualFile chosenFile) {
 					// this next line is the code taken from super; pasted in
 					// to avoid compile error on super.onFileCho[o]sen
@@ -338,8 +339,8 @@ public class InputPanel {
 		return editor;
 	}
 
-	public void grammarFileSaved(VirtualFile grammarFile) {
-		clearParseErrors(grammarFile);
+	public void grammarFileSaved() {
+		clearParseErrors();
 	}
 
 	public void switchToGrammar(PreviewState previewState, VirtualFile grammarFile) {
@@ -355,7 +356,7 @@ public class InputPanel {
 			selectInputEvent();
 		}
 
-		clearParseErrors(grammarFile);
+		clearParseErrors();
 
 		if ( previewState.startRuleName!=null ) {
 			setStartRuleName(grammarFile, previewState.startRuleName);
@@ -379,7 +380,7 @@ public class InputPanel {
 		}
 	}
 
-	public Editor getEditor() {
+	public Editor getInputEditor() {
 		if ( previewState==null ) {
 			// seems there are some out of sequence issues with InputPanels
 			// being created but before we get a switchToGrammar event, which
@@ -455,46 +456,54 @@ public class InputPanel {
 		errorConsole.insert(msg+'\n', errorConsole.getText().length());
 	}
 
-	public void clearParseErrors(VirtualFile grammarFile) {
-		Editor editor = getEditor();
+	public void clearParseErrors() {
+		Editor editor = getInputEditor();
 		if ( editor==null ) return;
 
-		clearGrammarHighlighters();
+		clearInputEditorHighlighters();
 
 		HintManager.getInstance().hideAllHints();
 
 		clearErrorConsole();
 	}
 
-	public void clearGrammarHighlighters() {
-		if ( previewState==null ) {
-			// we must be out of sequence, clicking inside a grammar editor
-			// for which we've not created previewState. That can happen
-			// if PreviewPanel is created which creates InputPanel but no
-			// PreviewPanel.switchToGrammar() event has triggered to
-			// create the PreviewState object. Seems to happen when I
-			// restart.  Editors open but there's no switchToGrammar() event.
-			// Doesn't happen in JDK 7, but does in JDK 6 running Intellij 14.1.x
-			return;
+	/** Clear all input highlighters */
+	public void clearInputEditorHighlighters() {
+		Editor editor = getInputEditor();
+		if ( editor==null ) return;
+
+		MarkupModel markupModel = editor.getMarkupModel();
+		markupModel.removeAllHighlighters();
+	}
+
+	/** Clear decision stuff but leave syntax errors */
+	public static void clearDecisionEventHighlighters(Editor editor) {
+		removeHighlighters(editor, ProfilerPanel.DECISION_EVENT_INFO_KEY);
+	}
+
+	/** Remove any previous underlining or boxing, but not errors or decision event info */
+	public static void clearTokenInfoHighlighters(Editor editor) {
+		MarkupModel markupModel = editor.getMarkupModel();
+		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null &&
+				r.getUserData(SYNTAX_ERROR)==null )
+			{
+				markupModel.removeHighlighter(r);
+			}
 		}
-		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
-		if ( controller==null ) return;
-		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
-		if ( grammarEditor==null ) return;
-		removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
 	}
 
 	/**
 	 * Display error messages to the console and also add annotations
 	 * to the preview input window.
 	 */
-	public void showParseErrors(final VirtualFile grammarFile, final List<SyntaxError> errors) {
+	public void showParseErrors(final List<SyntaxError> errors) {
 		if ( errors.size()==0 ) {
-			clearGrammarHighlighters();
+			clearInputEditorHighlighters();
 			return;
 		}
 		for (SyntaxError e : errors) {
-			annotateErrorsInPreviewInputEditor(grammarFile, e);
+			annotateErrorsInPreviewInputEditor(e);
 			displayErrorInParseErrorConsole(e);
 		}
 	}
@@ -799,8 +808,8 @@ public class InputPanel {
 		hintMgr.showEditorHint(hint, editor, p, flags, timeout, false);
 	}
 
-	public void annotateErrorsInPreviewInputEditor(VirtualFile grammarFile, SyntaxError e) {
-		Editor editor = getEditor();
+	public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
+		Editor editor = getInputEditor();
 		if ( editor==null ) return;
 		MarkupModel markupModel = editor.getMarkupModel();
 
@@ -828,17 +837,6 @@ public class InputPanel {
 		highlighter.putUserData(SYNTAX_ERROR, e);
 	}
 
-
-	public static void removeTokenInfoHighlighters(Editor editor) {
-		// Remove any previous underlining or boxing, but not anything else like errors
-		MarkupModel markupModel = editor.getMarkupModel();
-		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null &&
-				r.getUserData(SYNTAX_ERROR)==null ) {
-				markupModel.removeHighlighter(r);
-			}
-		}
-	}
 
 	public static void removeHighlighters(Editor editor, Key<?> key) {
 		// Remove anything with user data accessible via key

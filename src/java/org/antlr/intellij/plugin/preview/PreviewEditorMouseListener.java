@@ -23,7 +23,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 
 	@Override
 	public void mouseExited(EditorMouseEvent e) {
-		InputPanel.removeTokenInfoHighlighters(e.getEditor());
+		InputPanel.clearTokenInfoHighlighters(e.getEditor());
 	}
 
 	@Override
@@ -52,7 +52,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		else {
 			inputPanel.setCursorToHierarchyViewElement(offset);
 		}
-		inputPanel.clearGrammarHighlighters();
+		InputPanel.clearDecisionEventHighlighters(editor);
 	}
 
 	public void rightClick(final EditorMouseEvent e,
@@ -92,7 +92,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		MouseEvent mouseEvent=e.getMouseEvent();
-		InputPanel.removeTokenInfoHighlighters(e.getEditor());
+		InputPanel.clearTokenInfoHighlighters(e.getEditor());
 		if ( mouseEvent.isControlDown() && inputPanel.previewState.parsingResult!=null ) {
 			inputPanel.showTokenInfoUponCtrlKey(editor, inputPanel.previewState, offset);
 		}
@@ -119,7 +119,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		// Mouse has moved so make sure we don't show any token information tooltips
-		InputPanel.removeTokenInfoHighlighters(e.getEditor());
+		InputPanel.clearTokenInfoHighlighters(e.getEditor());
 		return offset;
 	}
 

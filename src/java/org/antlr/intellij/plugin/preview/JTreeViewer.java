@@ -222,7 +222,7 @@ public class JTreeViewer extends JPanel {
 				return;
 			}
 
-			Editor editor = previewPanel.inputPanel.getEditor();
+			Editor editor = previewPanel.inputPanel.getInputEditor();
 			editor.getSelectionModel().removeSelection();
 			editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
 		}

@@ -153,7 +153,7 @@ public class PreviewPanel extends JPanel {
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
 		ensureStartRuleExists(grammarFile);
-		inputPanel.grammarFileSaved(grammarFile);
+		inputPanel.grammarFileSaved();
 
 		// if the saved grammar is not a pure lexer and there is a start rule, reparse
 		// means that switching grammars must refresh preview
@@ -300,7 +300,7 @@ public class PreviewPanel extends JPanel {
 			return;
 		}
 		try {
-			Editor editor = inputPanel.getEditor();
+			Editor editor = inputPanel.getInputEditor();
 			if ( editor==null ) return;
 			final String inputText = editor.getDocument().getText();
 			ParsingResult results = controller.parseText(grammarFile, inputText);
