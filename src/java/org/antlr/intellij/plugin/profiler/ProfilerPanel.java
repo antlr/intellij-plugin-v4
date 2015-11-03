@@ -22,6 +22,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.preview.InputPanel;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.runtime.CommonToken;
@@ -96,7 +97,8 @@ public class ProfilerPanel {
 	}
 
 	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
-		previewPanel.inputPanel.clearGrammarHighlighters();
+		// clear grammar highlighters related to decision info
+		InputPanel.removeHighlighters(e.getEditor(), ProfilerPanel.DECISION_INFO_KEY);
 	}
 
 	public JPanel getComponent() {
@@ -177,7 +179,8 @@ public class ProfilerPanel {
 			System.err.println("decision "+decision+" has state "+decisionState.stateNumber+" but no region");
 			return;
 		}
-		previewPanel.inputPanel.clearGrammarHighlighters();
+
+		InputPanel.removeHighlighters(grammarEditor, ProfilerPanel.DECISION_INFO_KEY);
 
 		org.antlr.runtime.TokenStream tokens = previewState.g.tokenStream;
 		if ( region.a>=tokens.size() || region.b>=tokens.size() ) {
@@ -198,10 +201,10 @@ public class ProfilerPanel {
 			effectColor = new JBColor(AMBIGUITY_COLOR, AMBIGUITY_COLOR);
 		}
 
-		MarkupModel markupModel = grammarEditor.getMarkupModel();
 		TextAttributes attr =
 			new TextAttributes(JBColor.BLACK, JBColor.WHITE, effectColor,
 			                   EffectType.ROUNDED_BOX, Font.PLAIN);
+		MarkupModel markupModel = grammarEditor.getMarkupModel();
 		final RangeHighlighter rangeHighlighter = markupModel.addRangeHighlighter(
 			startToken.getStartIndex(),
 			stopToken.getStopIndex()+1,
@@ -219,18 +222,19 @@ public class ProfilerPanel {
 		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
 	}
 
-	public void highlightPhrases(PreviewState previewState, int decision) {
-		if ( previewState.parsingResult==null ) {
+	public void highlightInputPhrases(PreviewState previewState, int decision) {
+		if ( previewState==null || previewState.parsingResult==null ) {
 			return;
 		}
+
+		Editor inputEditor = previewState.getInputEditor();
+		ScrollingModel scrollingModel = inputEditor.getScrollingModel();
+		CaretModel caretModel = inputEditor.getCaretModel();
+		MarkupModel markupModel = inputEditor.getMarkupModel();
+
+		InputPanel.clearDecisionEventHighlighters(inputEditor);
+
 		ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-		Editor editor = previewState.getInputEditor();
-		ScrollingModel scrollingModel = editor.getScrollingModel();
-		CaretModel caretModel = editor.getCaretModel();
-
-		MarkupModel markupModel = editor.getMarkupModel();
-		markupModel.removeAllHighlighters();
-
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 
 		Token firstToken = null;
@@ -480,7 +484,7 @@ public class ProfilerPanel {
 						int numberOfDecisions = previewState.g.atn.getNumberOfDecisions();
 						if ( decision<=numberOfDecisions ) {
 							selectDecisionInGrammar(previewState, decision);
-							highlightPhrases(previewState, decision);
+							highlightInputPhrases(previewState, decision);
 						}
 					}
 				}

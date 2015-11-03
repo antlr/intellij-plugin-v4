@@ -388,14 +388,15 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
 		String grammarFileName = grammarFile.getPath();
-		final PreviewState previewState = getPreviewState(grammarFile);
 		if (!new File(grammarFileName).exists()) {
 			LOG.error("parseText grammar doesn't exit " + grammarFileName);
 			return null;
 		}
 
 		// Wipes out the console and also any error annotations
-		previewPanel.inputPanel.clearParseErrors(grammarFile);
+		previewPanel.inputPanel.clearParseErrors();
+
+		final PreviewState previewState = getPreviewState(grammarFile);
 
 		long start = System.nanoTime();
 		previewState.parsingResult =
@@ -410,7 +411,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewPanel.profilerPanel.setProfilerData(previewState, stop-start);
 
 		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
-		previewPanel.inputPanel.showParseErrors(grammarFile, syntaxErrorListener.getSyntaxErrors());
+		previewPanel.inputPanel.showParseErrors(syntaxErrorListener.getSyntaxErrors());
 
 		return previewState.parsingResult;
 	}
