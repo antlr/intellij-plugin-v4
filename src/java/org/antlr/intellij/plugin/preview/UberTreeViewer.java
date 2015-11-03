@@ -5,6 +5,7 @@ import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.tree.Tree;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
@@ -29,5 +30,14 @@ public class UberTreeViewer extends TreeViewer {
 								(int) box.height - 1, arcSize, arcSize);
 			}
 		}
+	}
+
+	@Override
+	public void setTree(Tree root) {
+		LookAndFeel theme = UIManager.getLookAndFeel();
+		UIDefaults themeDefaults = theme.getDefaults();
+		Color textColor = (Color)themeDefaults.get("textText");
+		setTextColor(textColor);
+		super.setTree(root);
 	}
 }
