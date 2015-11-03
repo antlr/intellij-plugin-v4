@@ -13,7 +13,10 @@ import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
+import org.antlr.v4.parse.ANTLRParser;
+import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.tool.ANTLRMessage;
+import org.antlr.v4.tool.ErrorSeverity;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarSemanticsMessage;
 import org.antlr.v4.tool.GrammarSyntaxMessage;
@@ -22,6 +25,7 @@ import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ToolMessage;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.GrammarRootAST;
+import org.antlr.v4.tool.ast.RuleRefAST;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.stringtemplate.v4.ST;
@@ -31,7 +35,11 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
     // NOTE: can't use instance var as only 1 instance
@@ -43,6 +51,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		List<Token> offendingTokens = new ArrayList<Token>();
 		ANTLRMessage msg;
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
+	}
+
+	public static class GrammarInfoMessage extends GrammarSemanticsMessage {
+		public GrammarInfoMessage(String fileName, Token offendingToken, Object... args) {
+			super(null, fileName, offendingToken, args);
+		}
 	}
 
 	/** Called first; return file */
@@ -97,6 +111,15 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			g.fileName = vfile.getPath();
 			antlr.process(g, false);
 
+			Map<String, GrammarAST> unusedRules = getUnusedParserRules(g);
+			if ( unusedRules!=null ) {
+				for (String r : unusedRules.keySet()) {
+					Token ruleDefToken = unusedRules.get(r).getToken();
+					Issue issue = new Issue(new GrammarInfoMessage(g.fileName, ruleDefToken, r));
+					listener.issues.add(issue);
+				}
+			}
+
 			for (Issue issue : listener.issues) {
 				processIssue(file, issue);
 			}
@@ -122,7 +145,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 					int startIndex = ct.getStartIndex();
 					int stopIndex = ct.getStopIndex();
 					TextRange range = new TextRange(startIndex, stopIndex + 1);
-					switch (issue.msg.getErrorType().severity) {
+					ErrorSeverity severity = ErrorSeverity.INFO;
+					if ( issue.msg.getErrorType()!=null ) {
+						severity = issue.msg.getErrorType().severity;
+					}
+					switch ( severity ) {
 					case ERROR:
 					case ERROR_ONE_OFF:
 					case FATAL:
@@ -152,7 +179,15 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		if ( !grammarFile.getName().equals(issueFile.getName()) ) {
 			return; // ignore errors from external files
 		}
-		if ( issue.msg instanceof GrammarSemanticsMessage ) {
+		ST msgST = null;
+		if ( issue.msg instanceof GrammarInfoMessage ) { // not in ANTLR so must hack it in
+			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
+			issue.offendingTokens.add(t);
+			msgST = new ST("unused parser rule <arg>");
+			msgST.add("arg", t.getText());
+			msgST.impl.name = "info";
+		}
+		else if ( issue.msg instanceof GrammarSemanticsMessage ) {
 			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
 			issue.offendingTokens.add(t);
 		}
@@ -178,9 +213,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		}
 
 		Tool antlr = new Tool();
-		ST msgST = antlr.errMgr.getMessageTemplate(issue.msg);
+		if ( msgST==null ) {
+			msgST = antlr.errMgr.getMessageTemplate(issue.msg);
+		}
 		String outputMsg = msgST.render();
-		if (antlr.errMgr.formatWantsSingleLineMessage()) {
+		if ( antlr.errMgr.formatWantsSingleLineMessage() ) {
 			outputMsg = outputMsg.replace('\n', ' ');
 		}
 		issue.annotation = outputMsg;
@@ -204,5 +241,27 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		public void run() {
 			vocabName = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) file);
 		}
+	}
+
+	public static Map<String,GrammarAST> getUnusedParserRules(Grammar g) {
+		if ( g.ast==null || g.isLexer() ) return null;
+		List<GrammarAST> ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
+		// in case of errors, we walk AST ourselves
+		// ANTLR's Grammar object might have bailed on rule defs etc...
+		Set<String> ruleRefs = new HashSet<String>();
+		Map<String,GrammarAST> ruleDefs = new HashMap<String,GrammarAST>();
+		for (GrammarAST x : ruleNodes) {
+			if ( x.getParent().getType()==ANTLRParser.RULE ) {
+//				System.out.println("def "+x);
+				ruleDefs.put(x.getText(), x);
+			}
+			else if ( x instanceof RuleRefAST ) {
+				RuleRefAST r = (RuleRefAST) x;
+//				System.out.println("ref "+r);
+				ruleRefs.add(r.getText());
+			}
+		}
+		ruleDefs.keySet().removeAll(ruleRefs);
+		return ruleDefs;
 	}
 }
