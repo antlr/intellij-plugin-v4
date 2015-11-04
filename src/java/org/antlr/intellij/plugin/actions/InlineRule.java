@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
@@ -87,7 +88,18 @@ public class InlineRule extends AnAction {
 		ParseTree ruleDefNameNode = MyActionUtils.getRuleDefNameNode(parser, tree, ruleName);
 		if ( ruleDefNameNode==null ) return;
 		ParserRuleContext parent = (ParserRuleContext)ruleDefNameNode.getParent();
-		rewriter.delete(parent.getStart(), parent.getStop());
+		Token start = parent.getStart();
+		Token stop = parent.getStop();
+		// remove extra whitespace but not trailing comments (if any)
+		// javadoc is included in start (if any) as it's not hidden
+		List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
+		if ( hiddenTokensToRight!=null && hiddenTokensToRight.size()>0 ) {
+			Token afterSemi = hiddenTokensToRight.get(0);
+			if ( afterSemi.getType() == ANTLRv4Lexer.WS ) {
+				stop = afterSemi;
+			}
+		}
+		rewriter.delete(start, stop);
 
 		final Project project = e.getProject();
 		MyPsiUtils.replacePsiFileFromText(project, psiFile, rewriter.getText());
