@@ -94,30 +94,34 @@ For really big files and
   </project-components>
 
   <actions>
-	<action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateParserAction"
-		text="Generate ANTLR Recognizer">
-		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
-		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
-		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
-		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-	</action>
-	<action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction"
-		text="Configure ANTLR...">
-		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
-		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
-		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-	</action>
-	  <action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
-			  text="Test ANTLR Rule">
-		  <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
-		  <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-	  </action>
-	  <action id="antlr.DefineLexerRulesForLiterals"
-			  class="org.antlr.intellij.plugin.actions.GenerateLexerRulesForLiteralsAction"
-			  text="Generate lexer rules for literals"
-			  description="Inject lexer rules for undefined literals but leave literal in place">
-		  <add-to-group group-id="GenerateGroup" anchor="first"/>
-	  </action>
+      <action id="antlr.Generate" class="org.antlr.intellij.plugin.actions.GenerateParserAction"
+     		text="Generate ANTLR Recognizer">
+     		<keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+     		<add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+     		<add-to-group group-id="EditorPopupMenu" anchor="last"/>
+     		<add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+     	</action>
+        <action id="antlr.Configure" class="org.antlr.intellij.plugin.actions.ConfigureANTLRAction"
+            text="Configure ANTLR...">
+            <add-to-group group-id="ToolsMenu" anchor="before" relative-to-action="com.intellij.tools.ExternalToolsGroup"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+        <action id="antlr.TestRule" class="org.antlr.intellij.plugin.actions.TestRuleAction"
+            text="Test ANTLR Rule">
+            <add-to-group group-id="StructureViewPopupMenu" anchor="first"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+        <action id="antlr.DefineLexerRulesForLiterals"
+            class="org.antlr.intellij.plugin.actions.GenerateLexerRulesForLiteralsAction"
+            text="Generate lexer rules for literals"
+            description="Inject lexer rules for undefined literals but leave literal in place">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
+        <action id="antlr.InlineRule" class="org.antlr.intellij.plugin.actions.InlineRule"
+            text="Inline and remove rule ____">
+            <add-to-group group-id="RefactoringMenu" anchor="before" relative-to-action="Move"/>
+        </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

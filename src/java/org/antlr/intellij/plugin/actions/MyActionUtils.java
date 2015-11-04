@@ -2,19 +2,35 @@ package org.antlr.intellij.plugin.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
-import org.antlr.v4.runtime.atn.AmbiguityInfo;
+import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
+import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
+import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
+import org.antlr.intellij.plugin.psi.RuleSpecNode;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.xpath.XPath;
+import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class MyActionUtils {
@@ -77,5 +93,106 @@ public class MyActionUtils {
 			}
 		}
 		return null;
+	}
+
+	public static ParserRuleRefNode getParserRuleSurroundingRef(AnActionEvent e) {
+		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(e, ParserRuleSpecNode.class);
+		if ( ruleSpecNode==null ) return null;
+		// find the name of rule under ParserRuleSpecNode
+		return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
+	}
+
+	public static LexerRuleRefNode getLexerRuleSurroundingRef(AnActionEvent e) {
+		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(e, LexerRuleSpecNode.class);
+		if ( ruleSpecNode==null ) return null;
+		// find the name of rule under ParserRuleSpecNode
+		return PsiTreeUtil.findChildOfType(ruleSpecNode, LexerRuleRefNode.class);
+	}
+
+	public static RuleSpecNode getRuleSurroundingRef(AnActionEvent e,
+	                                                 final Class<? extends RuleSpecNode> ruleSpecNodeClass)
+	{
+		PsiElement selectedPsiNode = getSelectedPsiElement(e);
+		System.out.println("selectedPsiNode: "+selectedPsiNode);
+
+		if ( selectedPsiNode==null ) { // didn't select a node in parse tree
+			return null;
+		}
+
+		// find root of rule def
+		if ( selectedPsiNode.getClass()!=ruleSpecNodeClass ) {
+			selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, new Condition<PsiElement>() {
+				@Override
+				public boolean value(PsiElement psiElement) {
+					return psiElement.getClass()==ruleSpecNodeClass;
+				}
+			});
+			if ( selectedPsiNode==null ) { // not in rule I guess.
+				return null;
+			}
+			// found rule
+		}
+		return (RuleSpecNode)selectedPsiNode;
+	}
+
+	public static PsiElement getSelectedPsiElement(AnActionEvent e) {
+		Editor editor = e.getData(PlatformDataKeys.EDITOR);
+		if ( editor==null ) { // not in editor
+			PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
+			// in nav bar?
+			if ( selectedNavElement==null || !(selectedNavElement instanceof ParserRuleRefNode) ) {
+				return null;
+			}
+			return selectedNavElement;
+		}
+
+		// in editor
+		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+		if ( file==null ) {
+			return null;
+		}
+
+		//		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
+		PsiElement el = file.findElementAt(editor.getCaretModel().getOffset());
+		//		System.out.println("sel el: "+selectedPsiRuleNode);
+		return el;
+	}
+
+	public static ParseTree getRuleDefNameNode(Parser parser, ParseTree tree, String ruleName) {
+		Collection<ParseTree> ruleDefRuleNodes;
+		if ( Grammar.isTokenName(ruleName) ) {
+			ruleDefRuleNodes = XPath.findAll(tree, "//lexerRule/TOKEN_REF", parser);
+		}
+		else {
+			ruleDefRuleNodes = XPath.findAll(tree, "//parserRuleSpec/RULE_REF", parser);
+		}
+		for (ParseTree node : ruleDefRuleNodes) {
+			String r = node.getText(); // always a TerminalNode; just get rule name of this def
+			if ( r.equals(ruleName) ) {
+				return node;
+			}
+		}
+		return null;
+	}
+
+	public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
+		List<TerminalNode> nodes = new ArrayList<>();
+		Collection<ParseTree> ruleRefs;
+		if ( Grammar.isTokenName(ruleName) ) {
+			ruleRefs = XPath.findAll(tree, "//lexerRuleBlock//TOKEN_REF", parser);
+		}
+		else {
+			ruleRefs = XPath.findAll(tree, "//ruleBlock//RULE_REF", parser);
+		}
+		for (ParseTree node : ruleRefs) {
+			TerminalNode terminal = (TerminalNode)node;
+			Token rrefToken = terminal.getSymbol();
+			String r = rrefToken.getText();
+			if ( r.equals(ruleName) ) {
+				nodes.add(terminal);
+			}
+		}
+		if ( nodes.size()==0 ) return null;
+		return nodes;
 	}
 }

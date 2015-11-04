@@ -28,6 +28,8 @@
         <JAVADOC />
         <SOURCES>
           <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/runtime/Java/src" />
+          <root url="file://$MODULE_DIR$/../antlr4/tool/src" />
         </SOURCES>
       </library>
     </orderEntry>

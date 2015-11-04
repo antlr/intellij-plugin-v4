@@ -5,8 +5,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -54,20 +52,11 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 			presentation.setEnabled(false);
 			return;
 		}
-//
-//		IElementType tokenType = selectedElement.getNode().getElementType();
-//		if ( tokenType == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.STRING_LITERAL) ) {
-//			presentation.setEnabled(true);
-//			presentation.setVisible(true);
-//		}
-//		else {
-//			presentation.setEnabled(false);
-//		}
 	}
 
 	@Override
 	public void actionPerformed(AnActionEvent e) {
-		LOG.info("actionPerformed");
+		LOG.info("actionPerformed GenerateLexerRulesForLiteralsAction");
 		final Project project = e.getProject();
 
 		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
@@ -126,7 +115,8 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 					// before this rule, so must be between previous and this one
 					cursorOffset = start; // put right before this rule
 					break;
-				} else if (cursorOffset >= start && cursorOffset <= stop) {
+				}
+				else if (cursorOffset >= start && cursorOffset <= stop) {
 					// cursor in this rule
 					cursorOffset = stop + 2; // put right before this rule (after newline)
 					if (cursorOffset >= text.length()) {
@@ -141,15 +131,8 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 				text.substring(0, cursorOffset) +
 					"\n" + allRules + "\n" +
 					text.substring(cursorOffset, text.length());
-			final PsiFile newPsiFile = MyPsiUtils.createFile(project, text);
-			WriteCommandAction setTextAction = new WriteCommandAction(project) {
-				@Override
-				protected void run(final Result result) throws Throwable {
-					psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
-					psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
-				}
-			};
-			setTextAction.execute();
+			MyPsiUtils.replacePsiFileFromText(project, psiFile, text);
 		}
 	}
+
 }
