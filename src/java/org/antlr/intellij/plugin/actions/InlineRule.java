@@ -64,7 +64,6 @@ public class InlineRule extends AnAction {
 		if ( el==null ) return;
 
 		String ruleName = el.getText();
-		System.out.println("inline "+ruleName);
 
 		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
 		if (psiFile == null) return;
@@ -115,7 +114,7 @@ public class InlineRule extends AnAction {
 //			beforeSemi = tokens.get(beforeSemi.getTokenIndex()-1);
 //		}
 		String ruleText = tokens.getText(textStart, textStop);
-		System.out.println("ruletext: "+ruleText);
+//		System.out.println("ruletext: "+ruleText);
 
 		// if rule has outermost alt, must add (...) around insertion
 		// Look for ruleBlock, lexerRuleBlock

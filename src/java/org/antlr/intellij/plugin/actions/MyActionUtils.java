@@ -113,7 +113,7 @@ public class MyActionUtils {
 	                                                 final Class<? extends RuleSpecNode> ruleSpecNodeClass)
 	{
 		PsiElement selectedPsiNode = getSelectedPsiElement(e);
-		System.out.println("selectedPsiNode: "+selectedPsiNode);
+//		System.out.println("selectedPsiNode: "+selectedPsiNode);
 
 		if ( selectedPsiNode==null ) { // didn't select a node in parse tree
 			return null;
