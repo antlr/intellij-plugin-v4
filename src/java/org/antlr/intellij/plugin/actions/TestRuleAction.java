@@ -2,22 +2,14 @@ package org.antlr.intellij.plugin.actions;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
-import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 
 public class TestRuleAction extends AnAction implements DumbAware {
 	public static final Logger LOG = Logger.getInstance("ANTLR TestRuleAction");
@@ -35,7 +27,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			return;
 		}
 
-		ParserRuleRefNode r = getSelectedRuleName(e);
+		ParserRuleRefNode r = MyActionUtils.getParserRuleSurroundingRef(e);
 		if ( r==null ) {
 			presentation.setEnabled(false);
 			return;
@@ -66,7 +58,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(e.getProject());
 		controller.getPreviewWindow().show(null);
 
-		ParserRuleRefNode r = getSelectedRuleName(e);
+		ParserRuleRefNode r = MyActionUtils.getParserRuleSurroundingRef(e);
 		if ( r==null ) {
 			return; // weird. no rule name.
 		}
@@ -78,50 +70,6 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		}
 
 		controller.setStartRuleNameEvent(grammarFile, ruleName);
-	}
-
-	public ParserRuleRefNode getSelectedRuleName(AnActionEvent e) {
-		Editor editor = e.getData(PlatformDataKeys.EDITOR);
-		if ( editor==null ) { // not in editor
-			PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
-			// in nav bar?
-			if ( selectedNavElement==null || !(selectedNavElement instanceof ParserRuleRefNode) ) {
-				return null;
-			}
-			return (ParserRuleRefNode)selectedNavElement;
-		}
-
-		// in editor
-		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
-		if ( file==null ) {
-			return null;
-		}
-
-//		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
-		PsiElement selectedPsiRuleNode = file.findElementAt(editor.getCaretModel().getOffset());
-//		System.out.println("sel el: "+selectedPsiRuleNode);
-
-		if ( selectedPsiRuleNode==null ) { // didn't select a node in parse tree
-			return null;
-		}
-
-		// find root of rule def
-		if ( !(selectedPsiRuleNode instanceof ParserRuleSpecNode) ) {
-			selectedPsiRuleNode = PsiTreeUtil.findFirstParent(selectedPsiRuleNode, new Condition<PsiElement>() {
-				@Override
-				public boolean value(PsiElement psiElement) {
-					return psiElement instanceof ParserRuleSpecNode;
-				}
-			});
-			if ( selectedPsiRuleNode==null ) { // not in rule I guess.
-				return null;
-			}
-			// found rule
-		}
-
-		ParserRuleRefNode r = PsiTreeUtil.findChildOfType(selectedPsiRuleNode,
-														  ParserRuleRefNode.class);
-		return r;
 	}
 
 }

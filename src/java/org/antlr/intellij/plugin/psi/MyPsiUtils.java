@@ -4,6 +4,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -78,7 +80,7 @@ public class MyPsiUtils {
         };
     }
 
-    static class DepthFirstPsiIterator extends AbstractIterator<PsiElement> {
+	static class DepthFirstPsiIterator extends AbstractIterator<PsiElement> {
 
         final PsiElement startFrom;
         DepthFirstPsiIterator(PsiElement startFrom){
@@ -149,6 +151,18 @@ public class MyPsiUtils {
 													  context);
 		return PsiTreeUtil.getDeepestFirst(el); // forces parsing of file!!
 		// start rule depends on root passed in
+	}
+
+	public static void replacePsiFileFromText(final Project project, final PsiFile psiFile, String text) {
+		final PsiFile newPsiFile = createFile(project, text);
+		WriteCommandAction setTextAction = new WriteCommandAction(project) {
+			@Override
+			protected void run(final Result result) throws Throwable {
+				psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
+				psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
+			}
+		};
+		setTextAction.execute();
 	}
 
 	public static PsiFile createFile(Project project, String text) {
