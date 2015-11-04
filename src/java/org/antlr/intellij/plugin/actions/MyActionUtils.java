@@ -176,7 +176,7 @@ public class MyActionUtils {
 	}
 
 	public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
-		List<TerminalNode> nodes = new ArrayList<>();
+		List<TerminalNode> nodes = new ArrayList<TerminalNode>();
 		Collection<ParseTree> ruleRefs;
 		if ( Grammar.isTokenName(ruleName) ) {
 			ruleRefs = XPath.findAll(tree, "//lexerRuleBlock//TOKEN_REF", parser);

@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
@@ -79,17 +80,38 @@ public class InlineRule extends AnAction {
 		List<TerminalNode> rrefNodes = MyActionUtils.getAllRuleRefNodes(parser, tree, ruleName);
 		if ( rrefNodes==null ) return;
 
-		for (TerminalNode t : rrefNodes) {
-			Token rrefToken = t.getSymbol();
-			rewriter.replace(rrefToken, "foo");
-		}
-
-		// remove the inlined rule (lexer or parser)
+		// find rule def
 		ParseTree ruleDefNameNode = MyActionUtils.getRuleDefNameNode(parser, tree, ruleName);
 		if ( ruleDefNameNode==null ) return;
+
+		// identify rhs of rule
 		ParserRuleContext parent = (ParserRuleContext)ruleDefNameNode.getParent();
 		Token start = parent.getStart();
 		Token stop = parent.getStop();
+		TerminalNode colonNode = parent.getToken(ANTLRv4Parser.COLON, 0);
+		Token colon = colonNode.getSymbol();
+		Token beforeSemi = tokens.get(stop.getTokenIndex()-1);
+		Token afterColon = tokens.get(colon.getTokenIndex()+1);
+
+		// trim whitespace before / after rule text
+		if ( afterColon.getType()==ANTLRv4Lexer.WS ) {
+			afterColon = tokens.get(afterColon.getTokenIndex()+1);
+		}
+		if ( beforeSemi.getType()==ANTLRv4Lexer.WS ) {
+			beforeSemi = tokens.get(beforeSemi.getTokenIndex()-1);
+		}
+		String ruleText = tokens.getText(afterColon, beforeSemi);
+		System.out.println("ruletext: "+ruleText);
+
+		// if rule has outermost alt, must add (...) around insertion
+
+		// replace rule refs with rule text
+		for (TerminalNode t : rrefNodes) {
+			Token rrefToken = t.getSymbol();
+			rewriter.replace(rrefToken, ruleText);
+		}
+
+		// remove the inlined rule (lexer or parser)
 		// remove extra whitespace but not trailing comments (if any)
 		// javadoc is included in start (if any) as it's not hidden
 		List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
