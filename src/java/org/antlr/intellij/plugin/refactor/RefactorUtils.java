@@ -1,7 +1,12 @@
 package org.antlr.intellij.plugin.refactor;
 
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.xpath.XPath;
+import org.antlr.v4.tool.Grammar;
 import org.stringtemplate.v4.misc.Misc;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,5 +74,29 @@ public class RefactorUtils {
 			return strippedLiteral.toUpperCase();
 		}
 		return "T__"+lexerRuleNameID++;
+	}
+
+	public static ParseTree getRuleDefNameNode(Parser parser, ParseTree tree, String ruleName) {
+		Collection<ParseTree> ruleDefRuleNodes;
+		if ( Grammar.isTokenName(ruleName) ) {
+			ruleDefRuleNodes = XPath.findAll(tree, "//lexerRule/TOKEN_REF", parser);
+		}
+		else {
+			ruleDefRuleNodes = XPath.findAll(tree, "//parserRuleSpec/RULE_REF", parser);
+		}
+		for (ParseTree node : ruleDefRuleNodes) {
+			String r = node.getText(); // always a TerminalNode; just get rule name of this def
+			if ( r.equals(ruleName) ) {
+				return node;
+			}
+		}
+		return null;
+	}
+
+	public static boolean ruleHasMultipleOutermostAlts(Parser parser, ParseTree ruleTree) {
+		Collection<ParseTree> ors = XPath.findAll(ruleTree, "/parserRuleSpec/ruleBlock/ruleAltList/OR", parser);
+		if ( ors.size()>=1 ) return true;
+		ors = XPath.findAll(ruleTree, "/lexerRule/lexerRuleBlock/lexerAltList/OR", parser);
+		return ors.size()>=1;
 	}
 }

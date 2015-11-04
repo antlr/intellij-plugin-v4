@@ -15,6 +15,7 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -81,29 +82,46 @@ public class InlineRule extends AnAction {
 		if ( rrefNodes==null ) return;
 
 		// find rule def
-		ParseTree ruleDefNameNode = MyActionUtils.getRuleDefNameNode(parser, tree, ruleName);
+		ParseTree ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
 		if ( ruleDefNameNode==null ) return;
 
 		// identify rhs of rule
-		ParserRuleContext parent = (ParserRuleContext)ruleDefNameNode.getParent();
-		Token start = parent.getStart();
-		Token stop = parent.getStop();
-		TerminalNode colonNode = parent.getToken(ANTLRv4Parser.COLON, 0);
+		ParserRuleContext ruleDefNode = (ParserRuleContext)ruleDefNameNode.getParent();
+		Token start = ruleDefNode.getStart();
+		Token stop = ruleDefNode.getStop();
+		Token semi = stop;
+		TerminalNode colonNode = ruleDefNode.getToken(ANTLRv4Parser.COLON, 0);
 		Token colon = colonNode.getSymbol();
 		Token beforeSemi = tokens.get(stop.getTokenIndex()-1);
 		Token afterColon = tokens.get(colon.getTokenIndex()+1);
 
-		// trim whitespace before / after rule text
-		if ( afterColon.getType()==ANTLRv4Lexer.WS ) {
-			afterColon = tokens.get(afterColon.getTokenIndex()+1);
+		// trim whitespace/comments before / after rule text
+		List<Token> ignoreBefore = tokens.getHiddenTokensToRight(colon.getTokenIndex());
+		List<Token> ignoreAfter = tokens.getHiddenTokensToLeft(semi.getTokenIndex());
+		Token textStart = afterColon;
+		Token textStop = beforeSemi;
+		if ( ignoreBefore!=null ) {
+			Token lastWSAfterColon = ignoreBefore.get(ignoreBefore.size()-1);
+			textStart = tokens.get(lastWSAfterColon.getTokenIndex()+1);
 		}
-		if ( beforeSemi.getType()==ANTLRv4Lexer.WS ) {
-			beforeSemi = tokens.get(beforeSemi.getTokenIndex()-1);
+		if ( ignoreAfter!=null ) {
+			int firstWSAtEndOfRule = ignoreAfter.get(0).getTokenIndex()-1;
+			textStop = tokens.get(firstWSAtEndOfRule); // stop before 1st ignore token at end
 		}
-		String ruleText = tokens.getText(afterColon, beforeSemi);
+//		if ( afterColon.getType()==ANTLRv4Lexer.WS ) {
+//			afterColon = tokens.get(afterColon.getTokenIndex()+1);
+//		}
+//		if ( beforeSemi.getType()==ANTLRv4Lexer.WS ) {
+//			beforeSemi = tokens.get(beforeSemi.getTokenIndex()-1);
+//		}
+		String ruleText = tokens.getText(textStart, textStop);
 		System.out.println("ruletext: "+ruleText);
 
 		// if rule has outermost alt, must add (...) around insertion
+		// Look for ruleBlock, lexerRuleBlock
+		if ( RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode) ) {
+			ruleText = "("+ruleText+")";
+		}
 
 		// replace rule refs with rule text
 		for (TerminalNode t : rrefNodes) {

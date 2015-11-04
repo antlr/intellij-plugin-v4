@@ -158,23 +158,6 @@ public class MyActionUtils {
 		return el;
 	}
 
-	public static ParseTree getRuleDefNameNode(Parser parser, ParseTree tree, String ruleName) {
-		Collection<ParseTree> ruleDefRuleNodes;
-		if ( Grammar.isTokenName(ruleName) ) {
-			ruleDefRuleNodes = XPath.findAll(tree, "//lexerRule/TOKEN_REF", parser);
-		}
-		else {
-			ruleDefRuleNodes = XPath.findAll(tree, "//parserRuleSpec/RULE_REF", parser);
-		}
-		for (ParseTree node : ruleDefRuleNodes) {
-			String r = node.getText(); // always a TerminalNode; just get rule name of this def
-			if ( r.equals(ruleName) ) {
-				return node;
-			}
-		}
-		return null;
-	}
-
 	public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
 		List<TerminalNode> nodes = new ArrayList<TerminalNode>();
 		Collection<ParseTree> ruleRefs;
