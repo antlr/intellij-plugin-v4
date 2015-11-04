@@ -23,6 +23,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStreamRewriter;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.Trees;
 
 import java.util.List;
 
@@ -107,12 +108,6 @@ public class InlineRule extends AnAction {
 			int firstWSAtEndOfRule = ignoreAfter.get(0).getTokenIndex()-1;
 			textStop = tokens.get(firstWSAtEndOfRule); // stop before 1st ignore token at end
 		}
-//		if ( afterColon.getType()==ANTLRv4Lexer.WS ) {
-//			afterColon = tokens.get(afterColon.getTokenIndex()+1);
-//		}
-//		if ( beforeSemi.getType()==ANTLRv4Lexer.WS ) {
-//			beforeSemi = tokens.get(beforeSemi.getTokenIndex()-1);
-//		}
 		String ruleText = tokens.getText(textStart, textStop);
 //		System.out.println("ruletext: "+ruleText);
 
@@ -122,23 +117,31 @@ public class InlineRule extends AnAction {
 			ruleText = "("+ruleText+")";
 		}
 
+		boolean ruleIsDirectlyRecursive = false;
+
 		// replace rule refs with rule text
 		for (TerminalNode t : rrefNodes) {
+			if ( Trees.isAncestorOf(ruleDefNode, t) ) {
+				ruleIsDirectlyRecursive = true;
+			}
 			Token rrefToken = t.getSymbol();
 			rewriter.replace(rrefToken, ruleText);
 		}
 
 		// remove the inlined rule (lexer or parser)
-		// remove extra whitespace but not trailing comments (if any)
-		// javadoc is included in start (if any) as it's not hidden
 		List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
 		if ( hiddenTokensToRight!=null && hiddenTokensToRight.size()>0 ) {
+			// remove extra whitespace but not trailing comments (if any)
+			// javadoc is included in start (if any) as it's not hidden
 			Token afterSemi = hiddenTokensToRight.get(0);
 			if ( afterSemi.getType() == ANTLRv4Lexer.WS ) {
 				stop = afterSemi;
 			}
 		}
-		rewriter.delete(start, stop);
+		if ( !ruleIsDirectlyRecursive ) {
+			// don't delete if we made replacements in the rule itself
+			rewriter.delete(start, stop);
+		}
 
 		final Project project = e.getProject();
 		MyPsiUtils.replacePsiFileFromText(project, psiFile, rewriter.getText());
