@@ -27,7 +27,7 @@ import org.antlr.v4.runtime.tree.Trees;
 
 import java.util.List;
 
-public class InlineRule extends AnAction {
+public class InlineRuleAction extends AnAction {
 	/** Only show if selection is a lexer or parser rule */
 	@Override
 	public void update(AnActionEvent e) {
@@ -55,7 +55,7 @@ public class InlineRule extends AnAction {
 			presentation.setText("Inline and Remove Rule "+ruleName);
 		}
 		else {
-			presentation.setVisible(false);
+			presentation.setEnabled(false);
 		}
 	}
 
