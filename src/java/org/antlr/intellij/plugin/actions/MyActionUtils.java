@@ -3,8 +3,11 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.util.Condition;
@@ -65,6 +68,14 @@ public class MyActionUtils {
 		LogicalPosition pos=editor.xyToLogicalPosition(mousePosition);
 		int offset = editor.logicalPositionToOffset(pos);
 		return offset;
+	}
+
+	public static void moveCursor(Editor editor, int cursorOffset) {
+		CaretModel caretModel = editor.getCaretModel();
+		caretModel.moveToOffset(cursorOffset);
+		ScrollingModel scrollingModel = editor.getScrollingModel();
+		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
+		editor.getContentComponent().requestFocus();
 	}
 
 	@NotNull

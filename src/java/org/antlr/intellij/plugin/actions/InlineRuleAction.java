@@ -3,7 +3,9 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -50,7 +52,6 @@ public class InlineRuleAction extends AnAction {
 		if ( (lexerRule!=null && el instanceof LexerRuleRefNode) ||
 			 (parserRule!=null && el instanceof ParserRuleRefNode) )
 		{
-			presentation.setVisible(true);
 			String ruleName = el.getText();
 			presentation.setText("Inline and Remove Rule "+ruleName);
 		}
@@ -69,10 +70,14 @@ public class InlineRuleAction extends AnAction {
 		final PsiFile psiFile = e.getData(LangDataKeys.PSI_FILE);
 		if (psiFile == null) return;
 
+		Editor editor = e.getData(PlatformDataKeys.EDITOR);
+		if ( editor==null ) return;
+		int cursorOffset = editor.getCaretModel().getOffset();
+
 		String grammarText = psiFile.getText();
 		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-		final Parser parser = results.parser;
-		final ParseTree tree = results.tree;
+		Parser parser = results.parser;
+		ParseTree tree = results.tree;
 
 		CommonTokenStream tokens = (CommonTokenStream)parser.getTokenStream();
 		TokenStreamRewriter rewriter = new TokenStreamRewriter(tokens);
@@ -144,6 +149,9 @@ public class InlineRuleAction extends AnAction {
 		}
 
 		final Project project = e.getProject();
-		MyPsiUtils.replacePsiFileFromText(project, psiFile, rewriter.getText());
+		grammarText = rewriter.getText();
+		MyPsiUtils.replacePsiFileFromText(project, psiFile, grammarText);
+
+		MyActionUtils.moveCursor(editor, cursorOffset);
 	}
 }

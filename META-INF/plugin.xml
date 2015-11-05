@@ -125,7 +125,7 @@ For really big files and
         </action>
 		<action id="antlr.ExtractRule"
 			class="org.antlr.intellij.plugin.actions.ExtractRuleAction"
-			text="Extract rule">
+			text="Extract rule...">
 			<keyboard-shortcut keymap="$default" first-keystroke="control alt M"/>
 		    <add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="antlr.InlineRule"/>
 		</action>
