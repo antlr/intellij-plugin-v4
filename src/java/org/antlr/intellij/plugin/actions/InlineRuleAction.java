@@ -76,8 +76,8 @@ public class InlineRuleAction extends AnAction {
 
 		String grammarText = psiFile.getText();
 		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
-		Parser parser = results.parser;
-		ParseTree tree = results.tree;
+		final Parser parser = results.parser;
+		final ParseTree tree = results.tree;
 
 		CommonTokenStream tokens = (CommonTokenStream)parser.getTokenStream();
 		TokenStreamRewriter rewriter = new TokenStreamRewriter(tokens);

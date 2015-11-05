@@ -1,6 +1,8 @@
 package org.antlr.intellij.plugin.refactor;
 
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.antlr.v4.tool.Grammar;
@@ -98,5 +100,15 @@ public class RefactorUtils {
 		if ( ors.size()>=1 ) return true;
 		ors = XPath.findAll(ruleTree, "/lexerRule/lexerRuleBlock/lexerAltList/OR", parser);
 		return ors.size()>=1;
+	}
+
+	public static Token getTokenForCharIndex(TokenStream tokens, int charIndex) {
+		for (int i=0; i<tokens.size(); i++) {
+			Token t = tokens.get(i);
+			if ( charIndex>=t.getStartIndex() && charIndex<=t.getStopIndex() ) {
+				return t;
+			}
+		}
+		return null;
 	}
 }
