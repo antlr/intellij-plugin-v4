@@ -7,7 +7,7 @@
   <description><![CDATA[
   <p>
       This plugin is for ANTLR v4 grammars and includes ANTLR 4.5.1. It works with
-                Intellij 13.x, and 14.x.  It should work in other Jetbrains IDEs.
+                Intellij 13.x-15.  It should work in other Jetbrains IDEs.
                 I have tested in PyCharm 4.5 and CLion 1.2.
      </p>
 
@@ -31,7 +31,9 @@
      <li> view parse trees in hierarchy (sideways tree) view. (1.8)
      <li> can view parse trees for input matched in more than one way (ambiguities) (1.7)
      <li> can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
-     <li> changes to grammar seen in parse tree upon save of grammar. Works with Intellij 13.x and 14.x; requires 13.x.
+	<li> changes to grammar seen in parse tree upon save of grammar.
+	<li> works with all Jetbrains IDEs
+	<li> refactoring: extra rule, inline rule
      </ul>
 
       <p>Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
