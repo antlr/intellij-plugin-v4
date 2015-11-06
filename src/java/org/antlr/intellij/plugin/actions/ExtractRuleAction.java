@@ -105,8 +105,10 @@ public class ExtractRuleAction extends AnAction {
 		int insertionPoint = ruleRoot.getStop().getStopIndex();
 
 		grammarText =
-			grammarText.substring(0, insertionPoint+1) +
-			"\n" +
+			grammarText.substring(0, start.getStartIndex()) +
+			nameChooser.ruleName +
+			grammarText.substring(stop.getStopIndex()+1, insertionPoint+1) +
+			"\n\n" +
 			nameChooser.ruleName + " : " + ruleText + " ;" + "\n" +
 			grammarText.substring(insertionPoint+1, grammarText.length());
 
