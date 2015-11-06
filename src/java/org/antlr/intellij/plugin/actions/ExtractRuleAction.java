@@ -7,18 +7,22 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
+import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.Trees;
 
 public class ExtractRuleAction extends AnAction {
 	/** Only show if user has selected region and is in a lexer or parser rule */
@@ -49,6 +53,8 @@ public class ExtractRuleAction extends AnAction {
 		if ( !selectionModel.hasSelection() ) {
 			presentation.setEnabled(false);
 		}
+
+		// TODO: disable if selection spans rules
 	}
 
 	@Override
@@ -66,7 +72,7 @@ public class ExtractRuleAction extends AnAction {
 		String grammarText = psiFile.getText();
 		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
 		final Parser parser = results.parser;
-		final ParseTree tree = results.tree;
+		final ParserRuleContext tree = (ParserRuleContext)results.tree;
 		TokenStream tokens = parser.getTokenStream();
 
 		int selStart = selectionModel.getSelectionStart();
@@ -78,6 +84,36 @@ public class ExtractRuleAction extends AnAction {
 			return;
 		}
 
-		selectionModel.setSelection(start.getStartIndex(), stop.getStopIndex()+1);
+		selectionModel.setSelection(start.getStartIndex(), stop.getStopIndex() + 1);
+		final String ruleText = selectionModel.getSelectedText();
+
+		final Project project = e.getProject();
+		final ChooseExtractedRuleName nameChooser = new ChooseExtractedRuleName(project);
+		nameChooser.show();
+		if ( nameChooser.ruleName==null ) return;
+
+		// make new rule string
+		final String fullRule = nameChooser.ruleName + " : " + ruleText + " ;";
+		System.out.println("create " + ruleText);
+
+		// find root node of rule containing selection
+		final ParserRuleContext selNode =
+			Trees.getRootOfSubtreeEnclosingRegion(tree, start.getTokenIndex(), start.getTokenIndex());
+		final ParserRuleContext ruleRoot = (ParserRuleContext)
+			RefactorUtils.getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
+		// insert after rule we extract from
+		int insertionPoint = ruleRoot.getStop().getStopIndex();
+
+		grammarText =
+			grammarText.substring(0, insertionPoint+1) +
+			"\n" +
+			nameChooser.ruleName + " : " + ruleText + " ;" + "\n" +
+			grammarText.substring(insertionPoint+1, grammarText.length());
+
+		MyPsiUtils.replacePsiFileFromText(project, psiFile, grammarText);
+		MyActionUtils.moveCursor(editor, selStart);
+
+		// TODO: only allow selection of fully-formed syntactic entity.
+		// E.g., "A (',' A" is invalid grammatically as a rule.
 	}
 }

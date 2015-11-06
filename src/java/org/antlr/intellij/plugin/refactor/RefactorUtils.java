@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.antlr.v4.tool.Grammar;
 import org.stringtemplate.v4.misc.Misc;
@@ -111,4 +112,23 @@ public class RefactorUtils {
 		}
 		return null;
 	}
+
+	public static ParseTree getAncestorWithType(ParseTree t, Class<? extends ParseTree> clazz) {
+		if ( t==null || clazz==null || t.getParent()==null ) return null;
+		Tree p = t.getParent();
+		while ( p!=null ) {
+			if ( p.getClass()==clazz ) return (ParseTree)p;
+			p = p.getParent();
+		}
+		return null;
+	}
+
+	public static int childIndexOf(ParseTree t, ParseTree child) {
+		if ( t==null || child==null ) return -1;
+		for (int i = 0; i < t.getChildCount(); i++) {
+			if ( child==t.getChild(i) ) return i;
+		}
+		return -1;
+	}
+
 }
