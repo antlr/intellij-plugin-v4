@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.8</version>
+  <version>1.9</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
@@ -33,7 +33,7 @@
      <li> can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
 	<li> changes to grammar seen in parse tree upon save of grammar.
 	<li> works with all Jetbrains IDEs (1.8)
-	<li> refactoring: extract rule, inline rule (1.8)
+	<li> refactoring: extract rule, inline rule (1.8), dup rule to make refs unique (1.9)
      </ul>
 
       <p>Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
@@ -65,8 +65,7 @@
 for more details.
 
 <p>
-For really big files and
- slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
+For really big files and slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
 
 <p>
 <a href="https://github.com/antlr/intellij-plugin-v4">Github source</a>
