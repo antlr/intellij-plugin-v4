@@ -32,8 +32,8 @@
      <li> can view parse trees for input matched in more than one way (ambiguities) (1.7)
      <li> can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
 	<li> changes to grammar seen in parse tree upon save of grammar.
-	<li> works with all Jetbrains IDEs
-	<li> refactoring: extra rule, inline rule
+	<li> works with all Jetbrains IDEs (1.8)
+	<li> refactoring: extract rule, inline rule (1.8)
      </ul>
 
       <p>Generates code in <project-root>/gen/package/YourGrammarRecognizer.java
@@ -44,8 +44,7 @@
           if there is a tokenVocab option, don't warn about implicit tokens.
           shortcut conflicted with grammar-kit plugin. Has live grammar interpreter
           for grammar preview. Right click on rule and say "Test ANTLR Rule".
-          Changes to grammar seen in parse tree upon save of grammar. Works with
-          Intellij 13.x, and 14.x.
+          Changes to grammar seen in parse tree upon save of grammar.
   <p>
           You can configure the ANTLR tool options per grammar file; right-click
           in a grammar or on a grammar element within the structured view.
@@ -79,7 +78,7 @@ For really big files and
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="133"/> <!-- now requires 13.x, 14.x -->
+  <idea-version since-build="133"/> <!-- requires 13.x, 14.x, 15.x -->
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
