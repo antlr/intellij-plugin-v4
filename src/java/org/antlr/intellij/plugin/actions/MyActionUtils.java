@@ -16,28 +16,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RuleSpecNode;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.runtime.tree.xpath.XPath;
-import org.antlr.v4.tool.Grammar;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class MyActionUtils {
@@ -173,27 +163,6 @@ public class MyActionUtils {
 		return el;
 	}
 
-	public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
-		List<TerminalNode> nodes = new ArrayList<TerminalNode>();
-		Collection<ParseTree> ruleRefs;
-		if ( Grammar.isTokenName(ruleName) ) {
-			ruleRefs = XPath.findAll(tree, "//lexerRuleBlock//TOKEN_REF", parser);
-		}
-		else {
-			ruleRefs = XPath.findAll(tree, "//ruleBlock//RULE_REF", parser);
-		}
-		for (ParseTree node : ruleRefs) {
-			TerminalNode terminal = (TerminalNode)node;
-			Token rrefToken = terminal.getSymbol();
-			String r = rrefToken.getText();
-			if ( r.equals(ruleName) ) {
-				nodes.add(terminal);
-			}
-		}
-		if ( nodes.size()==0 ) return null;
-		return nodes;
-	}
-
 	/** Only show if selection is a lexer or parser rule */
 	public static void showOnlyIfSelectionIsRule(AnActionEvent e) {
 		Presentation presentation = e.getPresentation();
@@ -223,31 +192,4 @@ public class MyActionUtils {
 		}
 	}
 
-	/** Get start/stop of an entire rule including semi and then clean up
-	 *  WS at end.
-	 */
-	public static String getRuleText(CommonTokenStream tokens, ParserRuleContext ruleDefNode) {
-		Token stop = ruleDefNode.getStop();
-		Token semi = stop;
-		TerminalNode colonNode = ruleDefNode.getToken(ANTLRv4Parser.COLON, 0);
-		Token colon = colonNode.getSymbol();
-		Token beforeSemi = tokens.get(stop.getTokenIndex()-1);
-		Token afterColon = tokens.get(colon.getTokenIndex()+1);
-
-		// trim whitespace/comments before / after rule text
-		List<Token> ignoreBefore = tokens.getHiddenTokensToRight(colon.getTokenIndex());
-		List<Token> ignoreAfter = tokens.getHiddenTokensToLeft(semi.getTokenIndex());
-		Token textStart = afterColon;
-		Token textStop = beforeSemi;
-		if ( ignoreBefore!=null ) {
-			Token lastWSAfterColon = ignoreBefore.get(ignoreBefore.size()-1);
-			textStart = tokens.get(lastWSAfterColon.getTokenIndex()+1);
-		}
-		if ( ignoreAfter!=null ) {
-			int firstWSAtEndOfRule = ignoreAfter.get(0).getTokenIndex()-1;
-			textStop = tokens.get(firstWSAtEndOfRule); // stop before 1st ignore token at end
-		}
-
-		return tokens.getText(textStart, textStop);
-	}
 }
