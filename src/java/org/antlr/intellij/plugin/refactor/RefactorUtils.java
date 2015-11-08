@@ -1,5 +1,9 @@
 package org.antlr.intellij.plugin.refactor;
 
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
@@ -131,4 +135,29 @@ public class RefactorUtils {
 		return -1;
 	}
 
+	public static void replaceText(final Project project, final Document doc,
+	                               final int start, final int stop, // inclusive
+	                               final String text)
+	{
+		WriteCommandAction setTextAction = new WriteCommandAction(project) {
+			@Override
+			protected void run(final Result result) throws Throwable {
+				doc.replaceString(start, stop+1, text);
+			}
+		};
+		setTextAction.execute();
+	}
+
+	public static void insertText(final Project project, final Document doc,
+	                              final int where,
+	                              final String text)
+	{
+		WriteCommandAction setTextAction = new WriteCommandAction(project) {
+			@Override
+			protected void run(final Result result) throws Throwable {
+				doc.insertString(where, text);
+			}
+		};
+		setTextAction.execute();
+	}
 }

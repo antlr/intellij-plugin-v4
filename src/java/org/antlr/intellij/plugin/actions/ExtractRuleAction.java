@@ -5,17 +5,18 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
-import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.refactor.RefactorUtils;
 import org.antlr.v4.runtime.Parser;
@@ -67,6 +68,7 @@ public class ExtractRuleAction extends AnAction {
 
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		if ( editor==null ) return;
+		final Document doc = editor.getDocument();
 		SelectionModel selectionModel = editor.getSelectionModel();
 
 		String grammarText = psiFile.getText();
@@ -76,46 +78,47 @@ public class ExtractRuleAction extends AnAction {
 		TokenStream tokens = parser.getTokenStream();
 
 		int selStart = selectionModel.getSelectionStart();
-		int selStop = selectionModel.getSelectionEnd();
+		int selStop = selectionModel.getSelectionEnd()-1; // I'm inclusive and they are exclusive for end offset
 
+		// find appropriate tokens for bounds, don't include WS
 		Token start = RefactorUtils.getTokenForCharIndex(tokens, selStart);
 		Token stop = RefactorUtils.getTokenForCharIndex(tokens, selStop);
 		if ( start==null || stop==null ) {
 			return;
 		}
+		if ( start.getType()==ANTLRv4Lexer.WS ) {
+			start = tokens.get(start.getTokenIndex()+1);
+		}
+		if ( stop.getType()==ANTLRv4Lexer.WS ) {
+			stop = tokens.get(stop.getTokenIndex()-1);
+		}
 
 		selectionModel.setSelection(start.getStartIndex(), stop.getStopIndex() + 1);
-		final String ruleText = selectionModel.getSelectedText();
-
 		final Project project = e.getProject();
 		final ChooseExtractedRuleName nameChooser = new ChooseExtractedRuleName(project);
 		nameChooser.show();
 		if ( nameChooser.ruleName==null ) return;
 
 		// make new rule string
-		final String fullRule = nameChooser.ruleName + " : " + ruleText + " ;";
-		System.out.println("create " + ruleText);
+		final String ruleText = selectionModel.getSelectedText();
 
 		// find root node of rule containing selection
 		final ParserRuleContext selNode =
 			Trees.getRootOfSubtreeEnclosingRegion(tree, start.getTokenIndex(), start.getTokenIndex());
 		final ParserRuleContext ruleRoot = (ParserRuleContext)
 			RefactorUtils.getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
-		// insert after rule we extract from
-		int insertionPoint = ruleRoot.getStop().getStopIndex();
 
-		grammarText =
-			grammarText.substring(0, start.getStartIndex()) +
-			nameChooser.ruleName +
-			grammarText.substring(stop.getStopIndex()+1, insertionPoint+1) +
-			"\n\n" +
-			nameChooser.ruleName + " : " + ruleText + " ;" + "\n" +
-			grammarText.substring(insertionPoint+1, grammarText.length());
+		int ruleIndex = RefactorUtils.childIndexOf(ruleRoot.getParent(), ruleRoot);
+		ParserRuleContext nextRuleRoot = (ParserRuleContext)ruleRoot.getParent().getChild(ruleIndex+1);
 
-		MyPsiUtils.replacePsiFileFromText(project, psiFile, grammarText);
-		MyActionUtils.moveCursor(editor, selStart);
+		int insertionPoint = nextRuleRoot.getStart().getStartIndex();
+		String newRule = nameChooser.ruleName + " : " + ruleText + " ;" + "\n\n";
+		RefactorUtils.insertText(project, doc, insertionPoint, newRule);
+
+		RefactorUtils.replaceText(project, doc, start.getStartIndex(), stop.getStopIndex(), nameChooser.ruleName);
 
 		// TODO: only allow selection of fully-formed syntactic entity.
 		// E.g., "A (',' A" is invalid grammatically as a rule.
 	}
+
 }
