@@ -2,11 +2,9 @@
 
 An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
 
-*Given day-job constraints, my time working on this project is limited so I'll have to focus first on fixing bugs rather than changing/improving the feature set. Likely I'll do it in bursts every few months. Please do not be offended if your bug or pull request does not yield a response! --parrt*
-
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and including ANTLR 4.5.1.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.5.1. Works with Intellij 13.x-15 and other Jetbrains IDEs.
 
 Features:
 
@@ -27,7 +25,8 @@ Features:
 - has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
 - can view parse trees for input matched in more than one way (ambiguities) (1.7)
 - can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
-- changes to grammar seen in parse tree upon save of grammar. Works with Intellij 13.x and 14.x; requires 13.x.
+- changes to grammar seen in parse tree upon save of grammar.
+- refactoring: extra rule, inline rule
 
 You can configure the ANTLR tool options per grammar file; right-click
 in a grammar or on a grammar element within the structured view.

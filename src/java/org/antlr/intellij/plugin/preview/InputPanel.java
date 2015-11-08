@@ -467,7 +467,9 @@ public class InputPanel {
 		clearErrorConsole();
 	}
 
-	/** Clear all input highlighters */
+	/**
+	 * Clear all input highlighters
+	 */
 	public void clearInputEditorHighlighters() {
 		Editor editor = getInputEditor();
 		if ( editor==null ) return;
@@ -476,18 +478,21 @@ public class InputPanel {
 		markupModel.removeAllHighlighters();
 	}
 
-	/** Clear decision stuff but leave syntax errors */
+	/**
+	 * Clear decision stuff but leave syntax errors
+	 */
 	public static void clearDecisionEventHighlighters(Editor editor) {
 		removeHighlighters(editor, ProfilerPanel.DECISION_EVENT_INFO_KEY);
 	}
 
-	/** Remove any previous underlining or boxing, but not errors or decision event info */
+	/**
+	 * Remove any previous underlining or boxing, but not errors or decision event info
+	 */
 	public static void clearTokenInfoHighlighters(Editor editor) {
 		MarkupModel markupModel = editor.getMarkupModel();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null &&
-				r.getUserData(SYNTAX_ERROR)==null )
-			{
+				r.getUserData(SYNTAX_ERROR)==null ) {
 				markupModel.removeHighlighter(r);
 			}
 		}
