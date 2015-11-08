@@ -131,6 +131,11 @@ For really big files and
 			<keyboard-shortcut keymap="$default" first-keystroke="control alt M"/>
 		    <add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="antlr.InlineRule"/>
 		</action>
+		<action id="antlr.UniquifyRuleRefs"
+			class="org.antlr.intellij.plugin.actions.UniquifyRuleRefs"
+			text="Make refs to rule unique...">
+			<add-to-group group-id="RefactoringMenu" anchor="after" relative-to-action="antlr.ExtractRule"/>
+		</action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
