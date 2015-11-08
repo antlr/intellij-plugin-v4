@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -15,13 +16,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RuleSpecNode;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -188,5 +192,62 @@ public class MyActionUtils {
 		}
 		if ( nodes.size()==0 ) return null;
 		return nodes;
+	}
+
+	/** Only show if selection is a lexer or parser rule */
+	public static void showOnlyIfSelectionIsRule(AnActionEvent e) {
+		Presentation presentation = e.getPresentation();
+		VirtualFile grammarFile = getGrammarFileFromEvent(e);
+		if ( grammarFile==null ) {
+			presentation.setEnabled(false);
+			return;
+		}
+
+		PsiElement el = getSelectedPsiElement(e);
+		if ( el==null ) {
+			presentation.setEnabled(false);
+			return;
+		}
+
+		ParserRuleRefNode parserRule = getParserRuleSurroundingRef(e);
+		LexerRuleRefNode lexerRule = getLexerRuleSurroundingRef(e);
+
+		if ( (lexerRule!=null && el instanceof LexerRuleRefNode) ||
+			 (parserRule!=null && el instanceof ParserRuleRefNode) )
+		{
+			String ruleName = el.getText();
+			presentation.setText("Inline and Remove Rule "+ruleName);
+		}
+		else {
+			presentation.setEnabled(false);
+		}
+	}
+
+	/** Get start/stop of an entire rule including semi and then clean up
+	 *  WS at end.
+	 */
+	public static String getRuleText(CommonTokenStream tokens, ParserRuleContext ruleDefNode) {
+		Token stop = ruleDefNode.getStop();
+		Token semi = stop;
+		TerminalNode colonNode = ruleDefNode.getToken(ANTLRv4Parser.COLON, 0);
+		Token colon = colonNode.getSymbol();
+		Token beforeSemi = tokens.get(stop.getTokenIndex()-1);
+		Token afterColon = tokens.get(colon.getTokenIndex()+1);
+
+		// trim whitespace/comments before / after rule text
+		List<Token> ignoreBefore = tokens.getHiddenTokensToRight(colon.getTokenIndex());
+		List<Token> ignoreAfter = tokens.getHiddenTokensToLeft(semi.getTokenIndex());
+		Token textStart = afterColon;
+		Token textStop = beforeSemi;
+		if ( ignoreBefore!=null ) {
+			Token lastWSAfterColon = ignoreBefore.get(ignoreBefore.size()-1);
+			textStart = tokens.get(lastWSAfterColon.getTokenIndex()+1);
+		}
+		if ( ignoreAfter!=null ) {
+			int firstWSAtEndOfRule = ignoreAfter.get(0).getTokenIndex()-1;
+			textStop = tokens.get(firstWSAtEndOfRule); // stop before 1st ignore token at end
+		}
+
+		return tokens.getText(textStart, textStop);
 	}
 }
