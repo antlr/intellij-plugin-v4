@@ -5,6 +5,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
@@ -111,11 +113,20 @@ public class ExtractRuleAction extends AnAction {
 		int ruleIndex = RefactorUtils.childIndexOf(ruleRoot.getParent(), ruleRoot);
 		ParserRuleContext nextRuleRoot = (ParserRuleContext)ruleRoot.getParent().getChild(ruleIndex+1);
 
-		int insertionPoint = nextRuleRoot.getStart().getStartIndex();
-		String newRule = nameChooser.ruleName + " : " + ruleText + " ;" + "\n\n";
-		RefactorUtils.insertText(project, doc, insertionPoint, newRule);
+		final int insertionPoint = nextRuleRoot.getStart().getStartIndex();
+		final String newRule = nameChooser.ruleName + " : " + ruleText + " ;" + "\n\n";
 
-		RefactorUtils.replaceText(project, doc, start.getStartIndex(), stop.getStopIndex(), nameChooser.ruleName);
+		final Token start_ = start;
+		final Token stop_ = stop;
+		WriteCommandAction setTextAction = new WriteCommandAction(project) {
+			@Override
+			protected void run(final Result result) throws Throwable {
+				// do all as one operation.
+				doc.insertString(insertionPoint, newRule);
+				doc.replaceString(start_.getStartIndex(), stop_.getStopIndex()+1, nameChooser.ruleName);
+			}
+		};
+		setTextAction.execute();
 
 		// TODO: only allow selection of fully-formed syntactic entity.
 		// E.g., "A (',' A" is invalid grammatically as a rule.
