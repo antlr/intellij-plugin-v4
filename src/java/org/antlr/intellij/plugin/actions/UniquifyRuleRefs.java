@@ -21,17 +21,16 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.antlr.v4.runtime.tree.Trees;
 
 import java.util.List;
 
 /** Make every ref to a rule unique by dup'ing the rule and making them
- *  rule01, rule02, etc...
+ *  rule1, rule2, etc...
  */
 public class UniquifyRuleRefs extends AnAction {
 	@Override
 	public void update(AnActionEvent e) {
-		MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup and Make %s Refs Unique");
+		MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup to Make %s Refs Unique");
 	}
 
 	@Override
@@ -55,8 +54,6 @@ public class UniquifyRuleRefs extends AnAction {
 		Parser parser = results.parser;
 		ParseTree tree = results.tree;
 
-		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-
 		// find all parser and lexer rule refs
 		final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
 		if ( rrefNodes==null ) return;
@@ -65,32 +62,27 @@ public class UniquifyRuleRefs extends AnAction {
 		final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
 		if ( ruleDefNameNode==null ) return;
 
-		// identify rhs of rule
-		final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
-
-		final String ruleText = RefactorUtils.getRuleText(tokens, ruleDefNode);
-
-//		System.out.println("ruletext: "+ruleText);
-
 		// alter rule refs and dup rules
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
 			protected void run(final Result result) throws Throwable {
 				// do in a single action so undo works in one go
-				dupRuleAndMakeRefsUnique(doc, tokens, ruleDefNameNode, rrefNodes, ruleText);
+				dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
 			}
 		};
 		setTextAction.execute();
 	}
 
-	public void dupRuleAndMakeRefsUnique(Document doc, CommonTokenStream tokens,
-	                                     TerminalNode ruleDefNameNode,
-	                                     List<TerminalNode> rrefNodes,
-	                                     String ruleText)
+	public void dupRuleAndMakeRefsUnique(Document doc,
+	                                     String ruleName,
+	                                     List<TerminalNode> rrefNodes)
 	{
-		String ruleName = ruleDefNameNode.getText();
 		int base = 0;
 		int i = 1;
+		int nrefs = rrefNodes.size();
+
+		if ( nrefs==1 ) return; // no need to make unique if already unique
+
 		for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go
 			Token rrefToken = t.getSymbol();
 			String uniqueRuleName = ruleName+i;
@@ -105,27 +97,22 @@ public class UniquifyRuleRefs extends AnAction {
 		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
 		Parser parser = results.parser;
 		ParseTree tree = results.tree;
-		tokens = (CommonTokenStream)parser.getTokenStream();
+		CommonTokenStream tokens = (CommonTokenStream)parser.getTokenStream();
 
-		Token tokenOfRuleStart = ruleDefNameNode.getSymbol();
-		final int insertionPoint = tokenOfRuleStart.getStartIndex();
+		// find rule def
+		final TerminalNode ruleDefNameNode = RefactorUtils.getRuleDefNameNode(parser, tree, ruleName);
+		if ( ruleDefNameNode==null ) return;
 
-		final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
+		final ParserRuleContext ruleDefNode = (ParserRuleContext)ruleDefNameNode.getParent();
 		Token start = ruleDefNode.getStart();
 		Token stop = ruleDefNode.getStop();
-
-		// check for direct recursive, in which case we don't delete it
-		boolean ruleIsDirectlyRecursive = false;
-		for (TerminalNode t : rrefNodes) {
-			if ( Trees.isAncestorOf(ruleDefNode, t) ) {
-				ruleIsDirectlyRecursive = true;
-			}
+		int insertionPoint = start.getStartIndex();
+		String javadoc = "";
+		if ( start.getType()==ANTLRv4Lexer.DOC_COMMENT ) {
+			javadoc = start.getText() + "\n";
 		}
 
-		// don't delete if we made replacements in the rule itself
-		if ( ruleIsDirectlyRecursive ) return;
-
-		// remove the inlined rule (lexer or parser)
+		// delete original rule
 		List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
 		if ( hiddenTokensToRight!=null && hiddenTokensToRight.size()>0 ) {
 			// remove extra whitespace but not trailing comments (if any)
@@ -135,7 +122,14 @@ public class UniquifyRuleRefs extends AnAction {
 				stop = afterSemi;
 			}
 		}
-
 		doc.deleteString(start.getStartIndex(), stop.getStopIndex()+1);
+
+		// now insert nrefs copies of ruleText at insertionPoint
+		final String ruleText = RefactorUtils.getRuleText(tokens, ruleDefNode);
+		for (i=nrefs; i>=1; i--) {
+			String uniqueRuleName = ruleName+i;
+			final String newRule = javadoc + uniqueRuleName + " : " + ruleText + " ;" + "\n\n";
+			doc.insertString(insertionPoint, newRule);
+		}
 	}
 }
