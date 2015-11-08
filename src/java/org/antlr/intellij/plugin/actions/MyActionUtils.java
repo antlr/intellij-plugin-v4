@@ -164,7 +164,7 @@ public class MyActionUtils {
 	}
 
 	/** Only show if selection is a lexer or parser rule */
-	public static void showOnlyIfSelectionIsRule(AnActionEvent e) {
+	public static void showOnlyIfSelectionIsRule(AnActionEvent e, String title) {
 		Presentation presentation = e.getPresentation();
 		VirtualFile grammarFile = getGrammarFileFromEvent(e);
 		if ( grammarFile==null ) {
@@ -185,7 +185,7 @@ public class MyActionUtils {
 			 (parserRule!=null && el instanceof ParserRuleRefNode) )
 		{
 			String ruleName = el.getText();
-			presentation.setText("Inline and Remove Rule "+ruleName);
+			presentation.setText(String.format(title,ruleName));
 		}
 		else {
 			presentation.setEnabled(false);

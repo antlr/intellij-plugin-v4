@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
+import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.runtime.tree.xpath.XPath;
 import org.antlr.v4.tool.Grammar;
 import org.stringtemplate.v4.misc.Misc;
@@ -89,7 +90,7 @@ public class RefactorUtils {
 		return "T__"+lexerRuleNameID++;
 	}
 
-	public static ParseTree getRuleDefNameNode(Parser parser, ParseTree tree, String ruleName) {
+	public static TerminalNode getRuleDefNameNode(Parser parser, ParseTree tree, String ruleName) {
 		Collection<ParseTree> ruleDefRuleNodes;
 		if ( Grammar.isTokenName(ruleName) ) {
 			ruleDefRuleNodes = XPath.findAll(tree, "//lexerRule/TOKEN_REF", parser);
@@ -100,7 +101,7 @@ public class RefactorUtils {
 		for (ParseTree node : ruleDefRuleNodes) {
 			String r = node.getText(); // always a TerminalNode; just get rule name of this def
 			if ( r.equals(ruleName) ) {
-				return node;
+				return (TerminalNode)node;
 			}
 		}
 		return null;
@@ -214,5 +215,20 @@ public class RefactorUtils {
 		}
 		if ( nodes.size()==0 ) return null;
 		return nodes;
+	}
+
+	/** Given a token index into buffer, find surrounding rule then return
+	 *  char position of start of next rule.
+	 */
+	public static int getCharIndexOfNextRuleStart(ParserRuleContext tree, int tokenIndex) {
+		final ParserRuleContext selNode =
+			Trees.getRootOfSubtreeEnclosingRegion(tree, tokenIndex, tokenIndex);
+		final ParserRuleContext ruleRoot = (ParserRuleContext)
+			getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
+
+		int ruleIndex = childIndexOf(ruleRoot.getParent(), ruleRoot);
+		ParserRuleContext nextRuleRoot = (ParserRuleContext)ruleRoot.getParent().getChild(ruleIndex+1);
+
+		return nextRuleRoot.getStart().getStartIndex();
 	}
 }

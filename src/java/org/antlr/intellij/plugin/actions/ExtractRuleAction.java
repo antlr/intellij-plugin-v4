@@ -15,7 +15,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
-import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
@@ -25,7 +24,6 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.tree.Trees;
 
 public class ExtractRuleAction extends AnAction {
 	/** Only show if user has selected region and is in a lexer or parser rule */
@@ -104,16 +102,7 @@ public class ExtractRuleAction extends AnAction {
 		// make new rule string
 		final String ruleText = selectionModel.getSelectedText();
 
-		// find root node of rule containing selection
-		final ParserRuleContext selNode =
-			Trees.getRootOfSubtreeEnclosingRegion(tree, start.getTokenIndex(), start.getTokenIndex());
-		final ParserRuleContext ruleRoot = (ParserRuleContext)
-			RefactorUtils.getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
-
-		int ruleIndex = RefactorUtils.childIndexOf(ruleRoot.getParent(), ruleRoot);
-		ParserRuleContext nextRuleRoot = (ParserRuleContext)ruleRoot.getParent().getChild(ruleIndex+1);
-
-		final int insertionPoint = nextRuleRoot.getStart().getStartIndex();
+		final int insertionPoint = RefactorUtils.getCharIndexOfNextRuleStart(tree, start.getTokenIndex());
 		final String newRule = nameChooser.ruleName + " : " + ruleText + " ;" + "\n\n";
 
 		final Token start_ = start;
