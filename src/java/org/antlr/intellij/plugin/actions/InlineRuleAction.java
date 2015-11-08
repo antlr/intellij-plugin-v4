@@ -19,7 +19,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStreamRewriter;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Trees;
@@ -47,7 +46,6 @@ public class InlineRuleAction extends AnAction {
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		if ( editor==null ) return;
 		final Document doc = editor.getDocument();
-		int cursorOffset = editor.getCaretModel().getOffset();
 
 		String grammarText = psiFile.getText();
 		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
@@ -55,10 +53,9 @@ public class InlineRuleAction extends AnAction {
 		ParseTree tree = results.tree;
 
 		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-		TokenStreamRewriter rewriter = new TokenStreamRewriter(tokens);
 
 		// find all parser and lexer rule refs
-		final List<TerminalNode> rrefNodes = MyActionUtils.getAllRuleRefNodes(parser, tree, ruleName);
+		final List<TerminalNode> rrefNodes = RefactorUtils.getAllRuleRefNodes(parser, tree, ruleName);
 		if ( rrefNodes==null ) return;
 
 		// find rule def
@@ -67,8 +64,7 @@ public class InlineRuleAction extends AnAction {
 
 		// identify rhs of rule
 		final ParserRuleContext ruleDefNode = (ParserRuleContext) ruleDefNameNode.getParent();
-
-		String ruleText_ = MyActionUtils.getRuleText(tokens, ruleDefNode);
+		String ruleText_ = RefactorUtils.getRuleText(tokens, ruleDefNode);
 
 		// if rule has outermost alt, must add (...) around insertion
 		// Look for ruleBlock, lexerRuleBlock
