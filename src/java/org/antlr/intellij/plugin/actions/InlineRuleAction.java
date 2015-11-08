@@ -28,7 +28,7 @@ import java.util.List;
 public class InlineRuleAction extends AnAction {
 	@Override
 	public void update(AnActionEvent e) {
-		MyActionUtils.showOnlyIfSelectionIsRule(e);
+		MyActionUtils.showOnlyIfSelectionIsRule(e, "Inline and Remove Rule %s");
 	}
 
 	@Override
@@ -112,11 +112,6 @@ public class InlineRuleAction extends AnAction {
 		ParsingResult results = ParsingUtils.parseANTLRGrammar(grammarText);
 		Parser parser = results.parser;
 		ParseTree tree = results.tree;
-
-		results = ParsingUtils.parseANTLRGrammar(grammarText);
-		parser = results.parser;
-		tree = results.tree;
-
 		tokens = (CommonTokenStream) parser.getTokenStream();
 
 		// find rule def
