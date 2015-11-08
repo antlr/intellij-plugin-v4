@@ -119,52 +119,6 @@ public class InlineRuleAction extends AnAction {
 			textStop = tokens.get(firstWSAtEndOfRule); // stop before 1st ignore token at end
 		}
 
-		if ( false ) {
-			String ruleText = tokens.getText(textStart, textStop);
-//		System.out.println("ruletext: "+ruleText);
-
-			// if rule has outermost alt, must add (...) around insertion
-			// Look for ruleBlock, lexerRuleBlock
-			if ( RefactorUtils.ruleHasMultipleOutermostAlts(parser, ruleDefNode) ) {
-				ruleText = "("+ruleText+")";
-			}
-
-			boolean ruleIsDirectlyRecursive = false;
-
-			// replace rule refs with rule text
-			for (TerminalNode t : rrefNodes) {
-				if ( Trees.isAncestorOf(ruleDefNode, t) ) {
-					ruleIsDirectlyRecursive = true;
-				}
-				Token rrefToken = t.getSymbol();
-				rewriter.replace(rrefToken, ruleText);
-			}
-
-			// remove the inlined rule (lexer or parser)
-			List<Token> hiddenTokensToRight = tokens.getHiddenTokensToRight(stop.getTokenIndex());
-			if ( hiddenTokensToRight!=null && hiddenTokensToRight.size()>0 ) {
-				// remove extra whitespace but not trailing comments (if any)
-				// javadoc is included in start (if any) as it's not hidden
-				Token afterSemi = hiddenTokensToRight.get(0);
-				if ( afterSemi.getType()==ANTLRv4Lexer.WS ) {
-					stop = afterSemi;
-				}
-			}
-			if ( !ruleIsDirectlyRecursive ) {
-				// don't delete if we made replacements in the rule itself
-				rewriter.delete(start, stop);
-			}
-
-			grammarText = rewriter.getText();
-			RefactorUtils.replaceText(project, doc, 0, doc.getTextLength()-1, grammarText);
-
-			MyActionUtils.moveCursor(editor, cursorOffset);
-		}
-
-
-		// TODO: currently replacing rule; try replacing just what we need to do
-		// the following is close. it just doesn't know how to delete the rule.
-
 		String ruleText_ = tokens.getText(textStart, textStop);
 //		System.out.println("ruletext: "+ruleText);
 
@@ -179,6 +133,7 @@ public class InlineRuleAction extends AnAction {
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
 			protected void run(final Result result) throws Throwable {
+				// do in a single action so undo works in one go
 				replaceRuleRefs(doc,tokens,ruleName,rrefNodes,ruleText);
 			}
 		};
