@@ -561,8 +561,13 @@ public class ParsingUtils {
 	}
 
 
+	/**
+	 * find the root of the possible alternative Trees to given Tree
+	 * @param ctx
+	 * @return
+     */
 	public static Tree findOverriddenDecisionRoot(Tree ctx) {
-		return Trees.findNodeSuchThat(ctx, new Predicate<Tree>() {
+		Tree result=Trees.findNodeSuchThat(ctx, new Predicate<Tree>() {
 			@Override
 			public boolean test(Tree t) {
 				return t instanceof PreviewInterpreterRuleContext ?
@@ -570,6 +575,7 @@ public class ParsingUtils {
 					false;
 			}
 		});
+		return result;
 	}
 
 	public static List<Tree> getAllLeaves(Tree t,
