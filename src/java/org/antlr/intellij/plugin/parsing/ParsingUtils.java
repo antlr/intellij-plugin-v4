@@ -49,6 +49,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Utilities for parsing
+ */
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
 	public static LexerGrammar BAD_LEXER_GRAMMAR;
@@ -570,9 +573,10 @@ public class ParsingUtils {
 		Tree result=Trees.findNodeSuchThat(ctx, new Predicate<Tree>() {
 			@Override
 			public boolean test(Tree t) {
-				return t instanceof PreviewInterpreterRuleContext ?
-					((PreviewInterpreterRuleContext) t).isDecisionOverrideRoot() :
-					false;
+				boolean match=t instanceof PreviewInterpreterRuleContext ?
+						((PreviewInterpreterRuleContext) t).isDecisionOverrideRoot() :
+						false;
+				return match;
 			}
 		});
 		return result;
