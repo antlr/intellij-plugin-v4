@@ -247,8 +247,11 @@ public class ShowAmbigTreesDialog extends JDialog {
             // create a panel to put all the trees on
             JBPanel panelOfTrees = new JBPanel();
             // get the chosen Tree
-            PreviewInterpreterRuleContext chosenTree =
-                    (PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
+            PreviewInterpreterRuleContext chosenTree=null;
+            if (highlightTreeIndex<numTrees) {
+                chosenTree =
+                        (PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
+            }
             panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
             // loop over all the ambigious trees
             for (int i = 0; i < numTrees; i++) {
@@ -273,7 +276,7 @@ public class ShowAmbigTreesDialog extends JDialog {
                 treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
                     add(root);
                 }});
-                if (ctx != chosenTree) {
+                if (chosenTree!=null && ctx != chosenTree) {
                     mark(chosenTree, ctx, startIndex, stopIndex);
                 }
                 JBPanel wrapper = new JBPanel(new BorderLayout());
