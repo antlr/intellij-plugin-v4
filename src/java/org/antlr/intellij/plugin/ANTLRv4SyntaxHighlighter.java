@@ -23,7 +23,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	static{
 		Color darkRule = DefaultLanguageHighlighterColors.FUNCTION_CALL.getDefaultAttributes().getForegroundColor();
 		Color darkToken = DefaultLanguageHighlighterColors.INSTANCE_FIELD.getDefaultAttributes().getForegroundColor();
-		Color blue = new Color(102, 100, 191);
+		Color blue = new Color(71, 71, 142);
 		Color magenta = new Color(130, 72, 146);
 		RULE_ATTRIBUTES.getDefaultAttributes().setForegroundColor( new JBColor(blue,darkRule) );
 		TOKEN_ATTRIBUTES.getDefaultAttributes().setForegroundColor( new JBColor(magenta, darkToken) );
