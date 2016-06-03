@@ -3,10 +3,10 @@ package org.antlr.intellij.plugin;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
-import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
@@ -16,11 +16,17 @@ import java.awt.*;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
-	public static final TextAttributesKey RULE_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES;
-	public static final TextAttributesKey TOKEN_ATTRIBUTES = CodeInsightColors.INSTANCE_FIELD_ATTRIBUTES;
+	public static final TextAttributesKey RULE_ATTRIBUTES =
+		createTextAttributesKey("ANTLR_RULE", DefaultLanguageHighlighterColors.FUNCTION_CALL);
+	public static final TextAttributesKey TOKEN_ATTRIBUTES =
+		createTextAttributesKey("ANTLR_TOKEN", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
 	static{
-		RULE_ATTRIBUTES.getDefaultAttributes().setForegroundColor(new Color(102,100,191));
-		TOKEN_ATTRIBUTES.getDefaultAttributes().setForegroundColor(new Color(130,72,146));
+		Color darkRule = DefaultLanguageHighlighterColors.FUNCTION_CALL.getDefaultAttributes().getForegroundColor();
+		Color darkToken = DefaultLanguageHighlighterColors.INSTANCE_FIELD.getDefaultAttributes().getForegroundColor();
+		Color blue = new Color(102, 100, 191);
+		Color magenta = new Color(130, 72, 146);
+		RULE_ATTRIBUTES.getDefaultAttributes().setForegroundColor( new JBColor(blue,darkRule) );
+		TOKEN_ATTRIBUTES.getDefaultAttributes().setForegroundColor( new JBColor(magenta, darkToken) );
 	}
 
 	public static final TextAttributesKey KEYWORD = createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
