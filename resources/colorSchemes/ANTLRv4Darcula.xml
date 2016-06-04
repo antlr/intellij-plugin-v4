@@ -3,13 +3,11 @@
 	<option name="ANTLRv4_RULENAME">
 		<value>
 			<option name="FOREGROUND" value="FFC66D"/>
-			<option name="FONT_TYPE" value="1"/>
 		</value>
 	</option>
 	<option name="ANTLRv4_TOKENNAME">
 		<value>
 			<option name="FOREGROUND" value="9876AA"/>
-			<option name="FONT_TYPE" value="1"/>
 		</value>
 	</option>
 </list>
