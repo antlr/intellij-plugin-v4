@@ -103,7 +103,7 @@ public class ExtractRuleAction extends AnAction {
 		final String ruleText = selectionModel.getSelectedText();
 
 		final int insertionPoint = RefactorUtils.getCharIndexOfNextRuleStart(tree, start.getTokenIndex());
-		final String newRule = nameChooser.ruleName + " : " + ruleText + " ;" + "\n\n";
+		final String newRule = "\n"+nameChooser.ruleName + " : " + ruleText + " ;" + "\n";
 
 		final Token start_ = start;
 		final Token stop_ = stop;
@@ -111,7 +111,12 @@ public class ExtractRuleAction extends AnAction {
 			@Override
 			protected void run(final Result result) throws Throwable {
 				// do all as one operation.
-				doc.insertString(insertionPoint, newRule);
+				if ( insertionPoint>=doc.getTextLength() ) {
+					doc.insertString(doc.getTextLength(), newRule);
+				}
+				else {
+					doc.insertString(insertionPoint, newRule);
+				}
 				doc.replaceString(start_.getStartIndex(), stop_.getStopIndex()+1, nameChooser.ruleName);
 			}
 		};

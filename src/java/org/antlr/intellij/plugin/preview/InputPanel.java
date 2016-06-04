@@ -142,7 +142,9 @@ public class InputPanel {
 					// to avoid compile error on super.onFileCho[o]sen
 					TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
 					                                                    chosenFileToResultingText(chosenFile));
-					previewState.inputFileName = chosenFile.getPath();
+					if ( previewState!=null ) {
+						previewState.inputFileName = chosenFile.getPath();
+					}
 					selectFileEvent();
 				}
 			};
@@ -230,6 +232,10 @@ public class InputPanel {
 	public void selectFileEvent() {
 		fileRadioButton.setSelected(true);
 
+		if ( previewState==null ) {
+			return;
+		}
+
 		String inputFileName = fileChooser.getText();
 		char[] inputText = new char[0];
 		if ( inputFileName.trim().length()>0 ) {
@@ -247,10 +253,6 @@ public class InputPanel {
 		}
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-//		PreviewState previewState = controller.getPreviewState();
-//		if (previewState == null) {
-//			return;
-//		}
 
 		// wipe old and make new one
 		releaseEditor(previewState);
