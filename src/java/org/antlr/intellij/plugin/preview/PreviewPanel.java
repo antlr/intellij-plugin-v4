@@ -170,7 +170,10 @@ public class PreviewPanel extends JPanel {
 	public void ensureStartRuleExists(VirtualFile grammarFile) {
 		PreviewState previewState = ANTLRv4PluginController.getInstance(project).getPreviewState(grammarFile);
 		// if start rule no longer exists, reset display/state.
-		if ( previewState.g!=ParsingUtils.BAD_PARSER_GRAMMAR && previewState.startRuleName!=null ) {
+		if ( previewState.g!=null &&
+			 previewState.g!=ParsingUtils.BAD_PARSER_GRAMMAR &&
+			 previewState.startRuleName!=null )
+		{
 			Rule rule = previewState.g.getRule(previewState.startRuleName);
 			if ( rule==null ) {
 				previewState.startRuleName = null;
