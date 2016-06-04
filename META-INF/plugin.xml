@@ -142,7 +142,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
       <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <lang.commenter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4Commenter" />
       <colorSettingsPage implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4ColorsPage"/>
-      <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
+	  <additionalTextAttributes scheme="Default" file="colorSchemes/ANTLRv4Default.xml"/>
+	  <additionalTextAttributes scheme="Darcula" file="colorSchemes/ANTLRv4Darcula.xml"/>
+	  <lang.parserDefinition language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ParserDefinition"/>
       <lang.ast.factory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ASTFactory"/>
       <lang.psiStructureViewFactory language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
