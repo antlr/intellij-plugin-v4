@@ -125,11 +125,11 @@ public class MyActionUtils {
 		}
 
 		// find root of rule def
-		if ( selectedPsiNode.getClass()!=ruleSpecNodeClass ) {
+		if ( !selectedPsiNode.getClass().equals(ruleSpecNodeClass) ) {
 			selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, new Condition<PsiElement>() {
 				@Override
 				public boolean value(PsiElement psiElement) {
-					return psiElement.getClass()==ruleSpecNodeClass;
+					return psiElement.getClass().equals(ruleSpecNodeClass);
 				}
 			});
 			if ( selectedPsiNode==null ) { // not in rule I guess.
@@ -158,7 +158,11 @@ public class MyActionUtils {
 		}
 
 		//		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
-		PsiElement el = file.findElementAt(editor.getCaretModel().getOffset());
+		Point mousePosition = editor.getContentComponent().getMousePosition();
+		LogicalPosition pos=editor.xyToLogicalPosition(mousePosition);
+		int offset = editor.logicalPositionToOffset(pos);
+
+		PsiElement el = file.findElementAt(offset);
 		//		System.out.println("sel el: "+selectedPsiRuleNode);
 		return el;
 	}
