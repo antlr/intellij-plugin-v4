@@ -57,6 +57,9 @@ public class ShowAmbigTreesDialog extends JDialog {
 	public TreeViewer[] treeViewers;
 	public PreviewState previewState;
 
+    /**
+     * constructor
+     */
 	public ShowAmbigTreesDialog() {
 		$$$setupUI$$$();
 		setContentPane(contentPane);
@@ -79,6 +82,12 @@ public class ShowAmbigTreesDialog extends JDialog {
 			});
 	}
 
+    /**
+     * create the popup dialog
+     * @param previewState
+     * @param ambigInfo
+     * @return
+     */
 	public static JBPopup createAmbigTreesPopup(final PreviewState previewState,
 	                                            final AmbiguityInfo ambigInfo) {
 		final JBList list = new JBList("Show all phrase interpretations");
@@ -97,6 +106,11 @@ public class ShowAmbigTreesDialog extends JDialog {
 		return popup;
 	}
 
+    /**
+     *  show a popup dialog with the ambigious parse trees
+     * @param previewState
+     * @param ambigInfo
+     */
 	public static void popupAmbigTreesDialog(PreviewState previewState, AmbiguityInfo ambigInfo) {
 		// pop up subtrees for ambig intrepretation
 		ShowAmbigTreesDialog dialog = new ShowAmbigTreesDialog();
@@ -132,6 +146,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 				phrase;
 			int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
 			dialog.ambigPhraseLabel.setText(title);
+            // plant the trees in the dialog
 			dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt-1,
 			                ambigInfo.startIndex, ambigInfo.stopIndex, true);
 		}
