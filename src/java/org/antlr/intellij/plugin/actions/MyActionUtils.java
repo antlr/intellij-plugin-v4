@@ -158,9 +158,15 @@ public class MyActionUtils {
 		}
 
 		//		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
+		int offset;
 		Point mousePosition = editor.getContentComponent().getMousePosition();
-		LogicalPosition pos=editor.xyToLogicalPosition(mousePosition);
-		int offset = editor.logicalPositionToOffset(pos);
+		if ( mousePosition!=null ) {
+			LogicalPosition pos = editor.xyToLogicalPosition(mousePosition);
+			offset = editor.logicalPositionToOffset(pos);
+		}
+		else {
+			offset = editor.getCaretModel().getOffset();
+		}
 
 		PsiElement el = file.findElementAt(offset);
 		//		System.out.println("sel el: "+selectedPsiRuleNode);
