@@ -101,25 +101,32 @@ public class MyActionUtils {
 	}
 
 	public static ParserRuleRefNode getParserRuleSurroundingRef(AnActionEvent e) {
-		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(e, ParserRuleSpecNode.class);
+		PsiElement selectedPsiNode = getSelectedPsiElement(e);
+		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(selectedPsiNode, ParserRuleSpecNode.class);
+		if ( ruleSpecNode==null ) return null;
+		// find the name of rule under ParserRuleSpecNode
+		return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
+	}
+
+	public static ParserRuleRefNode getParserRuleSurroundingRef(PsiElement element) {
+		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(element, ParserRuleSpecNode.class);
 		if ( ruleSpecNode==null ) return null;
 		// find the name of rule under ParserRuleSpecNode
 		return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
 	}
 
 	public static LexerRuleRefNode getLexerRuleSurroundingRef(AnActionEvent e) {
-		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(e, LexerRuleSpecNode.class);
+		PsiElement selectedPsiNode = getSelectedPsiElement(e);
+		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(selectedPsiNode, LexerRuleSpecNode.class);
 		if ( ruleSpecNode==null ) return null;
 		// find the name of rule under ParserRuleSpecNode
 		return PsiTreeUtil.findChildOfType(ruleSpecNode, LexerRuleRefNode.class);
 	}
 
-	public static RuleSpecNode getRuleSurroundingRef(AnActionEvent e,
+	public static RuleSpecNode getRuleSurroundingRef(PsiElement selectedPsiNode,
 	                                                 final Class<? extends RuleSpecNode> ruleSpecNodeClass)
 	{
-		PsiElement selectedPsiNode = getSelectedPsiElement(e);
 //		System.out.println("selectedPsiNode: "+selectedPsiNode);
-
 		if ( selectedPsiNode==null ) { // didn't select a node in parse tree
 			return null;
 		}
@@ -142,6 +149,7 @@ public class MyActionUtils {
 
 	public static PsiElement getSelectedPsiElement(AnActionEvent e) {
 		Editor editor = e.getData(PlatformDataKeys.EDITOR);
+
 		if ( editor==null ) { // not in editor
 			PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
 			// in nav bar?
@@ -157,19 +165,8 @@ public class MyActionUtils {
 			return null;
 		}
 
-		//		System.out.println("caret offset = "+editor.getCaretModel().getOffset());
-		int offset;
-		Point mousePosition = editor.getContentComponent().getMousePosition();
-		if ( mousePosition!=null ) {
-			LogicalPosition pos = editor.xyToLogicalPosition(mousePosition);
-			offset = editor.logicalPositionToOffset(pos);
-		}
-		else {
-			offset = editor.getCaretModel().getOffset();
-		}
-
+		int offset = editor.getCaretModel().getOffset();
 		PsiElement el = file.findElementAt(offset);
-		//		System.out.println("sel el: "+selectedPsiRuleNode);
 		return el;
 	}
 
