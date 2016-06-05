@@ -175,6 +175,9 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 	public void processIssue(final PsiFile file, Issue issue) {
 		File grammarFile = new File(file.getVirtualFile().getPath());
+		if ( issue.msg.fileName==null ) { // weird, issue doesn't have a file associated with it
+			return;
+		}
 		File issueFile = new File(issue.msg.fileName);
 		if ( !grammarFile.getName().equals(issueFile.getName()) ) {
 			return; // ignore errors from external files

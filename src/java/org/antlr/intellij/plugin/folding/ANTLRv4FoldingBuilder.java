@@ -8,7 +8,6 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.UnfairTextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.TokenType;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
@@ -76,19 +75,19 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         addOptionsFoldingDescriptor(descriptors, root);
 
         addTokensFoldingDescriptor(descriptors, root);
-
-
     }
 
     private static void addTokensFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root) {
         PsiElement tokensSpec = MyPsiUtils.findFirstChildOfType(root, TOKENSSPEC);
         if (tokensSpec != null) {
             PsiElement tokens = tokensSpec.getFirstChild();
-            assert tokens.getNode().getElementType() == TOKENS;
-            PsiElement rbrace = tokensSpec.getLastChild();
-            assert rbrace.getNode().getElementType() == RBRACE;
-            descriptors.add(new FoldingDescriptor(tokensSpec,
-                    new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+            if ( tokens.getNode().getElementType() == TOKENS ) {
+                PsiElement rbrace = tokensSpec.getLastChild();
+                if ( rbrace.getNode().getElementType()==RBRACE ) {
+                    descriptors.add(new FoldingDescriptor(tokensSpec,
+                                                          new TextRange(tokens.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                }
+            }
         }
     }
 
@@ -96,11 +95,13 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         PsiElement optionsSpec = MyPsiUtils.findFirstChildOfType(root, OPTIONSSPEC);
         if (optionsSpec != null) {
             PsiElement options = optionsSpec.getFirstChild();
-            assert options.getNode().getElementType() == OPTIONS;
-            PsiElement rbrace = optionsSpec.getLastChild();
-            assert rbrace.getNode().getElementType() == RBRACE;
-            descriptors.add(new FoldingDescriptor(optionsSpec,
-                    new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+            if ( options.getNode().getElementType() == OPTIONS ) {
+                PsiElement rbrace = optionsSpec.getLastChild();
+                if ( rbrace.getNode().getElementType()==RBRACE ) {
+                    descriptors.add(new FoldingDescriptor(optionsSpec,
+                                                          new TextRange(options.getTextRange().getEndOffset(), rbrace.getTextRange().getEndOffset())));
+                }
+            }
         }
     }
 
