@@ -377,7 +377,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				// s has a lexer with same filename, see if there is a parser grammar
 				// (not a combined grammar)
 				if ( s.g!=null && s.g.getType()==ANTLRParser.PARSER ) {
-					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
+//					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
 					return s;
 				}
 			}
