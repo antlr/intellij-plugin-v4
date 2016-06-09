@@ -296,11 +296,11 @@ mode ArgAction; // E.g., [int x, List<String> a[]]
 		;
 
     ARG_ACTION_STRING_LITERAL
-        :	('"' ('\\' . | ~["\\])* '"')-> more
+        :	'"' ('\\' . | ~["\\])* '"'  -> more
         ;
 
     ARG_ACTION_CHAR_LITERAL
-        :	('"' '\\' . | ~["\\] '"')   -> more
+        :	'\'' ('\\' . | ~['\\]) '\'' -> more
         ;
 
     ARG_ACTION
