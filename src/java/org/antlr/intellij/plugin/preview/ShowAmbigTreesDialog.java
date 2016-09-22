@@ -130,9 +130,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 			String title = ambiguousParseTrees.size()+
 				" Interpretations of Ambiguous Input Phrase: "+
 				phrase;
-			int predictedAlt = ambigInfo.ambigAlts.nextSetBit(0);
 			dialog.ambigPhraseLabel.setText(title);
-			dialog.setTrees(previewState, ambiguousParseTrees, title, predictedAlt-1,
+			dialog.setTrees(previewState, ambiguousParseTrees, title, 0,
 			                ambigInfo.startIndex, ambigInfo.stopIndex, true);
 		}
 
