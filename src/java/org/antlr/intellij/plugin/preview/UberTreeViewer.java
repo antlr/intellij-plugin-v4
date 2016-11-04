@@ -40,4 +40,8 @@ public class UberTreeViewer extends TreeViewer {
 		setTextColor(textColor);
 		super.setTree(root);
 	}
+
+	public boolean hasTree() {
+		return treeLayout!=null;
+	}
 }

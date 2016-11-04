@@ -15,7 +15,6 @@ import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
-import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
@@ -124,7 +123,7 @@ public class PreviewPanel extends JPanel {
 	}
 
 	@NotNull
-	public static JSlider createTreeViewSlider(final TreeViewer viewer) {
+	public static JSlider createTreeViewSlider(final UberTreeViewer viewer) {
 		JSlider scaleSlider;
 		if ( isTrackpadZoomSupported ) {
 			scaleSlider = new JSlider();
@@ -138,7 +137,9 @@ public class PreviewPanel extends JPanel {
 					@Override
 					public void stateChanged(ChangeEvent e) {
 						int v = ((JSlider) e.getSource()).getValue();
-						viewer.setScale(v / 1000.0 + 1.0);
+						if ( viewer.hasTree() ) {
+							viewer.setScale(v/1000.0+1.0);
+						}
 					}
 				});
 		}
