@@ -206,8 +206,10 @@ public class InputPanel {
 //		}
 
 		// wipe old and make new one
-		releaseEditor(previewState);
-		createManualInputPreviewEditor(previewState);
+		if ( previewState!=null ) {
+			releaseEditor(previewState);
+			createManualInputPreviewEditor(previewState);
+		}
 		previewPanel.clearParseTree();
 		clearErrorConsole();
 	}
