@@ -46,7 +46,12 @@ public class AltLabelTextProvider implements TreeTextProvider {
 			String[] altLabels = getAltLabels(r);
 			String name = r.name;
 			if ( altLabels!=null ) {
-				return name +":"+altLabels[inode.getOuterAltNum()];
+				int index = inode.getOuterAltNum();
+				if (index < altLabels.length) {
+					return name + ":" + altLabels[index];
+				} else {
+					return name;
+				}
 			}
 			else if ( r.getOriginalNumberOfAlts()>1 ) {
 				return name + ":" + inode.getOuterAltNum();
