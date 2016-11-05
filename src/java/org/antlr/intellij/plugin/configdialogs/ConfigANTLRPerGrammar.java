@@ -54,8 +54,14 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	}
 
 	public static String getOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
-		String outputDirName = contentRoot.getPath()+File.separator+RunANTLROnGrammarFile.OUTPUT_DIR_NAME;
-		outputDirName = getProp(project, qualFileName, PROP_OUTPUT_DIR, outputDirName);
+		String outputDirName = getProp(project, qualFileName,
+		                               PROP_OUTPUT_DIR,
+		                               RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
+		File f = new File(outputDirName);
+		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
+			outputDirName = contentRoot.getPath()+File.separator+outputDirName;
+		}
+		// add package if any
 		if ( package_!=RunANTLROnGrammarFile.MISSING ) {
 			outputDirName += File.separator+package_.replace('.', File.separatorChar);
 		}
