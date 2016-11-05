@@ -45,11 +45,17 @@ public class AltLabelTextProvider implements TreeTextProvider {
 			Rule r = g.getRule(inode.getRuleIndex());
 			String[] altLabels = getAltLabels(r);
 			String name = r.name;
+			int outerAltNum = inode.getOuterAltNum();
 			if ( altLabels!=null ) {
-				return name +":"+altLabels[inode.getOuterAltNum()];
+				if ( outerAltNum>=0 && outerAltNum<altLabels.length ) {
+					return name+":"+altLabels[outerAltNum];
+				}
+				else {
+					return name;
+				}
 			}
 			else if ( r.getOriginalNumberOfAlts()>1 ) {
-				return name + ":" + inode.getOuterAltNum();
+				return name + ":" +outerAltNum;
 			}
 			else {
 				return name; // don't display an alternative number if there's only one
