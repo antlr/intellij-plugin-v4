@@ -72,7 +72,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
       ]]></description>
 
   <change-notes><![CDATA[
-	Bug fixes.
+	Bug fixes with a small improvement to ANTLR config for generation dialog.
       ]]>
   </change-notes>
 
