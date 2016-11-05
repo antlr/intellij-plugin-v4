@@ -203,7 +203,14 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String outputDirName = ConfigANTLRPerGrammar.getOutputDirName(project, qualFileName, contentRoot, package_);
 		args.put("-o", outputDirName);
 
-		String libDir = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_LIB_DIR, sourcePath);
+		String libDir = ConfigANTLRPerGrammar.getProp(project,
+		                                              qualFileName,
+		                                              ConfigANTLRPerGrammar.PROP_LIB_DIR,
+		                                              sourcePath);
+		File f = new File(libDir);
+		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
+			libDir = contentRoot.getPath()+File.separator+libDir;
+		}
 		args.put("-lib", libDir);
 
 		String encoding = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_ENCODING, MISSING);

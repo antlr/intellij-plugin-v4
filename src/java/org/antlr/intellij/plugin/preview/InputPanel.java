@@ -869,45 +869,31 @@ public class InputPanel {
 	 * @noinspection ALL
 	 */
 	private void $$$setupUI$$$() {
-		outerMostPanel = new JPanel();
-		outerMostPanel.setLayout(new BorderLayout(0, 0));
-		outerMostPanel.setMinimumSize(new Dimension(100, 70));
-		outerMostPanel.setPreferredSize(new Dimension(200, 100));
-		startRuleAndInputPanel = new JPanel();
-		startRuleAndInputPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
-		startRuleAndInputPanel.setMinimumSize(new Dimension(233, 60));
+		outerMostPanel = new javax.swing.JPanel();
+		outerMostPanel.setLayout(new java.awt.BorderLayout(0, 0));
+		startRuleAndInputPanel = new javax.swing.JPanel();
+		startRuleAndInputPanel.setLayout(new java.awt.FlowLayout(FlowLayout.CENTER, 5, 0));
 		outerMostPanel.add(startRuleAndInputPanel, BorderLayout.NORTH);
-		startRuleAndInputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), null));
-		startRuleLabel = new JLabel();
-		startRuleLabel.setText("Label");
+		startRuleAndInputPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), null));
+		startRuleLabel = new javax.swing.JLabel();
 		startRuleAndInputPanel.add(startRuleLabel);
-		radioButtonPanel = new JPanel();
-		radioButtonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		radioButtonPanel = new javax.swing.JPanel();
+		radioButtonPanel.setLayout(new java.awt.FlowLayout(FlowLayout.CENTER, 5, 5));
 		startRuleAndInputPanel.add(radioButtonPanel);
-		inputRadioButton = new JRadioButton();
-		inputRadioButton.setSelected(true);
-		inputRadioButton.setText("Input");
+		inputRadioButton = new javax.swing.JRadioButton();
 		radioButtonPanel.add(inputRadioButton);
-		fileRadioButton = new JRadioButton();
-		fileRadioButton.setText("File");
+		fileRadioButton = new javax.swing.JRadioButton();
 		radioButtonPanel.add(fileRadioButton);
-		fileChooser = new TextFieldWithBrowseButton();
+		fileChooser = new com.intellij.openapi.ui.TextFieldWithBrowseButton();
 		radioButtonPanel.add(fileChooser);
-		placeHolder = new JTextArea();
-		placeHolder.setBackground(Color.lightGray);
-		placeHolder.setEditable(false);
-		placeHolder.setEnabled(true);
-		placeHolder.setText("");
+		placeHolder = new javax.swing.JTextArea();
 		outerMostPanel.add(placeHolder, BorderLayout.WEST);
-		final JScrollPane scrollPane1 = new JScrollPane();
+		final javax.swing.JScrollPane scrollPane1 = new javax.swing.JScrollPane();
 		outerMostPanel.add(scrollPane1, BorderLayout.SOUTH);
-		errorConsole = new JTextArea();
-		errorConsole.setEditable(false);
-		errorConsole.setLineWrap(true);
-		errorConsole.setRows(3);
+		errorConsole = new javax.swing.JTextArea();
 		scrollPane1.setViewportView(errorConsole);
-		ButtonGroup buttonGroup;
-		buttonGroup = new ButtonGroup();
+		javax.swing.ButtonGroup buttonGroup;
+		buttonGroup = new javax.swing.ButtonGroup();
 		buttonGroup.add(fileRadioButton);
 		buttonGroup.add(inputRadioButton);
 	}
@@ -915,7 +901,7 @@ public class InputPanel {
 	/**
 	 * @noinspection ALL
 	 */
-	public JComponent $$$getRootComponent$$$() {
+	public javax.swing.JComponent $$$getRootComponent$$$() {
 		return outerMostPanel;
 	}
 }
