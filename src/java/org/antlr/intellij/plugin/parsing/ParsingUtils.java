@@ -8,9 +8,11 @@ import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
+import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -35,6 +37,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
+import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
@@ -321,96 +324,6 @@ public class ParsingUtils {
 		return null;
 	}
 
-	/*
-	public static ATNConfigSet getReachableParsePositions(Grammar g,
-														  LexerGrammar lg,
-														  String startRuleName,
-														  String inputText)
-	{
-		ParsingResult parsingResult;
-		try {
-			parsingResult = parseText(g, lg, startRuleName, null, inputText);
-		}
-		catch (IOException ioe) {
-			ANTLRv4PluginController.LOG.info("getReachableParsePositions can't parse: "+ioe.getMessage());
-			return null;
-		}
-		SyntaxErrorListener errs = parsingResult.syntaxErrorListener;
-		System.out.println("errors="+errs);
-		// presumption is that we'll get either InputMismatch or NoViableAlt since we're clipping input
-		int nerrors = errs.getSyntaxErrors().size();
-		if ( nerrors>0 ) {
-			SyntaxError lastError = errs.getSyntaxErrors().get(nerrors - 1);
-			SyntaxError error = lastError;
-			RecognitionException e = lastError.getException();
-			if ( e instanceof InputMismatchException ) { //  && ((NoViableAltException)e).getStartToken().getType()==Token.EOF ) {
-				error = errs.getSyntaxErrors().get(nerrors - 2); // skip this one
-				e = error.getException();
-			}
-			// it will always be NoViableAltException because we are asking it to
-			// parse (until last token) within a lookahead decision.
-			ATNConfigSet deadEndConfigs = ((NoViableAltException) e).getDeadEndConfigs();
-			deadEndConfigs.getAlts();
-			System.out.println("noviable "+deadEndConfigs);
-			return deadEndConfigs;
-		}
-
-		return null;
-
-//		try {
-//			// Create a new parser interpreter to parse the ambiguous subphrase
-//			ParserInterpreter parser;
-//			if (originalParser instanceof ParserInterpreter) {
-//				parser = ((ParserInterpreter) originalParser).copyFrom((ParserInterpreter) originalParser);
-//			}
-//			else {
-//				char[] serializedAtn = ATNSerializer.getSerializedAsChars(originalParser.getATN());
-//				ATN deserialized = new ATNDeserializer().deserialize(serializedAtn);
-//				parser = new ParserInterpreter(originalParser.getGrammarFileName(),
-//											   originalParser.getVocabulary(),
-//											   Arrays.asList(originalParser.getRuleNames()),
-//											   deserialized,
-//											   tokens);
-//			}
-//
-//			// Make sure that we don't get any error messages from using this temporary parser
-//			parser.removeErrorListeners();
-//			parser.removeParseListeners();
-//			SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
-//			parser.addErrorListener(syntaxErrorListener);
-//			parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
-//
-//			ParserRuleContext t = parser.parse(startRuleIndex);
-//			System.out.println(t.toStringTree(parser));
-//
-//			System.out.println("errors="+syntaxErrorListener);
-//			// presumption is that we'll get either InputMismatch or NoViableAlt since we're clipping input
-//			int nerrors = syntaxErrorListener.getSyntaxErrors().size();
-//			if ( nerrors>0 ) {
-//				SyntaxError lastError = syntaxErrorListener.getSyntaxErrors().get(nerrors - 1);
-//				SyntaxError error = lastError;
-//				RecognitionException e = lastError.getException();
-//				if ( e instanceof InputMismatchException ) { //  && ((NoViableAltException)e).getStartToken().getType()==Token.EOF ) {
-//					error = syntaxErrorListener.getSyntaxErrors().get(nerrors - 2); // skip this one
-//					e = error.getException();
-//				}
-//				// it will always be NoViableAltException because we are asking it to
-//				// parse (until last token) within a lookahead decision.
-//				ATNConfigSet deadEndConfigs = ((NoViableAltException) e).getDeadEndConfigs();
-//				deadEndConfigs.getAlts();
-//				System.out.println("noviable "+deadEndConfigs);
-//				return deadEndConfigs;
-//			}
-//		}
-//		finally {
-//			tokens.undoClip();
-//			tokens.seek(saveTokenInputPosition);
-//		}
-//
-//		return null;
-	}
-	*/
-
 	public static Tool createANTLRToolForLoadingGrammars() {
 		Tool antlr = new Tool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
@@ -430,7 +343,7 @@ public class ParsingUtils {
 		// basically here I am mimicking the loadGrammar() method from Tool
 		// so that I can check for an empty AST coming back.
 		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
-		GrammarRootAST grammarRootAST = antlr.parseGrammar(grammarFileName);
+		GrammarRootAST grammarRootAST = parseGrammar(project, antlr, grammarFileName);
 		if ( grammarRootAST==null ) {
 			File f = new File(grammarFileName);
 			String msg = "Empty or bad grammar in file "+f.getName();
@@ -479,6 +392,21 @@ public class ParsingUtils {
 				return new Grammar[] {lg, g};
 		}
 		ANTLRv4PluginController.LOG.info("loadGrammars invalid grammar type "+g.getTypeString()+" for "+g.name);
+		return null;
+	}
+
+	public static GrammarRootAST parseGrammar(Project project, Tool antlr, String grammarFileName) {
+		try {
+			String encoding = ConfigANTLRPerGrammar.getProp(project, grammarFileName, ConfigANTLRPerGrammar.PROP_ENCODING, "UTF-8");
+			char[] grammarText = Utils.readFile(grammarFileName, encoding);
+			String grammarTextS = new String(grammarText).replaceAll("\\r", "");
+			ANTLRStringStream in = new ANTLRStringStream(grammarTextS);
+			GrammarRootAST t = antlr.parse(grammarFileName, in);
+			return t;
+		}
+		catch (IOException ioe) {
+			antlr.errMgr.toolError(ErrorType.CANNOT_OPEN_FILE, ioe, grammarFileName);
+		}
 		return null;
 	}
 
@@ -548,18 +476,17 @@ public class ParsingUtils {
 	}
 
 	/** Same as loadGrammar(fileName) except import vocab from existing lexer */
-	public static Grammar loadGrammar(Tool tool, String fileName, LexerGrammar lexerGrammar) {
-		GrammarRootAST grammarRootAST = tool.parseGrammar(fileName);
-		if ( grammarRootAST==null ) return null;
-		final Grammar g = tool.createGrammar(grammarRootAST);
-		g.fileName = fileName;
-		if ( lexerGrammar!=null ) {
-            g.importVocab(lexerGrammar);
-        }
-		tool.process(g, false);
-		return g;
-	}
-
+//	public static Grammar loadGrammar(Tool tool, String fileName, LexerGrammar lexerGrammar) {
+//		GrammarRootAST grammarRootAST = parseGrammar(fileName);
+//		if ( grammarRootAST==null ) return null;
+//		final Grammar g = tool.createGrammar(grammarRootAST);
+//		g.fileName = fileName;
+//		if ( lexerGrammar!=null ) {
+//            g.importVocab(lexerGrammar);
+//        }
+//		tool.process(g, false);
+//		return g;
+//	}
 
 	public static Tree findOverriddenDecisionRoot(Tree ctx) {
 		return Trees.findNodeSuchThat(ctx, new Predicate<Tree>() {
