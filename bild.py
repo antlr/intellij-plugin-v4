@@ -19,20 +19,20 @@ from bilder import *
 def latest_antlr4():
     mkdir("lib")
     # grab the lib that the plugin needs
-    jarname = "antlr-4.5-complete.jar"
+    jarname = "antlr-4.6-complete.jar"
     download("http://www.antlr.org/download/" + jarname, "lib")
 
 
 def latest_antlr4_sources():
-    download("https://github.com/antlr/antlr4/archive/4.5.1.zip", "lib")
+    download("https://github.com/antlr/antlr4/archive/4.6.zip", "lib")
     mkdir("lib/src")
-    unjar("lib/4.5.1.zip", "lib/src")
-    rmfile("lib/4.5.1.zip")
+    unjar("lib/4.6.zip", "lib/src")
+    rmfile("lib/4.6.zip")
 
 
 def parsers():
     require(latest_antlr4)
-    antlr4("src/grammars", "gen", version="4.5.1",
+    antlr4("src/grammars", "gen", version="4.6",
            package="org.antlr.intellij.plugin.parser")
 
 

@@ -24,7 +24,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.5.3-complete.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/antlr-4.6-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
