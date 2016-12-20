@@ -1,13 +1,13 @@
 <idea-plugin version="2">
   <id>org.antlr.intellij.plugin</id>
   <name>ANTLR v4 grammar plugin</name>
-  <version>1.8.2</version>
+  <version>1.8.3</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.5.3. It works with
-                Intellij 13.x-15, 2016.1-2016.2.  It should work in other Jetbrains IDEs.
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.6. It works with
+                Intellij 13.x-15, 2016.1-2016.3.  It should work in other Jetbrains IDEs.
                 I have tested in PyCharm 4.5 and CLion 1.2.
      </p>
 
@@ -72,7 +72,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
       ]]></description>
 
   <change-notes><![CDATA[
-	Bug fixes with a small improvement to ANTLR config for generation dialog.
+	Bug fix and include antlr 4.6 (from 4.5.3)
       ]]>
   </change-notes>
 
