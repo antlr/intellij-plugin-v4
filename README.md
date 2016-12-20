@@ -1,10 +1,10 @@
 # IntelliJ Idea Plugin for ANTLR v4
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
+An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x, ... plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.5.1. Works with Intellij 13.x-15 and other Jetbrains IDEs.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.6. Works with Intellij and other Jetbrains IDEs.
 
 Features:
 
