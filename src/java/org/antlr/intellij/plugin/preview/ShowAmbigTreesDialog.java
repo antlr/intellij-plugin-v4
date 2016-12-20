@@ -18,20 +18,15 @@ import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserInterpreter;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
-import org.antlr.v4.runtime.atn.DecisionState;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
-import org.antlr.v4.runtime.tree.Trees;
-import org.antlr.v4.tool.Grammar;
-import org.antlr.v4.tool.GrammarInterpreterRuleContext;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 
 import javax.swing.*;
@@ -41,10 +36,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
-
-import static org.antlr.v4.tool.GrammarParserInterpreter.deriveTempParserInterpreter;
 
 public class ShowAmbigTreesDialog extends JDialog {
 	public static final int MAX_PHRASE_WIDTH = 25;
@@ -105,14 +97,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 		List<ParserRuleContext> ambiguousParseTrees = null;
 		try {
 			ambiguousParseTrees =
-				getAllPossibleParseTrees(previewState.g,
-				                         parser,
-				                         parser.getTokenStream(),
-				                         ambigInfo.decision,
-				                         ambigInfo.ambigAlts,
-				                         ambigInfo.startIndex,
-				                         ambigInfo.stopIndex,
-				                         startRuleIndex);
+				GrammarParserInterpreter.getAllPossibleParseTrees(previewState.g,
+				                                                  parser,
+				                                                  parser.getTokenStream(),
+				                                                  ambigInfo.decision,
+				                                                  ambigInfo.ambigAlts,
+				                                                  ambigInfo.startIndex,
+				                                                  ambigInfo.stopIndex,
+				                                                  startRuleIndex);
 		} catch (ParseCancellationException pce) {
 			// should be no errors for ambiguities, unless original
 			// input itself has errors. Just display error in this case.
@@ -164,13 +156,13 @@ public class ShowAmbigTreesDialog extends JDialog {
 		ParserInterpreter parser = (ParserInterpreter) previewState.parsingResult.parser;
 		int startRuleIndex = parser.getRuleIndex(previewState.startRuleName);
 		List<ParserRuleContext> lookaheadParseTrees =
-			getLookaheadParseTrees(previewState.g,
-			                       parser,
-			                       parser.getTokenStream(),
-			                       startRuleIndex,
-			                       lookaheadInfo.decision,
-			                       lookaheadInfo.startIndex,
-			                       lookaheadInfo.stopIndex);
+			GrammarParserInterpreter.getLookaheadParseTrees(previewState.g,
+			                                                parser,
+			                                                parser.getTokenStream(),
+			                                                startRuleIndex,
+			                                                lookaheadInfo.decision,
+			                                                lookaheadInfo.startIndex,
+			                                                lookaheadInfo.stopIndex);
 		if ( parser.getNumberOfSyntaxErrors()>0 ) {
 			// should be no errors for ambiguities, unless original
 			// input itself has errors. Just display error in this case.
@@ -194,99 +186,6 @@ public class ShowAmbigTreesDialog extends JDialog {
 		}
 		dialog.pack();
 		dialog.setVisible(true);
-	}
-
-	/**
-	 * A dup with fix for version from antlr GrammarParserInterpreter
-	 */
-	public static List<ParserRuleContext> getLookaheadParseTrees(Grammar g,
-	                                                             ParserInterpreter originalParser,
-	                                                             TokenStream tokens,
-	                                                             int startRuleIndex,
-	                                                             int decision,
-	                                                             int startIndex,
-	                                                             int stopIndex) {
-		List<ParserRuleContext> trees = new ArrayList<ParserRuleContext>();
-		// Create a new parser interpreter to parse the ambiguous subphrase
-		ParserInterpreter parser = deriveTempParserInterpreter(g, originalParser, tokens);
-
-		DecisionState decisionState = originalParser.getATN().decisionToState.get(decision);
-
-		for (int alt = 1; alt<=decisionState.getTransitions().length; alt++) {
-			// re-parse entire input for all ambiguous alternatives
-			// (don't have to do first as it's been parsed, but do again for simplicity
-			//  using this temp parser.)
-			GrammarParserInterpreter.BailButConsumeErrorStrategy errorHandler =
-				new GrammarParserInterpreter.BailButConsumeErrorStrategy();
-			parser.setErrorHandler(errorHandler);
-			parser.reset();
-			parser.addDecisionOverride(decision, startIndex, alt);
-			ParserRuleContext tt = parser.parse(startRuleIndex);
-			int stopTreeAt = stopIndex;
-			if ( errorHandler.firstErrorTokenIndex>=0 ) {
-				stopTreeAt = errorHandler.firstErrorTokenIndex; // cut off rest at first error
-			}
-			Interval overallRange = tt.getSourceInterval();
-			if ( stopTreeAt>overallRange.b ) {
-				// If we try to look beyond range of tree, stopTreeAt must be EOF
-				// for which there is no EOF ref in grammar. That means tree
-				// will not have node for stopTreeAt; limit to overallRange.b
-				stopTreeAt = overallRange.b;
-			}
-			ParserRuleContext subtree =
-				Trees.getRootOfSubtreeEnclosingRegion(tt,
-				                                      startIndex,
-				                                      stopTreeAt);
-			// Use higher of overridden decision tree or tree enclosing all tokens
-			if ( Trees.isAncestorOf(parser.getOverrideDecisionRoot(), subtree) ) {
-				subtree = parser.getOverrideDecisionRoot();
-			}
-			Trees.stripChildrenOutOfRange(subtree, parser.getOverrideDecisionRoot(), startIndex, stopTreeAt);
-			trees.add(subtree);
-		}
-
-		return trees;
-	}
-
-
-	public static List<ParserRuleContext> getAllPossibleParseTrees(Grammar g,
-	                                                               Parser originalParser,
-	                                                               TokenStream tokens,
-	                                                               int decision,
-	                                                               BitSet alts,
-	                                                               int startIndex,
-	                                                               int stopIndex,
-	                                                               int startRuleIndex)
-		throws RecognitionException {
-		List<ParserRuleContext> trees = new ArrayList<ParserRuleContext>();
-		// Create a new parser interpreter to parse the ambiguous subphrase
-		ParserInterpreter parser = deriveTempParserInterpreter(g, originalParser, tokens);
-
-		if ( stopIndex>=(tokens.size()-1) ) { // if we are pointing at EOF token
-			// EOF is not in tree, so must be 1 less than last non-EOF token
-			stopIndex = tokens.size()-2;
-		}
-
-		// get ambig trees
-		int alt = alts.nextSetBit(0);
-		while ( alt>=0 ) {
-			// re-parse entire input for all ambiguous alternatives
-			// (don't have to do first as it's been parsed, but do again for simplicity
-			//  using this temp parser.)
-			parser.reset();
-			parser.addDecisionOverride(decision, startIndex, alt);
-			ParserRuleContext t = parser.parse(startRuleIndex);
-			GrammarInterpreterRuleContext ambigSubTree =
-				(GrammarInterpreterRuleContext) Trees.getRootOfSubtreeEnclosingRegion(t, startIndex, stopIndex);
-			// Use higher of overridden decision tree or tree enclosing all tokens
-			if ( Trees.isAncestorOf(parser.getOverrideDecisionRoot(), ambigSubTree) ) {
-				ambigSubTree = (GrammarInterpreterRuleContext) parser.getOverrideDecisionRoot();
-			}
-			trees.add(ambigSubTree);
-			alt = alts.nextSetBit(alt+1);
-		}
-
-		return trees;
 	}
 
 	public void setScale(double scale) {
