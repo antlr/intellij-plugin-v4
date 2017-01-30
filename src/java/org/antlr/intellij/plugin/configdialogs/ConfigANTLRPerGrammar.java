@@ -11,21 +11,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 public class ConfigANTLRPerGrammar extends DialogWrapper {
-	public static final String PROP_AUTO_GEN = "auto-gen";
-	public static final String PROP_OUTPUT_DIR = "output-dir";
-	public static final String PROP_LIB_DIR = "lib-dir";
-	public static final String PROP_ENCODING = "encoding";
-	public static final String PROP_PACKAGE = "package";
 	public static final String PROP_LANGUAGE = "language";
-	public static final String PROP_GEN_LISTENER = "gen-listener";
-	public static final String PROP_GEN_VISITOR = "gen-visitor";
 	private JPanel dialogContents;
 	private JCheckBox generateParseTreeListenerCheckBox;
 	private JCheckBox generateParseTreeVisitorCheckBox;
@@ -54,9 +50,10 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	}
 
 	public static String getOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
-		String outputDirName = getProp(project, qualFileName,
-		                               PROP_OUTPUT_DIR,
-		                               RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
+		String outputDirName = firstNonNull(
+				getSettings(project, qualFileName).outputDir,
+			    RunANTLROnGrammarFile.OUTPUT_DIR_NAME
+		);
 		File f = new File(outputDirName);
 		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
 			outputDirName = contentRoot.getPath()+File.separator+outputDirName;
@@ -68,16 +65,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return outputDirName;
 	}
 
-	public static String getProp(Project project, String qualFileName, String name, String defaultValue) {
-		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		String v = props.getValue(getPropNameForFile(qualFileName, name));
-		if ( v==null || v.trim().length()==0 ) return defaultValue;
-		return v;
-	}
-
-	public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
-		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		return props.getBoolean(getPropNameForFile(qualFileName, name), defaultValue);
+	@Deprecated
+	private static String getPropNameForFile(String qualFileName, String prop) {
+		return qualFileName+"::/"+prop;
 	}
 
 	public static String getParentDir(VirtualFile vfile) {
@@ -92,85 +82,86 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return vfile.getParent();
 	}
 
-	public void loadValues(Project project, String qualFileName) {
+	public static PerGrammarGenerationSettings getSettings(Project project, String qualFileName) {
+		PerGrammarGenerationSettings settings = ANTLRGenerationSettingsComponent.getInstance(project)
+				.getSettings().findSettingsForFile(qualFileName);
+
+		migrateOldSettingsIfNeeded(project, qualFileName, settings);
+		return settings;
+	}
+
+	@SuppressWarnings("deprecation")
+	private static void migrateOldSettingsIfNeeded(Project project, String qualFileName,
+												   PerGrammarGenerationSettings newSettings) {
+
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		String s;
-		boolean b;
-		b = props.getBoolean(getPropNameForFile(qualFileName, PROP_AUTO_GEN), false);
-		autoGenerateParsersCheckBox.setSelected(b);
 
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR), "");
-		outputDirField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_LIB_DIR), "");
-		libDirField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_ENCODING), "");
-		fileEncodingField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_PACKAGE), "");
-		packageField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_LANGUAGE), "");
-		languageField.setText(s);
+		String v;
 
-		b = props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_LISTENER), true);
-		generateParseTreeListenerCheckBox.setSelected(b);
-		b = props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_VISITOR), false);
-		generateParseTreeVisitorCheckBox.setSelected(b);
+		if ((v = props.getValue(getPropNameForFile(qualFileName, "output-dir"))) != null) {
+			newSettings.outputDir = v;
+		}
+		props.unsetValue(getPropNameForFile(qualFileName, "output-dir"));
+		if ((v = props.getValue(getPropNameForFile(qualFileName, "lib-dir"))) != null) {
+			newSettings.libDir = v;
+		}
+		props.unsetValue(getPropNameForFile(qualFileName, "lib-dir"));
+		if ((v = props.getValue(getPropNameForFile(qualFileName, "encoding"))) != null) {
+			newSettings.encoding = v;
+		}
+		props.unsetValue(getPropNameForFile(qualFileName, "encoding"));
+		if ((v = props.getValue(getPropNameForFile(qualFileName, "package"))) != null) {
+			newSettings.pkg = v;
+		}
+		props.unsetValue(getPropNameForFile(qualFileName, "package"));
+		if ((v = props.getValue(getPropNameForFile(qualFileName, "language"))) != null) {
+			newSettings.language = v;
+		}
+		props.unsetValue(getPropNameForFile(qualFileName, "language"));
+
+		if (props.isValueSet(getPropNameForFile(qualFileName, "auto-gen"))) {
+			newSettings.autoGen = props.getBoolean(getPropNameForFile(qualFileName, "auto-gen"));
+			props.unsetValue(getPropNameForFile(qualFileName, "auto-gen"));
+		}
+		if (props.isValueSet(getPropNameForFile(qualFileName, "gen-listener"))) {
+			newSettings.generateListener = props.getBoolean(getPropNameForFile(qualFileName, "gen-listener"));
+			props.unsetValue(getPropNameForFile(qualFileName, "gen-listener"));
+		}
+		if (props.isValueSet(getPropNameForFile(qualFileName, "gen-visitor"))) {
+			newSettings.generateVisitor = props.getBoolean(getPropNameForFile(qualFileName, "gen-visitor"));
+			props.unsetValue(getPropNameForFile(qualFileName, "gen-visitor"));
+		}
+	}
+
+	private void loadValues(Project project, String qualFileName) {
+		PerGrammarGenerationSettings settings = getSettings(project, qualFileName);
+
+		autoGenerateParsersCheckBox.setSelected(settings.autoGen);
+		outputDirField.setText(settings.outputDir);
+		libDirField.setText(settings.libDir);
+		fileEncodingField.setText(settings.encoding);
+		packageField.setText(settings.pkg);
+		languageField.setText(settings.language);
+		generateParseTreeListenerCheckBox.setSelected(settings.generateListener);
+		generateParseTreeVisitorCheckBox.setSelected(settings.generateVisitor);
+	}
+
+	@Nullable
+	private String trim(@NotNull String val) {
+		return val.trim().equals("") ? null : val;
 	}
 
 	public void saveValues(Project project, String qualFileName) {
-		String v;
-		PropertiesComponent props = PropertiesComponent.getInstance(project);
+		PerGrammarGenerationSettings settings = getSettings(project, qualFileName);
 
-		props.setValue(getPropNameForFile(qualFileName, PROP_AUTO_GEN),
-		               String.valueOf(autoGenerateParsersCheckBox.isSelected()));
-
-		v = outputDirField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR), v);
-		}
-		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR));
-		}
-
-		v = libDirField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_LIB_DIR), v);
-		}
-		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_LIB_DIR));
-		}
-
-		v = fileEncodingField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_ENCODING), v);
-		}
-		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_ENCODING));
-		}
-
-		v = packageField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_PACKAGE), v);
-		}
-		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_PACKAGE));
-		}
-
-		v = languageField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_LANGUAGE), v);
-		}
-		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_LANGUAGE));
-		}
-
-		props.setValue(getPropNameForFile(qualFileName, PROP_GEN_LISTENER),
-		               String.valueOf(generateParseTreeListenerCheckBox.isSelected()));
-		props.setValue(getPropNameForFile(qualFileName, PROP_GEN_VISITOR),
-		               String.valueOf(generateParseTreeVisitorCheckBox.isSelected()));
-	}
-
-	public static String getPropNameForFile(String qualFileName, String prop) {
-		return qualFileName+"::/"+prop;
+		settings.autoGen = autoGenerateParsersCheckBox.isSelected();
+		settings.outputDir = trim(outputDirField.getText());
+		settings.libDir = trim(libDirField.getText());
+		settings.encoding = trim(fileEncodingField.getText());
+		settings.pkg = trim(packageField.getText());
+		settings.language = trim(languageField.getText());
+		settings.generateListener = generateParseTreeListenerCheckBox.isSelected();
+		settings.generateVisitor = generateParseTreeVisitorCheckBox.isSelected();
 	}
 
 	@Nullable

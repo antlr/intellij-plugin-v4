@@ -52,6 +52,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
 	public static LexerGrammar BAD_LEXER_GRAMMAR;
@@ -397,7 +399,7 @@ public class ParsingUtils {
 
 	public static GrammarRootAST parseGrammar(Project project, Tool antlr, String grammarFileName) {
 		try {
-			String encoding = ConfigANTLRPerGrammar.getProp(project, grammarFileName, ConfigANTLRPerGrammar.PROP_ENCODING, "UTF-8");
+			String encoding = firstNonNull(ConfigANTLRPerGrammar.getSettings(project, grammarFileName).encoding, "UTF-8");
 			char[] grammarText = Utils.readFile(grammarFileName, encoding);
 			String grammarTextS = new String(grammarText).replaceAll("\\r", "");
 			ANTLRStringStream in = new ANTLRStringStream(grammarTextS);

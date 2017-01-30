@@ -68,10 +68,7 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 									  forceGeneration);
 
 		boolean autogen =
-			ConfigANTLRPerGrammar.getBooleanProp(project,
-												 grammarFile.getPath(),
-												 ConfigANTLRPerGrammar.PROP_AUTO_GEN,
-												 false);
+			ConfigANTLRPerGrammar.getSettings(project, grammarFile.getPath()).autoGen;
 		if ( !unsaved || (unsaved && !autogen) ) {
 			// if everything already saved (not stale) then run ANTLR
 			// if had to be saved and autogen NOT on, then run ANTLR

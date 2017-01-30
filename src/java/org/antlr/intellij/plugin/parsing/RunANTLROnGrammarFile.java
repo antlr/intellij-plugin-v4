@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Modal {
 	public static final Logger LOG = Logger.getInstance("RunANTLROnGrammarFile");
@@ -60,7 +62,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
 		String qualFileName = grammarFile.getPath();
-		boolean autogen = ConfigANTLRPerGrammar.getBooleanProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_AUTO_GEN, false);
+		boolean autogen = ConfigANTLRPerGrammar.getSettings(project, qualFileName).autoGen;
 //		System.out.println("autogen is "+autogen+", force="+forceGeneration);
 		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
@@ -83,8 +85,10 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	// TODO: lots of duplication with antlr() function.
 	public boolean isGrammarStale() {
 		String qualFileName = grammarFile.getPath();
-		String sourcePath = ConfigANTLRPerGrammar.getParentDir(grammarFile);
-		sourcePath = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_LIB_DIR, sourcePath);
+		String sourcePath = firstNonNull(
+				ConfigANTLRPerGrammar.getSettings(project, qualFileName).libDir,
+				ConfigANTLRPerGrammar.getParentDir(grammarFile)
+		);
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -100,7 +104,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String recognizerFileName = generator.getRecognizerFileName();
 
 		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, grammarFile);
-		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_PACKAGE, MISSING);
+		String package_ = firstNonNull(ConfigANTLRPerGrammar.getSettings(project, qualFileName).pkg, MISSING);
 		String outputDirName = ConfigANTLRPerGrammar.getOutputDirName(project, qualFileName, contentRoot, package_);
 		String fullyQualifiedOutputFileName = outputDirName+File.separator+recognizerFileName;
 
@@ -182,7 +186,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String qualFileName = vfile.getPath();
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
 
-		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_PACKAGE, MISSING);
+		String package_ = firstNonNull(ConfigANTLRPerGrammar.getSettings(project, qualFileName).pkg, MISSING);
 		if ( package_==MISSING) {
 			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
 			if ( Strings.isNullOrEmpty(package_)) {
@@ -193,7 +197,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 			args.put("-package", package_);
 		}
 
-		String language = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_LANGUAGE, MISSING);
+		String language = firstNonNull(ConfigANTLRPerGrammar.getSettings(project, qualFileName).language, MISSING);
 		if ( language!=MISSING) {
 			args.put("-Dlanguage="+language, "");
 		}
@@ -203,28 +207,25 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String outputDirName = ConfigANTLRPerGrammar.getOutputDirName(project, qualFileName, contentRoot, package_);
 		args.put("-o", outputDirName);
 
-		String libDir = ConfigANTLRPerGrammar.getProp(project,
-		                                              qualFileName,
-		                                              ConfigANTLRPerGrammar.PROP_LIB_DIR,
-		                                              sourcePath);
+		String libDir = firstNonNull(ConfigANTLRPerGrammar.getSettings(project, qualFileName).libDir, sourcePath);
 		File f = new File(libDir);
 		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
 			libDir = contentRoot.getPath()+File.separator+libDir;
 		}
 		args.put("-lib", libDir);
 
-		String encoding = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_ENCODING, MISSING);
+		String encoding = firstNonNull(ConfigANTLRPerGrammar.getSettings(project, qualFileName).encoding, MISSING);
 		if ( encoding!=MISSING ) {
 			args.put("-encoding", encoding);
 		}
 
-		if ( ConfigANTLRPerGrammar.getBooleanProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_GEN_LISTENER, true) ) {
+		if ( ConfigANTLRPerGrammar.getSettings(project, qualFileName).generateListener ) {
 			args.put("-listener", "");
 		}
 		else {
 			args.put("-no-listener", "");
 		}
-		if ( ConfigANTLRPerGrammar.getBooleanProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_GEN_VISITOR, true) ) {
+		if ( ConfigANTLRPerGrammar.getSettings(project, qualFileName).generateVisitor ) {
 			args.put("-visitor", "");
 		}
 		else {

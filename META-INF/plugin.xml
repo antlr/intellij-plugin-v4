@@ -158,5 +158,6 @@ For really big files and slow grammars, there is an appreciable delay when displ
 	  <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
+	  <projectService serviceImplementation="org.antlr.intellij.plugin.configdialogs.ANTLRGenerationSettingsComponent"/>
   </extensions>
 </idea-plugin>
