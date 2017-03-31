@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * </ol>
  */
 @Immutable
-public class AntlrLexerState {
+public class ANTLRLexerState {
 	/**
 	 * This is the backing field for {@link #getMode}.
 	 */
@@ -48,13 +48,13 @@ public class AntlrLexerState {
 	private int cachedHashCode;
 
 	/**
-	 * Constructs a new instance of {@link AntlrLexerState} containing the mode and mode stack information for an ANTLR
+	 * Constructs a new instance of {@link ANTLRLexerState} containing the mode and mode stack information for an ANTLR
 	 * lexer.
 	 *
 	 * @param mode The current lexer mode, {@link Lexer#_mode}.
 	 * @param modeStack The lexer mode stack, {@link Lexer#_modeStack}, or {@code null} .
 	 */
-	public AntlrLexerState(int mode, @Nullable IntegerStack modeStack) {
+	public ANTLRLexerState(int mode, @Nullable IntegerStack modeStack) {
 		this.mode = mode;
 		this.modeStack = modeStack != null ? modeStack.toArray() : null;
 	}
@@ -102,11 +102,11 @@ public class AntlrLexerState {
 			return true;
 		}
 
-		if (!(obj instanceof AntlrLexerState)) {
+		if (!(obj instanceof ANTLRLexerState)) {
 			return false;
 		}
 
-		AntlrLexerState other = (AntlrLexerState)obj;
+		ANTLRLexerState other = (ANTLRLexerState)obj;
 		return this.mode == other.mode
 			&& ObjectEqualityComparator.INSTANCE.equals(this.modeStack, other.modeStack);
 	}

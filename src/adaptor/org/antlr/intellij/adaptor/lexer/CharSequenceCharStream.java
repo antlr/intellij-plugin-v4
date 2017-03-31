@@ -8,8 +8,6 @@ import org.antlr.v4.runtime.misc.Interval;
  * This class provides a basic implementation of
  * {@link org.antlr.v4.runtime.CharStream} backed by an arbitrary
  * {@link CharSequence}.
- *
- * It also handles the situation where intellij intellij adds
  */
 class CharSequenceCharStream implements CharStream {
 	private final CharSequence buffer;

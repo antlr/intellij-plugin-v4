@@ -10,10 +10,10 @@ import org.jetbrains.annotations.Nullable;
  *  intellij "token type" of an interior PSI tree node. The IntelliJ equivalent
  *  of ANTLR RuleNode.getRuleIndex() method.
  */
-public class RuleElementType extends IElementType {
+public class RuleIElementType extends IElementType {
 	private final int ruleIndex;
 
-	public RuleElementType(int ruleIndex, @NotNull @NonNls String debugName, @Nullable Language language) {
+	public RuleIElementType(int ruleIndex, @NotNull @NonNls String debugName, @Nullable Language language) {
 		super(debugName, language);
 		this.ruleIndex = ruleIndex;
 	}

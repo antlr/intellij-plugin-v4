@@ -2,9 +2,9 @@ package org.antlr.intellij.adaptor.parser;
 
 import com.intellij.lang.Language;
 import com.intellij.lang.PsiBuilder;
-import org.antlr.intellij.adaptor.lexer.ElementTypeFactory;
-import org.antlr.intellij.adaptor.lexer.RuleElementType;
-import org.antlr.intellij.adaptor.lexer.TokenElementType;
+import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory;
+import org.antlr.intellij.adaptor.lexer.RuleIElementType;
+import org.antlr.intellij.adaptor.lexer.TokenIElementType;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -31,8 +31,8 @@ public class AstBuilderListener implements ParseTreeListener {
 	private final List<SyntaxError> syntaxErrors = new ArrayList<SyntaxError>();
 	private final Deque<PsiBuilder.Marker> markers = new ArrayDeque<PsiBuilder.Marker>();
 
-	private final List<TokenElementType> tokenElementTypes;
-	private final List<RuleElementType> ruleElementTypes;
+	private final List<TokenIElementType> tokenElementTypes;
+	private final List<RuleIElementType> ruleElementTypes;
 
 	private int nextSyntaxError;
 
@@ -40,8 +40,8 @@ public class AstBuilderListener implements ParseTreeListener {
 		this.language = language;
 		this.builder = builder;
 
-		this.tokenElementTypes = ElementTypeFactory.getTokenElementTypes(language, Arrays.asList(parser.getTokenNames()));
-		this.ruleElementTypes = ElementTypeFactory.getRuleElementTypes(language, Arrays.asList(parser.getRuleNames()));
+		this.tokenElementTypes = PSIElementTypeFactory.getTokenIElementTypes(language, Arrays.asList(parser.getTokenNames()));
+		this.ruleElementTypes = PSIElementTypeFactory.getRuleIElementTypes(language, Arrays.asList(parser.getRuleNames()));
 
 		for (ANTLRErrorListener listener : parser.getErrorListeners()) {
 			if (listener instanceof SyntaxErrorListener) {
@@ -70,11 +70,11 @@ public class AstBuilderListener implements ParseTreeListener {
 		return markers;
 	}
 
-	protected final List<TokenElementType> getTokenElementTypes() {
+	protected final List<TokenIElementType> getTokenElementTypes() {
 		return tokenElementTypes;
 	}
 
-	protected final List<RuleElementType> getRuleElementTypes() {
+	protected final List<RuleIElementType> getRuleElementTypes() {
 		return ruleElementTypes;
 	}
 
