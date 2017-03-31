@@ -24,13 +24,10 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/antlr-4.6-complete.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/antlr-4.7-complete.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/lib/src/antlr4-4.6/runtime/Java/src" />
-          <root url="file://$MODULE_DIR$/lib/src/antlr4-4.6/tool/src" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
