@@ -31,6 +31,8 @@
 /** A grammar for ANTLR v4 tokens */
 lexer grammar ANTLRv4Lexer;
 
+options {superClass='org.antlr.intellij.adaptor.lexer.MyANTLRLexer';}
+
 tokens {
 	TOKEN_REF,
 	RULE_REF,
