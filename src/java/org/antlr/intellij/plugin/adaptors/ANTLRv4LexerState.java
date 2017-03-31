@@ -1,12 +1,12 @@
 package org.antlr.intellij.plugin.adaptors;
 
-import org.antlr.intellij.adaptor.lexer.AntlrLexerState;
+import org.antlr.intellij.adaptor.lexer.ANTLRLexerState;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.misc.IntegerStack;
 import org.antlr.v4.runtime.misc.MurmurHash;
 
-public class ANTLRv4LexerState extends AntlrLexerState {
+public class ANTLRv4LexerState extends ANTLRLexerState {
 	/** Tracks whether we are in a lexer rule, a parser rule or neither;
 	 *  managed by the ANTLRv4Lexer grammar.
 	 */

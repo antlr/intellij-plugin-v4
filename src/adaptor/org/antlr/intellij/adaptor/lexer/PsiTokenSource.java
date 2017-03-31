@@ -27,7 +27,7 @@ public class PsiTokenSource implements TokenSource {
 	 */
 	@Override
 	public Token nextToken() {
-		TokenElementType ideaTType = (TokenElementType)builder.getTokenType();
+		TokenIElementType ideaTType = (TokenIElementType)builder.getTokenType();
 		int type;
 		if ( ideaTType==null ) {
 			type = Token.EOF;

@@ -18,6 +18,9 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 //		System.out.println("offset="+offset);
 		CommonTokenStream tokens = ParsingUtils.tokenizeANTLRGrammar(file.getText());
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokens, offset);
+		if ( tokenUnderCursor==null ) {
+			return false; // sometimes happens at the eof
+		}
 //		System.out.println(tokenUnderCursor);
 		int tokenIndex = tokenUnderCursor.getTokenIndex();
 		Token nextRealToken = ParsingUtils.nextRealToken(tokens, tokenIndex);
