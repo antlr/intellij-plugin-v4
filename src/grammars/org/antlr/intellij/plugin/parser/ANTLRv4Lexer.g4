@@ -278,9 +278,11 @@ fragment
 ESC_SEQ
 	:	'\\'
 		(	// The standard escaped character set such as tab, newline, etc.
-			[btnfr"'\\]
+			[btnfr'\\]
 		|	// A Java style Unicode escape sequence
 			UNICODE_ESC
+		|	// A Swift/Hack style Unicode escape sequence
+		 	UNICODE_EXTENDED_ESC
 		|	// Invalid escape
 			.
 		|	// Invalid escape at end of file
@@ -290,7 +292,23 @@ ESC_SEQ
 
 fragment
 UNICODE_ESC
-    :   'u' (HEX_DIGIT (HEX_DIGIT (HEX_DIGIT HEX_DIGIT?)?)?)?
+    :   'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    ;
+
+fragment
+UNICODE_EXTENDED_ESC
+    :   'u{'
+    	HEX_DIGIT // from 1 to 6 digits
+		(	HEX_DIGIT
+			(	HEX_DIGIT
+				(	HEX_DIGIT
+					(	HEX_DIGIT
+						HEX_DIGIT?
+					)?
+				)?
+			)?
+		)?
+    	'}'
     ;
 
 fragment
