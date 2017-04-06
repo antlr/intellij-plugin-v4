@@ -534,7 +534,7 @@ public class ParsingUtils {
 
 	public static void _getAllLeaves(Tree t, List<? super Tree> leaves) {
 		int n = t.getChildCount();
-		if ( n==0 ) { // must be leaf
+		if ( t instanceof TerminalNode ) {
 			Token tok = ((TerminalNode)t).getSymbol();
 			if ( tok.getType() != Token.INVALID_TYPE ) {
 				leaves.add(t);
