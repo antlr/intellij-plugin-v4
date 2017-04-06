@@ -388,7 +388,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
 		String grammarFileName = grammarFile.getPath();
 		if (!new File(grammarFileName).exists()) {
-			LOG.error("parseText grammar doesn't exit " + grammarFileName);
+			LOG.error("parseText grammar doesn't exist " + grammarFileName);
 			return null;
 		}
 
