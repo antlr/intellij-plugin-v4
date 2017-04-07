@@ -6,8 +6,8 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.6. It works with
-                Intellij 14.x-15, 2016.1-2017.3.  It should work in other Jetbrains IDEs.
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.7. It works with
+      Intellij 15, 2016.1-2017.3.  It should work in other Jetbrains IDEs.
      </p>
 
      <ul>
