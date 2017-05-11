@@ -1,8 +1,5 @@
 package org.antlr.intellij.plugin.psi;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -19,16 +16,15 @@ import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4Language;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 @SuppressWarnings("SimplifiableIfStatement")
 public class MyPsiUtils {
-
     @Nullable
     public static PsiElement findFirstChildOfType(final PsiElement parent, IElementType type){
         return findFirstChildOfType(parent, TokenSet.create(type));
@@ -58,70 +54,16 @@ public class MyPsiUtils {
      * whose type is contained in the provided tokenset.
      */
     public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent, final TokenSet types) {
-        return new Iterable<PsiElement>() {
-            @NotNull
-            @Override
-            public Iterator<PsiElement> iterator() {
-                return Iterators.filter(new DepthFirstPsiIterator(parent), includeElementTypes(types));
-            }
-        };
-    }
-
-	static Predicate<PsiElement> includeElementTypes(final TokenSet tokenSet){
-		return new Predicate<PsiElement>() {
-			@Override
-			public boolean test(@javax.annotation.Nullable PsiElement input) {
-				return this.apply(input);
-			}
-			@Override
-			public boolean apply(@Nullable PsiElement input) {
-				if(input==null) return false;
-				ASTNode node = input.getNode();
-                if(node==null)return false;
-                return tokenSet.contains(node.getElementType());
-            }
-        };
-    }
-
-	static class DepthFirstPsiIterator extends AbstractIterator<PsiElement> {
-
-        final PsiElement startFrom;
-        DepthFirstPsiIterator(PsiElement startFrom){
-            this.startFrom=this.element=startFrom;
-
-        }
-
-        PsiElement element;
-
-        private
-        boolean tryNext(PsiElement candidate) {
-            if (candidate != null) {
-                element = candidate;
-                return true;
-            }
-            else return false;
-
-        }
-
-        private
-        boolean upAndOver(PsiElement parent) {
-            while (parent != null && !parent.equals(startFrom)) {
-                if (tryNext(parent.getNextSibling())) return true;
-                else parent = parent.getParent();
-            }
-            return false;
-
-        }
-
-        @Override
-        protected
-        PsiElement computeNext() {
-            if (tryNext(element.getFirstChild()) ||
-                    tryNext(element.getNextSibling()) ||
-                    upAndOver(element.getParent())) return element;
-            return endOfData();
-
-        }
+	    PsiElement[] psiElements = PsiTreeUtil.collectElements(parent, new PsiElementFilter() {
+		    @Override
+		    public boolean isAccepted(PsiElement input) {
+			    if ( input==null ) return false;
+			    ASTNode node = input.getNode();
+			    if ( node==null ) return false;
+			    return types.contains(node.getElementType());
+		    }
+	    });
+	    return Arrays.asList(psiElements);
     }
 
 	public static PsiElement findRuleSpecNodeAbove(GrammarElementRefNode element, final String ruleName) {
