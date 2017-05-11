@@ -67,13 +67,16 @@ public class MyPsiUtils {
         };
     }
 
-    static Predicate<PsiElement> includeElementTypes(final TokenSet tokenSet){
-        return new Predicate<PsiElement>() {
-
-            @Override
-            public boolean apply(@Nullable PsiElement input) {
-                if(input==null) return false;
-                ASTNode node = input.getNode();
+	static Predicate<PsiElement> includeElementTypes(final TokenSet tokenSet){
+		return new Predicate<PsiElement>() {
+			@Override
+			public boolean test(@javax.annotation.Nullable PsiElement input) {
+				return this.apply(input);
+			}
+			@Override
+			public boolean apply(@Nullable PsiElement input) {
+				if(input==null) return false;
+				ASTNode node = input.getNode();
                 if(node==null)return false;
                 return tokenSet.contains(node.getElementType());
             }
