@@ -8,7 +8,7 @@
 		</context>
 	</template>
 
-	<template name="rflt" value="$NAME$&#10;    :   '-'? INT '.' INT EXP?   // 1.35, 1.35E-9, 0.3, -4.5&#10;    |   '-'? INT EXP            // 1e10 -3e4&#10;    |   '-'? INT                // -3, 45&#10;    ;&#10;&#10;fragment INT :   '0' | [1-9] [0-9]* ; // no leading zeros&#10;fragment EXP :   [Ee] [+\-]? INT ;" description="Create simple float rule" toReformat="false" toShortenFQNames="true">
+	<template name="rflt" value="$NAME$&#10;    :   '-'? INT '.' FRAC EXP?   // 1.35, 1.35E-9, 0.3, -4.5&#10;    |   '-'? INT EXP            // 1e10 -3e4&#10;    |   '-'? INT                // -3, 45&#10;    ;&#10;&#10;fragment INT :   '0' | [1-9] [0-9]* ; // no leading zeros&#10;fragment FRAC :   [0-9]* [1-9] ; // no trailing zeros&#10;fragment EXP :   [Ee] [+\-]? INT ;" description="Create simple float rule" toReformat="false" toShortenFQNames="true">
 		<variable name="NAME" expression="" defaultValue="&quot;FLOAT&quot;" alwaysStopAt="true" />
 		<context>
 			<option name="ANTLR_OUTSIDE" value="true" />
