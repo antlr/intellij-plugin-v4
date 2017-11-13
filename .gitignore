@@ -3,11 +3,42 @@
 
 # Build output
 /out/
+/build/
 
 # downloaded libs/resources
 /lib/
 
+.gradle/
+
+*.pyc
+bilder.py
+intellij-plugin-v4.iml
+
 # Per-user settings
 # https://intellij-support.jetbrains.com/entries/23393067
-.idea/workspace.xml
+
+.idea/scopes/
+.idea/modules/
+.idea/copyright/
+.idea/libraries/
+.idea/codeStyles/
+.idea/inspectionProfiles/
+
+.idea/ant.xml
+.idea/vcs.xml
+.idea/misc.xml
 .idea/tasks.xml
+.idea/gradle.xml
+.idea/kotlinc.xml
+.idea/modules.xml
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/workspace.xml
+.idea/uiDesigner.xml
+.idea/dbnavigator.xml
+.idea/preferred-vcs.xml
+.idea/codeStyleSettings.xml
+
+
+
+

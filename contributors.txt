@@ -58,3 +58,4 @@ YYYY/MM/DD, github id, Full name, email
 2015/07/30, maccimo, Maxim Degtyarev, mdegtyarev@gmail.com
 2015/08/12, bjansen, Bastien Jansen, bastien.jansen@gmx.com
 2016/01/08, jwhiting, James Whiting, james.whiting@gmail.com
+2018/10/24, brizjin, Ivan Bryzzhin, brizjin@gmail.com
