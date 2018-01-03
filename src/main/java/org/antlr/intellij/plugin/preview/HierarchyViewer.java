@@ -124,13 +124,7 @@ class HierarchyViewer extends JPanel {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(tree) {
 			@Override
 			public String toString() {
-				String name = treeTextProvider.getText((Tree) getUserObject());
-
-				if (tree instanceof TerminalNode) {
-					return name.equals("<EOF>") ? name : "\"" + name + "\"";
-				}
-
-				return name;
+				return treeTextProvider.getText((Tree) getUserObject());
 			}
 
 
