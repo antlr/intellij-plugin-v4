@@ -68,8 +68,7 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 	@Nullable
 	@Override
 	public PsiElement resolve() {
-		// root of all rules is RulesNode node so jump up and scan for ruleName
-		return MyPsiUtils.findRuleSpecNodeAbove(getElement(), ruleName);
+		return MyPsiUtils.findSpecNode(getElement(), ruleName);
 	}
 
 	@Override

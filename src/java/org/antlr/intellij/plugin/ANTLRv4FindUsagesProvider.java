@@ -4,10 +4,7 @@ import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
-import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
-import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
-import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
+import org.antlr.intellij.plugin.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,8 +12,7 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 	@Override
 	public boolean canFindUsagesFor(@NotNull PsiElement psiElement) {
 //		System.out.println("find usages for "+psiElement+": "+psiElement.getText());
-		return psiElement instanceof LexerRuleSpecNode ||
-			   psiElement instanceof ParserRuleSpecNode;
+		return psiElement instanceof RuleSpecNode;
 //		return psiElement instanceof PsiNamedElement;
 	}
 
@@ -55,6 +51,9 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 		}
 		if (element instanceof LexerRuleSpecNode) {
 			return "lexer rule";
+		}
+		if (element instanceof ModeSpecNode) {
+			return "mode";
 		}
 		return "n/a";
 	}
