@@ -122,15 +122,13 @@ public class MyPsiUtils {
     }
 
 	/**
-	 * Finds the first {@link RuleSpecNode} or {@link ModeSpecNode} matching the {@code ruleName} referenced by
-	 * the given {@code reference}.
+	 * Finds the first {@link RuleSpecNode} or {@link ModeSpecNode} matching the {@code ruleName} defined in
+	 * the given {@code grammar}.
 	 *
 	 * Rule specs can be either children of the {@link RulesNode}, or under one of the {@code mode}s defined in
 	 * the grammar. This means we have to walk the whole grammar to find matching candidates.
 	 */
-	public static PsiElement findSpecNode(GrammarElementRefNode reference, final String ruleName) {
-		GrammarSpecNode rules = PsiTreeUtil.getContextOfType(reference, GrammarSpecNode.class);
-
+	public static PsiElement findSpecNode(GrammarSpecNode grammar, final String ruleName) {
 		PsiElementFilter definitionFilter = new PsiElementFilter() {
 			@Override
 			public boolean isAccepted(PsiElement element1) {
@@ -143,7 +141,7 @@ public class MyPsiUtils {
 			}
 		};
 
-		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(rules, definitionFilter);
+		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(grammar, definitionFilter);
 		if (ruleSpec.length > 0) {
 			return ruleSpec[0];
 		}
