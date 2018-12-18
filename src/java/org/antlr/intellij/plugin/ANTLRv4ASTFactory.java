@@ -17,6 +17,7 @@ import org.antlr.intellij.plugin.psi.AtAction;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
+import org.antlr.intellij.plugin.psi.ModeSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RulesNode;
@@ -32,6 +33,7 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_parserRuleSpec), ParserRuleSpecNode.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_lexerRule), LexerRuleSpecNode.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_grammarSpec), GrammarSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_modeSpec), ModeSpecNode.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.Factory.INSTANCE);
 	}
 
