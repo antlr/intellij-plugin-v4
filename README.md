@@ -1,10 +1,10 @@
 # IntelliJ Idea Plugin for ANTLR v4
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x, ... plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
+An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x, ..., 2018.2.5 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.6. Works with Intellij and other Jetbrains IDEs.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.7.2. Works with Intellij and other Jetbrains IDEs.
 
 Features:
 
@@ -16,6 +16,7 @@ Features:
 - find usages
 - rename tokens
 - rename rules
+- save parse trees as svg/jpg/png; right click in parse tree view (1.9)
 - comment grammar rule lines with meta-/ (1.7)
 - generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
 - code completion for tokens, rule names;
@@ -163,7 +164,7 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 # Build notes
 
-We [moved to gradle](https://github.com/antlr/intellij-plugin-v4/pull/295).  Gotta set the jdk to normal jdk not intellij application folder (like I have in `/opt`).  Do this to run:
+We [moved to gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9.  Gotta set the jdk to normal jdk not intellij application folder (like I have in `/opt`).  Do this to run:
 
 ```
 cd ~/antlr/code/intellij-plugin-v4
