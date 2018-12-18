@@ -164,7 +164,7 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 # Build notes
 
-We [moved to gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9.  Gotta set the jdk to normal jdk not intellij application folder (like I have in `/opt`).  Do this to run:
+We [moved to gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. I added minimal notes to the readme but basically enable gradle, plugin development plugins from intellij preferences, add the gradle file via gradle tool pane then launch `runIde` task.  Gotta set the jdk to normal jdk not intellij application folder (like I have in `/opt`).  Do this to run:
 
 ```
 cd ~/antlr/code/intellij-plugin-v4
