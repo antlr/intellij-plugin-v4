@@ -6,8 +6,8 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.7. It works with
-      Intellij 15, 2016.1-2017.3.  It should work in other Jetbrains IDEs.
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.7.2. It works with
+      Intellij 15, 2016.1-2018.2.  It should work in other Jetbrains IDEs.
      </p>
 
      <ul>
@@ -20,6 +20,7 @@
      <li> rename tokens
      <li> rename rules
      <li> comment grammar rule lines with meta-/ (1.7)
+     <li> save parse trees as svg/jpg/png; right click in parse tree view (1.9)
      <li> grammar/comment folding (1.7)
      <li> generates parser code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
      <li> code completion for tokens, rule names;
@@ -71,8 +72,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
       ]]></description>
 
   <change-notes><![CDATA[
-	Upgrade antlr to 4.7 (from 4.6), fix a few null-ptr exceptions see
-	 <a href="https://github.com/antlr/intellij-plugin-v4/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20milestone%3A1.8.4">bug fixes</a>.
+	Upgrade antlr to 4.7.2 (from 4.7), Fixed:
+	 <a href="https://github.com/antlr/intellij-plugin-v4/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20milestone%3A1.9">bugs</a> and
+	  <a href="https://github.com/antlr/intellij-plugin-v4/milestone/14?closed=1">pull requests / improvements</a>.
 	Requires at least Intellij 15.x now and Java 7 because ANTLR 4.7 needs Java 7!
       ]]>
   </change-notes>
