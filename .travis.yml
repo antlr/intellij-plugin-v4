@@ -1,0 +1,9 @@
+language: java
+jdk:
+  - openjdk8
+env:
+  - IDEA_VERSION=IC-15.0.6
+  - IDEA_VERSION=IC-2016.3.8
+  - IDEA_VERSION=IC-2017.3.5
+  - IDEA_VERSION=IC-2018.2.4
+install: sed -i '/ideaVersion=/c\ideaVersion='"$IDEA_VERSION"'' gradle.properties

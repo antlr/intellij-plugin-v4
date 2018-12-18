@@ -1,12 +1,8 @@
-
-
 buildscript {
     repositories {
         mavenCentral()
     }
 }
-
-
 
 plugins {
     id "org.jetbrains.intellij" version "0.3.12"
@@ -17,39 +13,30 @@ wrapper {
 }
 
 group 'antlr'
-version '1.8.3'
+version pluginVersion
 
 apply plugin: 'java'
-apply plugin: 'idea'
 apply plugin: 'org.jetbrains.intellij'
+apply plugin: 'antlr'
+
 intellij {
-    version = '2018.2.5' //'IC-2016.3.3' // https://www.jetbrains.com/intellij-repository/releases
+    version = ideaVersion
 
     pluginName 'antlr-intellij-plugin-v4'
     downloadSources true
     updateSinceUntilBuild false
 }
 
-def gen = file('gen')
-def gram = file('src/grammars')
-
-idea {
-//    project {
-//        jdkName = '1.8'
-//        languageLevel = '1.8'
-//    }
-    module {
-        generatedSourceDirs += gen
-        jdkName = '1.8'
-        excludeDirs += files('.idea', 'gradle', 'lib', 'images')
-    }
-}
-
 sourceSets {
     main {
-        java { srcDirs 'src/java', 'src/adaptor', 'src/grammars', 'gen' }
+        java {
+            srcDirs += ['src/java', 'src/adaptor']
+        }
         resources {
-            srcDirs 'resources', 'resources/icons', 'resources/templates', 'resources/liveTemplates', 'resources/colorSchemes'
+            srcDirs = ['resources', 'resources/icons', 'resources/templates', 'resources/liveTemplates', 'resources/colorSchemes']
+        }
+        antlr {
+            srcDirs = ['src/grammars']
         }
     }
 }
@@ -59,25 +46,10 @@ repositories {
 }
 
 dependencies {
-    compile "org.antlr:antlr4:4.7.1" // use ANTLR version 4
+    antlr "org.antlr:antlr4:$antlr4Version" // use ANTLR version 4
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-task generateANTLR {
-    //FileUtils.cleanDirectory(gen) //import org.apache.commons.io.FileUtils
-    fileTree(dir: gram, include: '**/*.g4').each { g4File ->
-        def g4DirPath = g4File.getParentFile().toPath()
-        def g4FileSrcRoot = sourceSets.main.java.srcDirs.find({g4DirPath.startsWith(it.toPath())})
-        def g4Path = g4FileSrcRoot.toPath().relativize(g4DirPath)
-        def genOutput = new File(gen, g4Path.toFile().getPath())
-        def package_name = g4Path.toString().replace('\\','.')
-        doLast {
-            javaexec {
-                classpath += configurations.runtime
-                main = 'org.antlr.v4.Tool'
-                args = [g4File, "-package", package_name, "-o", genOutput]
-            }
-        }
-    }
+generateGrammarSource {
+    arguments += ["-package", "org.antlr.intellij.plugin.parser", "-Xexact-output-dir"]
 }
-compileJava.dependsOn(generateANTLR)
