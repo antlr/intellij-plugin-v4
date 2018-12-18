@@ -27,6 +27,8 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,6 +91,7 @@ public class PreviewPanel extends JPanel {
 		LOG.info("createParseTreePanel" + " " + project.getName());
 		Pair<UberTreeViewer, JPanel> pair = createParseTreePanel();
 		treeViewer = pair.a;
+		setupContextMenu(treeViewer);
 		tabbedPane.addTab("Parse tree", pair.b);
 
 		jTreeViewer = new JTreeViewer(null, this);
@@ -98,6 +101,17 @@ public class PreviewPanel extends JPanel {
 		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
 
 		return tabbedPane;
+	}
+
+	private static void setupContextMenu(final UberTreeViewer treeViewer) {
+		treeViewer.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					ParseTreeContextualMenu.showPopupMenu(treeViewer, e);
+				}
+			}
+		});
 	}
 
 	public static Pair<UberTreeViewer,JPanel> createParseTreePanel() {
