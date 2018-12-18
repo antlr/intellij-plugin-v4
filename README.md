@@ -161,3 +161,13 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 ![Live preview](images/color-prefs.png)
 
+# Build notes
+
+We [moved to gradle](https://github.com/antlr/intellij-plugin-v4/pull/295).  Gotta set the jdk to normal jdk not intellij application folder (like I have in `/opt`).  Do this to run:
+
+```
+cd ~/antlr/code/intellij-plugin-v4
+gradle runIdea
+```
+
+Or from gradle build pane, `runIde`.  
