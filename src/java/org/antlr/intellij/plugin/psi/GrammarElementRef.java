@@ -2,10 +2,10 @@ package org.antlr.intellij.plugin.psi;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +13,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
+/**
+ * A reference to a grammar element (parser rule, lexer rule or lexical mode).
+ */
 public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
-	String ruleName;
+
+	private String ruleName;
+
 	public GrammarElementRef(GrammarElementRefNode idNode, String ruleName) {
 		super(idNode, new TextRange(0, ruleName.length()));
 		this.ruleName = ruleName;
@@ -68,8 +73,30 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 	@Nullable
 	@Override
 	public PsiElement resolve() {
-		// root of all rules is RulesNode node so jump up and scan for ruleName
-		return MyPsiUtils.findRuleSpecNodeAbove(getElement(), ruleName);
+		GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
+		PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
+
+		if (specNode != null) {
+			return specNode;
+		}
+
+		// Look for a lexer rule in the tokenVocab file if it exists
+		if (getElement() instanceof LexerRuleRefNode) {
+			String tokenVocab = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) getElement().getContainingFile());
+
+			if (tokenVocab != null) {
+				PsiDirectory parentDirectory = getElement().getContainingFile().getParent();
+				if (parentDirectory != null) {
+					PsiFile tokenVocabFile = parentDirectory.findFile(tokenVocab + ".g4");
+					if (tokenVocabFile instanceof ANTLRv4FileRoot) {
+						GrammarSpecNode lexerGrammar = PsiTreeUtil.findChildOfType(tokenVocabFile, GrammarSpecNode.class);
+						return MyPsiUtils.findSpecNode(lexerGrammar, ruleName);
+					}
+				}
+			}
+		}
+
+		return null;
 	}
 
 	@Override

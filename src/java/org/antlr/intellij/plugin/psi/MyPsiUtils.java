@@ -66,23 +66,30 @@ public class MyPsiUtils {
 	    return Arrays.asList(psiElements);
     }
 
-	public static PsiElement findRuleSpecNodeAbove(GrammarElementRefNode element, final String ruleName) {
-		RulesNode rules = PsiTreeUtil.getContextOfType(element, RulesNode.class);
-		return findRuleSpecNode(ruleName, rules);
-	}
-
-	public static PsiElement findRuleSpecNode(final String ruleName, RulesNode rules) {
-		PsiElementFilter defnode = new PsiElementFilter() {
+	/**
+	 * Finds the first {@link RuleSpecNode} or {@link ModeSpecNode} matching the {@code ruleName} defined in
+	 * the given {@code grammar}.
+	 *
+	 * Rule specs can be either children of the {@link RulesNode}, or under one of the {@code mode}s defined in
+	 * the grammar. This means we have to walk the whole grammar to find matching candidates.
+	 */
+	public static PsiElement findSpecNode(GrammarSpecNode grammar, final String ruleName) {
+		PsiElementFilter definitionFilter = new PsiElementFilter() {
 			@Override
-			public boolean isAccepted(PsiElement element) {
-				PsiElement nameNode = element.getFirstChild();
-				if ( nameNode==null ) return false;
-				return (element instanceof ParserRuleSpecNode || element instanceof LexerRuleSpecNode) &&
-					   nameNode.getText().equals(ruleName);
+			public boolean isAccepted(PsiElement element1) {
+				if (!(element1 instanceof RuleSpecNode)) {
+					return false;
+				}
+
+				GrammarElementRefNode id = ((RuleSpecNode) element1).getId();
+				return id != null && id.getText().equals(ruleName);
 			}
 		};
-		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(rules, defnode);
-		if ( ruleSpec.length>0 ) return ruleSpec[0];
+
+		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(grammar, definitionFilter);
+		if (ruleSpec.length > 0) {
+			return ruleSpec[0];
+		}
 		return null;
 	}
 
