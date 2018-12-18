@@ -271,11 +271,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		if ( newFile.getName().endsWith(".g") ) {
 			LOG.info("currentEditorFileChangedEvent ANTLR 4 cannot handle .g files, only .g4");
-			previewWindow.hide(null);
+			hidePreview();
 			return;
 		}
 		if ( !newFile.getName().endsWith(".g4") ) {
-			previewWindow.hide(null);
+			hidePreview();
 			return;
 		}
 		PreviewState previewState = getPreviewState(newFile);
@@ -301,7 +301,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		String grammarFileName = vfile.getPath();
 		LOG.info("editorFileClosedEvent "+ grammarFileName+" "+project.getName());
 		if ( !vfile.getName().endsWith(".g4") ) {
-			previewWindow.hide(null);
+			hidePreview();
 			return;
 		}
 
@@ -319,6 +319,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		grammarToPreviewState.remove(grammarFileName);
 
 		// close tool window
+		hidePreview();
+	}
+
+	private void hidePreview() {
+		if (previewPanel != null) {
+			previewPanel.setEnabled(false);
+		}
 		previewWindow.hide(null);
 	}
 
