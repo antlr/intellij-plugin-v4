@@ -75,7 +75,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 	Upgrade antlr to 4.7.2 (from 4.7), Fixed:
 	 <a href="https://github.com/antlr/intellij-plugin-v4/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20milestone%3A1.9">bugs</a> and
 	  <a href="https://github.com/antlr/intellij-plugin-v4/milestone/14?closed=1">pull requests / improvements</a>.
-	Requires at least Intellij 15.x now and Java 7 because ANTLR 4.7 needs Java 7!
+	Requires at least Intellij 2016.x now!
       ]]>
   </change-notes>
 
