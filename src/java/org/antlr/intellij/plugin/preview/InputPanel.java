@@ -15,6 +15,7 @@ import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.EditorMarkupModel;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.HighlighterLayer;
@@ -419,6 +420,10 @@ public class InputPanel {
 	}
 
 	public void installListeners(Editor editor) {
+		if (editor instanceof EditorEx) {
+			// Avoid showing the default context menu
+			((EditorEx) editor).setContextMenuGroupId("AntlrContextMenu");
+		}
 		editor.addEditorMouseMotionListener(editorMouseListener);
 		editor.addEditorMouseListener(editorMouseListener);
 	}
