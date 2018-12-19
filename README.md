@@ -1,6 +1,8 @@
 # IntelliJ Idea Plugin for ANTLR v4
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x, ..., 2018.2.5 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/antlr4)).
+[![Build Travis-CI Status](https://travis-ci.org/antlr/antlr4.svg?branch=master)](https://travis-ci.org/antlr/intellij-plugin-v4)
+
+An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x, ..., 2018.2.5 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
