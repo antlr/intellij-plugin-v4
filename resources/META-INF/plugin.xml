@@ -7,7 +7,7 @@
   <description><![CDATA[
   <p>
       This plugin is for ANTLR v4 grammars and includes ANTLR 4.7.2. It works with
-      Intellij 15, 2016.1-2018.2.  It should work in other Jetbrains IDEs.
+      2016.1-2018.2.  It should work in other Jetbrains IDEs.
      </p>
 
      <ul>
@@ -80,7 +80,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="143.0"/> <!-- requires 15.x due to Java 7 requirements of ANTLR 4.7 -->
+  <idea-version since-build="145.0"/> <!-- requires IntelliJ 2016.x+ -->
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
