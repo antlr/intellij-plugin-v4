@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ANTLRLiveTemplatesProvider implements DefaultLiveTemplatesProvider {
 	// make sure module shows liveTemplates as source dir or whatever dir holds "lexer"
-	public static final String[] TEMPLATES = {"lexer/user"};
+	public static final String[] TEMPLATES = {"liveTemplates/lexer/user"};
 
 	@Override
 	public String[] getDefaultLiveTemplateFiles() {

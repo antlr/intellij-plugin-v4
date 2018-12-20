@@ -35,13 +35,7 @@ intellij {
 sourceSets {
     main {
         java {
-            srcDirs += ['src/java', 'src/adaptor']
-        }
-        resources {
-            srcDirs = ['resources', 'resources/icons', 'resources/templates', 'resources/liveTemplates', 'resources/colorSchemes']
-        }
-        antlr {
-            srcDirs = ['src/grammars']
+            srcDirs += ['src/main/adaptor-java']
         }
     }
 }
