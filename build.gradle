@@ -51,7 +51,9 @@ repositories {
 }
 
 dependencies {
-    antlr "org.antlr:antlr4:$antlr4Version" // use ANTLR version 4
+    antlr("org.antlr:antlr4:$antlr4Version") { // use ANTLR version 4
+        exclude group:'com.ibm.icu', module:'icu4j'
+    }
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
