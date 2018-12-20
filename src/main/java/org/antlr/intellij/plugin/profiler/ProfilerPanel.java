@@ -436,6 +436,10 @@ public class ProfilerPanel {
 		expertCheckBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (previewState.parsingResult == null) {
+					// nothing has been parsed yet (no text in the editor)
+					return;
+				}
 				ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
 				updateTableModelPerExpertCheckBox(parseInfo);
 			}
