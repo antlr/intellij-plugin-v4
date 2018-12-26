@@ -134,7 +134,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
 		previewWindow.getContentManager().addContent(content);
-		previewWindow.setIcon(Icons.FILE);
+		previewWindow.setIcon(Icons.getToolWindow());
 
 		TextConsoleBuilderFactory factory = TextConsoleBuilderFactory.getInstance();
 		TextConsoleBuilder consoleBuilder = factory.createBuilder(project);
@@ -145,7 +145,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
 		consoleWindow.getContentManager().addContent(content);
-		consoleWindow.setIcon(Icons.FILE);
+		consoleWindow.setIcon(Icons.getToolWindow());
 	}
 
 	@Override
