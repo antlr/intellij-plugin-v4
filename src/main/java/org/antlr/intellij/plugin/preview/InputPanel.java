@@ -727,7 +727,7 @@ public class InputPanel {
 	}
 
 	public void setCursorToHierarchyViewElement(int offset) {
-		previewPanel.jTreeViewer.selectNodeAtOffset(offset);
+		previewPanel.hierarchyViewer.selectNodeAtOffset(offset);
 	}
 
 	/**

@@ -32,7 +32,7 @@ import static com.intellij.icons.AllIcons.Actions.Find;
 import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
 import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
-public class JTreeViewer extends JPanel {
+public class HierarchyViewer extends JPanel {
 
 	public boolean scrollFromSource = false;
 	public boolean highlightSource = false;
@@ -41,7 +41,7 @@ public class JTreeViewer extends JPanel {
 	private JTree myTree = new com.intellij.ui.treeStructure.Tree();
 	private TreeTextProvider treeTextProvider;
 
-	public JTreeViewer(Tree tree, PreviewPanel previewPanel) {
+	public HierarchyViewer(Tree tree, PreviewPanel previewPanel) {
 		this.previewPanel = previewPanel;
 
 		setupComponents();

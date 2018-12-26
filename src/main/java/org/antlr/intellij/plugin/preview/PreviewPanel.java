@@ -54,7 +54,7 @@ public class PreviewPanel extends JPanel {
 	public InputPanel inputPanel;
 
 	public UberTreeViewer treeViewer;
-	public JTreeViewer jTreeViewer;
+	public HierarchyViewer hierarchyViewer;
 	public ParseTree lastTree;
 
 	public ProfilerPanel profilerPanel;
@@ -94,8 +94,8 @@ public class PreviewPanel extends JPanel {
 		setupContextMenu(treeViewer);
 		tabbedPane.addTab("Parse tree", pair.b);
 
-		jTreeViewer = new JTreeViewer(null, this);
-		tabbedPane.addTab("Hierarchy", jTreeViewer);
+		hierarchyViewer = new HierarchyViewer(null, this);
+		tabbedPane.addTab("Hierarchy", hierarchyViewer);
 
 		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
@@ -277,14 +277,14 @@ public class PreviewPanel extends JPanel {
 					AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
 					treeViewer.setTreeTextProvider(provider);
 					treeViewer.setTree(result.tree);
-					jTreeViewer.setTreeTextProvider(provider);
-					jTreeViewer.setTree(result.tree);
+					hierarchyViewer.setTreeTextProvider(provider);
+					hierarchyViewer.setTree(result.tree);
 				}
 				else {
 					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
 					treeViewer.setTree(result.tree);
-					jTreeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					jTreeViewer.setTree(result.tree);
+					hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+					hierarchyViewer.setTree(result.tree);
 				}
 			}
 		});
