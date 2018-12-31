@@ -66,6 +66,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -158,22 +159,8 @@ public class InputPanel {
 		});
 		fileChooser.setTextFieldPreferredWidth(40);
 
-		inputRadioButton.addActionListener(
-			new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					selectInputEvent();
-				}
-			}
-		                                  );
-		fileRadioButton.addActionListener(
-			new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					selectFileEvent();
-				}
-			}
-		                                 );
+		inputRadioButton.addActionListener(e -> selectInputEvent());
+		fileRadioButton.addActionListener(e -> selectFileEvent());
 
 		resetStartRuleLabel();
 
@@ -241,6 +228,8 @@ public class InputPanel {
 
 		String inputFileName = fileChooser.getText();
 		char[] inputText = new char[0];
+		boolean fileExists = true;
+
 		if ( inputFileName.trim().length()>0 ) {
 			try {
 				inputText = FileUtil.loadFileText(new File(inputFileName));
@@ -250,6 +239,8 @@ public class InputPanel {
 				// (setText, insertString, replaceString) must use only \n as
 				// line separators."
 				inputText = s.toCharArray();
+			} catch (FileNotFoundException fnfe) {
+				fileExists = false;
 			} catch (IOException ioe) {
 				LOG.error("can't load input file "+inputFileName, ioe);
 			}
@@ -266,7 +257,12 @@ public class InputPanel {
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
 		clearErrorConsole();
-		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
+
+		if (fileExists) {
+			previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
+		} else {
+			errorConsole.setText("Input file does not exist: " + inputFileName);
+		}
 	}
 
 	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
