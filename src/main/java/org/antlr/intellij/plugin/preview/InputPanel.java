@@ -34,6 +34,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
+import com.intellij.vcs.log.ui.frame.WrappedFlowLayout;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.Icons;
@@ -116,6 +117,9 @@ public class InputPanel {
 	public InputPanel(final PreviewPanel previewPanel) {
 		$$$setupUI$$$();
 
+		WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
+		layout.setAlignment(FlowLayout.CENTER);
+		this.startRuleAndInputPanel.setLayout(layout);
 		this.previewPanel = previewPanel;
 
 		FileChooserDescriptor singleFileDescriptor =
