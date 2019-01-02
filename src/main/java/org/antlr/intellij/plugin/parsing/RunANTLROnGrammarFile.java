@@ -1,8 +1,6 @@
 package org.antlr.intellij.plugin.parsing;
 
 import com.google.common.base.Strings;
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -15,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.intellij.plugin.ui.AntlrOutputView;
 import org.antlr.v4.Tool;
 import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.runtime.misc.Utils;
@@ -134,11 +133,11 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 		Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
-		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
+		AntlrOutputView outputView = ANTLRv4PluginController.getInstance(project).getAntlrOutputView();
 		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+		outputView.addInfo(timeStamp+": antlr4 "+Misc.join(args.iterator(), " "));
 		antlr.removeListeners();
-		RunANTLRListener listener = new RunANTLRListener(antlr, console);
+		RunANTLRListener listener = new RunANTLRListener(antlr, outputView);
 		antlr.addListener(listener);
 
 		try {
@@ -155,11 +154,12 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 					e.toString(),
 					NotificationType.INFORMATION);
 			Notifications.Bus.notify(notification, project);
-			console.print(timeStamp + ": antlr4 " + msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-			listener.hasOutput = true; // show console below
+
+			outputView.addInfo(timeStamp + ": antlr4 " + msg);
+			ANTLRv4PluginController.showConsoleWindow(project);
 		}
 
-		if ( listener.hasOutput ) {
+		if ( listener.hasOutput() ) {
 			ANTLRv4PluginController.showConsoleWindow(project);
 		}
 	}

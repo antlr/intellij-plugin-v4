@@ -1,11 +1,11 @@
 package org.antlr.intellij.plugin.parsing;
 
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.antlr.intellij.plugin.ui.AntlrOutputView;
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
-import org.stringtemplate.v4.ST;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +14,14 @@ import java.util.List;
  *  not for annotation of grammar.
  */
 public class RunANTLRListener implements ANTLRToolListener {
-	public final List<String> all = new ArrayList<String>();
-	public Tool tool;
-	public ConsoleView console;
-	public boolean hasOutput = false;
+	private Tool tool;
+	private AntlrOutputView outputView;
+	private boolean hasOutput = false;
+	private boolean hasErrors = false;
 
-	public RunANTLRListener(Tool tool, ConsoleView console) {
+	public RunANTLRListener(Tool tool, AntlrOutputView outputView) {
 		this.tool = tool;
-		this.console = console;
+		this.outputView = outputView;
 	}
 
 	@Override
@@ -29,27 +29,42 @@ public class RunANTLRListener implements ANTLRToolListener {
 		if (tool.errMgr.formatWantsSingleLineMessage()) {
 			msg = msg.replace('\n', ' ');
 		}
-		console.print(msg+"\n", ConsoleViewContentType.NORMAL_OUTPUT);
+		outputView.addInfo(msg);
 		hasOutput = true;
 	}
 
 	@Override
 	public void error(ANTLRMessage msg) {
-		track(msg, ConsoleViewContentType.ERROR_OUTPUT);
+		outputView.addError(renderMessage(msg), getVirtualFile(msg), msg.line - 1, msg.charPosition);
+		hasOutput = true;
+		hasErrors = true;
 	}
 
 	@Override
 	public void warning(ANTLRMessage msg) {
-		track(msg, ConsoleViewContentType.NORMAL_OUTPUT);
+		outputView.addWarning(renderMessage(msg), getVirtualFile(msg), msg.line - 1, msg.charPosition);
+		hasOutput = true;
 	}
 
-	private void track(ANTLRMessage msg, ConsoleViewContentType errType) {
-		ST msgST = tool.errMgr.getMessageTemplate(msg);
-		String outputMsg = msgST.render();
+	public boolean hasOutput() {
+		return hasOutput;
+	}
+
+	public boolean hasErrors() {
+		return hasErrors;
+	}
+
+	private String renderMessage(ANTLRMessage msg) {
+		String outputMsg = msg.getMessageTemplate(true).render();
+
 		if (tool.errMgr.formatWantsSingleLineMessage()) {
 			outputMsg = outputMsg.replace('\n', ' ');
 		}
-		console.print(outputMsg+"\n", errType);
-		hasOutput = true;
+
+		return outputMsg;
+	}
+
+	private VirtualFile getVirtualFile(ANTLRMessage msg) {
+		return LocalFileSystem.getInstance().findFileByPath(msg.fileName);
 	}
 }

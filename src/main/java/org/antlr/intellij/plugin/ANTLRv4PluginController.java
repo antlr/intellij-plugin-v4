@@ -16,11 +16,7 @@ import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -32,9 +28,11 @@ import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.content.MessageView;
 import com.intellij.util.messages.MessageBusConnection;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
@@ -43,6 +41,7 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
+import org.antlr.intellij.plugin.ui.AntlrOutputView;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
@@ -74,13 +73,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static final Logger LOG = Logger.getInstance("ANTLRv4PluginController");
 
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
-	public static final String CONSOLE_WINDOW_ID = "Tool Output";
 
 	public boolean projectIsClosed = false;
 
 	public Project project;
 	public ConsoleView console;
-	public ToolWindow consoleWindow;
 
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<String, PreviewState>());
@@ -89,6 +86,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
 	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
+	private AntlrOutputView antlrOutputView;
 
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
@@ -140,12 +138,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		TextConsoleBuilder consoleBuilder = factory.createBuilder(project);
 		this.console = consoleBuilder.getConsole();
 
-		JComponent consoleComponent = console.getComponent();
-		content = contentFactory.createContent(consoleComponent, "", false);
+		antlrOutputView = new AntlrOutputView(project);
+		JComponent consoleComponent = antlrOutputView.getComponent();
+		Content outputContent = contentFactory.createContent(consoleComponent, "ANTLR Output", false);
 
-		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-		consoleWindow.getContentManager().addContent(content);
-		consoleWindow.setIcon(Icons.getToolWindow());
+		MessageView messageView = MessageView.SERVICE.getInstance(project);
+		messageView.runWhenInitialized(() -> messageView.getContentManager().addContent(outputContent));
 	}
 
 	@Override
@@ -163,7 +161,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		previewPanel = null;
 		previewWindow = null;
-		consoleWindow = null;
 		project = null;
 		grammarToPreviewState = null;
 	}
@@ -363,17 +360,16 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
-		String grammarFileName = grammarFile.getPath();
+	private void updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
 		PreviewState previewState = getPreviewState(grammarFile);
-		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
+		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFile, project);
+
 		if (grammars != null) {
 			synchronized (previewState) { // build atomically
 				previewState.lg = (LexerGrammar)grammars[0];
 				previewState.g = grammars[1];
 			}
 		}
-		return grammarFileName;
 	}
 
 	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
@@ -426,23 +422,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return previewPanel;
 	}
 
-	public ConsoleView getConsole() {
-		return console;
-	}
-
-	public ToolWindow getConsoleWindow() {
-		return consoleWindow;
+	public AntlrOutputView getAntlrOutputView() {
+		return antlrOutputView;
 	}
 
 	public static void showConsoleWindow(final Project project) {
-		ApplicationManager.getApplication().invokeLater(
-			new Runnable() {
-				@Override
-				public void run() {
-					ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
-				}
+		ApplicationManager.getApplication().invokeLater(() -> {
+			ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
+			if (tw != null) {
+				tw.activate(null, false);
 			}
-		);
+		});
 	}
 
 	public ToolWindow getPreviewWindow() {
