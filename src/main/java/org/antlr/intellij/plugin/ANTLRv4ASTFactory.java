@@ -13,20 +13,13 @@ import com.intellij.psi.tree.IFileElementType;
 import org.antlr.intellij.adaptor.parser.PsiElementFactory;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.intellij.plugin.psi.AtAction;
-import org.antlr.intellij.plugin.psi.GrammarSpecNode;
-import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
-import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
-import org.antlr.intellij.plugin.psi.ModeSpecNode;
-import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
-import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
-import org.antlr.intellij.plugin.psi.RulesNode;
+import org.antlr.intellij.plugin.psi.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
-	private static final Map<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<IElementType, PsiElementFactory>();
+	private static final Map<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<>();
 	static {
 		// later auto gen with tokens from some spec in grammar?
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.Factory.INSTANCE);
@@ -35,6 +28,7 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_grammarSpec), GrammarSpecNode.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_modeSpec), ModeSpecNode.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_id), TokenSpecNode.Factory.INSTANCE);
 	}
 
 	/** Create a FileElement for root or a parse tree CompositeElement (not

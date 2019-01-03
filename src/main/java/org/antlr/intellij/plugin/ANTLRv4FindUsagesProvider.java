@@ -55,6 +55,12 @@ public class ANTLRv4FindUsagesProvider implements FindUsagesProvider {
 		if (element instanceof ModeSpecNode) {
 			return "mode";
 		}
+		if (element instanceof TokenSpecNode) {
+			return "token";
+		}
+		if (element instanceof ChannelSpecNode) {
+			return "channel";
+		}
 		return "n/a";
 	}
 
