@@ -2,12 +2,14 @@ package org.antlr.intellij.plugin.psi;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
-import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
+import org.antlr.intellij.plugin.resolve.TokenVocabResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,6 +75,12 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 	@Nullable
 	@Override
 	public PsiElement resolve() {
+		PsiFile tokenVocabFile = TokenVocabResolver.resolveTokenVocabFile(getElement());
+
+		if (tokenVocabFile != null) {
+			return tokenVocabFile;
+		}
+
 		GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
 		PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
 
@@ -82,28 +90,7 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 
 		// Look for a lexer rule in the tokenVocab file if it exists
 		if (getElement() instanceof LexerRuleRefNode) {
-			String tokenVocab = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) getElement().getContainingFile());
-
-			if (tokenVocab != null) {
-				PsiDirectory parentDirectory = getElement().getContainingFile().getParent();
-				if (parentDirectory != null) {
-					PsiFile tokenVocabFile = parentDirectory.findFile(tokenVocab + ".g4");
-					if (tokenVocabFile instanceof ANTLRv4FileRoot) {
-						GrammarSpecNode lexerGrammar = PsiTreeUtil.findChildOfType(tokenVocabFile, GrammarSpecNode.class);
-						PsiElement node = MyPsiUtils.findSpecNode(lexerGrammar, ruleName);
-
-						if (node instanceof LexerRuleSpecNode) {
-							// fragments are not visible to the parser
-							if (!((LexerRuleSpecNode) node).isFragment()) {
-								return node;
-							}
-						}
-						if (node instanceof TokenSpecNode) {
-							return node;
-						}
-					}
-				}
-			}
+			return TokenVocabResolver.resolveInTokenVocab(getElement(), ruleName);
 		}
 
 		return null;

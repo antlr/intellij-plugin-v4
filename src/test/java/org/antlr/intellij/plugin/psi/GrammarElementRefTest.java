@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.psi;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintWriter;
@@ -120,6 +121,15 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 			assertEquals("STRING", element.getName());
 			assertEquals(34, element.getTextOffset());
 			assertEquals("FooLexer.g4", element.getContainingFile().getName());
+		});
+	}
+
+	public void testReferencesToTokenVocabFile() {
+		myFixture.configureByFiles("FooParser.g4", "FooLexer.g4");
+
+		moveCaret(55);
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> {
+			assertEquals("FooLexer.g4", file.getName());
 		});
 	}
 
