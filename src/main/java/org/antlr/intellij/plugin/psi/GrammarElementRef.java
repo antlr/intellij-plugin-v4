@@ -90,7 +90,17 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 					PsiFile tokenVocabFile = parentDirectory.findFile(tokenVocab + ".g4");
 					if (tokenVocabFile instanceof ANTLRv4FileRoot) {
 						GrammarSpecNode lexerGrammar = PsiTreeUtil.findChildOfType(tokenVocabFile, GrammarSpecNode.class);
-						return MyPsiUtils.findSpecNode(lexerGrammar, ruleName);
+						PsiElement node = MyPsiUtils.findSpecNode(lexerGrammar, ruleName);
+
+						if (node instanceof LexerRuleSpecNode) {
+							// fragments are not visible to the parser
+							if (!((LexerRuleSpecNode) node).isFragment()) {
+								return node;
+							}
+						}
+						if (node instanceof TokenSpecNode) {
+							return node;
+						}
 					}
 				}
 			}

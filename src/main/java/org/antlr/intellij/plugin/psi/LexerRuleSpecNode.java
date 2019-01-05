@@ -30,6 +30,10 @@ public class LexerRuleSpecNode extends RuleSpecNode {
 		return tr;
 	}
 
+	public boolean isFragment() {
+		return getNode().findChildByType(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.FRAGMENT)) != null;
+	}
+
 	public static class Factory implements PsiElementFactory {
 		public static Factory INSTANCE = new Factory();
 

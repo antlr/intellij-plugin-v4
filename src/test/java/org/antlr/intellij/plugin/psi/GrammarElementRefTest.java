@@ -99,6 +99,30 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 		});
 	}
 
+	public void testReferencesFromParserToLexer() {
+		myFixture.configureByFiles("FooParser.g4", "FooLexer.g4");
+
+		moveCaret(75);
+		assertResolvedMatches(LexerRuleSpecNode.class, element -> {
+			assertEquals("TOKEN1", element.getName());
+			assertEquals(66, element.getTextOffset());
+			assertEquals("FooLexer.g4", element.getContainingFile().getName());
+		});
+
+		moveCaret(85);
+		assertResolvesToNothing();
+
+		moveCaret(95);
+		assertResolvesToNothing();
+
+		moveCaret(100);
+		assertResolvedMatches(TokenSpecNode.class, element -> {
+			assertEquals("STRING", element.getName());
+			assertEquals(34, element.getTextOffset());
+			assertEquals("FooLexer.g4", element.getContainingFile().getName());
+		});
+	}
+
 	@Override
 	protected void tearDown() throws Exception {
 		try {
@@ -127,6 +151,15 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 			}
 		} else {
 			fail("Reference resolved to nothing");
+		}
+	}
+
+	private void assertResolvesToNothing() {
+		PsiElement psiElement = resolveRefAtCaret();
+
+		if (psiElement != null) {
+			fail("Expected element at offset " + myFixture.getCaretOffset() + " to resolve to nothing, but resolved to "
+					+ psiElement);
 		}
 	}
 
