@@ -93,7 +93,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			ANTLRReaderStream in = new ANTLRReaderStream(sr);
 			in.name = file.getName();
 			GrammarRootAST ast = antlr.parse(file.getName(), in);
-			if ( ast==null || ast.hasErrors ) return Collections.emptyList();
+			if ( ast==null || ast.hasErrors ) {
+				for (Issue issue : listener.issues) {
+					processIssue(file, issue);
+				}
+				return listener.issues;
+			}
 			Grammar g = antlr.createGrammar(ast);
 			g.fileName = grammarFileName;
 
@@ -144,6 +149,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 					CommonToken ct = (CommonToken)t;
 					int startIndex = ct.getStartIndex();
 					int stopIndex = ct.getStopIndex();
+
+					if (startIndex >= file.getTextLength()) {
+						// can happen in case of a 'mismatched input EOF' error
+						startIndex = stopIndex = file.getTextLength() - 1;
+					}
+
 					TextRange range = new TextRange(startIndex, stopIndex + 1);
 					ErrorSeverity severity = ErrorSeverity.INFO;
 					if ( issue.msg.getErrorType()!=null ) {
