@@ -1,8 +1,4 @@
-# IntelliJ Idea Plugin for ANTLR v4
-
-Latest is version 1.9.
-
-[![Build Travis-CI Status](https://travis-ci.org/antlr/intellij-plugin-v4.svg?branch=master)](https://travis-ci.org/antlr/intellij-plugin-v4)
+# IntelliJ Idea Plugin for ANTLR v4 [![Build Travis-CI Status](https://travis-ci.org/antlr/intellij-plugin-v4.svg?branch=master)](https://travis-ci.org/antlr/intellij-plugin-v4) [![Latest version](https://img.shields.io/jetbrains/plugin/v/7358.svg?label=latest%20version)](https://plugins.jetbrains.com/plugin/7358) ![Downloads](https://img.shields.io/jetbrains/plugin/d/7358.svg)
 
 An [IntelliJ](https://www.jetbrains.com/idea/) 13.x, 14.x, ..., 2018.2.5 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
 
