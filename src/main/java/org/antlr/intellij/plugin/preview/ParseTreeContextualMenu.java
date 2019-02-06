@@ -1,17 +1,23 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
@@ -40,31 +46,37 @@ class ParseTreeContextualMenu {
 
     private static JMenuItem createExportMenuItem(UberTreeViewer parseTreeViewer, String label, boolean useTransparentBackground) {
         JMenuItem item = new JMenuItem(label);
+        boolean isMacNativSaveDialog = SystemInfo.isMac && Registry.is("ide.mac.native.save.dialog");
 
         item.addActionListener(event -> {
             String[] extensions = useTransparentBackground ? new String[]{"png", "svg"} : new String[]{"png", "jpg", "svg"};
             FileSaverDescriptor descriptor = new FileSaverDescriptor("Export Image to", "Choose the destination file", extensions);
             FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project) null);
-            VirtualFileWrapper vf = dialog.save(null, "parseTree");
+
+            String fileName = "parseTree" + (isMacNativSaveDialog ? ".png" : "");
+            VirtualFileWrapper vf = dialog.save(null, fileName);
 
             if (vf == null) {
                 return;
             }
 
             File file = vf.getFile();
-            String extension = FileUtilRt.getExtension(file.getName());
+            String imageFormat = FileUtilRt.getExtension(file.getName());
+            if (StringUtils.isBlank(imageFormat)) {
+                imageFormat = "png";
+            }
 
-            if ("svg".equals(extension)) {
+            if ("svg".equals(imageFormat)) {
                 exportToSvg(parseTreeViewer, file, useTransparentBackground);
             } else {
-                exportToImage(parseTreeViewer, file, useTransparentBackground, extension);
+                exportToImage(parseTreeViewer, file, useTransparentBackground, imageFormat);
             }
         });
 
         return item;
     }
 
-    private static void exportToImage(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground, String extension) {
+    private static void exportToImage(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground, String imageFormat) {
         int imageType = useTransparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
         BufferedImage bi = UIUtil.createImage(parseTreeViewer.getWidth(), parseTreeViewer.getHeight(), imageType);
         Graphics graphics = bi.getGraphics();
@@ -77,9 +89,18 @@ class ParseTreeContextualMenu {
         parseTreeViewer.paint(graphics);
 
         try {
-            ImageIO.write(bi, extension, file);
-        } catch (IOException e2) {
-            e2.printStackTrace();
+            if (!ImageIO.write(bi, imageFormat, file)) {
+                Notification notification = new Notification(
+                        "ANTLR 4 export",
+                        "Error while exporting parse tree to file " + file.getAbsolutePath(),
+                        "unknown format '" + imageFormat + "'?",
+                        NotificationType.WARNING
+                );
+                Notifications.Bus.notify(notification);
+            }
+        } catch (IOException e) {
+            Logger.getInstance(ParseTreeContextualMenu.class)
+                    .error("Error while exporting parse tree to file " + file.getAbsolutePath(), e);
         }
     }
 
@@ -97,7 +118,8 @@ class ParseTreeContextualMenu {
         try {
             svgGenerator.stream(file.getAbsolutePath(), true);
         } catch (SVGGraphics2DIOException e) {
-            Logger.getInstance(ParseTreeContextualMenu.class).error("Error while exporting parse tree to SVG file " + file.getAbsolutePath(), e);
+            Logger.getInstance(ParseTreeContextualMenu.class)
+                    .error("Error while exporting parse tree to SVG file " + file.getAbsolutePath(), e);
         }
     }
 }
