@@ -155,6 +155,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 						startIndex = stopIndex = file.getTextLength() - 1;
 					}
 
+					if (startIndex < 0) {
+						// can happen on empty files, in that case we won't be able to show any error :/
+						startIndex = 0;
+					}
+
 					TextRange range = new TextRange(startIndex, stopIndex + 1);
 					ErrorSeverity severity = ErrorSeverity.INFO;
 					if ( issue.msg.getErrorType()!=null ) {
