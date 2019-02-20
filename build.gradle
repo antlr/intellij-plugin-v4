@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij" version "0.3.12"
+    id "org.jetbrains.intellij" version "0.4.2"
 }
 
 wrapper {
@@ -32,14 +32,6 @@ intellij {
     updateSinceUntilBuild false
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs += ['src/main/adaptor-java']
-        }
-    }
-}
-
 repositories {
     mavenCentral()
 }
@@ -48,6 +40,7 @@ dependencies {
     antlr("org.antlr:antlr4:$antlr4Version") { // use ANTLR version 4
         exclude group:'com.ibm.icu', module:'icu4j'
     }
+    compile "org.antlr:antlr4-intellij-adaptor:0.1"
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
