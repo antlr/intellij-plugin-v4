@@ -5,11 +5,11 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij" version "0.4.2"
+    id "org.jetbrains.intellij" version "0.4.4"
 }
 
 wrapper {
-    gradleVersion = '4.10.2'
+    gradleVersion = '5.2.1'
 }
 
 group 'antlr'
