@@ -5,7 +5,7 @@ import com.intellij.ui.CheckboxTreeBase;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class LiteralChooserRenderer extends CheckboxTreeBase.CheckboxTreeCellRendererBase {
+class LiteralChooserRenderer extends CheckboxTreeBase.CheckboxTreeCellRendererBase {
 	@Override
 	public void customizeRenderer(JTree tree,
 								  Object value,

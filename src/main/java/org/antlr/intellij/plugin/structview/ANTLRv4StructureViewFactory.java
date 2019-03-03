@@ -20,8 +20,8 @@ import java.util.Collections;
 
 public class ANTLRv4StructureViewFactory implements PsiStructureViewFactory {
 	/** fake a blank Treeview with a warning */
-	public static class DummyViewTreeElement extends PsiTreeElementBase<PsiElement> {
-		public DummyViewTreeElement(PsiElement psiElement) {
+	static class DummyViewTreeElement extends PsiTreeElementBase<PsiElement> {
+		DummyViewTreeElement(PsiElement psiElement) {
 			super(psiElement);
 		}
 

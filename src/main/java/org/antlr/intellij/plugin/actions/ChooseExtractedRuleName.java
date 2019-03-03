@@ -8,11 +8,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class ChooseExtractedRuleName extends DialogWrapper {
-	JBTextField nameField;
+class ChooseExtractedRuleName extends DialogWrapper {
+	private JBTextField nameField;
 	public String ruleName;
 
-	protected ChooseExtractedRuleName(@Nullable Project project) {
+	ChooseExtractedRuleName(@Nullable Project project) {
 		super(project, true);
 		init();
 	}
@@ -28,7 +28,7 @@ public class ChooseExtractedRuleName extends DialogWrapper {
 		nameField = new JBTextField("newRule");
 		double h = nameField.getSize().getHeight();
 		nameField.setPreferredSize(new Dimension(250,(int)h));
-		setTitle("Name the extracted rule");
+		setTitle("Name the Extracted Rule");
 		nameField.selectAll();
 		return nameField;
 	}

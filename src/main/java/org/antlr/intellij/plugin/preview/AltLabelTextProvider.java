@@ -14,16 +14,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class AltLabelTextProvider implements TreeTextProvider {
-	protected final Parser parser;
-	protected final Grammar g;
+class AltLabelTextProvider implements TreeTextProvider {
+	private final Parser parser;
+	private final Grammar g;
 
 	public AltLabelTextProvider(Parser parser, Grammar g) {
 		this.parser = parser;
 		this.g = g;
 	}
 
-	public String[] getAltLabels(Rule r) {
+	private String[] getAltLabels(Rule r) {
 		String[] altLabels = null;
 		Map<String, List<Pair<Integer, AltAST>>> altLabelsMap = r.getAltLabels();
 		if ( altLabelsMap!=null ) {

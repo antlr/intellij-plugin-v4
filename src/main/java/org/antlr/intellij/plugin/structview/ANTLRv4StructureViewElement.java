@@ -14,12 +14,14 @@ import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
-public class ANTLRv4StructureViewElement implements StructureViewTreeElement, SortableTreeElement {
+class ANTLRv4StructureViewElement implements StructureViewTreeElement, SortableTreeElement {
 	private PsiElement element;
 
 	public ANTLRv4StructureViewElement(PsiElement element) {
@@ -50,6 +52,7 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 			   ((NavigationItem)element).canNavigateToSource();
 	}
 
+	@NotNull
 	@Override
 	public String getAlphaSortKey() {
 		return element instanceof PsiNamedElement ? ((PsiNamedElement) element).getName() : null;
@@ -65,11 +68,11 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 		if (element instanceof ANTLRv4FileRoot) {
 			// now jump into grammar to look for rules
 			Collection<ASTWrapperPsiElement> rules =
-				PsiTreeUtil.collectElementsOfType(element, new Class[]{LexerRuleSpecNode.class, ParserRuleSpecNode.class});
+					PsiTreeUtil.collectElementsOfType(element, new Class[]{LexerRuleSpecNode.class, ParserRuleSpecNode.class});
 //			System.out.println("rules="+rules);
-			List<TreeElement> treeElements = new ArrayList<TreeElement>(rules.size());
+			List<TreeElement> treeElements = new ArrayList<>(rules.size());
 			for (ASTWrapperPsiElement el : rules) {
-				PsiElement rule = PsiTreeUtil.findChildOfAnyType(el, new Class[]{LexerRuleRefNode.class, ParserRuleRefNode.class});
+				PsiElement rule = PsiTreeUtil.findChildOfAnyType(el, LexerRuleRefNode.class, ParserRuleRefNode.class);
 				treeElements.add(new ANTLRv4StructureViewElement(rule));
 			}
 			return treeElements.toArray(new TreeElement[treeElements.size()]);
@@ -85,9 +88,7 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 
 		ANTLRv4StructureViewElement that = (ANTLRv4StructureViewElement)o;
 
-		if (element != null ? !element.equals(that.element) : that.element != null) return false;
-
-		return true;
+		return Objects.equals(element, that.element);
 	}
 
 	@Override

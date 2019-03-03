@@ -25,9 +25,9 @@ public class TrackpadZoomingTreeView extends UberTreeViewer implements Magnifica
         return at;
     }
 
-    static final double SCALE_MIN = 0.1;
-    static final double SCALE_MAX = 2.5;
-    static final double SCALE_RANGE = SCALE_MAX - SCALE_MIN;
+    private static final double SCALE_MIN = 0.1;
+    private static final double SCALE_MAX = 2.5;
+    private static final double SCALE_RANGE = SCALE_MAX - SCALE_MIN;
 
     class ScaleModel extends DefaultBoundedRangeModel {
         ScaleModel(int ticks) {
@@ -71,7 +71,7 @@ public class TrackpadZoomingTreeView extends UberTreeViewer implements Magnifica
 
         }
 
-        public void setDoubleValue(double value) {
+        void setDoubleValue(double value) {
             setValue(computeIntValue(value));
         }
 
@@ -81,13 +81,13 @@ public class TrackpadZoomingTreeView extends UberTreeViewer implements Magnifica
 
     }
 
-    static double clamp(double val) {
+    private static double clamp(double val) {
         if (val <= SCALE_MIN) return SCALE_MIN;
         if (val >= SCALE_MAX) return SCALE_MAX;
         return val;
     }
 
-    void doSetScale(double scale) {
+    private void doSetScale(double scale) {
         super.setScale(clamp(scale));
     }
 

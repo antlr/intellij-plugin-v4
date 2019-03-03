@@ -10,7 +10,6 @@ import org.antlr.intellij.plugin.psi.RuleSpecNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,16 +18,11 @@ public class ANTLRv4LineMarkerProvider implements LineMarkerProvider {
 	@Override
 	public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
 		final GutterIconNavigationHandler<PsiElement> navHandler =
-			new GutterIconNavigationHandler<PsiElement>() {
-				@Override
-				public void navigate(MouseEvent e, PsiElement elt) {
-					System.out.println("don't click on me");
-				}
-			};
+				(e, elt) -> System.out.println("don't click on me");
 		if ( element instanceof RuleSpecNode ) {
-			return new LineMarkerInfo<PsiElement>(element, element.getTextRange(), Icons.FILE,
-												  Pass.UPDATE_ALL, null, navHandler,
-												  GutterIconRenderer.Alignment.LEFT);
+			return new LineMarkerInfo<>(element, element.getTextRange(), Icons.FILE,
+					Pass.UPDATE_ALL, null, navHandler,
+					GutterIconRenderer.Alignment.LEFT);
 		}
 		return null;
 	}

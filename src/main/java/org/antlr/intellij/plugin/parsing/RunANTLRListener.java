@@ -13,10 +13,10 @@ import java.util.List;
 /** Used to track errors during antlr run on a grammar for generation,
  *  not for annotation of grammar.
  */
-public class RunANTLRListener implements ANTLRToolListener {
-	public final List<String> all = new ArrayList<String>();
-	public Tool tool;
-	public ConsoleView console;
+class RunANTLRListener implements ANTLRToolListener {
+	public final List<String> all = new ArrayList<>();
+	private Tool tool;
+	private ConsoleView console;
 	public boolean hasOutput = false;
 
 	public RunANTLRListener(Tool tool, ConsoleView console) {

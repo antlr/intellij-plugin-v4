@@ -68,29 +68,29 @@ import java.util.Map;
  *  the grammars and editors are consistently associated with the same window.
  */
 public class ANTLRv4PluginController implements ProjectComponent {
-	public static final String PLUGIN_ID = "org.antlr.intellij.plugin";
+	private static final String PLUGIN_ID = "org.antlr.intellij.plugin";
 
-	public static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
+	private static final Key<GrammarEditorMouseAdapter> EDITOR_MOUSE_LISTENER_KEY = Key.create("EDITOR_MOUSE_LISTENER_KEY");
 	public static final Logger LOG = Logger.getInstance("ANTLRv4PluginController");
 
 	public static final String PREVIEW_WINDOW_ID = "ANTLR Preview";
-	public static final String CONSOLE_WINDOW_ID = "Tool Output";
+	private static final String CONSOLE_WINDOW_ID = "Tool Output";
 
-	public boolean projectIsClosed = false;
+	private boolean projectIsClosed = false;
 
-	public Project project;
-	public ConsoleView console;
-	public ToolWindow consoleWindow;
+	private Project project;
+	private ConsoleView console;
+	private ToolWindow consoleWindow;
 
-	public Map<String, PreviewState> grammarToPreviewState =
-		Collections.synchronizedMap(new HashMap<String, PreviewState>());
-	public ToolWindow previewWindow;	// same for all grammar editor
-	public PreviewPanel previewPanel;	// same for all grammar editor
+	private Map<String, PreviewState> grammarToPreviewState =
+		Collections.synchronizedMap(new HashMap<>());
+	private ToolWindow previewWindow;	// same for all grammar editor
+	private PreviewPanel previewPanel;	// same for all grammar editor
 
-	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
-	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
+	private MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
+	private MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
 
-	public ANTLRv4PluginController(Project project) {
+	private ANTLRv4PluginController(Project project) {
 		this.project = project;
 	}
 
@@ -123,7 +123,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		installListeners();
 	}
 
-	public void createToolWindows() {
+	private void createToolWindows() {
 		LOG.info("createToolWindows "+project.getName());
 		ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
 
@@ -172,7 +172,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	// a ptr was left around that pointed at a disposed project. led to
 	// problem in switchGrammar. Probably was a listener still attached and trigger
 	// editor listeners released in editorReleased() events.
-	public void uninstallListeners() {
+	private void uninstallListeners() {
 		VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
 		MessageBusConnection msgBus = project.getMessageBus().connect(project);
 		msgBus.disconnect();
@@ -190,7 +190,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	// ------------------------------
 
-	public void installListeners() {
+	private void installListeners() {
 		LOG.info("installListeners "+project.getName());
 		// Listen for .g4 file saves
 		VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileAdapter);
@@ -251,7 +251,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public void grammarFileSavedEvent(VirtualFile grammarFile) {
+	private void grammarFileSavedEvent(VirtualFile grammarFile) {
 		LOG.info("grammarFileSavedEvent "+grammarFile.getPath()+" "+project.getName());
 		updateGrammarObjectsFromFile(grammarFile, true); // force reload
 		if ( previewPanel!=null ) {
@@ -262,7 +262,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
+	private void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
 		LOG.info("currentEditorFileChangedEvent "+(oldFile!=null?oldFile.getPath():"none")+
 				 " -> "+(newFile!=null?newFile.getPath():"none")+" "+project.getName());
 		if ( newFile==null ) { // all files must be closed I guess
@@ -286,7 +286,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
+	private void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
 		if ( previewPanel!=null ) {
 			ProfilerPanel profilerPanel = previewPanel.getProfilerPanel();
 			if ( profilerPanel!=null ) {
@@ -295,7 +295,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public void editorFileClosedEvent(VirtualFile vfile) {
+	private void editorFileClosedEvent(VirtualFile vfile) {
 		// hopefully called only from swing EDT
 		String grammarFileName = vfile.getPath();
 		LOG.info("editorFileClosedEvent "+ grammarFileName+" "+project.getName());
@@ -329,7 +329,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	/** Make sure to run after updating grammars in previewState */
-	public void runANTLRTool(final VirtualFile grammarFile) {
+	private void runANTLRTool(final VirtualFile grammarFile) {
 		String title = "ANTLR Code Generation";
 		boolean canBeCancelled = true;
 		boolean forceGeneration = false;
@@ -381,7 +381,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return grammarFileName;
 	}
 
-	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
+	private PreviewState getAssociatedParserIfLexer(String grammarFileName) {
 		for (PreviewState s : grammarToPreviewState.values()) {
 			if ( s!=null && s.lg!=null &&
 				 (grammarFileName.equals(s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
@@ -435,18 +435,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return console;
 	}
 
-	public ToolWindow getConsoleWindow() {
+	private ToolWindow getConsoleWindow() {
 		return consoleWindow;
 	}
 
 	public static void showConsoleWindow(final Project project) {
 		ApplicationManager.getApplication().invokeLater(
-			new Runnable() {
-				@Override
-				public void run() {
-					ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
-				}
-			}
+				() -> ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null)
 		);
 	}
 
@@ -510,10 +505,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	// when you are sure the user is in control and is viewing the
 	// right file (i.e., don't use these during project loading etc...)
 
-	public static VirtualFile getCurrentEditorFile(Project project) {
+	private static VirtualFile getCurrentEditorFile(Project project) {
 		FileEditorManager fmgr = FileEditorManager.getInstance(project);
 		// "If more than one file is selected (split), the file with most recent focused editor is returned first." from IDE doc on method
-		VirtualFile files[] = fmgr.getSelectedFiles();
+		VirtualFile[] files = fmgr.getSelectedFiles();
 		if ( files.length == 0 ) {
 			return null;
 		}
@@ -529,7 +524,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return getCurrentGrammarFile(project);
 	}
 
-	public static VirtualFile getCurrentGrammarFile(Project project) {
+	private static VirtualFile getCurrentGrammarFile(Project project) {
 		VirtualFile f = getCurrentEditorFile(project);
 		if ( f==null ) {
 			return null;

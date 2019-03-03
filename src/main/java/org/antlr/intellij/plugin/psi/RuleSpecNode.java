@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 /** Root of lexer, parser rule defs */
 public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNamedElement {
-	protected String name = null; // an override to input text ID
+	private String name = null; // an override to input text ID
 
 	public RuleSpecNode(@NotNull final ASTNode node) {
 		super(node);
@@ -48,7 +48,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		return this;
 	}
 
-	public abstract IElementType getRuleRefType();
+	protected abstract IElementType getRuleRefType();
 
 	@Override
 	public void subtreeChanged() {

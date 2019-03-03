@@ -37,11 +37,7 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 		RulesNode rules = PsiTreeUtil.getContextOfType(myElement, RulesNode.class);
 		// find all rule defs (token, parser)
 		Collection<? extends RuleSpecNode> ruleSpecNodes =
-			PsiTreeUtil.findChildrenOfAnyType(rules,
-											  new Class[] {
-												ParserRuleSpecNode.class,
-											  	LexerRuleSpecNode.class}
-											 );
+			PsiTreeUtil.findChildrenOfAnyType(rules, ParserRuleSpecNode.class, LexerRuleSpecNode.class);
 
 		return ruleSpecNodes.toArray();
 //

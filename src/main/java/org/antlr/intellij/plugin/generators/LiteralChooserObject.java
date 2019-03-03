@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class LiteralChooserObject {
+class LiteralChooserObject {
 	private final String text;
 	private final Icon icon;
 

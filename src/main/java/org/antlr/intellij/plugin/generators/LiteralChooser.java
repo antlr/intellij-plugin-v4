@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 public class LiteralChooser extends DialogWrapper {
-	Tree tree;
-	LinkedHashSet<String> selectedElements =
-		new LinkedHashSet<String>();
+	private Tree tree;
+	private LinkedHashSet<String> selectedElements =
+			new LinkedHashSet<>();
 
 	public LiteralChooser(@Nullable Project project, java.util.List<String> literals) {
 		super(project, true);
@@ -35,7 +35,7 @@ public class LiteralChooser extends DialogWrapper {
 		init();
 	}
 
-	public Tree createTree(java.util.List<String> literals) {
+	private Tree createTree(java.util.List<String> literals) {
 		final CheckedTreeNode rootNode = new CheckedTreeNode("all literals not defined");
 		for (String literal : literals) {
 			CheckedTreeNode child = new CheckedTreeNode(new LiteralChooserObject(literal, Icons.LEXER_RULE));
@@ -87,19 +87,18 @@ public class LiteralChooser extends DialogWrapper {
 //			System.out.println("select event ----------");
 			TreePath[] paths = e.getPaths();
 			if (paths == null) return;
-			for (int i = 0; i < paths.length; i++) {
-				Object node = paths[i].getLastPathComponent();
-				if (node instanceof CheckedTreeNode) {
+			for ( TreePath path : paths ) {
+				Object node = path.getLastPathComponent();
+				if ( node instanceof CheckedTreeNode ) {
 					Object userObject = ((DefaultMutableTreeNode) node).getUserObject();
-					if (userObject instanceof LiteralChooserObject) {
+					if ( userObject instanceof LiteralChooserObject ) {
 						LiteralChooserObject literalObject = (LiteralChooserObject) userObject;
 						String text = literalObject.getText();
 //						System.out.println("selected " + text);
-						if ( e.isAddedPath(paths[i]) ) {
+						if ( e.isAddedPath(path) ) {
 							if ( selectedElements.contains(text) ) {
 								selectedElements.remove(text);
-							}
-							else {
+							} else {
 								selectedElements.add(text);
 							}
 //							System.out.println("added path: "+text);
@@ -121,7 +120,7 @@ public class LiteralChooser extends DialogWrapper {
 	@Nullable
 	public java.util.List<String> getSelectedElements() {
 		final LinkedHashSet<String> list = getSelectedElementsList();
-		return list == null ? null : new ArrayList<String>(list);
+		return list == null ? null : new ArrayList<>(list);
 	}
 
 }

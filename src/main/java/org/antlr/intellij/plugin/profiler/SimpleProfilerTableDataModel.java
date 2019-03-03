@@ -6,13 +6,13 @@ import org.antlr.v4.runtime.atn.ParseInfo;
 import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
-    public ParseInfo parseInfo;
-    public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
-    public static final String[] columnNames = {
+    private ParseInfo parseInfo;
+    private LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
+    private static final String[] columnNames = {
             "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };
 
-    public static final String[] columnToolTips = {
+    private static final String[] columnToolTips = {
         "# decision invocations",
 		"Rough estimate of time (ms) spent in prediction",
 		"Total lookahead symbols examined",

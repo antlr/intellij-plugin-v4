@@ -22,7 +22,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 
 public class TestRuleAction extends AnAction implements DumbAware {
-	public static final Logger LOG = Logger.getInstance("ANTLR TestRuleAction");
+	private static final Logger LOG = Logger.getInstance("ANTLR TestRuleAction");
 
 	/** Only show if selection is a grammar and in a rule */
 	@Override

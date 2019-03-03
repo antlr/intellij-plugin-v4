@@ -11,7 +11,7 @@ import org.antlr.v4.tool.GrammarInterpreterRuleContext;
  */
 public class PreviewInterpreterRuleContext extends GrammarInterpreterRuleContext {
 	/** Used to mark root of subtree that hits the decision override, if any */
-	protected boolean isDecisionOverrideRoot;
+	boolean isDecisionOverrideRoot;
 
 	/** A mark bit used during tree diff walk. If marked, then we reached
 	 *  this node.

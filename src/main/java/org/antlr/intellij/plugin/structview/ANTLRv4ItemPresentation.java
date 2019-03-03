@@ -15,10 +15,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class ANTLRv4ItemPresentation implements ItemPresentation {
-	protected final PsiElement element;
+class ANTLRv4ItemPresentation implements ItemPresentation {
+	private final PsiElement element;
 
-	protected ANTLRv4ItemPresentation(PsiElement element) {
+	ANTLRv4ItemPresentation(PsiElement element) {
 		this.element = element;
 	}
 

@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.refactor;
 
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RefactorUtils {
-	public static final Map<String,String> literalToRuleNameMap = new HashMap<String, String>() {{
+	private static final Map<String,String> literalToRuleNameMap = new HashMap<String, String>() {{
 		put("'('", "LPAREN");
 		put("')'", "RPAREN");
 		put("'{'", "LBRACE");
@@ -75,7 +74,7 @@ public class RefactorUtils {
 		put("'\\'", "BACKSLASH");
 	}};
 
-	public static int lexerRuleNameID = 1;
+	private static int lexerRuleNameID = 1;
 
 	public static String getLexerRuleNameFromLiteral(String literal) {
 		String name = literalToRuleNameMap.get(literal);
@@ -124,7 +123,7 @@ public class RefactorUtils {
 		return null;
 	}
 
-	public static ParseTree getAncestorWithType(ParseTree t, Class<? extends ParseTree> clazz) {
+	private static ParseTree getAncestorWithType(ParseTree t, Class<? extends ParseTree> clazz) {
 		if ( t==null || clazz==null || t.getParent()==null ) return null;
 		Tree p = t.getParent();
 		while ( p!=null ) {
@@ -146,26 +145,14 @@ public class RefactorUtils {
 	                               final int start, final int stop, // inclusive
 	                               final String text)
 	{
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) throws Throwable {
-				doc.replaceString(start, stop+1, text);
-			}
-		};
-		setTextAction.execute();
+		WriteCommandAction.runWriteCommandAction(project, () -> doc.replaceString(start, stop+1, text));
 	}
 
 	public static void insertText(final Project project, final Document doc,
 	                              final int where,
 	                              final String text)
 	{
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) throws Throwable {
-				doc.insertString(where, text);
-			}
-		};
-		setTextAction.execute();
+		WriteCommandAction.runWriteCommandAction(project, () -> doc.insertString(where, text));
 	}
 
 	/** Get start/stop of an entire rule including semi and then clean up
@@ -197,7 +184,7 @@ public class RefactorUtils {
 	}
 
 	public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
-		List<TerminalNode> nodes = new ArrayList<TerminalNode>();
+		List<TerminalNode> nodes = new ArrayList<>();
 		Collection<ParseTree> ruleRefs;
 		if ( Grammar.isTokenName(ruleName) ) {
 			ruleRefs = XPath.findAll(tree, "//lexerRuleBlock//TOKEN_REF", parser);

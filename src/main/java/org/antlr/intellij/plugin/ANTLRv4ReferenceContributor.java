@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 // says: "PsiReferenceContributor is supposed to be used for injecting references
 // into languages that you don't control (Java, XML etc.), or if you want other
 // people to be able to inject references into your language."
-public class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
+class ANTLRv4ReferenceContributor extends PsiReferenceContributor {
 	@Override
 	public void registerReferenceProviders(PsiReferenceRegistrar registrar) {
 		PsiReferenceProvider provider = new PsiReferenceProvider() {

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 /** Refs to tokens, rules */
 public abstract class GrammarElementRefNode extends LeafPsiElement implements PsiNamedElement {
-	protected String name = null; // an override to input text ID if we rename via intellij
+	private String name = null; // an override to input text ID if we rename via intellij
 
 	public GrammarElementRefNode(IElementType type, CharSequence text) {
 		super(type, text);
@@ -40,7 +40,7 @@ public abstract class GrammarElementRefNode extends LeafPsiElement implements Ps
 		return this;
 	}
 
-	public abstract IElementType getRuleRefType();
+	protected abstract IElementType getRuleRefType();
 
 	@Override
 	public String toString() {

@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TokenSpecNode extends RuleSpecNode {
 
-	public TokenSpecNode(@NotNull ASTNode node) {
+	private TokenSpecNode(@NotNull ASTNode node) {
 		super(node);
 	}
 

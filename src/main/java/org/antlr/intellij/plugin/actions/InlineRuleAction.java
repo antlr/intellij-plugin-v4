@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -74,20 +73,16 @@ public class InlineRuleAction extends AnAction {
 		final String ruleText = ruleText_; // we ref from inner class; requires final
 
 		// replace rule refs with rule text
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) throws Throwable {
-				// do in a single action so undo works in one go
-				replaceRuleRefs(doc,tokens,ruleName,rrefNodes,ruleText);
-			}
-		};
-		setTextAction.execute();
+		WriteCommandAction.runWriteCommandAction(project, () -> {
+			// do in a single action so undo works in one go
+			replaceRuleRefs(doc,tokens,ruleName,rrefNodes,ruleText);
+		});
 	}
 
-	public void replaceRuleRefs(Document doc, CommonTokenStream tokens,
-	                            String ruleName,
-	                            List<TerminalNode> rrefNodes,
-	                            String ruleText)
+	private void replaceRuleRefs(Document doc, CommonTokenStream tokens,
+								 String ruleName,
+								 List<TerminalNode> rrefNodes,
+								 String ruleText)
 	{
 		int base = 0;
 		for (TerminalNode t : rrefNodes) { // walk nodes in lexicographic order, replacing as we go

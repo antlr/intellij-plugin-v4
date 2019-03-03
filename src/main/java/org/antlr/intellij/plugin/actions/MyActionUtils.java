@@ -11,7 +11,6 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -76,7 +75,7 @@ public class MyActionUtils {
 	public static List<RangeHighlighter> getRangeHighlightersAtOffset(Editor editor, int offset) {
 		MarkupModel markupModel = editor.getMarkupModel();
 		// collect all highlighters and combine to make a single tool tip
-		List<RangeHighlighter> highlightersAtOffset = new ArrayList<RangeHighlighter>();
+		List<RangeHighlighter> highlightersAtOffset = new ArrayList<>();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			int a = r.getStartOffset();
 			int b = r.getEndOffset();
@@ -123,8 +122,8 @@ public class MyActionUtils {
 		return PsiTreeUtil.findChildOfType(ruleSpecNode, LexerRuleRefNode.class);
 	}
 
-	public static RuleSpecNode getRuleSurroundingRef(PsiElement selectedPsiNode,
-	                                                 final Class<? extends RuleSpecNode> ruleSpecNodeClass)
+	private static RuleSpecNode getRuleSurroundingRef(PsiElement selectedPsiNode,
+													  final Class<? extends RuleSpecNode> ruleSpecNodeClass)
 	{
 //		System.out.println("selectedPsiNode: "+selectedPsiNode);
 		if ( selectedPsiNode==null ) { // didn't select a node in parse tree
@@ -133,12 +132,7 @@ public class MyActionUtils {
 
 		// find root of rule def
 		if ( !selectedPsiNode.getClass().equals(ruleSpecNodeClass) ) {
-			selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, new Condition<PsiElement>() {
-				@Override
-				public boolean value(PsiElement psiElement) {
-					return psiElement.getClass().equals(ruleSpecNodeClass);
-				}
-			});
+			selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, psiElement -> psiElement.getClass().equals(ruleSpecNodeClass));
 			if ( selectedPsiNode==null ) { // not in rule I guess.
 				return null;
 			}

@@ -20,11 +20,11 @@ public class PreviewParser extends GrammarParserInterpreter {
 	/** Map each preview editor token to the grammar ATN state used to match it.
 	 *  Saves us having to create special token subclass and token factory.
 	 */
-	public Map<Token, Integer> inputTokenToStateMap = new HashMap<Token, Integer>();
+	public Map<Token, Integer> inputTokenToStateMap = new HashMap<>();
 
-	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER; // not sure about error nodes
+	private int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER; // not sure about error nodes
 
-	public PreviewParser(Grammar g, ATN atn, TokenStream input) {
+	private PreviewParser(Grammar g, ATN atn, TokenStream input) {
 		super(g, atn, input);
 	}
 

@@ -41,10 +41,9 @@ import org.antlr.v4.runtime.atn.SemanticContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -53,22 +52,20 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 public class ProfilerPanel {
-	public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
-	public static final Color FULLCTX_COLOR = new Color(255, 128, 0);
-	public static final Color PREDEVAL_COLOR = new Color(110, 139, 61);
-	public static final Color DEEPESTLOOK_COLOR = new Color(0, 128, 128);
+	private static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
+	private static final Color FULLCTX_COLOR = new Color(255, 128, 0);
+	private static final Color PREDEVAL_COLOR = new Color(110, 139, 61);
+	private static final Color DEEPESTLOOK_COLOR = new Color(0, 128, 128);
 
 	public static final Key<DecisionEventInfo> DECISION_EVENT_INFO_KEY = Key.create("DECISION_EVENT_INFO");
-	public static final Key<DecisionInfo> DECISION_INFO_KEY = Key.create("DECISION_INFO_KEY");
+	private static final Key<DecisionInfo> DECISION_INFO_KEY = Key.create("DECISION_INFO_KEY");
 
-	public Project project;
-	public PreviewState previewState;
-	public PreviewPanel previewPanel;
+	private Project project;
+	private PreviewState previewState;
+	private PreviewPanel previewPanel;
 
 	protected JPanel outerPanel;
 	protected JPanel statsPanel;
@@ -155,7 +152,7 @@ public class ProfilerPanel {
 		                          );
 	}
 
-	public void updateTableModelPerExpertCheckBox(ParseInfo parseInfo) {
+	private void updateTableModelPerExpertCheckBox(ParseInfo parseInfo) {
 		AbstractTableModel model;
 		if ( expertCheckBox.isSelected() ) {
 			model = new ExpertProfilerTableDataModel(parseInfo);
@@ -164,10 +161,10 @@ public class ProfilerPanel {
 			model = new SimpleProfilerTableDataModel(parseInfo);
 		}
 		profilerDataTable.setModel(model);
-		profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
+		profilerDataTable.setRowSorter(new TableRowSorter<>(model));
 	}
 
-	public void selectDecisionInGrammar(PreviewState previewState, int decision) {
+	private void selectDecisionInGrammar(PreviewState previewState, int decision) {
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewState.project);
 		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
@@ -222,7 +219,7 @@ public class ProfilerPanel {
 		scrollingModel.scrollToCaret(ScrollType.MAKE_VISIBLE);
 	}
 
-	public void highlightInputPhrases(PreviewState previewState, int decision) {
+	private void highlightInputPhrases(PreviewState previewState, int decision) {
 		if ( previewState==null || previewState.parsingResult==null ) {
 			return;
 		}
@@ -276,9 +273,9 @@ public class ProfilerPanel {
 		}
 	}
 
-	public Token addDecisionEventHighlighter(PreviewState previewState, MarkupModel markupModel,
-	                                         DecisionEventInfo info, Color errorStripeColor,
-	                                         EffectType effectType) {
+	private Token addDecisionEventHighlighter(PreviewState previewState, MarkupModel markupModel,
+											  DecisionEventInfo info, Color errorStripeColor,
+											  EffectType effectType) {
 		TokenStream tokens = previewState.parsingResult.parser.getInputStream();
 		Token startToken = tokens.get(info.startIndex);
 		Token stopToken = tokens.get(info.stopIndex);
@@ -433,18 +430,16 @@ public class ProfilerPanel {
 	private void createUIComponents() {
 		expertCheckBox = new JBCheckBox();
 		expertCheckBox.setSelected(false);
-		expertCheckBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (previewState.parsingResult == null) {
-					// nothing has been parsed yet (no text in the editor)
-					return;
-				}
-				ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-				updateTableModelPerExpertCheckBox(parseInfo);
+		expertCheckBox.addActionListener(e -> {
+			if (previewState.parsingResult == null) {
+				// nothing has been parsed yet (no text in the editor)
+				return;
 			}
+			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
+			updateTableModelPerExpertCheckBox(parseInfo);
 		});
 		profilerDataTable = new JBTable() {
+			@NotNull
 			@Override
 			protected JTableHeader createDefaultTableHeader() {
 				return new JTableHeader(columnModel) {
@@ -468,9 +463,7 @@ public class ProfilerPanel {
 		};
 		ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
 		selectionModel.addListSelectionListener(
-			new ListSelectionListener() {
-				@Override
-				public void valueChanged(ListSelectionEvent e) {
+				e -> {
 					// previewState, project set later
 					if ( e.getValueIsAdjusting() ) {
 						return; // this seems to be "mouse down" but not mouse up
@@ -492,8 +485,7 @@ public class ProfilerPanel {
 						}
 					}
 				}
-			}
-		                                       );
+		);
 		selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		ambiguityColorLabel = new JBLabel("Ambiguity");
 		ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);

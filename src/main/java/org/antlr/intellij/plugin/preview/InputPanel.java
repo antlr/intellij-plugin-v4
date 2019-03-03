@@ -64,8 +64,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -76,9 +74,9 @@ import java.util.List;
 // Not a view itself but delegates to one.
 
 public class InputPanel {
-	public static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
-	public static final int MAX_STACK_DISPLAY = 30;
-	public static final int MAX_HINT_WIDTH = 110;
+	private static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
+	private static final int MAX_STACK_DISPLAY = 30;
+	private static final int MAX_HINT_WIDTH = 110;
 
 	private JRadioButton inputRadioButton;
 	private JRadioButton fileRadioButton;
@@ -90,29 +88,29 @@ public class InputPanel {
 	private TextFieldWithBrowseButton fileChooser;
 	protected JPanel outerMostPanel;
 
-	public static final Logger LOG = Logger.getInstance("ANTLR InputPanel");
-	public static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
-	public static final int ERROR_LAYER = HighlighterLayer.ERROR;
+	private static final Logger LOG = Logger.getInstance("ANTLR InputPanel");
+	private static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
+	private static final int ERROR_LAYER = HighlighterLayer.ERROR;
 
 	/**
 	 * switchToGrammar() was seeing an empty slot instead of a previous
 	 * editor or placeHolder. Figured it was an order of operations thing
 	 * and synchronized add/remove ops. Works now w/o error.
 	 */
-	public final Object swapEditorComponentLock = new Object();
+	private final Object swapEditorComponentLock = new Object();
 
-	public static final String missingStartRuleLabelText =
+	private static final String missingStartRuleLabelText =
 		"%s start rule: <select from navigator or grammar>";
-	public static final String startRuleLabelText = "%s start rule: %s";
+	private static final String startRuleLabelText = "%s start rule: %s";
 
-	public PreviewPanel previewPanel;
+	private PreviewPanel previewPanel;
 
 	/**
 	 * state for grammar in current editor, not editor where user is typing preview input!
 	 */
 	public PreviewState previewState;
 
-	PreviewEditorMouseListener editorMouseListener;
+	private PreviewEditorMouseListener editorMouseListener;
 
 	public InputPanel(final PreviewPanel previewPanel) {
 		$$$setupUI$$$();
@@ -143,7 +141,7 @@ public class InputPanel {
 					choose(chosenFile);
 				}
 
-				protected void choose(VirtualFile chosenFile) {
+				void choose(VirtualFile chosenFile) {
 					// this next line is the code taken from super; pasted in
 					// to avoid compile error on super.onFileCho[o]sen
 					TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
@@ -154,13 +152,8 @@ public class InputPanel {
 					selectFileEvent();
 				}
 			};
-		fileChooser.addBrowseFolderListener(previewPanel.project, browseActionListener);
-		fileChooser.getButton().addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fileRadioButton.setSelected(true);
-			}
-		});
+		fileChooser.addActionListener(browseActionListener);
+		fileChooser.getButton().addActionListener(e -> fileRadioButton.setSelected(true));
 		fileChooser.setTextFieldPreferredWidth(40);
 
 		inputRadioButton.addActionListener(e -> selectInputEvent());
@@ -187,7 +180,7 @@ public class InputPanel {
 		return startRuleLabel;
 	}
 
-	public void selectInputEvent() {
+	private void selectInputEvent() {
 		inputRadioButton.setSelected(true);
 
 		// get state for grammar in current editor, not editor where user is typing preview input!
@@ -206,7 +199,7 @@ public class InputPanel {
 		clearErrorConsole();
 	}
 
-	public void createManualInputPreviewEditor(final PreviewState previewState) {
+	private void createManualInputPreviewEditor(final PreviewState previewState) {
 		final EditorFactory factory = EditorFactory.getInstance();
 		Document doc = factory.createDocument(previewState.manualInputText);
 		doc.addDocumentListener(
@@ -223,7 +216,7 @@ public class InputPanel {
 		previewState.setInputEditor(editor);
 	}
 
-	public void selectFileEvent() {
+	private void selectFileEvent() {
 		fileRadioButton.setSelected(true);
 
 		if ( previewState==null ) {
@@ -269,7 +262,7 @@ public class InputPanel {
 		}
 	}
 
-	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
+	private Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
 		LOG.info("createEditor: create new editor for "+grammarFile.getPath()+" "+previewPanel.project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
 		doc.addDocumentListener(
@@ -371,7 +364,7 @@ public class InputPanel {
 		}
 	}
 
-	public void setEditorComponent(JComponent editor) {
+	private void setEditorComponent(JComponent editor) {
 		BorderLayout layout = (BorderLayout) outerMostPanel.getLayout();
 		String EDITOR_SPOT_COMPONENT = BorderLayout.CENTER;
 		// atomically remove old
@@ -419,7 +412,7 @@ public class InputPanel {
 		setEditorComponent(placeHolder);
 	}
 
-	public void installListeners(Editor editor) {
+	private void installListeners(Editor editor) {
 		if (editor instanceof EditorEx) {
 			// Avoid showing the default context menu
 			((EditorEx) editor).setContextMenuGroupId("AntlrContextMenu");
@@ -428,7 +421,7 @@ public class InputPanel {
 		editor.addEditorMouseListener(editorMouseListener);
 	}
 
-	public void uninstallListeners(Editor editor) {
+	private void uninstallListeners(Editor editor) {
 		if ( editor==null ) return;
 		editor.removeEditorMouseListener(editorMouseListener);
 		editor.removeEditorMouseMotionListener(editorMouseListener);
@@ -456,7 +449,7 @@ public class InputPanel {
 		errorConsole.setText("");
 	}
 
-	public void displayErrorInParseErrorConsole(SyntaxError e) {
+	private void displayErrorInParseErrorConsole(SyntaxError e) {
 		String msg = getErrorDisplayString(e);
 		errorConsole.insert(msg+'\n', errorConsole.getText().length());
 	}
@@ -479,7 +472,7 @@ public class InputPanel {
 	/**
 	 * Clear all input highlighters
 	 */
-	public void clearInputEditorHighlighters() {
+	private void clearInputEditorHighlighters() {
 		Editor editor = getInputEditor();
 		if ( editor==null ) return;
 
@@ -600,26 +593,24 @@ public class InputPanel {
 
 		if ( stack.size()>MAX_STACK_DISPLAY ) {
 			// collapse contiguous dups to handle left-recursive stacks
-			List<Pair<String, Integer>> smaller = new ArrayList<Pair<String, Integer>>();
+			List<Pair<String, Integer>> smaller = new ArrayList<>();
 			int last = 0;
-			smaller.add(new Pair<String, Integer>(stack.get(0), 1)); // init to having first element, count of 1
+			smaller.add(new Pair<>(stack.get(0), 1)); // init to having first element, count of 1
 			for (int i = 1; i<stack.size(); i++) {
 				String s = stack.get(i);
 				if ( smaller.get(last).a.equals(s) ) {
-					smaller.set(last, new Pair<String, Integer>(s, smaller.get(last).b+1));
+					smaller.set(last, new Pair<>(s, smaller.get(last).b + 1));
 				}
 				else {
-					smaller.add(new Pair<String, Integer>(s, 1));
+					smaller.add(new Pair<>(s, 1));
 					last++;
 				}
 			}
-			stack = new ArrayList<String>();
-			for (int i = 0; i<smaller.size(); i++) {
-				Pair<String, Integer> pair = smaller.get(i);
+			stack = new ArrayList<>();
+			for ( Pair<String, Integer> pair : smaller ) {
 				if ( pair.b>1 ) {
-					stack.add(pair.a+"^"+pair.b);
-				}
-				else {
+					stack.add(pair.a + "^" + pair.b);
+				} else {
 					stack.add(pair.a);
 				}
 			}
@@ -644,10 +635,10 @@ public class InputPanel {
 //		balloon.show(where, Balloon.Position.above);
 	}
 
-	public void highlightAndOfferHint(Editor editor, int offset,
-	                                  Interval sourceInterval,
-	                                  JBColor color,
-	                                  EffectType effectType, String hintText) {
+	private void highlightAndOfferHint(Editor editor, int offset,
+									   Interval sourceInterval,
+									   JBColor color,
+									   EffectType effectType, String hintText) {
 		CaretModel caretModel = editor.getCaretModel();
 		final TextAttributes attr = new TextAttributes();
 		attr.setForegroundColor(color);
@@ -713,7 +704,7 @@ public class InputPanel {
 		jumpToGrammarPosition(project, start);
 	}
 
-	public void jumpToGrammarPosition(Project project, int start) {
+	private void jumpToGrammarPosition(Project project, int start) {
 		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		if ( controller==null ) return;
 		final Editor grammarEditor = controller.getEditor(previewState.grammarFile);
@@ -744,45 +735,39 @@ public class InputPanel {
 			return;
 		}
 
-		List<String> msgList = new ArrayList<String>();
+		List<String> msgList = new ArrayList<>();
 		boolean foundDecisionEvent = false;
-		for (int i = 0; i<highlightersAtOffset.size(); i++) {
-			RangeHighlighter r = highlightersAtOffset.get(i);
+		for ( RangeHighlighter r : highlightersAtOffset ) {
 			DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
 			String msg;
 			if ( eventInfo!=null ) {
 				// TODO: move decision event stuff to profiler?
 				if ( eventInfo instanceof AmbiguityInfo ) {
-					msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
-				}
-				else if ( eventInfo instanceof ContextSensitivityInfo ) {
+					msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
+				} else if ( eventInfo instanceof ContextSensitivityInfo ) {
 					msg = "Context-sensitive";
-				}
-				else if ( eventInfo instanceof LookaheadEventInfo ) {
-					int k = eventInfo.stopIndex-eventInfo.startIndex+1;
-					msg = "Deepest lookahead k="+k;
-				}
-				else if ( eventInfo instanceof PredicateEvalInfo ) {
+				} else if ( eventInfo instanceof LookaheadEventInfo ) {
+					int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
+					msg = "Deepest lookahead k=" + k;
+				} else if ( eventInfo instanceof PredicateEvalInfo ) {
 					PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
 					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
-					                                                    previewState,
-					                                                    evalInfo.semctx, evalInfo.predictedAlt,
-					                                                    evalInfo.evalResult);
-					msg = msg+(!evalInfo.fullCtx ? " (DFA)" : "");
-				}
-				else {
-					msg = "Unknown decision event: "+eventInfo;
+							previewState,
+							evalInfo.semctx, evalInfo.predictedAlt,
+							evalInfo.evalResult);
+					msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
+				} else {
+					msg = "Unknown decision event: " + eventInfo;
 				}
 				foundDecisionEvent = true;
-			}
-			else {
+			} else {
 				// error tool tips
 				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 				msg = getErrorDisplayString(errorUnderCursor);
 				if ( msg.length()>MAX_HINT_WIDTH ) {
-					msg = msg.substring(0, MAX_HINT_WIDTH)+"...";
+					msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
 				}
-				if ( msg.indexOf('<')>=0 ) {
+				if ( msg.indexOf('<') >= 0 ) {
 					msg = msg.replaceAll("<", "&lt;");
 				}
 			}
@@ -798,7 +783,7 @@ public class InputPanel {
 		}
 	}
 
-	public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
+	private static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
 		int flags =
 			HintManager.HIDE_BY_ANY_KEY|
 				HintManager.HIDE_BY_TEXT_CHANGE|
@@ -809,7 +794,7 @@ public class InputPanel {
 		                      HintManager.ABOVE, flags, timeout);
 	}
 
-	public static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
+	private static void showDecisionEventToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
 		int flags =
 			HintManager.HIDE_BY_ANY_KEY|
 				HintManager.HIDE_BY_TEXT_CHANGE|
@@ -822,7 +807,7 @@ public class InputPanel {
 		hintMgr.showEditorHint(hint, editor, p, flags, timeout, false);
 	}
 
-	public void annotateErrorsInPreviewInputEditor(SyntaxError e) {
+	private void annotateErrorsInPreviewInputEditor(SyntaxError e) {
 		Editor editor = getInputEditor();
 		if ( editor==null ) return;
 		MarkupModel markupModel = editor.getMarkupModel();
@@ -862,7 +847,7 @@ public class InputPanel {
 		}
 	}
 
-	public static String getErrorDisplayString(SyntaxError e) {
+	private static String getErrorDisplayString(SyntaxError e) {
 		return "line "+e.getLine()+":"+e.getCharPositionInLine()+" "+e.getMessage();
 	}
 

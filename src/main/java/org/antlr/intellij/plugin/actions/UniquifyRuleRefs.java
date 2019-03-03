@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -21,6 +20,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -29,12 +29,12 @@ import java.util.List;
  */
 public class UniquifyRuleRefs extends AnAction {
 	@Override
-	public void update(AnActionEvent e) {
+	public void update(@NotNull AnActionEvent e) {
 		MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup to Make %s Refs Unique");
 	}
 
 	@Override
-	public void actionPerformed(AnActionEvent e) {
+	public void actionPerformed(@NotNull AnActionEvent e) {
 		PsiElement el = MyActionUtils.getSelectedPsiElement(e);
 		if ( el==null ) return;
 
@@ -63,19 +63,15 @@ public class UniquifyRuleRefs extends AnAction {
 		if ( ruleDefNameNode==null ) return;
 
 		// alter rule refs and dup rules
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) throws Throwable {
-				// do in a single action so undo works in one go
-				dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
-			}
-		};
-		setTextAction.execute();
+		WriteCommandAction.runWriteCommandAction(project, () -> {
+			// do in a single action so undo works in one go
+			dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
+		});
 	}
 
-	public void dupRuleAndMakeRefsUnique(Document doc,
-	                                     String ruleName,
-	                                     List<TerminalNode> rrefNodes)
+	private void dupRuleAndMakeRefsUnique(Document doc,
+										  String ruleName,
+										  List<TerminalNode> rrefNodes)
 	{
 		int base = 0;
 		int i = 1;

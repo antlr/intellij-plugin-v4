@@ -34,8 +34,8 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
 
 public class HierarchyViewer extends JPanel {
 
-	public boolean scrollFromSource = false;
-	public boolean highlightSource = false;
+	private boolean scrollFromSource = false;
+	private boolean highlightSource = false;
 	private PreviewPanel previewPanel;
 
 	private JTree myTree = new com.intellij.ui.treeStructure.Tree();

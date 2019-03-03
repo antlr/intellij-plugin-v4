@@ -11,7 +11,7 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.jetbrains.annotations.NotNull;
 
 public class ParserRuleSpecNode extends RuleSpecNode {
-	public static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.psi.ParserRuleSpecNode");
+	private static final Logger LOG = Logger.getInstance("org.antlr.intellij.plugin.psi.ParserRuleSpecNode");
 	public ParserRuleSpecNode(@NotNull ASTNode node) {
 		super(node);
 	}

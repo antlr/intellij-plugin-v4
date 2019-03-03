@@ -9,10 +9,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ANTLRLiveTemplateContext extends TemplateContextType {
-	public ANTLRLiveTemplateContext(@NotNull @NonNls String id,
-									@NotNull String presentableName,
-									@Nullable Class<? extends TemplateContextType> baseContextType)
+abstract class ANTLRLiveTemplateContext extends TemplateContextType {
+	ANTLRLiveTemplateContext(@NotNull @NonNls String id,
+							 @NotNull String presentableName,
+							 @Nullable Class<? extends TemplateContextType> baseContextType)
 	{
 		super(id, presentableName, baseContextType);
 	}

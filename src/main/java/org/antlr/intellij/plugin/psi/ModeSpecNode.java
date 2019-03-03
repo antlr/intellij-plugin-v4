@@ -19,7 +19,7 @@ import static org.antlr.intellij.plugin.psi.MyPsiUtils.findFirstChildOfType;
  */
 public class ModeSpecNode extends RuleSpecNode {
 
-    public ModeSpecNode(@NotNull ASTNode node) {
+    private ModeSpecNode(@NotNull ASTNode node) {
         super(node);
     }
 

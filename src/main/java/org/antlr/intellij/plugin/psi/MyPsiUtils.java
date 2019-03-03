@@ -1,7 +1,6 @@
 package org.antlr.intellij.plugin.psi;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -36,7 +35,7 @@ public class MyPsiUtils {
      * @return the first child, or null;
      */
     @Nullable
-    public static PsiElement findFirstChildOfType(final PsiElement parent, final TokenSet types){
+	private static PsiElement findFirstChildOfType(final PsiElement parent, final TokenSet types){
         Iterator<PsiElement> iterator = findChildrenOfType(parent, types).iterator();
         if(iterator.hasNext()) return iterator.next();
         return null;
@@ -54,15 +53,12 @@ public class MyPsiUtils {
      * whose type is contained in the provided tokenset.
      */
     public static Iterable<PsiElement> findChildrenOfType(final PsiElement parent, final TokenSet types) {
-	    PsiElement[] psiElements = PsiTreeUtil.collectElements(parent, new PsiElementFilter() {
-		    @Override
-		    public boolean isAccepted(PsiElement input) {
-			    if ( input==null ) return false;
-			    ASTNode node = input.getNode();
-			    if ( node==null ) return false;
-			    return types.contains(node.getElementType());
-		    }
-	    });
+	    PsiElement[] psiElements = PsiTreeUtil.collectElements(parent, input -> {
+			if ( input==null ) return false;
+			ASTNode node = input.getNode();
+			if ( node==null ) return false;
+			return types.contains(node.getElementType());
+		});
 	    return Arrays.asList(psiElements);
     }
 
@@ -74,16 +70,13 @@ public class MyPsiUtils {
 	 * the grammar. This means we have to walk the whole grammar to find matching candidates.
 	 */
 	public static PsiElement findSpecNode(GrammarSpecNode grammar, final String ruleName) {
-		PsiElementFilter definitionFilter = new PsiElementFilter() {
-			@Override
-			public boolean isAccepted(PsiElement element1) {
-				if (!(element1 instanceof RuleSpecNode)) {
-					return false;
-				}
-
-				GrammarElementRefNode id = ((RuleSpecNode) element1).getId();
-				return id != null && id.getText().equals(ruleName);
+		PsiElementFilter definitionFilter = element1 -> {
+			if (!(element1 instanceof RuleSpecNode)) {
+				return false;
 			}
+
+			GrammarElementRefNode id = ((RuleSpecNode) element1).getId();
+			return id != null && id.getText().equals(ruleName);
 		};
 
 		PsiElement[] ruleSpec = PsiTreeUtil.collectElements(grammar, definitionFilter);
@@ -107,17 +100,13 @@ public class MyPsiUtils {
 
 	public static void replacePsiFileFromText(final Project project, final PsiFile psiFile, String text) {
 		final PsiFile newPsiFile = createFile(project, text);
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) throws Throwable {
-				psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
-				psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
-			}
-		};
-		setTextAction.execute();
+		WriteCommandAction.runWriteCommandAction(project, () -> {
+			psiFile.deleteChildRange(psiFile.getFirstChild(), psiFile.getLastChild());
+			psiFile.addRange(newPsiFile.getFirstChild(), newPsiFile.getLastChild());
+		});
 	}
 
-	public static PsiFile createFile(Project project, String text) {
+	private static PsiFile createFile(Project project, String text) {
 		String fileName = "a.g4"; // random name but must be .g4
 		PsiFileFactoryImpl factory = (PsiFileFactoryImpl)PsiFileFactory.getInstance(project);
 		return factory.createFileFromText(fileName, ANTLRv4Language.INSTANCE,
@@ -125,15 +114,12 @@ public class MyPsiUtils {
 	}
 
 	public static PsiElement[] collectAtActions(PsiElement root, final String tokenText) {
-		return PsiTreeUtil.collectElements(root, new PsiElementFilter() {
-			@Override
-			public boolean isAccepted(PsiElement element) {
-				PsiElement p = element.getContext();
-				if (p != null) p = p.getContext();
-				return p instanceof AtAction &&
-					element instanceof ParserRuleRefNode &&
-					element.getText().equals(tokenText);
-			}
+		return PsiTreeUtil.collectElements(root, element -> {
+			PsiElement p = element.getContext();
+			if (p != null) p = p.getContext();
+			return p instanceof AtAction &&
+				element instanceof ParserRuleRefNode &&
+				element.getText().equals(tokenText);
 		});
 	}
 
@@ -141,27 +127,19 @@ public class MyPsiUtils {
 	 *  with specific text.
 	 *  This saves having to create lots of java classes just to identify psi nodes.
 	 */
-	public static PsiElement[] collectNodesWithName(PsiElement root, final String tokenText) {
-		return PsiTreeUtil.collectElements(root, new PsiElementFilter() {
-			@Override
-			public boolean isAccepted(PsiElement element) {
-				String tokenTypeName = element.getNode().getElementType().toString();
-				return tokenTypeName.equals(tokenText);
-			}
+	private static PsiElement[] collectNodesWithName(@Nullable PsiElement root, final String tokenText) {
+		return PsiTreeUtil.collectElements(root, element -> {
+			String tokenTypeName = element.getNode().getElementType().toString();
+			return tokenTypeName.equals(tokenText);
 		});
 	}
 
 	public static PsiElement[] collectNodesWithText(PsiElement root, final String text) {
-		return PsiTreeUtil.collectElements(root, new PsiElementFilter() {
-			@Override
-			public boolean isAccepted(PsiElement element) {
-				return element.getText().equals(text);
-			}
-		});
+		return PsiTreeUtil.collectElements(root, element -> element.getText().equals(text));
 	}
 
-	public static PsiElement[] collectChildrenOfType(PsiElement root, final IElementType tokenType) {
-		List<PsiElement> elems = new ArrayList<PsiElement>();
+	private static PsiElement[] collectChildrenOfType(PsiElement root, final IElementType tokenType) {
+		List<PsiElement> elems = new ArrayList<>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getNode().getElementType() == tokenType ) {
 				elems.add(child);
@@ -171,7 +149,7 @@ public class MyPsiUtils {
 	}
 
 	public static PsiElement findChildOfType(PsiElement root, final IElementType tokenType) {
-		List<PsiElement> elems = new ArrayList<PsiElement>();
+		List<PsiElement> elems = new ArrayList<>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getNode().getElementType() == tokenType ) {
 				return child;
@@ -180,8 +158,8 @@ public class MyPsiUtils {
 		return null;
 	}
 
-	public static PsiElement[] collectChildrenWithText(PsiElement root, final String text) {
-		List<PsiElement> elems = new ArrayList<PsiElement>();
+	private static PsiElement[] collectChildrenWithText(PsiElement root, final String text) {
+		List<PsiElement> elems = new ArrayList<>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getText().equals(text) ) {
 				elems.add(child);
@@ -216,7 +194,7 @@ public class MyPsiUtils {
 	//		return p;
 	//	}
 
-	public static PsiElement findElement(PsiElement startNode, int offset) {
+	private static PsiElement findElement(PsiElement startNode, int offset) {
 		PsiElement p = startNode;
 		if ( p==null ) return null;
 		System.out.println(Thread.currentThread().getName()+": visit root "+p+

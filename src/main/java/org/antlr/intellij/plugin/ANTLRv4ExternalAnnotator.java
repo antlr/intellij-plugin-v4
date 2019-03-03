@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,17 +43,17 @@ import java.util.Set;
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
     // NOTE: can't use instance var as only 1 instance
 
-    public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
+    private static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
 
 	public static class Issue {
 		String annotation;
-		List<Token> offendingTokens = new ArrayList<Token>();
+		List<Token> offendingTokens = new ArrayList<>();
 		ANTLRMessage msg;
 		public Issue(ANTLRMessage msg) { this.msg = msg; }
 	}
 
-	public static class GrammarInfoMessage extends GrammarSemanticsMessage {
-		public GrammarInfoMessage(String fileName, Token offendingToken, Object... args) {
+	static class GrammarInfoMessage extends GrammarSemanticsMessage {
+		GrammarInfoMessage(String fileName, Token offendingToken, Object... args) {
 			super(null, fileName, offendingToken, args);
 		}
 	}
@@ -77,11 +76,8 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		final Tool antlr = new Tool(args.toArray(new String[args.size()]));
 		if ( !args.contains("-lib") ) {
 			// getContainingDirectory() must be identified as a read operation on file system
-			ApplicationManager.getApplication().runReadAction(new Runnable() {
-				@Override
-				public void run() {
-					antlr.libDirectory = file.getContainingDirectory().toString();
-				}
+			ApplicationManager.getApplication().runReadAction(() -> {
+				antlr.libDirectory = file.getContainingDirectory().toString();
 			});
 		}
 
@@ -141,21 +137,20 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 					  List<ANTLRv4ExternalAnnotator.Issue> issues,
 					  @NotNull AnnotationHolder holder)
 	{
-		for (int i = 0; i < issues.size(); i++) {
-			Issue issue = issues.get(i);
-			for (int j = 0; j < issue.offendingTokens.size(); j++) {
+		for ( Issue issue : issues ) {
+			for ( int j = 0; j<issue.offendingTokens.size(); j++ ) {
 				Token t = issue.offendingTokens.get(j);
 				if ( t instanceof CommonToken ) {
-					CommonToken ct = (CommonToken)t;
+					CommonToken ct = (CommonToken) t;
 					int startIndex = ct.getStartIndex();
 					int stopIndex = ct.getStopIndex();
 
-					if (startIndex >= file.getTextLength()) {
+					if ( startIndex >= file.getTextLength() ) {
 						// can happen in case of a 'mismatched input EOF' error
 						startIndex = stopIndex = file.getTextLength() - 1;
 					}
 
-					if (startIndex < 0) {
+					if ( startIndex<0 ) {
 						// can happen on empty files, in that case we won't be able to show any error :/
 						startIndex = 0;
 					}
@@ -166,22 +161,22 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 						severity = issue.msg.getErrorType().severity;
 					}
 					switch ( severity ) {
-					case ERROR:
-					case ERROR_ONE_OFF:
-					case FATAL:
-						holder.createErrorAnnotation(range, issue.annotation);
-						break;
+						case ERROR:
+						case ERROR_ONE_OFF:
+						case FATAL:
+							holder.createErrorAnnotation(range, issue.annotation);
+							break;
 
-					case WARNING:
-						holder.createWarningAnnotation(range, issue.annotation);
-						break;
+						case WARNING:
+							holder.createWarningAnnotation(range, issue.annotation);
+							break;
 
-					case WARNING_ONE_OFF:
-					case INFO:
-						holder.createWeakWarningAnnotation(range, issue.annotation);
+						case WARNING_ONE_OFF:
+						case INFO:
+							holder.createWeakWarningAnnotation(range, issue.annotation);
 
-					default:
-						break;
+						default:
+							break;
 					}
 				}
 			}
@@ -189,7 +184,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		super.apply(file, issues, holder);
 	}
 
-	public void processIssue(final PsiFile file, Issue issue) {
+	private void processIssue(final PsiFile file, Issue issue) {
 		File grammarFile = new File(file.getVirtualFile().getPath());
 		if ( issue.msg.fileName==null ) { // weird, issue doesn't have a file associated with it
 			return;
@@ -211,7 +206,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			issue.offendingTokens.add(t);
 		}
 		else if ( issue.msg instanceof LeftRecursionCyclesMessage ) {
-			List<String> rulesToHighlight = new ArrayList<String>();
+			List<String> rulesToHighlight = new ArrayList<>();
 			LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage)issue.msg;
 			Collection<? extends Collection<Rule>> cycles =
 				(Collection<? extends Collection<Rule>>)lmsg.getArgs()[0];
@@ -248,11 +243,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		return findVocabAction.vocabName;
 	}
 
-	protected static class FindVocabFileRunnable implements Runnable {
-		public String vocabName;
+	static class FindVocabFileRunnable implements Runnable {
+		String vocabName;
 		private final PsiFile file;
 
-		public FindVocabFileRunnable(PsiFile file) {
+		FindVocabFileRunnable(PsiFile file) {
 			this.file = file;
 		}
 
@@ -262,13 +257,13 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		}
 	}
 
-	public static Map<String,GrammarAST> getUnusedParserRules(Grammar g) {
+	private static Map<String,GrammarAST> getUnusedParserRules(Grammar g) {
 		if ( g.ast==null || g.isLexer() ) return null;
 		List<GrammarAST> ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
 		// in case of errors, we walk AST ourselves
 		// ANTLR's Grammar object might have bailed on rule defs etc...
-		Set<String> ruleRefs = new HashSet<String>();
-		Map<String,GrammarAST> ruleDefs = new HashMap<String,GrammarAST>();
+		Set<String> ruleRefs = new HashSet<>();
+		Map<String,GrammarAST> ruleDefs = new HashMap<>();
 		for (GrammarAST x : ruleNodes) {
 			if ( x.getParent().getType()==ANTLRParser.RULE ) {
 //				System.out.println("def "+x);

@@ -16,32 +16,30 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
-public class ANTLRv4StructureViewModel
+class ANTLRv4StructureViewModel
 	extends StructureViewModelBase
 //	extends TextEditorBasedStructureViewModel
 	implements StructureViewModel.ElementInfoProvider
 {
 	private static final Sorter PARSER_LEXER_RULE_SORTER = new Sorter() {
 		public Comparator getComparator() {
-			return new Comparator() {
-				public int compare(final Object o1, final Object o2) {
-					String s1 = SorterUtil.getStringPresentation(o1);
-					String s2 = SorterUtil.getStringPresentation(o2);
-					// flip case of char 0 so it puts parser rules first
-					if ( Character.isLowerCase(s1.charAt(0)) ) {
-						s1 = Character.toUpperCase(s1.charAt(0))+s1.substring(1);
-					}
-					else {
-						s1 = Character.toLowerCase(s1.charAt(0))+s1.substring(1);
-					}
-					if ( Character.isLowerCase(s2.charAt(0)) ) {
-						s2 = Character.toUpperCase(s2.charAt(0))+s2.substring(1);
-					}
-					else {
-						s2 = Character.toLowerCase(s2.charAt(0))+s2.substring(1);
-					}
-					return s1.compareTo(s2);
+			return (o1, o2) -> {
+				String s1 = SorterUtil.getStringPresentation(o1);
+				String s2 = SorterUtil.getStringPresentation(o2);
+				// flip case of char 0 so it puts parser rules first
+				if ( Character.isLowerCase(s1.charAt(0)) ) {
+					s1 = Character.toUpperCase(s1.charAt(0))+s1.substring(1);
 				}
+				else {
+					s1 = Character.toLowerCase(s1.charAt(0))+s1.substring(1);
+				}
+				if ( Character.isLowerCase(s2.charAt(0)) ) {
+					s2 = Character.toUpperCase(s2.charAt(0))+s2.substring(1);
+				}
+				else {
+					s2 = Character.toLowerCase(s2.charAt(0))+s2.substring(1);
+				}
+				return s1.compareTo(s2);
 			};
 		}
 
@@ -62,7 +60,7 @@ public class ANTLRv4StructureViewModel
 		}
 	};
 
-	ANTLRv4FileRoot rootElement;
+	private ANTLRv4FileRoot rootElement;
 
 	public ANTLRv4StructureViewModel(ANTLRv4FileRoot rootElement) {
 		super(rootElement, new ANTLRv4StructureViewElement(rootElement));

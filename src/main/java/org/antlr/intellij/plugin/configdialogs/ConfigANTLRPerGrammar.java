@@ -19,7 +19,7 @@ import java.io.File;
 
 public class ConfigANTLRPerGrammar extends DialogWrapper {
 	public static final String PROP_AUTO_GEN = "auto-gen";
-	public static final String PROP_OUTPUT_DIR = "output-dir";
+	private static final String PROP_OUTPUT_DIR = "output-dir";
 	public static final String PROP_LIB_DIR = "lib-dir";
 	public static final String PROP_ENCODING = "encoding";
 	public static final String PROP_PACKAGE = "package";
@@ -92,7 +92,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return vfile.getParent();
 	}
 
-	public void loadValues(Project project, String qualFileName) {
+	private void loadValues(Project project, String qualFileName) {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		String s;
 		boolean b;
@@ -169,7 +169,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		               String.valueOf(generateParseTreeVisitorCheckBox.isSelected()));
 	}
 
-	public static String getPropNameForFile(String qualFileName, String prop) {
+	private static String getPropNameForFile(String qualFileName, String prop) {
 		return qualFileName+"::/"+prop;
 	}
 

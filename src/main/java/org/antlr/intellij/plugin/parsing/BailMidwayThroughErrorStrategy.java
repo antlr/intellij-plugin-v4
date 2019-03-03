@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 
-public class BailMidwayThroughErrorStrategy extends DefaultErrorStrategy {
+class BailMidwayThroughErrorStrategy extends DefaultErrorStrategy {
 	public BailMidwayThroughErrorStrategy() {
 	}
 

@@ -34,7 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class GenerateLexerRulesForLiteralsAction extends AnAction {
-	public static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
+	private static final Logger LOG = Logger.getInstance("GenerateLexerRulesForLiterals");
 
 	/** Only show if selection is a literal */
 	@Override
@@ -69,7 +69,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 		final Parser parser = results.parser;
 		final ParseTree tree = results.tree;
 		Collection<ParseTree> literalNodes = XPath.findAll(tree, "//ruleBlock//STRING_LITERAL", parser);
-		LinkedHashMap<String, String> lexerRules = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> lexerRules = new LinkedHashMap<>();
 		for (ParseTree node : literalNodes) {
 			String literal = node.getText();
 			String ruleText = String.format("%s : %s ;",
@@ -91,7 +91,7 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 		}
 
 		final LiteralChooser chooser =
-			new LiteralChooser(project, new ArrayList<String>(lexerRules.values()));
+			new LiteralChooser(project, new ArrayList<>(lexerRules.values()));
 		chooser.show();
 		List<String> selectedElements = chooser.getSelectedElements();
 		// chooser disposed automatically.

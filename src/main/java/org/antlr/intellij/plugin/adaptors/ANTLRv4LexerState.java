@@ -17,7 +17,7 @@ public class ANTLRv4LexerState extends ANTLRLexerState {
 		this.currentRuleType = currentRuleType;
 	}
 
-	public int getCurrentRuleType() {
+	private int getCurrentRuleType() {
 		return currentRuleType;
 	}
 

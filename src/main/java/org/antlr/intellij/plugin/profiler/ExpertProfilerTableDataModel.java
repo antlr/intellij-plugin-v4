@@ -6,16 +6,16 @@ import org.antlr.v4.runtime.atn.ParseInfo;
 import java.util.LinkedHashMap;
 
 public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
-    public ParseInfo parseInfo;
-    public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
-    public static final String[] columnNames = {
+    private ParseInfo parseInfo;
+    private LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
+    private static final String[] columnNames = {
         "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k",
 		"Min SLL k", "Min LL k",
 		"Max SLL k", "Max LL k",
         "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
     };
 
-    public static final String[] columnToolTips = {
+    private static final String[] columnToolTips = {
         "Decision index",
 		"# decision invocations",
 		"Rough estimate of time (ms) spent in prediction",

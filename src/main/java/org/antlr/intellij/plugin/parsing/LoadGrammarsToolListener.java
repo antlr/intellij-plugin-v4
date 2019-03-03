@@ -11,9 +11,9 @@ import java.util.List;
 /** Track errors, warnings from loading grammars. Really just
  *  swallows them for now. The external annotator shows errors.
  */
-public class LoadGrammarsToolListener extends DefaultToolListener {
-    public List<String> grammarErrorMessages = new ArrayList<String>();
-    public List<String> grammarWarningMessages = new ArrayList<String>();
+class LoadGrammarsToolListener extends DefaultToolListener {
+    public List<String> grammarErrorMessages = new ArrayList<>();
+    private List<String> grammarWarningMessages = new ArrayList<>();
 	public LoadGrammarsToolListener(Tool tool) { super(tool); }
 
 	@Override

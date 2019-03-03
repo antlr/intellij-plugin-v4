@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 /** The general interface between IDEA and ANTLR. */
 public class ANTLRv4ParserDefinition implements ParserDefinition {
-	public static final IFileElementType FILE =
+	private static final IFileElementType FILE =
 		new IFileElementType(ANTLRv4Language.INSTANCE);
 
 	public ANTLRv4ParserDefinition() {

@@ -35,14 +35,14 @@ import java.util.Map;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Modal {
-	public static final Logger LOG = Logger.getInstance("RunANTLROnGrammarFile");
+	private static final Logger LOG = Logger.getInstance("RunANTLROnGrammarFile");
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String MISSING = "";
 	public static final String groupDisplayId = "ANTLR 4 Parser Generation";
 
-	public VirtualFile grammarFile;
-	public Project project;
-	public boolean forceGeneration;
+	private VirtualFile grammarFile;
+	private Project project;
+	private boolean forceGeneration;
 
 	public RunANTLROnGrammarFile(VirtualFile grammarFile,
 								 @Nullable final Project project,
@@ -81,7 +81,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	}
 
 	// TODO: lots of duplication with antlr() function.
-	public boolean isGrammarStale() {
+	private boolean isGrammarStale() {
 		String qualFileName = grammarFile.getPath();
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(grammarFile);
 		sourcePath = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_LIB_DIR, sourcePath);
@@ -114,7 +114,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	/** Run ANTLR tool on file according to preferences in intellij for this file.
 	 *  Returns set of generated files or empty set if error.
  	 */
-	public void antlr(VirtualFile vfile) {
+	private void antlr(VirtualFile vfile) {
 		if ( vfile==null ) return;
 
 		LOG.info("antlr(\""+vfile.getPath()+"\")");
@@ -166,7 +166,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 	public static List<String> getANTLRArgsAsList(Project project, VirtualFile vfile) {
 		Map<String,String> argMap = getANTLRArgs(project, vfile);
-		List<String> args = new ArrayList<String>();
+		List<String> args = new ArrayList<>();
 		for (String option : argMap.keySet()) {
 			args.add(option);
 			String value = argMap.get(option);
@@ -177,8 +177,8 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		return args;
 	}
 
-	public static Map<String,String> getANTLRArgs(Project project, VirtualFile vfile) {
-		Map<String,String> args = new HashMap<String, String>();
+	private static Map<String,String> getANTLRArgs(Project project, VirtualFile vfile) {
+		Map<String,String> args = new HashMap<>();
 		String qualFileName = vfile.getPath();
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
 

@@ -11,10 +11,10 @@ import org.antlr.v4.runtime.TokenSource;
  *
  *  All parsers used within the plug-in should use token streams of this type.
  */
-public class TokenStreamSubset extends CommonTokenStream {
-	public static final int STOP_TOKEN_TYPE = -3;
+class TokenStreamSubset extends CommonTokenStream {
+	private static final int STOP_TOKEN_TYPE = -3;
 //	protected int indexOfLastToken = -1;
-	protected Token saveToken;
+private Token saveToken;
 
 	public TokenStreamSubset(TokenSource tokenSource) {
 		super(tokenSource);

@@ -13,19 +13,19 @@ import org.jetbrains.annotations.NotNull;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
-	public static final TextAttributesKey KEYWORD =
+	private static final TextAttributesKey KEYWORD =
 		createTextAttributesKey("ANTLRv4_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
 	public static final TextAttributesKey RULENAME =
 		createTextAttributesKey("ANTLRv4_RULENAME", DefaultLanguageHighlighterColors.PARAMETER);
 	public static final TextAttributesKey TOKENNAME =
 		createTextAttributesKey("ANTLRv4_TOKENNAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
-	public static final TextAttributesKey STRING =
+	private static final TextAttributesKey STRING =
 		createTextAttributesKey("ANTLRv4_STRING", DefaultLanguageHighlighterColors.STRING);
-	public static final TextAttributesKey LINE_COMMENT =
+	private static final TextAttributesKey LINE_COMMENT =
 		createTextAttributesKey("ANTLRv4_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
-	public static final TextAttributesKey DOC_COMMENT =
+	private static final TextAttributesKey DOC_COMMENT =
 		createTextAttributesKey("ANTLRv4_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT);
-	public static final TextAttributesKey BLOCK_COMMENT =
+	private static final TextAttributesKey BLOCK_COMMENT =
 		createTextAttributesKey("ANTLRv4_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT);
 
 	private static final TextAttributesKey[] BAD_CHAR_KEYS = pack(HighlighterColors.BAD_CHARACTER);

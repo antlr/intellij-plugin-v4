@@ -2,9 +2,9 @@ package org.antlr.intellij.plugin.profiler;
 
 import javax.swing.table.AbstractTableModel;
 
-public abstract class ProfilerTableDataModel extends AbstractTableModel {
+abstract class ProfilerTableDataModel extends AbstractTableModel {
 
-	public abstract String[] getColumnNames();
+	protected abstract String[] getColumnNames();
 	public abstract String[] getColumnToolTips();
 
 	@Override
