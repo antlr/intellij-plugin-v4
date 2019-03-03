@@ -253,14 +253,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public void grammarFileSavedEvent(VirtualFile grammarFile) {
 		LOG.info("grammarFileSavedEvent "+grammarFile.getPath()+" "+project.getName());
-		updateGrammarObjectsFromFile(grammarFile); // force reload
+		updateGrammarObjectsFromFile(grammarFile, true); // force reload
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(grammarFile);
 		}
 		else {
 			LOG.error("grammarFileSavedEvent called before preview panel created");
 		}
-		runANTLRTool(grammarFile);
 	}
 
 	public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
@@ -280,7 +279,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		PreviewState previewState = getPreviewState(newFile);
 		if ( previewState.g==null && previewState.lg==null ) { // only load grammars if none is there
-			updateGrammarObjectsFromFile(newFile);
+			updateGrammarObjectsFromFile(newFile, false);
 		}
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileChanged(oldFile, newFile);
@@ -349,7 +348,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	 *  this grammar or we will have seen a grammar file changed event.
 	 *  (I hope!)
 	 */
-	public void updateGrammarObjectsFromFile(VirtualFile grammarFile) {
+	private void updateGrammarObjectsFromFile(VirtualFile grammarFile, boolean generateTokensFile) {
 		updateGrammarObjectsFromFile_(grammarFile);
 
 		// if grammarFileName is a separate lexer, we need to look for
@@ -357,13 +356,19 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// (don't go looking on disk).
 		PreviewState s = getAssociatedParserIfLexer(grammarFile.getPath());
 		if ( s!=null ) {
+			if (generateTokensFile) {
+				// Run the tool to regenerate the .tokens file, which will be
+				// needed in the parser grammar
+				runANTLRTool(grammarFile);
+			}
+
 			// try to load lexer again and associate with this parser grammar.
 			// must update parser too as tokens have changed
 			updateGrammarObjectsFromFile_(s.grammarFile);
 		}
 	}
 
-	public String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
+	private String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		PreviewState previewState = getPreviewState(grammarFile);
 		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
