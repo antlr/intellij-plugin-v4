@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,17 +35,19 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.antlr.v4.codegen.CodeGenerator.targetExists;
+
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
     // NOTE: can't use instance var as only 1 instance
 
     public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
+	private static final String LANGUAGE_ARG_PREFIX = "-Dlanguage=";
 
 	public static class Issue {
 		String annotation;
@@ -74,6 +77,22 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		LOG.info("doAnnotate "+grammarFileName);
 		String fileContents = file.getText();
 		List<String> args = RunANTLROnGrammarFile.getANTLRArgsAsList(file.getProject(), file.getVirtualFile());
+		AnnotatorToolListener listener = new AnnotatorToolListener();
+
+		String languageArg = findLanguageArg(args);
+
+		if ( languageArg!=null ) {
+			String language = languageArg.substring(LANGUAGE_ARG_PREFIX.length());
+
+			if ( !targetExists(language) ) {
+				Issue issue = new Issue(null);
+				issue.annotation = "Unknown target language '" + language + "', analysis will be done using the default target language 'Java'";
+				listener.issues.add(issue);
+
+				args.remove(languageArg);
+			}
+		}
+
 		final Tool antlr = new Tool(args.toArray(new String[args.size()]));
 		if ( !args.contains("-lib") ) {
 			// getContainingDirectory() must be identified as a read operation on file system
@@ -86,7 +105,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		}
 
 		antlr.removeListeners();
-        AnnotatorToolListener listener = new AnnotatorToolListener();
         antlr.addListener(listener);
 		try {
 			StringReader sr = new StringReader(fileContents);
@@ -135,6 +153,17 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		return listener.issues;
 	}
 
+	@Nullable
+	private String findLanguageArg(List<String> args) {
+		for ( String arg : args ) {
+			if ( arg.startsWith(LANGUAGE_ARG_PREFIX) ) {
+				return arg;
+			}
+		}
+
+		return null;
+	}
+
 	/** Called 3rd */
 	@Override
 	public void apply(@NotNull PsiFile file,
@@ -143,6 +172,13 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	{
 		for (int i = 0; i < issues.size(); i++) {
 			Issue issue = issues.get(i);
+
+			if ( issue.offendingTokens.isEmpty() ) {
+				Annotation annotation = holder.createWarningAnnotation(file, issue.annotation);
+				annotation.setFileLevelAnnotation(true);
+				continue;
+			}
+
 			for (int j = 0; j < issue.offendingTokens.size(); j++) {
 				Token t = issue.offendingTokens.get(j);
 				if ( t instanceof CommonToken ) {
@@ -191,7 +227,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 	public void processIssue(final PsiFile file, Issue issue) {
 		File grammarFile = new File(file.getVirtualFile().getPath());
-		if ( issue.msg.fileName==null ) { // weird, issue doesn't have a file associated with it
+		if ( issue.msg == null || issue.msg.fileName==null ) { // weird, issue doesn't have a file associated with it
 			return;
 		}
 		File issueFile = new File(issue.msg.fileName);
