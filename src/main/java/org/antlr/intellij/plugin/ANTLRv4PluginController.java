@@ -381,6 +381,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return grammarFileName;
 	}
 
+	// TODO there could be multiple grammars importing/tokenVocab'ing this lexer grammar
 	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
 		for (PreviewState s : grammarToPreviewState.values()) {
 			if ( s!=null && s.lg!=null &&
@@ -391,6 +392,14 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				if ( s.g!=null && s.g.getType()==ANTLRParser.PARSER ) {
 //					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
 					return s;
+				}
+			}
+
+			if ( s!=null && s.g!=null && s.g.importedGrammars!=null ) {
+				for ( Grammar importedGrammar : s.g.importedGrammars ) {
+					if (grammarFileName.equals(importedGrammar.fileName)) {
+						return s;
+					}
 				}
 			}
 		}
