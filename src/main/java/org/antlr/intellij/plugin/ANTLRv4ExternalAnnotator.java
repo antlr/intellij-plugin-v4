@@ -17,13 +17,7 @@ import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.misc.IntervalSet;
-import org.antlr.v4.tool.ErrorSeverity;
-import org.antlr.v4.tool.Grammar;
-import org.antlr.v4.tool.GrammarSemanticsMessage;
-import org.antlr.v4.tool.GrammarSyntaxMessage;
-import org.antlr.v4.tool.LeftRecursionCyclesMessage;
-import org.antlr.v4.tool.Rule;
-import org.antlr.v4.tool.ToolMessage;
+import org.antlr.v4.tool.*;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.GrammarRootAST;
 import org.antlr.v4.tool.ast.RuleRefAST;
@@ -33,13 +27,7 @@ import org.stringtemplate.v4.ST;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.antlr.v4.codegen.CodeGenerator.targetExists;
 
