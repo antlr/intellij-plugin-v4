@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
+import org.antlr.intellij.plugin.validation.GrammarInfoMessage;
 import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
@@ -36,12 +37,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 
     public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
 	private static final String LANGUAGE_ARG_PREFIX = "-Dlanguage=";
-
-    public static class GrammarInfoMessage extends GrammarSemanticsMessage {
-		public GrammarInfoMessage(String fileName, Token offendingToken, Object... args) {
-			super(null, fileName, offendingToken, args);
-		}
-	}
 
 	/** Called first; return file */
 	@Override
