@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin;
 
+import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
 
@@ -12,7 +13,7 @@ import java.util.List;
  *  which are indicated with error nodes in the PSI.
  */
 class AnnotatorToolListener implements ANTLRToolListener {
-    public final List<ANTLRv4ExternalAnnotator.Issue> issues = new ArrayList<ANTLRv4ExternalAnnotator.Issue>();
+    public final List<GrammarIssue> issues = new ArrayList<GrammarIssue>();
 
     @Override
     public void info(String msg) {
@@ -20,11 +21,11 @@ class AnnotatorToolListener implements ANTLRToolListener {
 
     @Override
     public void error(ANTLRMessage msg) {
-        issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
+        issues.add(new GrammarIssue(msg));
     }
 
     @Override
     public void warning(ANTLRMessage msg) {
-        issues.add(new ANTLRv4ExternalAnnotator.Issue(msg));
+        issues.add(new GrammarIssue(msg));
     }
 }

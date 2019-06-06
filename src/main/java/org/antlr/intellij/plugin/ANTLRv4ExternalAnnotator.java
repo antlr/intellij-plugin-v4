@@ -10,13 +10,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
+import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.misc.IntervalSet;
-import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ErrorSeverity;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarSemanticsMessage;
@@ -43,20 +43,13 @@ import java.util.Set;
 
 import static org.antlr.v4.codegen.CodeGenerator.targetExists;
 
-public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<ANTLRv4ExternalAnnotator.Issue>> {
+public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<GrammarIssue>> {
     // NOTE: can't use instance var as only 1 instance
 
     public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
 	private static final String LANGUAGE_ARG_PREFIX = "-Dlanguage=";
 
-	public static class Issue {
-		String annotation;
-		List<Token> offendingTokens = new ArrayList<Token>();
-		ANTLRMessage msg;
-		public Issue(ANTLRMessage msg) { this.msg = msg; }
-	}
-
-	public static class GrammarInfoMessage extends GrammarSemanticsMessage {
+    public static class GrammarInfoMessage extends GrammarSemanticsMessage {
 		public GrammarInfoMessage(String fileName, Token offendingToken, Object... args) {
 			super(null, fileName, offendingToken, args);
 		}
@@ -72,7 +65,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	/** Called 2nd; run antlr on file */
 	@Nullable
 	@Override
-	public List<ANTLRv4ExternalAnnotator.Issue> doAnnotate(final PsiFile file) {
+	public List<GrammarIssue> doAnnotate(final PsiFile file) {
 		String grammarFileName = file.getVirtualFile().getPath();
 		LOG.info("doAnnotate "+grammarFileName);
 		String fileContents = file.getText();
@@ -85,8 +78,8 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			String language = languageArg.substring(LANGUAGE_ARG_PREFIX.length());
 
 			if ( !targetExists(language) ) {
-				Issue issue = new Issue(null);
-				issue.annotation = "Unknown target language '" + language + "', analysis will be done using the default target language 'Java'";
+				GrammarIssue issue = new GrammarIssue(null);
+				issue.setAnnotation("Unknown target language '" + language + "', analysis will be done using the default target language 'Java'");
 				listener.issues.add(issue);
 
 				args.remove(languageArg);
@@ -112,7 +105,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			in.name = file.getName();
 			GrammarRootAST ast = antlr.parse(file.getName(), in);
 			if ( ast==null || ast.hasErrors ) {
-				for (Issue issue : listener.issues) {
+				for (GrammarIssue issue : listener.issues) {
 					processIssue(file, issue);
 				}
 				return listener.issues;
@@ -138,12 +131,12 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 			if ( unusedRules!=null ) {
 				for (String r : unusedRules.keySet()) {
 					Token ruleDefToken = unusedRules.get(r).getToken();
-					Issue issue = new Issue(new GrammarInfoMessage(g.fileName, ruleDefToken, r));
+					GrammarIssue issue = new GrammarIssue(new GrammarInfoMessage(g.fileName, ruleDefToken, r));
 					listener.issues.add(issue);
 				}
 			}
 
-			for (Issue issue : listener.issues) {
+			for (GrammarIssue issue : listener.issues) {
 				processIssue(file, issue);
 			}
 		}
@@ -167,20 +160,20 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 	/** Called 3rd */
 	@Override
 	public void apply(@NotNull PsiFile file,
-					  List<ANTLRv4ExternalAnnotator.Issue> issues,
+					  List<GrammarIssue> issues,
 					  @NotNull AnnotationHolder holder)
 	{
 		for (int i = 0; i < issues.size(); i++) {
-			Issue issue = issues.get(i);
+			GrammarIssue issue = issues.get(i);
 
-			if ( issue.offendingTokens.isEmpty() ) {
-				Annotation annotation = holder.createWarningAnnotation(file, issue.annotation);
+			if ( issue.getOffendingTokens().isEmpty() ) {
+				Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
 				annotation.setFileLevelAnnotation(true);
 				continue;
 			}
 
-			for (int j = 0; j < issue.offendingTokens.size(); j++) {
-				Token t = issue.offendingTokens.get(j);
+			for (int j = 0; j < issue.getOffendingTokens().size(); j++) {
+				Token t = issue.getOffendingTokens().get(j);
 				if ( t instanceof CommonToken ) {
 					CommonToken ct = (CommonToken)t;
 					int startIndex = ct.getStartIndex();
@@ -198,23 +191,23 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 
 					TextRange range = new TextRange(startIndex, stopIndex + 1);
 					ErrorSeverity severity = ErrorSeverity.INFO;
-					if ( issue.msg.getErrorType()!=null ) {
-						severity = issue.msg.getErrorType().severity;
+					if ( issue.getMsg().getErrorType()!=null ) {
+						severity = issue.getMsg().getErrorType().severity;
 					}
 					switch ( severity ) {
 					case ERROR:
 					case ERROR_ONE_OFF:
 					case FATAL:
-						holder.createErrorAnnotation(range, issue.annotation);
+						holder.createErrorAnnotation(range, issue.getAnnotation());
 						break;
 
 					case WARNING:
-						holder.createWarningAnnotation(range, issue.annotation);
+						holder.createWarningAnnotation(range, issue.getAnnotation());
 						break;
 
 					case WARNING_ONE_OFF:
 					case INFO:
-						holder.createWeakWarningAnnotation(range, issue.annotation);
+						holder.createWeakWarningAnnotation(range, issue.getAnnotation());
 
 					default:
 						break;
@@ -225,57 +218,57 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<AN
 		super.apply(file, issues, holder);
 	}
 
-	public void processIssue(final PsiFile file, Issue issue) {
+	public void processIssue(final PsiFile file, GrammarIssue issue) {
 		File grammarFile = new File(file.getVirtualFile().getPath());
-		if ( issue.msg == null || issue.msg.fileName==null ) { // weird, issue doesn't have a file associated with it
+		if ( issue.getMsg() == null || issue.getMsg().fileName==null ) { // weird, issue doesn't have a file associated with it
 			return;
 		}
-		File issueFile = new File(issue.msg.fileName);
+		File issueFile = new File(issue.getMsg().fileName);
 		if ( !grammarFile.getName().equals(issueFile.getName()) ) {
 			return; // ignore errors from external files
 		}
 		ST msgST = null;
-		if ( issue.msg instanceof GrammarInfoMessage ) { // not in ANTLR so must hack it in
-			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
-			issue.offendingTokens.add(t);
+		if ( issue.getMsg() instanceof GrammarInfoMessage ) { // not in ANTLR so must hack it in
+			Token t = ((GrammarSemanticsMessage) issue.getMsg()).offendingToken;
+			issue.getOffendingTokens().add(t);
 			msgST = new ST("unused parser rule <arg>");
 			msgST.add("arg", t.getText());
 			msgST.impl.name = "info";
 		}
-		else if ( issue.msg instanceof GrammarSemanticsMessage ) {
-			Token t = ((GrammarSemanticsMessage)issue.msg).offendingToken;
-			issue.offendingTokens.add(t);
+		else if ( issue.getMsg() instanceof GrammarSemanticsMessage ) {
+			Token t = ((GrammarSemanticsMessage) issue.getMsg()).offendingToken;
+			issue.getOffendingTokens().add(t);
 		}
-		else if ( issue.msg instanceof LeftRecursionCyclesMessage ) {
+		else if ( issue.getMsg() instanceof LeftRecursionCyclesMessage ) {
 			List<String> rulesToHighlight = new ArrayList<String>();
-			LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage)issue.msg;
+			LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage) issue.getMsg();
 			Collection<? extends Collection<Rule>> cycles =
 				(Collection<? extends Collection<Rule>>)lmsg.getArgs()[0];
 			for (Collection<Rule> cycle : cycles) {
 				for (Rule r : cycle) {
 					rulesToHighlight.add(r.name);
 					GrammarAST nameNode = (GrammarAST)r.ast.getChild(0);
-					issue.offendingTokens.add(nameNode.getToken());
+					issue.getOffendingTokens().add(nameNode.getToken());
 				}
 			}
 		}
-		else if ( issue.msg instanceof GrammarSyntaxMessage ) {
-			Token t = issue.msg.offendingToken;
-			issue.offendingTokens.add(t);
+		else if ( issue.getMsg() instanceof GrammarSyntaxMessage ) {
+			Token t = issue.getMsg().offendingToken;
+			issue.getOffendingTokens().add(t);
 		}
-		else if ( issue.msg instanceof ToolMessage ) {
-			issue.offendingTokens.add(issue.msg.offendingToken);
+		else if ( issue.getMsg() instanceof ToolMessage ) {
+			issue.getOffendingTokens().add(issue.getMsg().offendingToken);
 		}
 
 		Tool antlr = new Tool();
 		if ( msgST==null ) {
-			msgST = antlr.errMgr.getMessageTemplate(issue.msg);
+			msgST = antlr.errMgr.getMessageTemplate(issue.getMsg());
 		}
 		String outputMsg = msgST.render();
 		if ( antlr.errMgr.formatWantsSingleLineMessage() ) {
 			outputMsg = outputMsg.replace('\n', ' ');
 		}
-		issue.annotation = outputMsg;
+		issue.setAnnotation(outputMsg);
 	}
 
 	public static String getFindVocabFileNameFromGrammarFile(PsiFile file) {
