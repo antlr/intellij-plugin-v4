@@ -11,8 +11,8 @@ import java.util.List;
  *  The annotator looks for semantic errors not syntax errors,
  *  which are indicated with error nodes in the PSI.
  */
-class AnnotatorToolListener implements ANTLRToolListener {
-    public final List<GrammarIssue> issues = new ArrayList<GrammarIssue>();
+class GrammarIssuesCollectorToolListener implements ANTLRToolListener {
+    private final List<GrammarIssue> issues = new ArrayList<>();
 
     @Override
     public void info(String msg) {
@@ -26,5 +26,9 @@ class AnnotatorToolListener implements ANTLRToolListener {
     @Override
     public void warning(ANTLRMessage msg) {
         issues.add(new GrammarIssue(msg));
+    }
+
+    public List<GrammarIssue> getIssues() {
+        return issues;
     }
 }

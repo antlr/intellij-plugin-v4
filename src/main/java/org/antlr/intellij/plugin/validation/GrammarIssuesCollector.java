@@ -33,7 +33,7 @@ public class GrammarIssuesCollector {
         LOG.info("doAnnotate "+grammarFileName);
         String fileContents = file.getText();
         List<String> args = RunANTLROnGrammarFile.getANTLRArgsAsList(file.getProject(), file.getVirtualFile());
-        AnnotatorToolListener listener = new AnnotatorToolListener();
+        GrammarIssuesCollectorToolListener listener = new GrammarIssuesCollectorToolListener();
 
         String languageArg = findLanguageArg(args);
 
@@ -43,7 +43,7 @@ public class GrammarIssuesCollector {
             if ( !targetExists(language) ) {
                 GrammarIssue issue = new GrammarIssue(null);
                 issue.setAnnotation("Unknown target language '" + language + "', analysis will be done using the default target language 'Java'");
-                listener.issues.add(issue);
+                listener.getIssues().add(issue);
 
                 args.remove(languageArg);
             }
@@ -68,10 +68,10 @@ public class GrammarIssuesCollector {
             in.name = file.getName();
             GrammarRootAST ast = antlr.parse(file.getName(), in);
             if ( ast==null || ast.hasErrors ) {
-                for (GrammarIssue issue : listener.issues) {
+                for (GrammarIssue issue : listener.getIssues()) {
                     processIssue(file, issue);
                 }
-                return listener.issues;
+                return listener.getIssues();
             }
             Grammar g = antlr.createGrammar(ast);
             g.fileName = grammarFileName;
@@ -85,7 +85,7 @@ public class GrammarIssuesCollector {
             VirtualFile vfile = file.getVirtualFile();
             if ( vfile==null ) {
                 LOG.error("doAnnotate no virtual file for "+file);
-                return listener.issues;
+                return listener.getIssues();
             }
             g.fileName = vfile.getPath();
             antlr.process(g, false);
@@ -95,18 +95,18 @@ public class GrammarIssuesCollector {
                 for (String r : unusedRules.keySet()) {
                     Token ruleDefToken = unusedRules.get(r).getToken();
                     GrammarIssue issue = new GrammarIssue(new GrammarInfoMessage(g.fileName, ruleDefToken, r));
-                    listener.issues.add(issue);
+                    listener.getIssues().add(issue);
                 }
             }
 
-            for (GrammarIssue issue : listener.issues) {
+            for (GrammarIssue issue : listener.getIssues()) {
                 processIssue(file, issue);
             }
         }
         catch (Exception e) {
             LOG.error("antlr can't process "+file.getName(), e);
         }
-        return listener.issues;
+        return listener.getIssues();
     }
 
     @Nullable
