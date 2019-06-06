@@ -1,6 +1,5 @@
-package org.antlr.intellij.plugin;
+package org.antlr.intellij.plugin.validation;
 
-import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.v4.tool.ANTLRMessage;
 import org.antlr.v4.tool.ANTLRToolListener;
 
