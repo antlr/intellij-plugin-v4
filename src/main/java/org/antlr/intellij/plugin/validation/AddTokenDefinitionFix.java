@@ -32,7 +32,7 @@ class AddTokenDefinitionFix extends LocalQuickFixAndIntentionActionOnPsiElement 
     @NotNull
     @Override
     public String getText() {
-        return "Add token definition.";
+        return "Add token definition built from letter fragments.";
     }
 
     @Override
