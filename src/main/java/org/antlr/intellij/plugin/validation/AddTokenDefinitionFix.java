@@ -5,6 +5,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -15,11 +17,11 @@ import java.util.stream.Collectors;
 
 class AddTokenDefinitionFix extends LocalQuickFixAndIntentionActionOnPsiElement {
 
-    private final LexerRuleRefNode element;
+    private final SmartPsiElementPointer<LexerRuleRefNode> smartPsiElementPointer;
 
     AddTokenDefinitionFix(LexerRuleRefNode element) {
         super(element);
-        this.element = Objects.requireNonNull(element);
+        smartPsiElementPointer = SmartPointerManager.getInstance(element.getProject()).createSmartPsiElementPointer(Objects.requireNonNull(element));
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
@@ -41,7 +43,7 @@ class AddTokenDefinitionFix extends LocalQuickFixAndIntentionActionOnPsiElement 
     }
 
     private void appendTokenDefAtLastLine(@Nullable("is null when called from inspection") Editor editor) {
-        String tokenName = element.getReference().getCanonicalText();
+        String tokenName = smartPsiElementPointer.getElement().getReference().getCanonicalText();
         int lastLineOffset = editor.getDocument().getLineEndOffset(editor.getDocument().getLineCount() - 1);
         editor.getDocument().insertString(lastLineOffset, "\n" + buildTokenDefinitionText(tokenName));
     }
