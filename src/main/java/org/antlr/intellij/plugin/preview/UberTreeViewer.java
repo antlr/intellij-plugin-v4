@@ -34,10 +34,7 @@ public class UberTreeViewer extends TreeViewer {
 
 	@Override
 	public void setTree(Tree root) {
-		LookAndFeel theme = UIManager.getLookAndFeel();
-		UIDefaults themeDefaults = theme.getDefaults();
-		Color textColor = (Color)themeDefaults.get("textText");
-		setTextColor(textColor);
+		setTextColor(JBColor.BLACK);
 		super.setTree(root);
 	}
 
