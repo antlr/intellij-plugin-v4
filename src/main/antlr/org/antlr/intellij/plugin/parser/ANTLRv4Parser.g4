@@ -90,7 +90,7 @@ delegateGrammar
 	;
 
 tokensSpec
-	:	TOKENS idList RBRACE
+	:	TOKENS idList? RBRACE
 	;
 
 channelsSpec
@@ -130,7 +130,7 @@ ruleSpec
 
 parserRuleSpec
 	:	DOC_COMMENT?
-        ruleModifiers? RULE_REF ARG_ACTION?
+        RULE_REF ARG_ACTION?
         ruleReturns? throwsSpec? localsSpec?
 		rulePrequel*
 		COLON
@@ -171,23 +171,6 @@ localsSpec
 /** Match stuff like @init {int i;} */
 ruleAction
 	:	AT id ACTION
-	;
-
-ruleModifiers
-	:	ruleModifier+
-	;
-
-// An individual access modifier for a rule. The 'fragment' modifier
-// is an internal indication for lexer rules that they do not match
-// from the input but are like subroutines for other lexer rules to
-// reuse for certain lexical patterns. The other modifiers are passed
-// to the code generation templates and may be ignored by the template
-// if they are of no use in that language.
-ruleModifier
-	:	PUBLIC
-	|	PRIVATE
-	|	PROTECTED
-	|	FRAGMENT
 	;
 
 ruleBlock
@@ -272,14 +255,8 @@ alternative
 	;
 
 element
-	:	labeledElement
-		(	ebnfSuffix
-		|
-		)
-	|	atom
-		(	ebnfSuffix
-		|
-		)
+	:	labeledElement ebnfSuffix?
+	|	atom ebnfSuffix?
 	|	ebnf
 	|	ACTION QUESTION? // SEMPRED is ACTION followed by QUESTION
 	;
