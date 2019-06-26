@@ -146,6 +146,9 @@ public class HierarchyViewer extends JPanel {
 			return;
 		}
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) myTree.getModel().getRoot();
+		if ( root==null ) {
+			return; // probably because the grammar is not valid
+		}
 		Tree tree = (Tree) root.getUserObject();
 
 		if (tree instanceof ParseTree) {
