@@ -30,6 +30,8 @@ intellij {
     pluginName 'antlr-intellij-plugin-v4'
     downloadSources true
     updateSinceUntilBuild false
+
+    // plugins 'java'
 }
 
 repositories {
