@@ -15,6 +15,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -32,16 +33,16 @@ import static com.intellij.icons.AllIcons.Actions.Find;
 import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
 import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
-public class HierarchyViewer extends JPanel {
+class HierarchyViewer extends JPanel {
 
-	public boolean scrollFromSource = false;
-	public boolean highlightSource = false;
+	private boolean scrollFromSource = false;
+	private boolean highlightSource = false;
 	private PreviewPanel previewPanel;
 
 	private JTree myTree = new com.intellij.ui.treeStructure.Tree();
 	private TreeTextProvider treeTextProvider;
 
-	public HierarchyViewer(Tree tree, PreviewPanel previewPanel) {
+	HierarchyViewer(Tree tree, PreviewPanel previewPanel) {
 		this.previewPanel = previewPanel;
 
 		setupComponents();
@@ -63,23 +64,23 @@ public class HierarchyViewer extends JPanel {
 		JScrollPane scrollPane = new JBScrollPane(myTree);
 		ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from source", null, AutoscrollFromSource) {
 			@Override
-			public boolean isSelected(AnActionEvent e) {
+			public boolean isSelected(@NotNull AnActionEvent e) {
 				return scrollFromSource;
 			}
 
 			@Override
-			public void setSelected(AnActionEvent e, boolean state) {
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
 				scrollFromSource = state;
 			}
 		};
 		ToggleAction scrollToSourceBtn = new ToggleAction("Highlight source", null, Find) {
 			@Override
-			public boolean isSelected(AnActionEvent e) {
+			public boolean isSelected(@NotNull AnActionEvent e) {
 				return highlightSource;
 			}
 
 			@Override
-			public void setSelected(AnActionEvent e, boolean state) {
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
 				highlightSource = state;
 			}
 		};
