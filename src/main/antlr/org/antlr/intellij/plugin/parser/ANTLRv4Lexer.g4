@@ -62,14 +62,27 @@ tokens {
 		this._currentRuleType = ruleType;
 	}
 
-	protected void handleBeginArgAction() {
+	protected void handleBeginArgument() {
 		if (inLexerRule()) {
 			pushMode(LexerCharSet);
 			more();
 		}
 		else {
-			pushMode(ArgAction);
-			more();
+			pushMode(Argument);
+		}
+	}
+
+	protected void handleEndArgument() {
+		popMode();
+		if (_modeStack.size() > 0) {
+			setType(ARGUMENT_CONTENT);
+		}
+	}
+
+	protected void handleEndAction() {
+		popMode();
+		if (_modeStack.size() > 0) {
+			setType(ACTION_CONTENT);
 		}
 	}
 
@@ -177,9 +190,22 @@ LINE_COMMENT
 	:	'//' ~[\r\n]*  -> channel(HIDDEN)
 	;
 
-BEGIN_ARG_ACTION
-	:	'[' {handleBeginArgAction();}
-	;
+// -------------------------
+// Arguments
+//
+// Certain argument lists, such as those specifying call parameters
+// to a rule invocation, or input parameters to a rule specification
+// are contained within square brackets.
+BEGIN_ARGUMENT
+   : '['
+   { handleBeginArgument(); }
+   ;
+
+// -------------------------
+// Actions
+BEGIN_ACTION
+   : '{' -> pushMode (Action)
+;
 
 // OPTIONS and TOKENS must also consume the opening brace that captures
 // their option block, as this is the easiest way to parse it separate
@@ -272,6 +298,10 @@ UNTERMINATED_STRING_LITERAL
 	:  '\'' (ESC_SEQ | ~['\r\n\\])*
 	;
 
+fragment DOUBLE_QUOTE_LITERAL
+   : '"' (ESC_SEQ | ~ ["\r\n\\])* '"'
+   ;
+
 // Any kind of escaped character that we can embed within ANTLR
 // literal strings.
 fragment
@@ -316,41 +346,6 @@ HEX_DIGIT : [0-9a-fA-F]	;
 
 WS  :	[ \t\r\n\f]+ -> channel(HIDDEN)	;
 
-// Many language targets use {} as block delimiters and so we
-// must recursively match {} delimited blocks to balance the
-// braces. Additionally, we must make some assumptions about
-// literal string representation in the target language. We assume
-// that they are delimited by ' or " and so consume these
-// in their own alts so as not to inadvertantly match {}.
-
-ACTION
-	:	'{'
-		(	ACTION
-		|	ACTION_ESCAPE
-        |	ACTION_STRING_LITERAL
-        |	ACTION_CHAR_LITERAL
-        |	'/*' .*? '*/' // ('*/' | EOF)
-        |	'//' ~[\r\n]*
-        |	.
-		)*?
-		('}'|EOF)
-	;
-
-fragment
-ACTION_ESCAPE
-		:   '\\' .
-		;
-
-fragment
-ACTION_STRING_LITERAL
-        :	'"' (ACTION_ESCAPE | ~["\\])* '"'
-        ;
-
-fragment
-ACTION_CHAR_LITERAL
-        :	'\'' (ACTION_ESCAPE | ~['\\])* '\''
-        ;
-
 // -----------------
 // Illegal Character
 //
@@ -366,36 +361,88 @@ ERRCHAR
 	:	.	-> channel(HIDDEN)
 	;
 
-mode ArgAction; // E.g., [int x, List<String> a[]]
+mode Argument;
+    // E.g., [int x, List<String> a[]]
+    NESTED_ARGUMENT
+       : '[' -> type (ARGUMENT_CONTENT) , pushMode (Argument)
+       ;
 
-	NESTED_ARG_ACTION
-		:	'['                         -> more, pushMode(ArgAction)
-		;
+    ARGUMENT_ESCAPE
+       : ESC_SEQ -> type (ARGUMENT_CONTENT)
+       ;
 
-	ARG_ACTION_ESCAPE
-		:   '\\' .                      -> more
-		;
+    ARGUMENT_STRING_LITERAL
+       : DOUBLE_QUOTE_LITERAL -> type (ARGUMENT_CONTENT)
+       ;
 
-    ARG_ACTION_STRING_LITERAL
-        :	'"' ('\\' . | ~["\\])* '"'  -> more
-        ;
+    ARGUMENT_CHAR_LITERAL
+       : STRING_LITERAL -> type (ARGUMENT_CONTENT)
+       ;
 
-    ARG_ACTION_CHAR_LITERAL
-        :	'\'' ('\\' . | ~['\\]) '\'' -> more
-        ;
+    END_ARGUMENT
+       : ']'
+       { handleEndArgument(); }
+       ;
+       // added this to return non-EOF token type here. EOF does something weird
 
-    ARG_ACTION
-		:   ']'                         -> popMode
-		;
+    UNTERMINATED_ARGUMENT
+       : EOF -> popMode
+       ;
 
-	UNTERMINATED_ARG_ACTION // added this to return non-EOF token type here. EOF did something weird
-		:	EOF							-> popMode
-		;
+    ARGUMENT_CONTENT
+       : .
+       ;
 
-    ARG_ACTION_CHAR // must be last
-        :   .                           -> more
-        ;
+// -------------------------
+// Actions
+//
+// Many language targets use {} as block delimiters and so we
+// must recursively match {} delimited blocks to balance the
+// braces. Additionally, we must make some assumptions about
+// literal string representation in the target language. We assume
+// that they are delimited by ' or " and so consume these
+// in their own alts so as not to inadvertantly match {}.
+mode Action;
+    NESTED_ACTION
+       : '{' -> type (ACTION_CONTENT) , pushMode (Action)
+       ;
 
+    ACTION_ESCAPE
+       : ESC_SEQ -> type (ACTION_CONTENT)
+       ;
+
+    ACTION_STRING_LITERAL
+       : DOUBLE_QUOTE_LITERAL -> type (ACTION_CONTENT)
+       ;
+
+    ACTION_CHAR_LITERAL
+       : STRING_LITERAL -> type (ACTION_CONTENT)
+       ;
+
+    ACTION_DOC_COMMENT
+       : DOC_COMMENT -> type (ACTION_CONTENT)
+       ;
+
+    ACTION_BLOCK_COMMENT
+       : BLOCK_COMMENT -> type (ACTION_CONTENT)
+       ;
+
+    ACTION_LINE_COMMENT
+       : LINE_COMMENT -> type (ACTION_CONTENT)
+       ;
+
+    END_ACTION
+       : '}'
+       { handleEndAction(); }
+       ;
+
+    UNTERMINATED_ACTION
+       : EOF -> popMode
+       ;
+
+    ACTION_CONTENT
+       : .
+    ;
 
 mode LexerCharSet;
 

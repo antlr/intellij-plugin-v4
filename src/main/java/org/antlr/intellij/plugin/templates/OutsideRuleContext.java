@@ -33,7 +33,7 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 		int previousRealTokenType = previousRealToken.getType();
 		int nextRealTokenType = nextRealToken.getType();
 
-		if ( previousRealTokenType== ANTLRv4Parser.ACTION ) {
+		if ( previousRealTokenType== ANTLRv4Parser.BEGIN_ACTION ) {
 			// make sure we're not in a rule; has to be @lexer::header {...} stuff
 			Token prevPrevRealToken = ParsingUtils.previousRealToken(tokens, previousRealToken.getTokenIndex());
 			if ( prevPrevRealToken==null ) {
@@ -59,7 +59,7 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 		boolean okBefore =
 			previousRealTokenType == ANTLRv4Parser.RBRACE ||
 				previousRealTokenType == ANTLRv4Parser.SEMI ||
-				previousRealTokenType == ANTLRv4Parser.ACTION;
+				previousRealTokenType == ANTLRv4Parser.BEGIN_ACTION;
 		boolean okAfter =
 			nextRealTokenType == ANTLRv4Parser.TOKEN_REF ||
 				nextRealTokenType == ANTLRv4Parser.RULE_REF ||
