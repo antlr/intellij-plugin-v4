@@ -3,15 +3,16 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.Tree;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 public class UberTreeViewer extends TreeViewer {
-	public boolean highlightUnreachedNodes = false;
+	private boolean highlightUnreachedNodes;
 
 	public UberTreeViewer(List<String> ruleNames, Tree tree, boolean highlightUnreachedNodes) {
 		super(ruleNames, tree);
@@ -20,7 +21,8 @@ public class UberTreeViewer extends TreeViewer {
 
 	@Override
 	protected void paintBox(Graphics g, Tree tree) {
-		super.paintBox(g, tree);
+		customPaintBox(g, tree);
+
 		Rectangle2D.Double box = getBoundsOfNode(tree);
 		if ( tree instanceof PreviewInterpreterRuleContext ) {
 			PreviewInterpreterRuleContext ctx = (PreviewInterpreterRuleContext)tree;
@@ -29,6 +31,49 @@ public class UberTreeViewer extends TreeViewer {
 				g.drawRoundRect((int) box.x, (int) box.y, (int) box.width - 1,
 								(int) box.height - 1, arcSize, arcSize);
 			}
+		}
+	}
+
+	// Customized version of super.paintBox() that supports Darcula colors
+	private void customPaintBox(Graphics g, Tree tree) {
+		Rectangle2D.Double box = getBoundsOfNode(tree);
+		// draw the box in the background
+		boolean ruleFailedAndMatchedNothing = false;
+		if ( tree instanceof ParserRuleContext ) {
+			ParserRuleContext ctx = (ParserRuleContext) tree;
+			ruleFailedAndMatchedNothing = ctx.exception != null &&
+					ctx.stop != null && ctx.stop.getTokenIndex() < ctx.start.getTokenIndex();
+		}
+		if ( isHighlighted(tree) || boxColor!=null ||
+				tree instanceof ErrorNode ||
+				ruleFailedAndMatchedNothing)
+		{
+			if ( isHighlighted(tree) ) g.setColor(highlightedBoxColor);
+			else if ( tree instanceof ErrorNode || ruleFailedAndMatchedNothing ) g.setColor(new JBColor(LIGHT_RED, JBColor.RED));
+			else g.setColor(boxColor);
+			g.fillRoundRect((int) box.x, (int) box.y, (int) box.width,
+					(int) box.height, arcSize, arcSize);
+		}
+		if ( borderColor!=null ) {
+			g.setColor(borderColor);
+			g.drawRoundRect((int) box.x, (int) box.y, (int) box.width,
+					(int) box.height, arcSize, arcSize);
+		}
+
+		// draw the text on top of the box (possibly multiple lines)
+		if ( tree instanceof ErrorNode || ruleFailedAndMatchedNothing ) {
+			g.setColor(JBColor.LIGHT_GRAY);
+		} else {
+			g.setColor(textColor);
+		}
+		String s = getText(tree);
+		String[] lines = s.split("\n");
+		FontMetrics m = getFontMetrics(font);
+		int x = (int) box.x + arcSize / 2 + nodeWidthPadding;
+		int y = (int) box.y + m.getAscent() + m.getLeading() + 1 + nodeHeightPadding;
+		for (int i = 0; i < lines.length; i++) {
+			text(g, lines[i], x, y);
+			y += m.getHeight();
 		}
 	}
 
