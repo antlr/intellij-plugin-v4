@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.ui.DarculaColors;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
@@ -49,7 +51,7 @@ public class UberTreeViewer extends TreeViewer {
 				ruleFailedAndMatchedNothing)
 		{
 			if ( isHighlighted(tree) ) g.setColor(highlightedBoxColor);
-			else if ( tree instanceof ErrorNode || ruleFailedAndMatchedNothing ) g.setColor(new JBColor(LIGHT_RED, JBColor.RED));
+			else if ( tree instanceof ErrorNode || ruleFailedAndMatchedNothing ) g.setColor(DarculaColors.RED);
 			else g.setColor(boxColor);
 			g.fillRoundRect((int) box.x, (int) box.y, (int) box.width,
 					(int) box.height, arcSize, arcSize);
@@ -62,7 +64,7 @@ public class UberTreeViewer extends TreeViewer {
 
 		// draw the text on top of the box (possibly multiple lines)
 		if ( tree instanceof ErrorNode || ruleFailedAndMatchedNothing ) {
-			g.setColor(JBColor.LIGHT_GRAY);
+			g.setColor(Gray._64);
 		} else {
 			g.setColor(textColor);
 		}
