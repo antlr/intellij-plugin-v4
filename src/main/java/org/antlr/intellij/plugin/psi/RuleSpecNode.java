@@ -8,6 +8,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Root of lexer, parser rule defs */
 public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNamedElement {
@@ -27,6 +28,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		return "unknown-name";
 	}
 
+	@Nullable
 	public abstract GrammarElementRefNode getId();
 
 	@Override

@@ -155,7 +155,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
       <lang.psiStructureViewFactory language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
       <lang.foldingBuilder language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.folding.ANTLRv4FoldingBuilder" />
-
+      <iconProvider implementation="org.antlr.intellij.plugin.ANTLRv4IconProvider"/>
 
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4"
