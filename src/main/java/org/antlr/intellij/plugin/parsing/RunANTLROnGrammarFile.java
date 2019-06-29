@@ -98,7 +98,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, grammarFile);
 		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
-		String outputDirName = ConfigANTLRPerGrammar.getOutputDirName(project, qualFileName, contentRoot, package_);
+		String outputDirName = ConfigANTLRPerGrammar.resolveOutputDirName(project, qualFileName, contentRoot, package_);
 		String fullyQualifiedOutputFileName = outputDirName+File.separator+recognizerFileName;
 
 		File inF = new File(fullyQualifiedInputFileName);
@@ -197,7 +197,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 		// create gen dir at root of project by default, but add in package if any
 		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, vfile);
-		String outputDirName = ConfigANTLRPerGrammar.getOutputDirName(project, qualFileName, contentRoot, package_);
+		String outputDirName = ConfigANTLRPerGrammar.resolveOutputDirName(project, qualFileName, contentRoot, package_);
 		args.put("-o", outputDirName);
 
 		String libDir = ConfigANTLRPerGrammar.getProp(project,
@@ -238,6 +238,6 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		if ( package_==null ) {
 			package_ = MISSING;
 		}
-		return ConfigANTLRPerGrammar.getOutputDirName(project, grammarFile.getPath(), contentRoot, package_);
+		return ConfigANTLRPerGrammar.resolveOutputDirName(project, grammarFile.getPath(), contentRoot, package_);
 	}
 }

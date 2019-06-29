@@ -45,7 +45,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		loadValues(project, qualFileName);
 	}
 
-	public static String getOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
+	public static String resolveOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
 		String outputDirName = getProp(project, qualFileName,
 		                               ANTLRv4GrammarProperties.PROP_OUTPUT_DIR,
 		                               RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
