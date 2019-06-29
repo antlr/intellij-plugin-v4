@@ -109,56 +109,15 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	}
 
     public void saveValues(Project project, String qualFileName) {
-		String v;
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
-
-		props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_AUTO_GEN),
-		               String.valueOf(autoGenerateParsersCheckBox.isSelected()));
-
-		v = outputDirField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_OUTPUT_DIR), v);
-		}
-		else {
-			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_OUTPUT_DIR));
-		}
-
-		v = libDirField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR), v);
-		}
-		else {
-			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR));
-		}
-
-		v = fileEncodingField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING), v);
-		}
-		else {
-			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING));
-		}
-
-		v = packageField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE), v);
-		}
-		else {
-			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE));
-		}
-
-		v = languageField.getText();
-		if ( v.trim().length()>0 ) {
-			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE), v);
-		}
-		else {
-			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE));
-		}
-
-		props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_GEN_LISTENER),
-		               String.valueOf(generateParseTreeListenerCheckBox.isSelected()));
-		props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_GEN_VISITOR),
-		               String.valueOf(generateParseTreeVisitorCheckBox.isSelected()));
+		ANTLRv4GrammarProperties.setAutoGen(props, qualFileName, autoGenerateParsersCheckBox.isSelected());
+		ANTLRv4GrammarProperties.setOutputDir(props, outputDirField.getText(), qualFileName);
+		ANTLRv4GrammarProperties.setLibDir(props, libDirField.getText(), qualFileName);
+		ANTLRv4GrammarProperties.setFileEncoding(props, fileEncodingField.getText(), qualFileName);
+		ANTLRv4GrammarProperties.setPackageName(props, packageField.getText(), qualFileName);
+		ANTLRv4GrammarProperties.setLanguage(props, languageField.getText(), qualFileName);
+		ANTLRv4GrammarProperties.setGenerateParseTreeListener(props, qualFileName, generateParseTreeListenerCheckBox.isSelected());
+		ANTLRv4GrammarProperties.setGenerateParseTreeVisitor(props, qualFileName, generateParseTreeVisitorCheckBox.isSelected());
 	}
 
     @Nullable
