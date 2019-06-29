@@ -81,7 +81,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public boolean isGrammarStale() {
 		String qualFileName = grammarFile.getPath();
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(grammarFile);
-		sourcePath = ConfigANTLRPerGrammar.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR, sourcePath);
+		sourcePath = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR, sourcePath);
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -97,7 +97,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String recognizerFileName = generator.getRecognizerFileName();
 
 		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, grammarFile);
-		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
+		String package_ = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
 		String outputDirName = ConfigANTLRPerGrammar.resolveOutputDirName(project, qualFileName, contentRoot, package_);
 		String fullyQualifiedOutputFileName = outputDirName+File.separator+recognizerFileName;
 
@@ -179,7 +179,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String qualFileName = vfile.getPath();
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
 
-		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
+		String package_ = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
 		if ( package_==MISSING) {
 			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
 			if ( Strings.isNullOrEmpty(package_)) {
@@ -190,7 +190,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 			args.put("-package", package_);
 		}
 
-		String language = ConfigANTLRPerGrammar.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE, MISSING);
+		String language = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE, MISSING);
 		if ( language!=MISSING) {
 			args.put("-Dlanguage="+language, "");
 		}
@@ -200,7 +200,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String outputDirName = ConfigANTLRPerGrammar.resolveOutputDirName(project, qualFileName, contentRoot, package_);
 		args.put("-o", outputDirName);
 
-		String libDir = ConfigANTLRPerGrammar.getProp(project,
+		String libDir = ANTLRv4GrammarProperties.getProp(project,
 		                                              qualFileName,
 		                                              ANTLRv4GrammarProperties.PROP_LIB_DIR,
 		                                              sourcePath);
@@ -210,7 +210,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		}
 		args.put("-lib", libDir);
 
-		String encoding = ConfigANTLRPerGrammar.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING, MISSING);
+		String encoding = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING, MISSING);
 		if ( encoding!=MISSING ) {
 			args.put("-encoding", encoding);
 		}

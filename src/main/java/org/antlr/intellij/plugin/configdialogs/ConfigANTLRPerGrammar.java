@@ -46,7 +46,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	}
 
 	public static String resolveOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
-		String outputDirName = getProp(project, qualFileName,
+		String outputDirName = ANTLRv4GrammarProperties.getProp(project, qualFileName,
 		                               ANTLRv4GrammarProperties.PROP_OUTPUT_DIR,
 		                               RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
 		File f = new File(outputDirName);
@@ -60,14 +60,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return outputDirName;
 	}
 
-	public static String getProp(Project project, String qualFileName, String name, String defaultValue) {
-		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		String v = props.getValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, name));
-		if ( v==null || v.trim().length()==0 ) return defaultValue;
-		return v;
-	}
-
-	public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
+    public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		return props.getBoolean(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, name), defaultValue);
 	}

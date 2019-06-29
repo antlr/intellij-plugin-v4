@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class ANTLRv4GrammarProperties {
@@ -106,5 +107,12 @@ public class ANTLRv4GrammarProperties {
 
     public static String getPropNameForFile(String qualFileName, String prop) {
         return qualFileName + "::/" + prop;
+    }
+
+    public static String getProp(Project project, String qualFileName, String name, String defaultValue) {
+        PropertiesComponent props = PropertiesComponent.getInstance(project);
+        String v = props.getValue(getPropNameForFile(qualFileName, name));
+        if ( v==null || v.trim().length()==0 ) return defaultValue;
+        return v;
     }
 }

@@ -9,7 +9,6 @@ import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties;
-import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
@@ -398,7 +397,7 @@ public class ParsingUtils {
 
 	public static GrammarRootAST parseGrammar(Project project, Tool antlr, String grammarFileName) {
 		try {
-			String encoding = ConfigANTLRPerGrammar.getProp(project, grammarFileName, ANTLRv4GrammarProperties.PROP_ENCODING, "UTF-8");
+			String encoding = ANTLRv4GrammarProperties.getProp(project, grammarFileName, ANTLRv4GrammarProperties.PROP_ENCODING, "UTF-8");
 			char[] grammarText = Utils.readFile(grammarFileName, encoding);
 			String grammarTextS = new String(grammarText).replaceAll("\\r", "");
 			ANTLRStringStream in = new ANTLRStringStream(grammarTextS);
