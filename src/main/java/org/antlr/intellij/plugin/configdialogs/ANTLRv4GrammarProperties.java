@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class ANTLRv4GrammarProperties {
@@ -13,6 +14,7 @@ public class ANTLRv4GrammarProperties {
     public static final String PROP_LANGUAGE = "language";
     public static final String PROP_GEN_LISTENER = "gen-listener";
     public static final String PROP_GEN_VISITOR = "gen-visitor";
+    static final String PROJECT_SETTINGS_PREFIX = "*";
 
     static boolean shouldGenerateParseTreeVisitor(String qualFileName, PropertiesComponent props) {
         return props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_VISITOR), false);
@@ -111,8 +113,20 @@ public class ANTLRv4GrammarProperties {
 
     public static String getProp(Project project, String qualFileName, String name, String defaultValue) {
         PropertiesComponent props = PropertiesComponent.getInstance(project);
-        String v = props.getValue(getPropNameForFile(qualFileName, name));
-        if ( v==null || v.trim().length()==0 ) return defaultValue;
-        return v;
+        return getPropertyValueForFile(props, qualFileName, name, defaultValue);
+    }
+
+    static String getPropertyValueForFile(PropertiesComponent props, String qualFileName, String name, String defaultValue) {
+        String propertyValue = props.getValue(getPropNameForFile(qualFileName, name));
+        if (!StringUtils.isEmpty(propertyValue)) {
+            return propertyValue;
+        }
+
+        String projectPropertyValue = props.getValue(getPropNameForFile(PROJECT_SETTINGS_PREFIX, name));
+        if (!StringUtils.isEmpty(projectPropertyValue)) {
+            return projectPropertyValue;
+        }
+
+        return defaultValue;
     }
 }
