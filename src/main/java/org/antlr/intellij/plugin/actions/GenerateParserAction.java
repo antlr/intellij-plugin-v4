@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 
@@ -70,7 +71,7 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 		boolean autogen =
 			ConfigANTLRPerGrammar.getBooleanProp(project,
 												 grammarFile.getPath(),
-												 ConfigANTLRPerGrammar.PROP_AUTO_GEN,
+												 ANTLRv4GrammarProperties.PROP_AUTO_GEN,
 												 false);
 		if ( !unsaved || (unsaved && !autogen) ) {
 			// if everything already saved (not stale) then run ANTLR

@@ -18,15 +18,7 @@ import java.awt.*;
 import java.io.File;
 
 public class ConfigANTLRPerGrammar extends DialogWrapper {
-	public static final String PROP_AUTO_GEN = "auto-gen";
-	public static final String PROP_OUTPUT_DIR = "output-dir";
-	public static final String PROP_LIB_DIR = "lib-dir";
-	public static final String PROP_ENCODING = "encoding";
-	public static final String PROP_PACKAGE = "package";
-	public static final String PROP_LANGUAGE = "language";
-	public static final String PROP_GEN_LISTENER = "gen-listener";
-	public static final String PROP_GEN_VISITOR = "gen-visitor";
-	private JPanel dialogContents;
+    private JPanel dialogContents;
 	private JCheckBox generateParseTreeListenerCheckBox;
 	private JCheckBox generateParseTreeVisitorCheckBox;
 	private JTextField packageField;
@@ -55,7 +47,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 	public static String getOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
 		String outputDirName = getProp(project, qualFileName,
-		                               PROP_OUTPUT_DIR,
+		                               ANTLRv4GrammarProperties.PROP_OUTPUT_DIR,
 		                               RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
 		File f = new File(outputDirName);
 		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
@@ -70,14 +62,14 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 	public static String getProp(Project project, String qualFileName, String name, String defaultValue) {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		String v = props.getValue(getPropNameForFile(qualFileName, name));
+		String v = props.getValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, name));
 		if ( v==null || v.trim().length()==0 ) return defaultValue;
 		return v;
 	}
 
 	public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		return props.getBoolean(getPropNameForFile(qualFileName, name), defaultValue);
+		return props.getBoolean(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, name), defaultValue);
 	}
 
 	public static String getParentDir(VirtualFile vfile) {
@@ -96,84 +88,80 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		String s;
 		boolean b;
-		b = props.getBoolean(getPropNameForFile(qualFileName, PROP_AUTO_GEN), false);
+		b = ANTLRv4GrammarProperties.shouldAutoGenerateParser(qualFileName, props);
 		autoGenerateParsersCheckBox.setSelected(b);
 
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR), "");
+		s = ANTLRv4GrammarProperties.getOutputDir(qualFileName, props);
 		outputDirField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_LIB_DIR), "");
+		s = ANTLRv4GrammarProperties.getLibDir(qualFileName, props);
 		libDirField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_ENCODING), "");
+		s = ANTLRv4GrammarProperties.getEncoding(qualFileName, props);
 		fileEncodingField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_PACKAGE), "");
+		s = ANTLRv4GrammarProperties.getPackage(qualFileName, props);
 		packageField.setText(s);
-		s = props.getValue(getPropNameForFile(qualFileName, PROP_LANGUAGE), "");
+		s = ANTLRv4GrammarProperties.getLanguage(qualFileName, props);
 		languageField.setText(s);
 
-		b = props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_LISTENER), true);
+		b = ANTLRv4GrammarProperties.shouldGenerateParseTreeListener(qualFileName, props);
 		generateParseTreeListenerCheckBox.setSelected(b);
-		b = props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_VISITOR), false);
+		b = ANTLRv4GrammarProperties.shouldGenerateParseTreeVisitor(qualFileName, props);
 		generateParseTreeVisitorCheckBox.setSelected(b);
 	}
 
-	public void saveValues(Project project, String qualFileName) {
+    public void saveValues(Project project, String qualFileName) {
 		String v;
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 
-		props.setValue(getPropNameForFile(qualFileName, PROP_AUTO_GEN),
+		props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_AUTO_GEN),
 		               String.valueOf(autoGenerateParsersCheckBox.isSelected()));
 
 		v = outputDirField.getText();
 		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR), v);
+			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_OUTPUT_DIR), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR));
+			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_OUTPUT_DIR));
 		}
 
 		v = libDirField.getText();
 		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_LIB_DIR), v);
+			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_LIB_DIR));
+			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR));
 		}
 
 		v = fileEncodingField.getText();
 		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_ENCODING), v);
+			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_ENCODING));
+			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING));
 		}
 
 		v = packageField.getText();
 		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_PACKAGE), v);
+			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_PACKAGE));
+			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE));
 		}
 
 		v = languageField.getText();
 		if ( v.trim().length()>0 ) {
-			props.setValue(getPropNameForFile(qualFileName, PROP_LANGUAGE), v);
+			props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE), v);
 		}
 		else {
-			props.unsetValue(getPropNameForFile(qualFileName, PROP_LANGUAGE));
+			props.unsetValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE));
 		}
 
-		props.setValue(getPropNameForFile(qualFileName, PROP_GEN_LISTENER),
+		props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_GEN_LISTENER),
 		               String.valueOf(generateParseTreeListenerCheckBox.isSelected()));
-		props.setValue(getPropNameForFile(qualFileName, PROP_GEN_VISITOR),
+		props.setValue(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, ANTLRv4GrammarProperties.PROP_GEN_VISITOR),
 		               String.valueOf(generateParseTreeVisitorCheckBox.isSelected()));
 	}
 
-	public static String getPropNameForFile(String qualFileName, String prop) {
-		return qualFileName+"::/"+prop;
-	}
-
-	@Nullable
+    @Nullable
 	@Override
 	protected JComponent createCenterPanel() {
 		return dialogContents;
