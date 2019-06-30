@@ -129,4 +129,9 @@ public class ANTLRv4GrammarProperties {
 
         return defaultValue;
     }
+
+    public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
+		PropertiesComponent props = PropertiesComponent.getInstance(project);
+		return props.getBoolean(getPropNameForFile(qualFileName, name), defaultValue);
+	}
 }

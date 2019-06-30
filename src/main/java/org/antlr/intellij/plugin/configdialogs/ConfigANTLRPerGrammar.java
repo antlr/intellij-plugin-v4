@@ -60,11 +60,6 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return outputDirName;
 	}
 
-    public static boolean getBooleanProp(Project project, String qualFileName, String name, boolean defaultValue) {
-		PropertiesComponent props = PropertiesComponent.getInstance(project);
-		return props.getBoolean(ANTLRv4GrammarProperties.getPropNameForFile(qualFileName, name), defaultValue);
-	}
-
 	public static String getParentDir(VirtualFile vfile) {
 		return vfile.getParent().getPath();
 	}

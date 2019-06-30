@@ -73,7 +73,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
 		String qualFileName = grammarFile.getPath();
-		boolean autogen = ConfigANTLRPerGrammar.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_AUTO_GEN, false);
+		boolean autogen = ANTLRv4GrammarProperties.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_AUTO_GEN, false);
 		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
 		}
@@ -230,13 +230,13 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 			args.put("-encoding", encoding);
 		}
 
-		if ( ConfigANTLRPerGrammar.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_GEN_LISTENER, true) ) {
+		if ( ANTLRv4GrammarProperties.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_GEN_LISTENER, true) ) {
 			args.put("-listener", "");
 		}
 		else {
 			args.put("-no-listener", "");
 		}
-		if ( ConfigANTLRPerGrammar.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_GEN_VISITOR, true) ) {
+		if ( ANTLRv4GrammarProperties.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_GEN_VISITOR, true) ) {
 			args.put("-visitor", "");
 		}
 		else {
