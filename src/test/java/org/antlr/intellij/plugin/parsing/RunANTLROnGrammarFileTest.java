@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin.parsing;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
+import com.intellij.testFramework.VfsTestUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -15,7 +16,7 @@ public class RunANTLROnGrammarFileTest extends LightPlatformCodeInsightTestCase 
 	}
 
 	public void testPackageOptionShouldNotBeAddedIfDeclaredInHeader() {
-		VirtualFile file = createAndSaveFile("mypkg/myGrammarWithHeader.g4",
+		VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithHeader.g4",
 				"grammar myGrammarWithHeader;\n@header { package com.foo.bar; }\nFOO: 'foo';");
 		List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
@@ -23,7 +24,7 @@ public class RunANTLROnGrammarFileTest extends LightPlatformCodeInsightTestCase 
 	}
 
 	public void testPackageOptionShouldBeAddedIfNotDeclaredInHeader() {
-		VirtualFile file = createAndSaveFile("mypkg/myGrammarWithoutHeader.g4",
+		VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithoutHeader.g4",
 				"grammar myGrammarWithoutHeader; FOO: 'foo';");
 		List<String> options = RunANTLROnGrammarFile.getANTLRArgsAsList(getProject(), file);
 
