@@ -6,15 +6,25 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
+import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
+import org.antlr.intellij.plugin.psi.AtAction;
+import org.antlr.intellij.plugin.psi.GrammarSpecNode;
 import org.antlr.v4.Tool;
 import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.runtime.misc.Utils;
@@ -27,11 +37,11 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
+import static org.antlr.intellij.plugin.psi.MyPsiUtils.findChildrenOfType;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Modal {
@@ -39,6 +49,8 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String MISSING = "";
 	public static final String groupDisplayId = "ANTLR 4 Parser Generation";
+
+	private static final Pattern PACKAGE_DEFINITION_REGEX = Pattern.compile("package\\s+[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+[0-9a-z_];");
 
 	public VirtualFile grammarFile;
 	public Project project;
@@ -183,7 +195,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
 
 		String package_ = ConfigANTLRPerGrammar.getProp(project, qualFileName, ConfigANTLRPerGrammar.PROP_PACKAGE, MISSING);
-		if ( package_.equals(MISSING) ) {
+		if ( package_.equals(MISSING) && !hasPackageDeclarationInHeader(project, vfile)) {
 			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
 			if ( Strings.isNullOrEmpty(package_)) {
 				package_ = MISSING;
@@ -232,6 +244,27 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		}
 
 		return args;
+	}
+
+	private static boolean hasPackageDeclarationInHeader(Project project, VirtualFile grammarFile) {
+		return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+			PsiFile file = PsiManager.getInstance(project).findFile(grammarFile);
+			GrammarSpecNode grammarSpecNode = getChildOfType(file, GrammarSpecNode.class);
+
+			if ( grammarSpecNode != null ) {
+				RuleIElementType prequelElementType = ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_prequelConstruct);
+
+				for ( PsiElement prequelConstruct : findChildrenOfType(grammarSpecNode, prequelElementType) ) {
+					AtAction atAction = getChildOfType(prequelConstruct, AtAction.class);
+
+					if ( atAction!=null && atAction.getIdText().equals("header") ) {
+						return PACKAGE_DEFINITION_REGEX.matcher(atAction.getActionBlockText()).find();
+					}
+				}
+			}
+
+			return false;
+		});
 	}
 
 	public String getOutputDirName() {
