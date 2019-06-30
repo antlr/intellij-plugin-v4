@@ -6,8 +6,6 @@ import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class ANTLRv4FileRoot extends PsiFileBase {
     public ANTLRv4FileRoot(@NotNull FileViewProvider viewProvider) {
         super(viewProvider, ANTLRv4Language.INSTANCE);
@@ -22,11 +20,6 @@ public class ANTLRv4FileRoot extends PsiFileBase {
     @Override
     public String toString() {
         return "ANTLR v4 grammar file";
-    }
-
-    @Override
-    public Icon getIcon(int flags) {
-		return Icons.FILE;
     }
 
 	@NotNull

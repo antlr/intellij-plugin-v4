@@ -3,10 +3,12 @@ package org.antlr.intellij.plugin.profiler;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
-    public ParseInfo parseInfo;
+	public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
     public static final String[] columnNames = {
             "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
@@ -21,7 +23,10 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 		"# of non-DFA transitions during prediction (cache miss)"
     };
 
-    public SimpleProfilerTableDataModel(ParseInfo parseInfo) {
+	// microsecond decimal precision
+	private NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
+
+	public SimpleProfilerTableDataModel(ParseInfo parseInfo) {
         this.parseInfo = parseInfo;
         for (int i = 0; i < columnNames.length; i++) {
             nameToColumnMap.put(columnNames[i], i);
@@ -51,7 +56,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
             case 0:
 				return decisionInfo.invocations;
 			case 1:
-				return (int) (decisionInfo.timeInPrediction / 1000.0 / 1000.0);
+				return milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
 			case 2:
 				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
 			case 3:

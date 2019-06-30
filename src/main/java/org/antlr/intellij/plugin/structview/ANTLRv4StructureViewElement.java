@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.structview;
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.SortableTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
@@ -8,15 +7,13 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
-import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
-import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
-import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
-import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
+import org.antlr.intellij.plugin.psi.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class ANTLRv4StructureViewElement implements StructureViewTreeElement, SortableTreeElement {
@@ -50,31 +47,53 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 			   ((NavigationItem)element).canNavigateToSource();
 	}
 
+	@NotNull
 	@Override
 	public String getAlphaSortKey() {
-		return element instanceof PsiNamedElement ? ((PsiNamedElement) element).getName() : null;
+		return element instanceof PsiNamedElement ? ((PsiNamedElement) element).getName() : "";
 	}
 
+	@NotNull
 	@Override
 	public ItemPresentation getPresentation() {
 		return new ANTLRv4ItemPresentation(element);
 	}
 
+	@NotNull
 	@Override
 	public TreeElement[] getChildren() {
+		List<TreeElement> treeElements = new ArrayList<>();
+
 		if (element instanceof ANTLRv4FileRoot) {
-			// now jump into grammar to look for rules
-			Collection<ASTWrapperPsiElement> rules =
-				PsiTreeUtil.collectElementsOfType(element, new Class[]{LexerRuleSpecNode.class, ParserRuleSpecNode.class});
-//			System.out.println("rules="+rules);
-			List<TreeElement> treeElements = new ArrayList<TreeElement>(rules.size());
-			for (ASTWrapperPsiElement el : rules) {
-				PsiElement rule = PsiTreeUtil.findChildOfAnyType(el, new Class[]{LexerRuleRefNode.class, ParserRuleRefNode.class});
-				treeElements.add(new ANTLRv4StructureViewElement(rule));
+			new PsiRecursiveElementVisitor() {
+				@Override
+				public void visitElement(PsiElement element) {
+					if ( element instanceof ModeSpecNode ) {
+						treeElements.add(new ANTLRv4StructureViewElement(element));
+						return;
+					}
+
+					if ( element instanceof LexerRuleSpecNode || element instanceof ParserRuleSpecNode ) {
+						PsiElement rule = PsiTreeUtil.findChildOfAnyType(element, LexerRuleRefNode.class, ParserRuleRefNode.class);
+						if (rule != null) {
+							treeElements.add(new ANTLRv4StructureViewElement(rule));
+						}
+					}
+
+					super.visitElement(element);
+				}
+			}.visitElement(element);
+		} else if ( element instanceof ModeSpecNode ) {
+			LexerRuleSpecNode[] lexerRules = PsiTreeUtil.getChildrenOfType(element, LexerRuleSpecNode.class);
+
+			if ( lexerRules != null ) {
+				for ( LexerRuleSpecNode lexerRule : lexerRules ) {
+					treeElements.add(new ANTLRv4StructureViewElement(PsiTreeUtil.findChildOfType(lexerRule, LexerRuleRefNode.class)));
+				}
 			}
-			return treeElements.toArray(new TreeElement[treeElements.size()]);
 		}
-		return EMPTY_ARRAY;
+
+		return treeElements.toArray(new TreeElement[0]);
 	}
 
 	// probably not critical

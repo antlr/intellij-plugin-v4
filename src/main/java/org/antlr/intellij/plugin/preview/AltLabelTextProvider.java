@@ -3,7 +3,9 @@ package org.antlr.intellij.plugin.preview;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.runtime.tree.Trees;
 import org.antlr.v4.tool.Grammar;
@@ -60,7 +62,18 @@ public class AltLabelTextProvider implements TreeTextProvider {
 			else {
 				return name; // don't display an alternative number if there's only one
 			}
+		} else if (node instanceof TerminalNode) {
+			return getLabelForToken( ((TerminalNode)node).getSymbol() );
 		}
 		return Trees.getNodeText(node, Arrays.asList(parser.getRuleNames()));
+	}
+
+	private String getLabelForToken(Token token) {
+		String text = token.getText();
+		if (text.equals("<EOF>")) {
+			return text;
+		}
+
+		return parser.getVocabulary().getSymbolicName(token.getType()) + ": \"" + text + "\"";
 	}
 }

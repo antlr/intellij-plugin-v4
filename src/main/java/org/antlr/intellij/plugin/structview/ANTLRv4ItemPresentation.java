@@ -6,11 +6,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
-import org.antlr.intellij.plugin.Icons;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
+import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
 import org.antlr.intellij.plugin.psi.GrammarSpecNode;
+import org.antlr.intellij.plugin.psi.ModeSpecNode;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
-import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -37,18 +37,20 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
 			}
 			return "<n/a>";
 		}
+		if ( element instanceof ModeSpecNode ) {
+			ModeSpecNode mode = (ModeSpecNode) element;
+			GrammarElementRefNode modeId = mode.getId();
+			if ( modeId!=null ) {
+				return modeId.getName();
+			}
+			return "<n/a>";
+		}
 		ASTNode node = element.getNode();
 		return node.getText();
 	}
 
 	@Nullable
 	public Icon getIcon(boolean open) {
-		if ( element instanceof ParserRuleRefNode ) {
-			return Icons.PARSER_RULE;
-		}
-		if ( element instanceof ANTLRv4FileRoot ) {
-			return Icons.FILE;
-		}
-		return Icons.LEXER_RULE;
+		return element.getIcon(0);
 	}
 }

@@ -104,7 +104,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 	}
 
-	public int getEditorCharOffsetAndRemoveTokenHighlighters(EditorMouseEvent e) {
+	private int getEditorCharOffsetAndRemoveTokenHighlighters(EditorMouseEvent e) {
 		if ( e.getArea()!=EditorMouseEventArea.EDITING_AREA ) {
 			return -1;
 		}
