@@ -31,6 +31,11 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable {
     }
 
     @Nullable
+    public String getHelpTopic() {
+        return "ANTLR4 Project Settings";
+    }
+
+    @Nullable
     @Override
     public JComponent createComponent() {
         configurationForm = new ConfigANTLRPerGrammar(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
@@ -45,5 +50,8 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable {
     @Override
     public void apply() {
         configurationForm.saveValues(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
+    }
+
+    public void reset() {
     }
 }
