@@ -161,13 +161,5 @@ For really big files and slow grammars, there is an appreciable delay when displ
 	  <defaultLiveTemplatesProvider implementation="org.antlr.intellij.plugin.templates.ANTLRLiveTemplatesProvider"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
-      <localInspection language="ANTLRv4"
-                       displayName="ANTLR grammar issues inspection"
-                       groupPath="ANTLRv4"
-                       groupBundle="messages.InspectionsBundle"
-                       groupKey="group.names.probable.bugs"
-                       enabledByDefault="true"
-                       level="WARNING"
-                       implementationClass="org.antlr.intellij.plugin.ANTRLv4Inspection"/>
   </extensions>
 </idea-plugin>
