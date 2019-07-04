@@ -1,13 +1,11 @@
 package org.antlr.intellij.plugin.validation;
 
-import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
+import com.intellij.codeInsight.intention.impl.BaseIntentionAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
-import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,13 +13,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-class AddTokenDefinitionFix extends LocalQuickFixAndIntentionActionOnPsiElement {
+public class AddTokenDefinitionFix extends BaseIntentionAction {
 
-    private final SmartPsiElementPointer<LexerRuleRefNode> smartPsiElementPointer;
+    private final TextRange textRange;
 
-    AddTokenDefinitionFix(LexerRuleRefNode element) {
-        super(element);
-        smartPsiElementPointer = SmartPointerManager.getInstance(element.getProject()).createSmartPsiElementPointer(Objects.requireNonNull(element));
+    public AddTokenDefinitionFix(TextRange textRange) {
+        this.textRange = Objects.requireNonNull(textRange);
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
@@ -31,19 +28,24 @@ class AddTokenDefinitionFix extends LocalQuickFixAndIntentionActionOnPsiElement 
         return "ANTLR4";
     }
 
+    @Override
+    public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
+        return true;
+    }
+
+    @Override
+    public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+        appendTokenDefAtLastLine(editor);
+    }
+
     @NotNull
     @Override
     public String getText() {
         return "Add token definition built from letter fragments.";
     }
 
-    @Override
-    public void invoke(@NotNull Project project, @NotNull PsiFile file, @Nullable("is null when called from inspection") Editor editor, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
-        appendTokenDefAtLastLine(editor);
-    }
-
     private void appendTokenDefAtLastLine(@Nullable("is null when called from inspection") Editor editor) {
-        String tokenName = smartPsiElementPointer.getElement().getReference().getCanonicalText();
+        String tokenName = editor.getDocument().getText(textRange);
         int lastLineOffset = editor.getDocument().getLineEndOffset(editor.getDocument().getLineCount() - 1);
         editor.getDocument().insertString(lastLineOffset, "\n" + buildTokenDefinitionText(tokenName));
     }
