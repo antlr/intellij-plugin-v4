@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
@@ -7,6 +8,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
+import org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.intellij.plugin.validation.GrammarIssuesCollector;
@@ -17,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<GrammarIssue>> {
     // NOTE: can't use instance var as only 1 instance
@@ -74,31 +77,42 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 					if ( issue.getMsg().getErrorType()!=null ) {
 						severity = issue.getMsg().getErrorType().severity;
 					}
-					switch ( severity ) {
-					case ERROR:
-					case ERROR_ONE_OFF:
-					case FATAL:
-						holder.createErrorAnnotation(range, issue.getAnnotation());
-						break;
 
-					case WARNING:
-						holder.createWarningAnnotation(range, issue.getAnnotation());
-						break;
-
-					case WARNING_ONE_OFF:
-					case INFO:
-						holder.createWeakWarningAnnotation(range, issue.getAnnotation());
-
-					default:
-						break;
-					}
+					Optional<Annotation> annotation = annotate(holder, issue, range, severity);
+					annotation.ifPresent(a -> registerFixForAnnotation(a, issue));
 				}
 			}
 		}
 		super.apply(file, issues, holder);
 	}
 
-    public static String getFindVocabFileNameFromGrammarFile(PsiFile file) {
+	private Optional<Annotation> annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity) {
+		switch ( severity ) {
+		case ERROR:
+		case ERROR_ONE_OFF:
+		case FATAL:
+			return Optional.of(holder.createErrorAnnotation(range, issue.getAnnotation()));
+
+		case WARNING:
+			return Optional.of(holder.createWarningAnnotation(range, issue.getAnnotation()));
+
+		case WARNING_ONE_OFF:
+		case INFO:
+			return Optional.of(holder.createWeakWarningAnnotation(range, issue.getAnnotation()));
+
+		default:
+			break;
+		}
+		return Optional.empty();
+	}
+
+	static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue) {
+		TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
+		Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType());
+		intentionAction.ifPresent(annotation::registerFix);
+	}
+
+	public static String getFindVocabFileNameFromGrammarFile(PsiFile file) {
 		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
 		ApplicationManager.getApplication().runReadAction(findVocabAction);
 		return findVocabAction.vocabName;
