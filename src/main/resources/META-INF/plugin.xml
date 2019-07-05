@@ -167,7 +167,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
       <projectConfigurable groupId="language"
                            id="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"
-                           displayName="Antlr4 Project config"
+                           displayName="ANTLR v4 default project settings"
                            instance="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"/>
   </extensions>
 </idea-plugin>
