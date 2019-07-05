@@ -38,8 +38,8 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable {
     @Nullable
     @Override
     public JComponent createComponent() {
-        configurationForm = new ConfigANTLRPerGrammar(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
-        return configurationForm.getRootPane();
+        configurationForm = ConfigANTLRPerGrammar.getProjectSettingsForm(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
+        return configurationForm.$$$getRootComponent$$$();
     }
 
     @Override

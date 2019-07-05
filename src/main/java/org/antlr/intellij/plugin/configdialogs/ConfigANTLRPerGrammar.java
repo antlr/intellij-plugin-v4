@@ -10,6 +10,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,17 +29,31 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	protected JCheckBox autoGenerateParsersCheckBox;
 	protected JTextField languageField;
 
-	public ConfigANTLRPerGrammar(final Project project, String qualFileName) {
+	private ConfigANTLRPerGrammar(final Project project) {
 		super(project, false);
-		init();
+	}
 
+	public static ConfigANTLRPerGrammar getDialogForm(final Project project, String qualFileName) {
+		ConfigANTLRPerGrammar grammarFrom = new ConfigANTLRPerGrammar(project);
+		grammarFrom.init();
+		grammarFrom.initAntlrFields(project, qualFileName);
+		return grammarFrom;
+	}
+
+	public static ConfigANTLRPerGrammar getProjectSettingsForm(final Project project, String qualFileName) {
+		ConfigANTLRPerGrammar grammarFrom = new ConfigANTLRPerGrammar(project);
+		grammarFrom.initAntlrFields(project, qualFileName);
+		return grammarFrom;
+	}
+
+	private void initAntlrFields(Project project, String qualFileName) {
 		FileChooserDescriptor dirChooser =
-			FileChooserDescriptorFactory.createSingleFolderDescriptor();
+				FileChooserDescriptorFactory.createSingleFolderDescriptor();
 		outputDirField.addBrowseFolderListener("Select output dir", null, project, dirChooser);
 		outputDirField.setTextFieldPreferredWidth(50);
 
 		dirChooser =
-			FileChooserDescriptorFactory.createSingleFolderDescriptor();
+				FileChooserDescriptorFactory.createSingleFolderDescriptor();
 		libDirField.addBrowseFolderListener("Select lib dir", null, project, dirChooser);
 		libDirField.setTextFieldPreferredWidth(50);
 
@@ -47,15 +62,15 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 	public static String resolveOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
 		String outputDirName = ANTLRv4GrammarProperties.getProp(project, qualFileName,
-		                               ANTLRv4GrammarProperties.PROP_OUTPUT_DIR,
-		                               RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
+				ANTLRv4GrammarProperties.PROP_OUTPUT_DIR,
+				RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
 		File f = new File(outputDirName);
-		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
-			outputDirName = contentRoot.getPath()+File.separator+outputDirName;
+		if (!f.isAbsolute()) { // if not absolute file spec, it's relative to project root
+			outputDirName = contentRoot.getPath() + File.separator + outputDirName;
 		}
 		// add package if any
-		if ( package_!=RunANTLROnGrammarFile.MISSING ) {
-			outputDirName += File.separator+package_.replace('.', File.separatorChar);
+		if (package_ != RunANTLROnGrammarFile.MISSING) {
+			outputDirName += File.separator + package_.replace('.', File.separatorChar);
 		}
 		return outputDirName;
 	}
@@ -66,9 +81,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 	public static VirtualFile getContentRoot(Project project, VirtualFile vfile) {
 		VirtualFile root =
-			ProjectRootManager.getInstance(project)
-				.getFileIndex().getContentRootForFile(vfile);
-		if ( root!=null ) return root;
+				ProjectRootManager.getInstance(project)
+						.getFileIndex().getContentRootForFile(vfile);
+		if (root != null) return root;
 		return vfile.getParent();
 	}
 
@@ -121,14 +136,14 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 
 	@Override
 	public String toString() {
-		return "ConfigANTLRPerGrammar{"+
-			"textField3="+
-			", generateParseTreeListenerCheckBox="+generateParseTreeListenerCheckBox+
-			", generateParseTreeVisitorCheckBox="+generateParseTreeVisitorCheckBox+
-			", packageField="+packageField+
-			", outputDirField="+outputDirField+
-			", libDirField="+libDirField+
-			'}';
+		return "ConfigANTLRPerGrammar{" +
+				"textField3=" +
+				", generateParseTreeListenerCheckBox=" + generateParseTreeListenerCheckBox +
+				", generateParseTreeVisitorCheckBox=" + generateParseTreeVisitorCheckBox +
+				", packageField=" + packageField +
+				", outputDirField=" + outputDirField +
+				", libDirField=" + libDirField +
+				'}';
 	}
 
 	{
@@ -147,7 +162,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	 */
 	private void $$$setupUI$$$() {
 		dialogContents = new JPanel();
-		dialogContents.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
+		dialogContents.setLayout(new GridLayoutManager(9, 2, new Insets(0, 0, 0, 0), -1, -1));
 		final JLabel label1 = new JLabel();
 		label1.setText("Location of imported grammars");
 		dialogContents.add(label1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
@@ -158,11 +173,11 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		dialogContents.add(fileEncodingField, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
 		generateParseTreeVisitorCheckBox = new JCheckBox();
 		generateParseTreeVisitorCheckBox.setText("generate parse tree visitor");
-		dialogContents.add(generateParseTreeVisitorCheckBox, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		dialogContents.add(generateParseTreeVisitorCheckBox, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		generateParseTreeListenerCheckBox = new JCheckBox();
 		generateParseTreeListenerCheckBox.setSelected(true);
 		generateParseTreeListenerCheckBox.setText("generate parse tree listener (default)");
-		dialogContents.add(generateParseTreeListenerCheckBox, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		dialogContents.add(generateParseTreeListenerCheckBox, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		final JLabel label3 = new JLabel();
 		label3.setText("Package/namespace for the generated code");
 		dialogContents.add(label3, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
@@ -172,17 +187,19 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		label4.setText("Output directory where all output is generated");
 		dialogContents.add(label4, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
 		outputDirField = new TextFieldWithBrowseButton();
-		dialogContents.add(outputDirField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+		dialogContents.add(outputDirField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		libDirField = new TextFieldWithBrowseButton();
-		dialogContents.add(libDirField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+		dialogContents.add(libDirField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		autoGenerateParsersCheckBox = new JCheckBox();
 		autoGenerateParsersCheckBox.setText("Auto-generate parsers upon save");
-		dialogContents.add(autoGenerateParsersCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK|GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+		dialogContents.add(autoGenerateParsersCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 		final JLabel label5 = new JLabel();
 		label5.setText("Language (e.g., Java, Python2, CSharp, ...)");
 		dialogContents.add(label5, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
 		languageField = new JTextField();
 		dialogContents.add(languageField, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+		final Spacer spacer1 = new Spacer();
+		dialogContents.add(spacer1, new GridConstraints(8, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 	}
 
 	/**

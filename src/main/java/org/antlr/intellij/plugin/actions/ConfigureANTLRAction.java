@@ -27,7 +27,7 @@ public class ConfigureANTLRAction extends AnAction implements DumbAware {
 		if ( grammarFile==null ) return;
 		LOG.info("actionPerformed "+grammarFile);
 
-		ConfigANTLRPerGrammar configDialog = new ConfigANTLRPerGrammar(e.getProject(), grammarFile.getPath());
+		ConfigANTLRPerGrammar configDialog = ConfigANTLRPerGrammar.getDialogForm(e.getProject(), grammarFile.getPath());
 		configDialog.getPeer().setTitle("Configure ANTLR Tool "+ Tool.VERSION+" for "+ grammarFile.getName());
 
 		configDialog.show();
