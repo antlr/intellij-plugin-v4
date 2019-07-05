@@ -43,6 +43,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	public static ConfigANTLRPerGrammar getProjectSettingsForm(final Project project, String qualFileName) {
 		ConfigANTLRPerGrammar grammarFrom = new ConfigANTLRPerGrammar(project);
 		grammarFrom.initAntlrFields(project, qualFileName);
+		grammarFrom.generateParseTreeListenerCheckBox.setVisible(false);
+		grammarFrom.generateParseTreeVisitorCheckBox.setVisible(false);
+		grammarFrom.autoGenerateParsersCheckBox.setVisible(false);
 		return grammarFrom;
 	}
 
