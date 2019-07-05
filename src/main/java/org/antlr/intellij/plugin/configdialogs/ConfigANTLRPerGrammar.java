@@ -117,16 +117,65 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
     public void saveValues(Project project, String qualFileName) {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		ANTLRv4GrammarProperties.setAutoGen(props, qualFileName, autoGenerateParsersCheckBox.isSelected());
-		ANTLRv4GrammarProperties.setOutputDir(props, outputDirField.getText(), qualFileName);
-		ANTLRv4GrammarProperties.setLibDir(props, libDirField.getText(), qualFileName);
-		ANTLRv4GrammarProperties.setFileEncoding(props, fileEncodingField.getText(), qualFileName);
-		ANTLRv4GrammarProperties.setPackageName(props, packageField.getText(), qualFileName);
-		ANTLRv4GrammarProperties.setLanguage(props, languageField.getText(), qualFileName);
+		ANTLRv4GrammarProperties.setOutputDir(props, getOutputDirText(), qualFileName);
+		ANTLRv4GrammarProperties.setLibDir(props, getLibDirText(), qualFileName);
+		ANTLRv4GrammarProperties.setFileEncoding(props, getFileEncodingText(), qualFileName);
+		ANTLRv4GrammarProperties.setPackageName(props, getPackageFieldText(), qualFileName);
+		ANTLRv4GrammarProperties.setLanguage(props, getLanguageText(), qualFileName);
 		ANTLRv4GrammarProperties.setGenerateParseTreeListener(props, qualFileName, generateParseTreeListenerCheckBox.isSelected());
 		ANTLRv4GrammarProperties.setGenerateParseTreeVisitor(props, qualFileName, generateParseTreeVisitorCheckBox.isSelected());
 	}
 
-    @Nullable
+	boolean isModified(PropertiesComponent props, String qualFileName) {
+		String defaultOutputDir = ANTLRv4GrammarProperties.getOutputDir(qualFileName, props);
+		if (!defaultOutputDir.equals(getOutputDirText())) {
+			return true;
+		}
+
+		String defaultLibDir = ANTLRv4GrammarProperties.getLibDir(qualFileName, props);
+		if (!defaultLibDir.equals(getLibDirText())) {
+			return true;
+		}
+
+		String defaultEncoding = ANTLRv4GrammarProperties.getEncoding(qualFileName, props);
+		if (!defaultEncoding.equals(getFileEncodingText())) {
+			return true;
+		}
+
+		String defaultPackage = ANTLRv4GrammarProperties.getPackage(qualFileName, props);
+		if (!defaultPackage.equals(getPackageFieldText())) {
+			return true;
+		}
+
+		String defaultLanguage = ANTLRv4GrammarProperties.getLanguage(qualFileName, props);
+		if (!defaultLanguage.equals(getLanguageText())) {
+			return true;
+		}
+
+		return false;
+	}
+
+	String getLanguageText() {
+		return languageField.getText();
+	}
+
+	String getPackageFieldText() {
+		return packageField.getText();
+	}
+
+	String getFileEncodingText() {
+		return fileEncodingField.getText();
+	}
+
+	String getLibDirText() {
+		return libDirField.getText();
+	}
+
+	String getOutputDirText() {
+		return outputDirField.getText();
+	}
+
+	@Nullable
 	@Override
 	protected JComponent createCenterPanel() {
 		return dialogContents;
