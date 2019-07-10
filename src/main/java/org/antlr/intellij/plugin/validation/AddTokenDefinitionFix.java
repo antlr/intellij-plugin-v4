@@ -51,8 +51,16 @@ public class AddTokenDefinitionFix extends BaseIntentionAction {
     }
 
     @NotNull
-    static String buildTokenDefinitionText(String tokenName) {
-        String tokenDefRule = tokenName.toUpperCase().chars().mapToObj(c -> (char) c).map(String::valueOf).collect(Collectors.joining(" "));
-        return tokenName + " : " + tokenDefRule + ";";
+    static String buildTokenDefinitionExpressionText(String tokenName) {
+        return tokenName.toUpperCase().chars().mapToObj(c -> (char) c).map(c -> getCharacterFragment(c)).collect(Collectors.joining(" "));
+    }
+
+    private static String getCharacterFragment(Character c) {
+        String fragment = String.valueOf(c);
+        if (Character.isLetter(c)) {
+            return fragment;
+        } else {
+            return "'" + fragment + "'";
+        }
     }
 }
