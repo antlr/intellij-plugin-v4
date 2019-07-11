@@ -76,7 +76,7 @@ option
 optionValue
 	:	id (DOT id)*
 	|	STRING_LITERAL
-	|	ACTION
+	|	actionBlock
 	|	INT
 	;
 
@@ -90,7 +90,7 @@ delegateGrammar
 	;
 
 tokensSpec
-	:	TOKENS idList RBRACE
+	:	TOKENS idList? RBRACE
 	;
 
 channelsSpec
@@ -103,7 +103,7 @@ idList
 
 /** Match stuff like @parser::members {int i;} */
 action
-	:	AT (actionScopeName COLONCOLON)? id ACTION
+	:	AT (actionScopeName COLONCOLON)? id actionBlock
 	;
 
 /** Sometimes the scope names will collide with keywords; allow them as
@@ -114,6 +114,14 @@ actionScopeName
 	|	LEXER
 	|	PARSER
 	;
+
+actionBlock
+   : BEGIN_ACTION ACTION_CONTENT* END_ACTION
+   ;
+
+argActionBlock
+   : BEGIN_ARGUMENT ARGUMENT_CONTENT* END_ARGUMENT
+   ;
 
 modeSpec
 	:	MODE id SEMI lexerRule*
@@ -130,7 +138,7 @@ ruleSpec
 
 parserRuleSpec
 	:	DOC_COMMENT?
-        ruleModifiers? RULE_REF ARG_ACTION?
+        RULE_REF argActionBlock?
         ruleReturns? throwsSpec? localsSpec?
 		rulePrequel*
 		COLON
@@ -144,11 +152,11 @@ exceptionGroup
 	;
 
 exceptionHandler
-	:	CATCH ARG_ACTION ACTION
+	:	CATCH argActionBlock actionBlock
 	;
 
 finallyClause
-	:	FINALLY ACTION
+	:	FINALLY actionBlock
 	;
 
 rulePrequel
@@ -157,7 +165,7 @@ rulePrequel
 	;
 
 ruleReturns
-	:	RETURNS ARG_ACTION
+	:	RETURNS argActionBlock
 	;
 
 throwsSpec
@@ -165,29 +173,12 @@ throwsSpec
 	;
 
 localsSpec
-	:	LOCALS ARG_ACTION
+	:	LOCALS argActionBlock
 	;
 
 /** Match stuff like @init {int i;} */
 ruleAction
-	:	AT id ACTION
-	;
-
-ruleModifiers
-	:	ruleModifier+
-	;
-
-// An individual access modifier for a rule. The 'fragment' modifier
-// is an internal indication for lexer rules that they do not match
-// from the input but are like subroutines for other lexer rules to
-// reuse for certain lexical patterns. The other modifiers are passed
-// to the code generation templates and may be ignored by the template
-// if they are of no use in that language.
-ruleModifier
-	:	PUBLIC
-	|	PRIVATE
-	|	PROTECTED
-	|	FRAGMENT
+	:	AT id actionBlock
 	;
 
 ruleBlock
@@ -228,7 +219,7 @@ lexerElement
 	:	labeledLexerElement ebnfSuffix?
 	|	lexerAtom ebnfSuffix?
 	|	lexerBlock ebnfSuffix?
-	|	ACTION QUESTION? // actions only allowed at end of outer alt actually,
+	|	actionBlock QUESTION? // actions only allowed at end of outer alt actually,
                          // but preds can be anywhere
 	;
 
@@ -272,16 +263,10 @@ alternative
 	;
 
 element
-	:	labeledElement
-		(	ebnfSuffix
-		|
-		)
-	|	atom
-		(	ebnfSuffix
-		|
-		)
+	:	labeledElement ebnfSuffix?
+	|	atom ebnfSuffix?
 	|	ebnf
-	|	ACTION QUESTION? // SEMPRED is ACTION followed by QUESTION
+	|	actionBlock QUESTION? // SEMPRED is ACTION followed by QUESTION
 	;
 
 labeledElement
@@ -345,7 +330,7 @@ block
 	;
 
 ruleref
-	:	RULE_REF ARG_ACTION? elementOptions?
+	:	RULE_REF argActionBlock? elementOptions?
 	;
 
 range

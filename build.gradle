@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij" version "0.4.4"
+    id "org.jetbrains.intellij" version "0.4.9"
 }
 
 wrapper {
@@ -30,6 +30,8 @@ intellij {
     pluginName 'antlr-intellij-plugin-v4'
     downloadSources true
     updateSinceUntilBuild false
+
+    // plugins 'java'
 }
 
 repositories {

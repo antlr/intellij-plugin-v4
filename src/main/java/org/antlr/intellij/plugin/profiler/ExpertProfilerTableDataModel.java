@@ -3,6 +3,8 @@ package org.antlr.intellij.plugin.profiler;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.LinkedHashMap;
 
 public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
@@ -33,6 +35,9 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 		"# of ambiguous input phrases",
 		"# of predicate evaluations"
     };
+
+	// microsecond decimal precision
+	private NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
 
     public ExpertProfilerTableDataModel(ParseInfo parseInfo) {
         this.parseInfo = parseInfo;
@@ -65,7 +70,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
             case 1:
                 return decisionInfo.invocations;
             case 2:
-                return (int) (decisionInfo.timeInPrediction / 1000.0 / 1000.0);
+				return milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
             case 3:
                 return parseInfo.getDFASize(decision);
             case 4:

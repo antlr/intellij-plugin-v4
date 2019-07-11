@@ -19,10 +19,7 @@ import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
-import org.antlr.intellij.plugin.psi.AtAction;
-import org.antlr.intellij.plugin.psi.GrammarElementRefNode;
-import org.antlr.intellij.plugin.psi.MyPsiUtils;
-import org.antlr.intellij.plugin.psi.RuleSpecNode;
+import org.antlr.intellij.plugin.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,6 +72,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         addOptionsFoldingDescriptor(descriptors, root);
 
         addTokensFoldingDescriptor(descriptors, root);
+
+        addModeFoldingDescriptors(descriptors, root);
     }
 
     private static void addTokensFoldingDescriptor(List<FoldingDescriptor> descriptors, PsiElement root) {
@@ -151,6 +150,16 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
     }
 
+    private static void addModeFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
+        for (ModeSpecNode specNode : PsiTreeUtil.findChildrenOfType(root, ModeSpecNode.class)) {
+            PsiElement semi = MyPsiUtils.findFirstChildOfType(specNode, ANTLRv4TokenTypes.getTokenElementType(ANTLRv4Lexer.SEMI));
+
+            if ( semi != null ) {
+                TextRange foldingRange = TextRange.create(semi.getTextOffset(), specNode.getNode().getStartOffset() + specNode.getTextLength());
+                descriptors.add(new FoldingDescriptor(specNode, foldingRange));
+            }
+        }
+    }
 
     private static boolean isComment(PsiElement element) {
         IElementType type = element.getNode().getElementType();
@@ -276,6 +285,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
         if (element.getNode().getElementType() == LINE_COMMENT_TOKEN) {
             return "//...";
+        } else if ( element instanceof ModeSpecNode ) {
+            return ";...";
         } else if (element instanceof RuleSpecNode) {
             return ":...;";
         } else if (element instanceof AtAction) {

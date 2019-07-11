@@ -277,6 +277,13 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			hidePreview();
 			return;
 		}
+
+		// When switching from a lexer grammar, update its objects in case the grammar was modified.
+		// The updated objects might be needed later by another dependant grammar.
+		if ( oldFile != null && oldFile.getName().endsWith(".g4")) {
+			updateGrammarObjectsFromFile(oldFile, true);
+		}
+
 		PreviewState previewState = getPreviewState(newFile);
 		if ( previewState.g==null && previewState.lg==null ) { // only load grammars if none is there
 			updateGrammarObjectsFromFile(newFile, false);
@@ -371,7 +378,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	private String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		PreviewState previewState = getPreviewState(grammarFile);
-		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFileName, project);
+		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFile, project);
 		if (grammars != null) {
 			synchronized (previewState) { // build atomically
 				previewState.lg = (LexerGrammar)grammars[0];
@@ -385,7 +392,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
 		for (PreviewState s : grammarToPreviewState.values()) {
 			if ( s!=null && s.lg!=null &&
-				 (grammarFileName.equals(s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
+					(sameFile(grammarFileName, s.lg.fileName)||s.lg==ParsingUtils.BAD_LEXER_GRAMMAR) )
 			{
 				// s has a lexer with same filename, see if there is a parser grammar
 				// (not a combined grammar)
@@ -404,6 +411,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			}
 		}
 		return null;
+	}
+
+	private boolean sameFile(String pathOne, String pathTwo) {
+		// use new File() to support both / and \ in paths
+		return new File(pathOne).equals(new File(pathTwo));
 	}
 
 	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {

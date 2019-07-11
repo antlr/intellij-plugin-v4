@@ -223,6 +223,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 					new AltLabelTextProvider(previewState.parsingResult.parser, previewState.g);
 				treeViewers[i].setTreeTextProvider(treeText);
 				treeViewers[i].setTree(ctx);
+				treeViewers[i].setHighlightedBoxColor(new JBColor(JBColor.lightGray, JBColor.GREEN));
+
 				// highlight root so people can see it across trees; might not be top node
 				final Tree root = ParsingUtils.findOverriddenDecisionRoot(ctx);
 				if ( root==null ) {

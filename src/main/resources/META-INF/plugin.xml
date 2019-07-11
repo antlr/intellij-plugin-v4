@@ -7,7 +7,7 @@
   <description><![CDATA[
   <p>
       This plugin is for ANTLR v4 grammars and includes ANTLR 4.7.2. It works with
-      2016.1-2018.2.  It should work in other Jetbrains IDEs.
+      2016.1-2019.2.  It should work in other Jetbrains IDEs.
      </p>
 
      <ul>
@@ -72,10 +72,13 @@ For really big files and slow grammars, there is an appreciable delay when displ
       ]]></description>
 
   <change-notes><![CDATA[
-	Upgrade antlr to 4.7.2 (from 4.7), Fixed:
-	 <a href="https://github.com/antlr/intellij-plugin-v4/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20milestone%3A1.9">bugs</a> and
-	  <a href="https://github.com/antlr/intellij-plugin-v4/milestone/14?closed=1">pull requests / improvements</a>.
-	Requires at least Intellij 2016.x now!
+	<ul>
+	    <li>Fixed compatibility with IntelliJ 2019.2</li>
+	    <li>Enhanced Go To Declaration</li>
+	    <li>Revamped icons</li>
+	    <li>Fixed various exceptions</li>
+    </ul>
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/milestone/19?closed=1">fixed issues</a>.
       ]]>
   </change-notes>
 
@@ -144,6 +147,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
       <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
       <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <lang.commenter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4Commenter" />
+      <lang.braceMatcher language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.editor.ANTLRv4BraceMatcher"/>
       <colorSettingsPage implementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4ColorsPage"/>
 	  <additionalTextAttributes scheme="Default" file="colorSchemes/ANTLRv4Default.xml"/>
 	  <additionalTextAttributes scheme="Darcula" file="colorSchemes/ANTLRv4Darcula.xml"/>
@@ -152,7 +156,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
       <lang.psiStructureViewFactory language="ANTLRv4"
                 implementationClass="org.antlr.intellij.plugin.structview.ANTLRv4StructureViewFactory"/>
       <lang.foldingBuilder language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.folding.ANTLRv4FoldingBuilder" />
-
+      <iconProvider implementation="org.antlr.intellij.plugin.ANTLRv4IconProvider"/>
 
       <externalAnnotator language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4ExternalAnnotator"/>
       <lang.findUsagesProvider language="ANTLRv4"

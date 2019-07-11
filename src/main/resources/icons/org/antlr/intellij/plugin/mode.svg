@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 2048 2048">
+	<circle fill-opacity="0.6" r="896" cx="1024" cy="1024" fill="#f4af3d"></circle>
+	<path fill-opacity="0.7" transform="translate(655.84, 1494.56) scale(0.64, -0.64)" fill="#231f20" d="M36 1488h270l258 -758l260 758h271v-1488h-187v1315l-266 -784h-153l-267 784v-1315h-186v1488z"></path>
+</svg>

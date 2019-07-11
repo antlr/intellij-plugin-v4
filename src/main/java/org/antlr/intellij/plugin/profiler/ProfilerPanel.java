@@ -56,6 +56,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 public class ProfilerPanel {
 	public static final Color AMBIGUITY_COLOR = new Color(138, 0, 0);
@@ -119,11 +121,13 @@ public class ProfilerPanel {
 		Parser parser = previewState.parsingResult.parser;
 		ParseInfo parseInfo = parser.getParseInfo();
 		updateTableModelPerExpertCheckBox(parseInfo);
-		long parseTimeMS = (long) (parseTime_ns/(1000.0*1000.0));
-		parseTimeField.setText(String.valueOf(parseTimeMS));
-		int predTimeMS = (int) (parseInfo.getTotalTimeInPrediction()/(1000.0*1000.0));
+		double parseTimeMS = parseTime_ns/(1000.0*1000.0);
+		// microsecond decimal precision
+		NumberFormat formatter = new DecimalFormat("#.###");
+		parseTimeField.setText(formatter.format(parseTimeMS));
+		double predTimeMS = parseInfo.getTotalTimeInPrediction()/(1000.0*1000.0);
 		predictionTimeField.setText(
-			String.format("%d = %3.2f%%", predTimeMS, 100*((double) predTimeMS)/parseTimeMS)
+			String.format("%s = %3.2f%%", formatter.format(predTimeMS), 100*(predTimeMS)/parseTimeMS)
 		                           );
 		TokenStream tokens = parser.getInputStream();
 		int numTokens = tokens.size();
