@@ -1,7 +1,7 @@
 package org.antlr.intellij.plugin.adaptors;
 
-import com.intellij.lang.Language;
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor;
+import org.antlr.intellij.plugin.ANTLRv4Language;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.v4.runtime.Lexer;
 
@@ -9,8 +9,8 @@ import org.antlr.v4.runtime.Lexer;
 public class ANTLRv4LexerAdaptor extends ANTLRLexerAdaptor {
 	private static final ANTLRv4LexerState INITIAL_STATE = new ANTLRv4LexerState(Lexer.DEFAULT_MODE, null, 0);
 
-	public ANTLRv4LexerAdaptor(Language language, ANTLRv4Lexer lexer) {
-		super(language, lexer);
+	public ANTLRv4LexerAdaptor(ANTLRv4Lexer lexer) {
+		super(ANTLRv4Language.INSTANCE, lexer);
 	}
 
 	@Override

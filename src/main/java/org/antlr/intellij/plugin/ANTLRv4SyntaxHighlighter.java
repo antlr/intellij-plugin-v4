@@ -37,7 +37,7 @@ public class ANTLRv4SyntaxHighlighter extends SyntaxHighlighterBase {
 	@Override
 	public Lexer getHighlightingLexer() {
 		ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
-		return new ANTLRv4LexerAdaptor(ANTLRv4Language.INSTANCE, lexer);
+		return new ANTLRv4LexerAdaptor(lexer);
 	}
 
 	@NotNull
