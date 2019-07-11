@@ -18,20 +18,8 @@ import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DefaultErrorStrategy;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.InputMismatchException;
-import org.antlr.v4.runtime.LexerInterpreter;
-import org.antlr.v4.runtime.LexerNoViableAltException;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenFactory;
-import org.antlr.v4.runtime.TokenSource;
-import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Predicate;
@@ -50,11 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
