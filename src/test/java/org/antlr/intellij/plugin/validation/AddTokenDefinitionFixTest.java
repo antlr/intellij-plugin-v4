@@ -30,7 +30,7 @@ public class AddTokenDefinitionFixTest {
     public void shouldGetRangeForReplacement() {
         // given:
         PsiElement element = Mockito.mock(PsiElement.class);
-        Mockito.when(element.getTextRangeInParent()).thenReturn(new TextRange(0, ELEMENT_LENGTH));
+        Mockito.when(element.getTextLength()).thenReturn(ELEMENT_LENGTH);
 
         // when:
         TextRange range = AddTokenDefinitionFix.getRange(element, TOKEN_EXPR_START_OFFSET);

@@ -89,7 +89,7 @@ public class AddTokenDefinitionFix extends BaseIntentionAction {
     }
 
     static TextRange getRange(PsiElement elementAt, int tokenExprTextOffset) {
-        return new TextRange(tokenExprTextOffset, elementAt.getTextRangeInParent().getEndOffset() - 1);
+        return new TextRange(tokenExprTextOffset, elementAt.getTextLength() - 1);
     }
 
     @NotNull
