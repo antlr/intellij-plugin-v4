@@ -22,6 +22,7 @@ public class ANTLRv4BraceMatcher implements PairedBraceMatcher {
 				new BracePair(getTokenElementType(CHANNELS), getTokenElementType(RBRACE), true),
 				new BracePair(getTokenElementType(BEGIN_ACTION), getTokenElementType(END_ACTION), false),
 				new BracePair(getTokenElementType(BEGIN_ARGUMENT), getTokenElementType(END_ARGUMENT), false),
+				new BracePair(getTokenElementType(LT), getTokenElementType(GT), false),
 		};
 	}
 

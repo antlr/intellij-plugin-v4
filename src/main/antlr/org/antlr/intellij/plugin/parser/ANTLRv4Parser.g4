@@ -169,7 +169,7 @@ ruleReturns
 	;
 
 throwsSpec
-	:	THROWS id (COMMA id)*
+	:	THROWS qid (COMMA qid)*
 	;
 
 localsSpec
@@ -219,19 +219,19 @@ lexerElement
 	:	labeledLexerElement ebnfSuffix?
 	|	lexerAtom ebnfSuffix?
 	|	lexerBlock ebnfSuffix?
-	|	actionBlock QUESTION? // actions only allowed at end of outer alt actually,
-                         // but preds can be anywhere
+	|	actionElement // actions only allowed at end of outer alt actually,
+                      // but preds can be anywhere
 	;
 
 labeledLexerElement
 	:	id (ASSIGN|PLUS_ASSIGN)
 		(	lexerAtom
-		|	block
+		|	lexerBlock
 		)
 	;
 
 lexerBlock
-	:	LPAREN lexerAltList RPAREN
+	:	LPAREN (optionsSpec COLON)? lexerAltList RPAREN
 	;
 
 // E.g., channel(HIDDEN), skip, more, mode(INSIDE), push(INSIDE), pop
@@ -266,8 +266,12 @@ element
 	:	labeledElement ebnfSuffix?
 	|	atom ebnfSuffix?
 	|	ebnf
-	|	actionBlock QUESTION? // SEMPRED is ACTION followed by QUESTION
+	|	actionElement // SEMPRED is ACTION followed by QUESTION
 	;
+
+actionElement
+    :   actionBlock QUESTION? elementOptions?
+    ;
 
 labeledElement
 	:	id (ASSIGN|PLUS_ASSIGN)
@@ -350,11 +354,14 @@ elementOptions
 
 elementOption
 	:	// This format indicates the default node option
-		id
+		qid
 	|	// This format indicates option assignment
-		id ASSIGN (id | STRING_LITERAL)
+		id ASSIGN optionValue
 	;
 
 id	:	RULE_REF
 	|	TOKEN_REF
 	;
+
+qid : id (DOT id)*
+    ;
