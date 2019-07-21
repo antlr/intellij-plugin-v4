@@ -60,3 +60,4 @@ YYYY/MM/DD, github id, Full name, email
 2016/01/08, jwhiting, James Whiting, james.whiting@gmail.com
 2018/10/24, brizjin, Ivan Bryzzhin, brizjin@gmail.com
 2019/06/29, alexkli, Alexander Klimetschek, aklimets@adobe.com
+2019/07/10, wojciszek, Wojciech Kruczkowski, kruczkowski.wojciech@gmail.com
