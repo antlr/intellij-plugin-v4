@@ -97,7 +97,7 @@ public class PreviewPanel extends JPanel {
 		tabbedPane.addTab("Hierarchy", hierarchyViewer);
 
 		profilerPanel = new ProfilerPanel(project, this);
-		tabbedPane.addTab("Profiler", profilerPanel.$$$getRootComponent$$$());
+		tabbedPane.addTab("Profiler", profilerPanel.getComponent());
 
 		return tabbedPane;
 	}

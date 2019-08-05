@@ -42,7 +42,7 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
     @Override
     public JComponent createComponent() {
         configurationForm = ConfigANTLRPerGrammar.getProjectSettingsForm(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
-        return configurationForm.$$$getRootComponent$$$();
+        return configurationForm.createCenterPanel();
     }
 
     @Override
