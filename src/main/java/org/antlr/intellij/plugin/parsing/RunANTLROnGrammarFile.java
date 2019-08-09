@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.parsing;
 import com.google.common.base.Strings;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -19,9 +20,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
-import org.antlr.intellij.plugin.configdialogs.ConfigANTLRPerGrammar;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.psi.AtAction;
@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
+import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties.*;
 import static org.antlr.intellij.plugin.psi.MyPsiUtils.findChildrenOfType;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
@@ -73,7 +74,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
 		String qualFileName = grammarFile.getPath();
-		boolean autogen = ANTLRv4GrammarProperties.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_AUTO_GEN, false);
+		boolean autogen = shouldAutoGenerateParser(qualFileName, PropertiesComponent.getInstance(project));
 		if ( forceGeneration || (autogen && isGrammarStale()) ) {
 			antlr(grammarFile);
 		}
@@ -95,8 +96,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	// TODO: lots of duplication with antlr() function.
 	private boolean isGrammarStale() {
 		String qualFileName = grammarFile.getPath();
-		String sourcePath = ConfigANTLRPerGrammar.getParentDir(grammarFile);
-		sourcePath = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_LIB_DIR, sourcePath);
+		String sourcePath = getLibDir(qualFileName, PropertiesComponent.getInstance(project), getParentDir(grammarFile));
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -111,9 +111,9 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		CodeGenerator generator = new CodeGenerator(null, g, language);
 		String recognizerFileName = generator.getRecognizerFileName();
 
-		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, grammarFile);
-		String package_ = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
-		String outputDirName = ConfigANTLRPerGrammar.resolveOutputDirName(project, qualFileName, contentRoot, package_);
+		VirtualFile contentRoot = getContentRoot(project, grammarFile);
+		String package_ = getPackage(qualFileName, PropertiesComponent.getInstance(project));
+		String outputDirName = resolveOutputDirName(project, qualFileName, contentRoot, package_);
 		String fullyQualifiedOutputFileName = outputDirName+File.separator+recognizerFileName;
 
 		File inF = new File(fullyQualifiedInputFileName);
@@ -132,7 +132,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		LOG.info("antlr(\""+vfile.getPath()+"\")");
 		List<String> args = getANTLRArgsAsList(project, vfile);
 
-		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
+		String sourcePath = getParentDir(vfile);
 		String fullyQualifiedInputFileName = sourcePath+File.separator+vfile.getName();
 		args.add(fullyQualifiedInputFileName); // add grammar file last
 
@@ -192,9 +192,9 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	private static Map<String,String> getANTLRArgs(Project project, VirtualFile vfile) {
 		Map<String,String> args = new HashMap<>();
 		String qualFileName = vfile.getPath();
-		String sourcePath = ConfigANTLRPerGrammar.getParentDir(vfile);
+		String sourcePath = getParentDir(vfile);
 
-		String package_ = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_PACKAGE, MISSING);
+		String package_ = getPackage(qualFileName, PropertiesComponent.getInstance(project));
 		if ( package_.equals(MISSING) && !hasPackageDeclarationInHeader(project, vfile)) {
 			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
 			if ( Strings.isNullOrEmpty(package_)) {
@@ -205,38 +205,35 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 			args.put("-package", package_);
 		}
 
-		String language = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_LANGUAGE, MISSING);
+		String language = getLanguage(qualFileName, PropertiesComponent.getInstance(project));
 		if ( !language.equals(MISSING) ) {
 			args.put("-Dlanguage="+language, "");
 		}
 
 		// create gen dir at root of project by default, but add in package if any
-		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, vfile);
-		String outputDirName = ConfigANTLRPerGrammar.resolveOutputDirName(project, qualFileName, contentRoot, package_);
+		VirtualFile contentRoot = getContentRoot(project, vfile);
+		String outputDirName = resolveOutputDirName(project, qualFileName, contentRoot, package_);
 		args.put("-o", outputDirName);
 
-		String libDir = ANTLRv4GrammarProperties.getProp(project,
-		                                              qualFileName,
-		                                              ANTLRv4GrammarProperties.PROP_LIB_DIR,
-		                                              sourcePath);
+		String libDir = getLibDir(qualFileName, PropertiesComponent.getInstance(project), sourcePath);
 		File f = new File(libDir);
 		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
 			libDir = contentRoot.getPath()+File.separator+libDir;
 		}
 		args.put("-lib", libDir);
 
-		String encoding = ANTLRv4GrammarProperties.getProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_ENCODING, MISSING);
+		String encoding = getEncoding(qualFileName, PropertiesComponent.getInstance(project));
 		if ( !encoding.equals(MISSING) ) {
 			args.put("-encoding", encoding);
 		}
 
-		if ( ANTLRv4GrammarProperties.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_GEN_LISTENER, true) ) {
+		if ( shouldGenerateParseTreeListener(qualFileName, PropertiesComponent.getInstance(project)) ) {
 			args.put("-listener", "");
 		}
 		else {
 			args.put("-no-listener", "");
 		}
-		if ( ANTLRv4GrammarProperties.getBooleanProp(project, qualFileName, ANTLRv4GrammarProperties.PROP_GEN_VISITOR, true) ) {
+		if ( shouldGenerateParseTreeVisitor(qualFileName, PropertiesComponent.getInstance(project)) ) {
 			args.put("-visitor", "");
 		}
 		else {
@@ -267,13 +264,25 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		});
 	}
 
+	private static String getParentDir(VirtualFile vfile) {
+		return vfile.getParent().getPath();
+	}
+
+	private static VirtualFile getContentRoot(Project project, VirtualFile vfile) {
+		VirtualFile root =
+				ProjectRootManager.getInstance(project)
+						.getFileIndex().getContentRootForFile(vfile);
+		if (root != null) return root;
+		return vfile.getParent();
+	}
+
 	public String getOutputDirName() {
-		VirtualFile contentRoot = ConfigANTLRPerGrammar.getContentRoot(project, grammarFile);
+		VirtualFile contentRoot = getContentRoot(project, grammarFile);
 		Map<String,String> argMap = getANTLRArgs(project, grammarFile);
 		String package_ = argMap.get("-package");
 		if ( package_==null ) {
 			package_ = MISSING;
 		}
-		return ConfigANTLRPerGrammar.resolveOutputDirName(project, grammarFile.getPath(), contentRoot, package_);
+		return resolveOutputDirName(project, grammarFile.getPath(), contentRoot, package_);
 	}
 }

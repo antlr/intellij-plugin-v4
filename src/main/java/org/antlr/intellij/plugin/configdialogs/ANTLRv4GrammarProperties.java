@@ -2,46 +2,55 @@ package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+
 public class ANTLRv4GrammarProperties {
-    public static final String PROP_AUTO_GEN = "auto-gen";
-    public static final String PROP_OUTPUT_DIR = "output-dir";
-    public static final String PROP_LIB_DIR = "lib-dir";
-    public static final String PROP_ENCODING = "encoding";
-    public static final String PROP_PACKAGE = "package";
+    private static final String PROP_AUTO_GEN = "auto-gen";
+    static final String PROP_OUTPUT_DIR = "output-dir";
+    static final String PROP_LIB_DIR = "lib-dir";
+    static final String PROP_ENCODING = "encoding";
+    static final String PROP_PACKAGE = "package";
     public static final String PROP_LANGUAGE = "language";
-    public static final String PROP_GEN_LISTENER = "gen-listener";
-    public static final String PROP_GEN_VISITOR = "gen-visitor";
+    private static final String PROP_GEN_LISTENER = "gen-listener";
+    private static final String PROP_GEN_VISITOR = "gen-visitor";
     static final String PROJECT_SETTINGS_PREFIX = "*";
 
-    static boolean shouldGenerateParseTreeVisitor(String qualFileName, PropertiesComponent props) {
+    public static boolean shouldGenerateParseTreeVisitor(String qualFileName, PropertiesComponent props) {
         return props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_VISITOR), false);
     }
 
-    static boolean shouldGenerateParseTreeListener(String qualFileName, PropertiesComponent props) {
+    public static boolean shouldGenerateParseTreeListener(String qualFileName, PropertiesComponent props) {
         return props.getBoolean(getPropNameForFile(qualFileName, PROP_GEN_LISTENER), true);
     }
 
     @NotNull
-    static String getLanguage(String qualFileName, PropertiesComponent props) {
+    public static String getLanguage(String qualFileName, PropertiesComponent props) {
         return props.getValue(getPropNameForFile(qualFileName, PROP_LANGUAGE), "");
     }
 
     @NotNull
-    static String getPackage(String qualFileName, PropertiesComponent props) {
+    public static String getPackage(String qualFileName, PropertiesComponent props) {
         return props.getValue(getPropNameForFile(qualFileName, PROP_PACKAGE), "");
     }
 
     @NotNull
-    static String getEncoding(String qualFileName, PropertiesComponent props) {
+    public static String getEncoding(String qualFileName, PropertiesComponent props) {
         return props.getValue(getPropNameForFile(qualFileName, PROP_ENCODING), "");
     }
 
     @NotNull
-    static String getLibDir(String qualFileName, PropertiesComponent props) {
-        return props.getValue(getPropNameForFile(qualFileName, PROP_LIB_DIR), "");
+    public static String getLibDir(String qualFileName, PropertiesComponent props) {
+        return getLibDir(qualFileName, props, "");
+    }
+
+    @NotNull
+    public static String getLibDir(String qualFileName, PropertiesComponent props, String defaultValue) {
+        return props.getValue(getPropNameForFile(qualFileName, PROP_LIB_DIR), defaultValue);
     }
 
     @NotNull
@@ -49,7 +58,7 @@ public class ANTLRv4GrammarProperties {
         return props.getValue(getPropNameForFile(qualFileName, PROP_OUTPUT_DIR), "");
     }
 
-    static boolean shouldAutoGenerateParser(String qualFileName, PropertiesComponent props) {
+    public static boolean shouldAutoGenerateParser(String qualFileName, PropertiesComponent props) {
         return props.getBoolean(getPropNameForFile(qualFileName, PROP_AUTO_GEN), false);
     }
 
@@ -134,4 +143,18 @@ public class ANTLRv4GrammarProperties {
 		PropertiesComponent props = PropertiesComponent.getInstance(project);
 		return props.getBoolean(getPropNameForFile(qualFileName, name), defaultValue);
 	}
+
+    public static String resolveOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
+        String outputDirName = getProp(project, qualFileName, PROP_OUTPUT_DIR, RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
+
+        File f = new File(outputDirName);
+        if (!f.isAbsolute()) { // if not absolute file spec, it's relative to project root
+            outputDirName = contentRoot.getPath() + File.separator + outputDirName;
+        }
+        // add package if any
+        if ( !package_.equals(RunANTLROnGrammarFile.MISSING) ) {
+            outputDirName += File.separator + package_.replace('.', File.separatorChar);
+        }
+        return outputDirName;
+    }
 }

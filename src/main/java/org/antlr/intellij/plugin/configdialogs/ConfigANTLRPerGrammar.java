@@ -4,15 +4,11 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 
 public class ConfigANTLRPerGrammar extends DialogWrapper {
     private JPanel dialogContents;
@@ -57,33 +53,6 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		libDirField.setTextFieldPreferredWidth(50);
 
 		loadValues(project, qualFileName);
-	}
-
-	public static String resolveOutputDirName(Project project, String qualFileName, VirtualFile contentRoot, String package_) {
-		String outputDirName = ANTLRv4GrammarProperties.getProp(project, qualFileName,
-				ANTLRv4GrammarProperties.PROP_OUTPUT_DIR,
-				RunANTLROnGrammarFile.OUTPUT_DIR_NAME);
-		File f = new File(outputDirName);
-		if (!f.isAbsolute()) { // if not absolute file spec, it's relative to project root
-			outputDirName = contentRoot.getPath() + File.separator + outputDirName;
-		}
-		// add package if any
-		if ( !package_.equals(RunANTLROnGrammarFile.MISSING) ) {
-			outputDirName += File.separator + package_.replace('.', File.separatorChar);
-		}
-		return outputDirName;
-	}
-
-	public static String getParentDir(VirtualFile vfile) {
-		return vfile.getParent().getPath();
-	}
-
-	public static VirtualFile getContentRoot(Project project, VirtualFile vfile) {
-		VirtualFile root =
-				ProjectRootManager.getInstance(project)
-						.getFileIndex().getContentRootForFile(vfile);
-		if (root != null) return root;
-		return vfile.getParent();
 	}
 
 	public void loadValues(Project project, String qualFileName) {
