@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.configdialogs;
 
-import com.intellij.ide.util.PropertiesComponent;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,12 +16,12 @@ public class ConfigANTLRPerGrammarTest {
     private static final String DEFAULT_PACKAGE = "DefaultPackage";
     private static final String DEFAULT_LANGUAGE = "DefaultLanguage";
 
-    private PropertiesComponent propertiesComponent;
+    private ANTLRv4GrammarProperties originalProperties;
     private ConfigANTLRPerGrammar form;
 
     @Before
     public void setUp() {
-        propertiesComponent = mockPropertiesComponent();
+        originalProperties = buildOriginalProperties();
         this.form = mockForm();
     }
 
@@ -36,19 +35,16 @@ public class ConfigANTLRPerGrammarTest {
         return form;
     }
 
-    private PropertiesComponent mockPropertiesComponent() {
-        PropertiesComponent propertiesComponent = Mockito.mock(PropertiesComponent.class);
-        when(propertiesComponent.getValue(ANTLRv4GrammarProperties.getPropNameForFile(ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX, ANTLRv4GrammarProperties.PROP_OUTPUT_DIR), ""))
-                .thenReturn(DEFAULT_OUTPUT_DIR);
-        when(propertiesComponent.getValue(ANTLRv4GrammarProperties.getPropNameForFile(ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX, ANTLRv4GrammarProperties.PROP_ENCODING), ""))
-                .thenReturn(DEFAULT_ENCODING);
-        when(propertiesComponent.getValue(ANTLRv4GrammarProperties.getPropNameForFile(ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX, ANTLRv4GrammarProperties.PROP_LIB_DIR), ""))
-                .thenReturn(DEFAULT_LIBRARY);
-        when(propertiesComponent.getValue(ANTLRv4GrammarProperties.getPropNameForFile(ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX, ANTLRv4GrammarProperties.PROP_PACKAGE), ""))
-                .thenReturn(DEFAULT_PACKAGE);
-        when(propertiesComponent.getValue(ANTLRv4GrammarProperties.getPropNameForFile(ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX, ANTLRv4GrammarProperties.PROP_LANGUAGE), ""))
-                .thenReturn(DEFAULT_LANGUAGE);
-        return propertiesComponent;
+    private ANTLRv4GrammarProperties buildOriginalProperties() {
+        ANTLRv4GrammarProperties properties = new ANTLRv4GrammarProperties();
+
+        properties.outputDir = DEFAULT_OUTPUT_DIR;
+        properties.encoding = DEFAULT_ENCODING;
+        properties.libDir = DEFAULT_LIBRARY;
+        properties.pkg = DEFAULT_PACKAGE;
+        properties.language = DEFAULT_LANGUAGE;
+
+        return properties;
     }
 
     @Test
@@ -57,7 +53,7 @@ public class ConfigANTLRPerGrammarTest {
         when(form.getOutputDirText()).thenReturn("ModifiedOutputDir");
 
         // then:
-        Assert.assertTrue(form.isModified(propertiesComponent, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX));
+        Assert.assertTrue(form.isModified(originalProperties));
     }
 
     @Test
@@ -66,7 +62,7 @@ public class ConfigANTLRPerGrammarTest {
         when(form.getLibDirText()).thenReturn("ModifiedLibDir");
 
         // then:
-        Assert.assertTrue(form.isModified(propertiesComponent, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX));
+        Assert.assertTrue(form.isModified(originalProperties));
     }
 
     @Test
@@ -75,7 +71,7 @@ public class ConfigANTLRPerGrammarTest {
         when(form.getFileEncodingText()).thenReturn("ModifiedEncoding");
 
         // then:
-        Assert.assertTrue(form.isModified(propertiesComponent, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX));
+        Assert.assertTrue(form.isModified(originalProperties));
     }
 
     @Test
@@ -84,7 +80,7 @@ public class ConfigANTLRPerGrammarTest {
         when(form.getFileEncodingText()).thenReturn("ModifiedPackage");
 
         // then:
-        Assert.assertTrue(form.isModified(propertiesComponent, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX));
+        Assert.assertTrue(form.isModified(originalProperties));
     }
 
     @Test
@@ -93,6 +89,6 @@ public class ConfigANTLRPerGrammarTest {
         when(form.getLanguageText()).thenReturn("ModifiedLanguage");
 
         // then:
-        Assert.assertTrue(form.isModified(propertiesComponent, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX));
+        Assert.assertTrue(form.isModified(originalProperties));
     }
 }
