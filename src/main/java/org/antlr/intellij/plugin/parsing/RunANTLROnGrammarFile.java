@@ -94,7 +94,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 	// TODO: lots of duplication with antlr() function.
 	private boolean isGrammarStale(ANTLRv4GrammarProperties grammarProperties) {
-		String sourcePath = grammarProperties.getLibDir();
+		String sourcePath = grammarProperties.resolveLibDir(project, getParentDir(grammarFile));
 		String fullyQualifiedInputFileName = sourcePath+File.separator+grammarFile.getName();
 
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
@@ -111,7 +111,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 		VirtualFile contentRoot = getContentRoot(project, grammarFile);
 		String package_ = grammarProperties.getPackage();
-		String outputDirName = grammarProperties.resolveOutputDirName(contentRoot, package_);
+		String outputDirName = grammarProperties.resolveOutputDirName(project, contentRoot, package_);
 		String fullyQualifiedOutputFileName = outputDirName+File.separator+recognizerFileName;
 
 		File inF = new File(fullyQualifiedInputFileName);
@@ -210,10 +210,10 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 
 		// create gen dir at root of project by default, but add in package if any
 		VirtualFile contentRoot = getContentRoot(project, vfile);
-		String outputDirName = grammarProperties.resolveOutputDirName(contentRoot, package_);
+		String outputDirName = grammarProperties.resolveOutputDirName(project, contentRoot, package_);
 		args.put("-o", outputDirName);
 
-		String libDir = grammarProperties.getLibDir().isEmpty() ? sourcePath : grammarProperties.getLibDir();
+		String libDir = grammarProperties.resolveLibDir(project, sourcePath);
 		File f = new File(libDir);
 		if ( !f.isAbsolute() ) { // if not absolute file spec, it's relative to project root
 			libDir = contentRoot.getPath()+File.separator+libDir;
@@ -282,6 +282,6 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 			package_ = MISSING;
 		}
 		return getGrammarProperties(project, grammarFile)
-				.resolveOutputDirName(contentRoot, package_);
+				.resolveOutputDirName(project, contentRoot, package_);
 	}
 }
