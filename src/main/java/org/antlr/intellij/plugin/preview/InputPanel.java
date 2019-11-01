@@ -25,13 +25,14 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.vcs.log.ui.frame.WrappedFlowLayout;
@@ -66,9 +67,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -148,12 +146,15 @@ public class InputPanel {
 					// to avoid compile error on super.onFileCho[o]sen
 					TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
 					                                                    chosenFileToResultingText(chosenFile));
-					if ( previewState!=null ) {
-						previewState.inputFileName = chosenFile.getPath();
-					}
-					selectFileEvent();
+					InputPanel.this.onFileChosen(chosenFile);
 				}
 			};
+		fileChooser.getTextField().addActionListener(e -> {
+            VirtualFile chosenFile = VirtualFileManager.getInstance()
+                    .getFileSystem("file")
+			        .findFileByPath(fileChooser.getText());
+			onFileChosen(chosenFile);
+		});
 		fileChooser.addBrowseFolderListener(previewPanel.project, browseActionListener);
 		fileChooser.getButton().addActionListener(new ActionListener() {
 			@Override
@@ -169,6 +170,13 @@ public class InputPanel {
 		resetStartRuleLabel();
 
 		editorMouseListener = new PreviewEditorMouseListener(this);
+	}
+
+	private void onFileChosen(VirtualFile chosenFile) {
+		if ( previewState!=null ) {
+			previewState.inputFile = chosenFile;
+		}
+		selectFileEvent();
 	}
 
 	public JPanel getComponent() {
@@ -230,43 +238,31 @@ public class InputPanel {
 			return;
 		}
 
-		String inputFileName = fileChooser.getText();
-		char[] inputText = new char[0];
-		boolean fileExists = true;
-
-		if ( inputFileName.trim().length()>0 ) {
-			try {
-				inputText = FileUtil.loadFileText(new File(inputFileName));
-				String s = new String(inputText);
-				s = s.replaceAll("\r", "");
-				// "All text strings passed to document modification methods
-				// (setText, insertString, replaceString) must use only \n as
-				// line separators."
-				inputText = s.toCharArray();
-			} catch (FileNotFoundException fnfe) {
-				fileExists = false;
-			} catch (IOException ioe) {
-				LOG.error("can't load input file "+inputFileName, ioe);
-			}
+		VirtualFile inputFile = previewState.inputFile;
+		if (inputFile == null) {
+			errorConsole.setText("Invalid input file");
+			return;
 		}
+
+		Document inputDocument = FileDocumentManager.getInstance().getDocument(inputFile);
+
+		if (inputDocument == null) {
+			errorConsole.setText("Input file does not exist or cannot be loaded: " + inputFile.getPath());
+			return;
+		}
+
 		// get state for grammar in current editor, not editor where user is typing preview input!
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
 
 		// wipe old and make new one
 		releaseEditor(previewState);
-		final EditorFactory factory = EditorFactory.getInstance();
-		Document doc = factory.createDocument(inputText);
-		doc.setReadOnly(true);
-		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), doc);
+		inputDocument.setReadOnly(true);
+		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
 		clearErrorConsole();
 
-		if (fileExists) {
-			previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
-		} else {
-			errorConsole.setText("Input file does not exist: " + inputFileName);
-		}
+		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
 	}
 
 	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
@@ -353,8 +349,8 @@ public class InputPanel {
 		LOG.info("switchToGrammar "+grammarFileName+" "+previewPanel.project.getName());
 		this.previewState = previewState;
 
-		if ( previewState.inputFileName!=null && previewState.inputFileName.length()>0 ) {
-			fileChooser.setText(previewState.inputFileName);
+		if ( previewState.inputFile !=null ) {
+			fileChooser.setText(previewState.inputFile.getPath());
 			selectFileEvent();
 		}
 		else {
