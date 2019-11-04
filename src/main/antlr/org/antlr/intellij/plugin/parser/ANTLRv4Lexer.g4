@@ -38,6 +38,9 @@ tokens {
 }
 
 @members {
+    // Generic type for OPTIONS, TOKENS and CHANNELS
+    private int PREQUEL_CONSTRUCT = -10;
+
 	/** Track whether we are inside of a rule and whether it is lexical parser.
 	 *  _currentRuleType==Token.INVALID_TYPE means that we are outside of a rule.
 	 *  At the first sign of a rule name reference and _currentRuleType==invalid,
@@ -88,7 +91,20 @@ tokens {
 
 	@Override
 	public Token emit() {
-		if (_type == ID) {
+	    if ((_type == OPTIONS || _type == TOKENS || _type == CHANNELS)
+	            && _currentRuleType == Token.INVALID_TYPE) { // enter prequel construct ending with an RBRACE
+	        _currentRuleType = PREQUEL_CONSTRUCT;
+	    }
+	    else if (_type == RBRACE && _currentRuleType == PREQUEL_CONSTRUCT) { // exit prequel construct
+	        _currentRuleType = Token.INVALID_TYPE;
+	    }
+        else if (_type == AT && _currentRuleType == Token.INVALID_TYPE) { // enter action
+            _currentRuleType = AT;
+        }
+        else if (_type == END_ACTION && _currentRuleType == AT) { // exit action
+            _currentRuleType = Token.INVALID_TYPE;
+        }
+	    else if (_type == ID) {
 			String firstChar = _input.getText(Interval.of(_tokenStartCharIndex, _tokenStartCharIndex));
 			if (Character.isUpperCase(firstChar.charAt(0))) {
 				_type = TOKEN_REF;
