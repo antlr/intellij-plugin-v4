@@ -131,6 +131,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
 		Content content = contentFactory.createContent(previewPanel, "", false);
+		content.setCloseable(false);
 
 		previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
 		previewWindow.getContentManager().addContent(content);
@@ -142,6 +143,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		JComponent consoleComponent = console.getComponent();
 		content = contentFactory.createContent(consoleComponent, "", false);
+		content.setCloseable(false);
 
 		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
 		consoleWindow.getContentManager().addContent(content);
