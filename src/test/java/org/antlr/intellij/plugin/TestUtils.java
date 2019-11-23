@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin;
 
 import com.intellij.util.ThrowableRunnable;
+import com.intellij.util.lang.CompoundRuntimeException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -12,7 +13,8 @@ public class TestUtils {
 		} catch (RuntimeException e) {
 			// We don't want to release the editor in the Tool Output tool window, so we ignore
 			// ObjectNotDisposedExceptions related to this particular editor
-			if (e.getClass().getName().equals("com.intellij.openapi.util.TraceableDisposable$ObjectNotDisposedException")) {
+			if ( e.getClass().getName().equals("com.intellij.openapi.util.TraceableDisposable$ObjectNotDisposedException")
+					|| e instanceof CompoundRuntimeException ) {
 				StringWriter stringWriter = new StringWriter();
 				e.printStackTrace(new PrintWriter(stringWriter));
 				String stack = stringWriter.toString();
