@@ -73,14 +73,10 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Added project default settings for grammars (<a href="https://github.com/antlr/intellij-plugin-v4/pull/366">#366</a>)</li>
-	    <li>Added support for multiline TODOs (<a href="https://github.com/antlr/intellij-plugin-v4/issues/370">#370</a>)</li>
-	    <li>Fixed parser preview not updating when its lexer grammar is modified (<a href="https://github.com/antlr/intellij-plugin-v4/issues/242">#242</a>)</li>
-	    <li>Skip the <code>-package</code> flag when the <code>@header</code> section already specifies one (<a href="https://github.com/antlr/intellij-plugin-v4/issues/318">#318</a>)</li>
-	    <li>Added code folding for lexical modes</li>
-	    <li>Fixed parsing of argument blocks and action blocks (<a href="https://github.com/antlr/intellij-plugin-v4/issues/364">#364</a>)</li>
+	    <li>Fixed 'no viable alternative at input' issue (<a href="https://github.com/antlr/intellij-plugin-v4/issues/374">#374</a>)</li>
+	    <li>Fixed error in code folding (<a href="https://github.com/antlr/intellij-plugin-v4/issues/378">#378</a>)</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/milestone/20?closed=1">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.12+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
