@@ -4,10 +4,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.TestUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.function.Consumer;
 
 public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
@@ -135,19 +134,7 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 
 	@Override
 	protected void tearDown() throws Exception {
-		try {
-			super.tearDown();
-		} catch (RuntimeException e) {
-			// We don't want to release the editor in the Tool Output tool window, so we ignore
-			// ObjectNotDisposedExceptions related to this particular editor
-			if (e.getClass().getName().equals("com.intellij.openapi.util.TraceableDisposable.ObjectNotDisposedException")) {
-				StringWriter stringWriter = new StringWriter();
-				e.printStackTrace(new PrintWriter(stringWriter));
-				if (!stringWriter.toString().contains("ANTLRv4PluginController.createToolWindows")) {
-					throw e;
-				}
-			}
-		}
+		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
 	}
 
 	private <T extends PsiElement> void assertResolvedMatches(Class<T> expectedClass, @Nullable Consumer<T> matcher) {
