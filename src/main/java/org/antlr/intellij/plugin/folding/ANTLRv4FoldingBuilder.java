@@ -13,7 +13,6 @@ import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.twelvemonkeys.lang.StringUtil;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.adaptor.lexer.TokenIElementType;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
@@ -128,7 +127,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     private static void addActionFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         for (AtAction atAction : PsiTreeUtil.findChildrenOfType(root, AtAction.class)) {
             PsiElement action = atAction.getLastChild();
-            if ( StringUtil.contains(action.getText(), "\n")) {
+            String actionText = action.getText();
+            if ( actionText != null && actionText.contains("\n")) {
                 descriptors.add(new FoldingDescriptor(atAction, action.getTextRange()));
             }
         }
