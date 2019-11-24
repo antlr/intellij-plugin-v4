@@ -67,6 +67,8 @@ channels {
 	 */
 	private int _currentRuleType = Token.INVALID_TYPE;
 
+	private boolean insideOptionsBlock = false;
+
 	public int getCurrentRuleType() {
 		return _currentRuleType;
 	}
@@ -93,9 +95,24 @@ channels {
 	}
 
 	protected void handleEndAction() {
-		popMode();
-		if (_modeStack.size() > 0) {
+	    int oldMode = _mode;
+        int newMode = popMode();
+        boolean isActionWithinAction = _modeStack.size() > 0
+            && newMode == ANTLRv4Lexer.Action
+            && oldMode == newMode;
+
+		if (isActionWithinAction) {
 			setType(ACTION_CONTENT);
+		}
+	}
+
+	protected void handleOptionsLBrace() {
+		if (insideOptionsBlock) {
+			setType(ANTLRv4Lexer.BEGIN_ACTION);
+			pushMode(ANTLRv4Lexer.Action);
+		} else {
+			setType(ANTLRv4Lexer.LBRACE);
+			insideOptionsBlock = true;
 		}
 	}
 
@@ -558,7 +575,8 @@ mode Options;
         ;
 
     OPT_LBRACE
-        : LBrace -> type (LBRACE)
+        : LBrace
+        { handleOptionsLBrace(); }
         ;
 
     OPT_RBRACE
