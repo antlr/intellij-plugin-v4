@@ -4,6 +4,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupChooserBuilder;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -11,6 +12,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.containers.Predicate;
+import com.intellij.util.ui.UIUtil;
 import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
@@ -243,6 +245,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 				JBPanel wrapper = new JBPanel(new BorderLayout());
 				if ( i==highlightTreeIndex ) {
 					wrapper.setBackground(JBColor.white);
+				} else if ( UIUtil.isUnderDarcula() ) {
+					wrapper.setBackground(Gray._43);
 				}
 				wrapper.add(treeViewers[i], BorderLayout.CENTER);
 				panelOfTrees.add(wrapper);
