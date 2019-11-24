@@ -52,9 +52,12 @@ dependencies {
 }
 
 generateGrammarSource {
-    arguments += ["-package", "org.antlr.intellij.plugin.parser", "-Xexact-output-dir"]
+    arguments += [
+            "-package", "org.antlr.intellij.plugin.parser",
+            "-lib", "src/main/antlr/org/antlr/intellij/plugin/parser",
+            "-Xexact-output-dir"
+    ]
 }
-
 tasks.withType(JavaCompile) {
     if (it.name == "compileJava") {
         classpath = classpath.filter {
