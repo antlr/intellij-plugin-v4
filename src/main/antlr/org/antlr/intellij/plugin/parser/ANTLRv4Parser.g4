@@ -40,7 +40,7 @@ options {
 // The main entry point for parsing a v4 grammar.
 grammarSpec
 	:	DOC_COMMENT*
-		grammarType id SEMI
+		grammarType identifier SEMI
 		prequelConstruct*
 		rules
 		modeSpec*
@@ -72,11 +72,11 @@ optionsSpec
 	;
 
 option
-	:	id ASSIGN optionValue
+	:	identifier ASSIGN optionValue
 	;
 
 optionValue
-	:	id (DOT id)*
+	:	identifier (DOT identifier)*
 	|	STRING_LITERAL
 	|	actionBlock
 	|	INT
@@ -90,8 +90,8 @@ delegateGrammars
 	;
 
 delegateGrammar
-	:	id ASSIGN id
-	|	id
+	:	identifier ASSIGN identifier
+	|	identifier
 	;
 
 // ------------
@@ -106,17 +106,17 @@ channelsSpec
 	;
 
 idList
-	: id ( COMMA id )* COMMA?
+	: identifier ( COMMA identifier )* COMMA?
 	;
 
 // Match stuff like @parser::members {int i;}
 action
-	:	AT (actionScopeName COLONCOLON)? id actionBlock
+	:	AT (actionScopeName COLONCOLON)? identifier actionBlock
 	;
 
    // Scope names could collide with keywords; allow them as ids for action scopes
 actionScopeName
-	:	id
+	:	identifier
 	|	LEXER
 	|	PARSER
 	;
@@ -130,7 +130,7 @@ argActionBlock
    ;
 
 modeSpec
-	:	MODE id SEMI lexerRule*
+	:	MODE identifier SEMI lexerRule*
 	;
 
 rules
@@ -187,7 +187,7 @@ localsSpec
 
 /** Match stuff like @init {int i;} */
 ruleAction
-	:	AT id actionBlock
+	:	AT identifier actionBlock
 	;
 
 ruleBlock
@@ -199,7 +199,7 @@ ruleAltList
 	;
 
 labeledAlt
-	:	alternative (POUND id)?
+	:	alternative (POUND identifier)?
 	;
 
 // --------------------
@@ -237,7 +237,7 @@ lexerElement
 	;
 
 labeledLexerElement
-	:	id (ASSIGN|PLUS_ASSIGN)
+	:	identifier (ASSIGN|PLUS_ASSIGN)
 		(	lexerAtom
 		|	lexerBlock
 		)
@@ -258,12 +258,12 @@ lexerCommand
 	;
 
 lexerCommandName
-	:	id
+	:	identifier
 	|	MODE
 	;
 
 lexerCommandExpr
-	:	id
+	:	identifier
 	|	INT
 	;
 
@@ -292,7 +292,7 @@ actionElement
     ;
 
 labeledElement
-	:	id (ASSIGN|PLUS_ASSIGN)
+	:	identifier (ASSIGN|PLUS_ASSIGN)
 		(	atom
 		|	block
 		)
@@ -389,12 +389,12 @@ elementOption
 	:	// This format indicates the default node option
 		qid
 	|	// This format indicates option assignment
-		id ASSIGN optionValue
+		identifier ASSIGN optionValue
 	;
 
-id	:	RULE_REF
+identifier	:	RULE_REF
 	|	TOKEN_REF
 	;
 
-qid : id (DOT id)*
+qid : identifier (DOT identifier)*
     ;

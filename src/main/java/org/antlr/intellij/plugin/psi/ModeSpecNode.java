@@ -30,7 +30,7 @@ public class ModeSpecNode extends RuleSpecNode {
 
     @Override
     public GrammarElementRefNode getId() {
-        PsiElement idNode = findFirstChildOfType(this, ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_id));
+        PsiElement idNode = findFirstChildOfType(this, ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_identifier));
 
         if (idNode != null) {
             PsiElement firstChild = idNode.getFirstChild();

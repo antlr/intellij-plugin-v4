@@ -15,7 +15,7 @@ public class AtAction extends ASTWrapperPsiElement {
 
 	@NotNull
 	public String getIdText() {
-		PsiElement id = findChildByType(ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_id));
+		PsiElement id = findChildByType(ANTLRv4TokenTypes.getRuleElementType(ANTLRv4Parser.RULE_identifier));
 
 		return id==null ? "<n/a>" : id.getText();
 	}
