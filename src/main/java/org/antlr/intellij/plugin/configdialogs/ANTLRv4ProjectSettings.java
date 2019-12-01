@@ -1,15 +1,17 @@
 package org.antlr.intellij.plugin.configdialogs;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class ANTLRv4ProjectSettings implements SearchableConfigurable {
+public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposable {
 
     private ConfigANTLRPerGrammar configurationForm;
 
@@ -55,5 +57,15 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable {
 
     public void reset() {
         configurationForm.loadValues(project, ANTLRv4GrammarProperties.PROJECT_SETTINGS_PREFIX);
+    }
+
+    @Override
+    public void disposeUIResources() {
+        Disposer.dispose(configurationForm.getDisposable());
+    }
+
+    @Override
+    public void dispose() {
+        configurationForm = null;
     }
 }

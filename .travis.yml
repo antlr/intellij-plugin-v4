@@ -3,13 +3,12 @@ jdk:
   - openjdk8
 env:
   # see https://www.jetbrains.com/idea/download/previous.html
-  - IDEA_VERSION=IC-2016.3.8 ENABLE_JAVA_PLUGIN=false
-  - IDEA_VERSION=IC-2017.3.6 ENABLE_JAVA_PLUGIN=false
-  - IDEA_VERSION=IC-2018.2.7 ENABLE_JAVA_PLUGIN=false
-  - IDEA_VERSION=IC-2018.3.5 ENABLE_JAVA_PLUGIN=false
-  - IDEA_VERSION=IC-2019.1.3 ENABLE_JAVA_PLUGIN=false
+  - IDEA_VERSION=IC-2016.3.8
+  - IDEA_VERSION=IC-2017.3.6
+  - IDEA_VERSION=IC-2018.2.7
+  - IDEA_VERSION=IC-2018.3.5
+  - IDEA_VERSION=IC-2019.1.3
   - IDEA_VERSION=IC-2019.2.4
-  - IDEA_VERSION=IC-193-EAP-SNAPSHOT
+  - IDEA_VERSION=IC-2019.3
 install:
   - sed -i '/ideaVersion=/c\ideaVersion='"$IDEA_VERSION"'' gradle.properties
-  - if $ENABLE_JAVA_PLUGIN; then sed -i "s/\/\/ plugins 'java'/plugins 'java'/" build.gradle; fi
