@@ -30,6 +30,11 @@ intellij {
     pluginName 'antlr-intellij-plugin-v4'
     downloadSources true
     updateSinceUntilBuild false
+
+    // TODO we only need this for unit tests which extend `LightCodeInsightFixtureTestCase`.
+    //  This class is in the Java plugin in recent versions, and `BasePlatformTestCase` which is
+    //  the non-Java equivalent does not exist in versions < 2019.2.
+    plugins 'java'
 }
 
 repositories {
@@ -48,4 +53,12 @@ dependencies {
 
 generateGrammarSource {
     arguments += ["-package", "org.antlr.intellij.plugin.parser", "-Xexact-output-dir"]
+}
+
+tasks.withType(JavaCompile) {
+    if (it.name == "compileJava") {
+        classpath = classpath.filter {
+            it.name != "java-api.jar" && it.name != "java-impl.jar"
+        }
+    }
 }
