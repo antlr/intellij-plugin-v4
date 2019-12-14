@@ -132,6 +132,15 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 		});
 	}
 
+	public void testReferenceToImportedFile() {
+		myFixture.configureByFiles("importing.g4", "imported.g4");
+
+		moveCaret(35);
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> {
+			assertEquals("imported.g4", file.getName());
+		});
+	}
+
 	@Override
 	protected void tearDown() throws Exception {
 		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());

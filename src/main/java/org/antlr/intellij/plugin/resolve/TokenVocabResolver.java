@@ -29,7 +29,7 @@ public class TokenVocabResolver {
 				PsiElement optionName = PsiTreeUtil.getDeepestFirst(option);
 
 				if (optionName.getText().equals("tokenVocab")) {
-					return findTokenVocab(reference.getText(), reference.getContainingFile());
+					return findRelativeFile(reference.getText(), reference.getContainingFile());
 				}
 			}
 		}
@@ -45,7 +45,7 @@ public class TokenVocabResolver {
 		String tokenVocab = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) reference.getContainingFile());
 
 		if (tokenVocab != null) {
-			PsiFile tokenVocabFile = findTokenVocab(tokenVocab, reference.getContainingFile());
+			PsiFile tokenVocabFile = findRelativeFile(tokenVocab, reference.getContainingFile());
 
 			if (tokenVocabFile != null) {
 				GrammarSpecNode lexerGrammar = PsiTreeUtil.findChildOfType(tokenVocabFile, GrammarSpecNode.class);
@@ -74,7 +74,7 @@ public class TokenVocabResolver {
 	/**
 	 * Looks for an ANTLR grammar file named {@code <baseName>}.g4 next to the given {@code sibling} file.
 	 */
-	private static PsiFile findTokenVocab(String baseName, PsiFile sibling) {
+	static PsiFile findRelativeFile(String baseName, PsiFile sibling) {
 		PsiDirectory parentDirectory = sibling.getParent();
 
 		if (parentDirectory != null) {

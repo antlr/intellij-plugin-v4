@@ -9,6 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
+import org.antlr.intellij.plugin.resolve.ImportResolver;
 import org.antlr.intellij.plugin.resolve.TokenVocabResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,6 +80,11 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 
 		if (tokenVocabFile != null) {
 			return tokenVocabFile;
+		}
+
+		PsiFile importedFile = ImportResolver.resolveImportedFile(getElement());
+		if ( importedFile!=null ) {
+			return importedFile;
 		}
 
 		GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
