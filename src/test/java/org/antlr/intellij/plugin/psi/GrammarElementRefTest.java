@@ -141,6 +141,27 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 		});
 	}
 
+	public void testReferenceToRuleInImportedFile() {
+		myFixture.configureByFiles("importing.g4", "imported.g4", "imported2.g4", "imported3.g4");
+
+		moveCaret(53);
+		assertResolvedMatches(LexerRuleSpecNode.class, node -> {
+			assertEquals("Foo", node.getName());
+		});
+
+		moveCaret(66);
+		assertResolvedMatches(LexerRuleSpecNode.class, node -> {
+			assertEquals("Bar", node.getName());
+			assertEquals("imported2.g4", node.getContainingFile().getName());
+		});
+
+		moveCaret(80);
+		assertResolvedMatches(LexerRuleSpecNode.class, node -> {
+			assertEquals("Baz", node.getName());
+			assertEquals("imported3.g4", node.getContainingFile().getName());
+		});
+	}
+
 	@Override
 	protected void tearDown() throws Exception {
 		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());

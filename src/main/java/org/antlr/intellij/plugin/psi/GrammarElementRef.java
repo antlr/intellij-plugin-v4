@@ -7,6 +7,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.resolve.ImportResolver;
@@ -89,6 +90,13 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 
 		GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
 		PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
+
+		if (specNode != null) {
+			return specNode;
+		}
+
+		// Look for a rule defined in an imported grammar
+		specNode = ImportResolver.resolveInImportedFiles(getElement().getContainingFile(), ruleName);
 
 		if (specNode != null) {
 			return specNode;
