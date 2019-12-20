@@ -12,6 +12,8 @@ import org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory;
 import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.intellij.plugin.validation.GrammarIssuesCollector;
+import org.antlr.runtime.ANTLRFileStream;
+import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.Token;
 import org.antlr.v4.tool.ErrorSeverity;
@@ -57,7 +59,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 
 			for (int j = 0; j < issue.getOffendingTokens().size(); j++) {
 				Token t = issue.getOffendingTokens().get(j);
-				if ( t instanceof CommonToken ) {
+				if ( t instanceof CommonToken && tokenBelongsToFile(t, file) ) {
 					CommonToken ct = (CommonToken)t;
 					int startIndex = ct.getStartIndex();
 					int stopIndex = ct.getStopIndex();
@@ -84,6 +86,16 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 			}
 		}
 		super.apply(file, issues, holder);
+	}
+
+	private boolean tokenBelongsToFile(Token t, @NotNull PsiFile file) {
+		CharStream inputStream = t.getInputStream();
+		if ( inputStream instanceof ANTLRFileStream ) {
+			// Not equal if the token belongs to an imported grammar
+			return inputStream.getSourceName().equals(file.getVirtualFile().getCanonicalPath());
+		}
+
+		return true;
 	}
 
 	private Optional<Annotation> annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity) {
