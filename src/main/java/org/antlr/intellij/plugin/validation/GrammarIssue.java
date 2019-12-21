@@ -8,7 +8,7 @@ import java.util.List;
 
 public class GrammarIssue {
     private String annotation;
-    private List<Token> offendingTokens = new ArrayList<Token>();
+    private List<Token> offendingTokens = new ArrayList<>();
     private ANTLRMessage msg;
 
     public GrammarIssue(ANTLRMessage msg) { this.msg = msg; }

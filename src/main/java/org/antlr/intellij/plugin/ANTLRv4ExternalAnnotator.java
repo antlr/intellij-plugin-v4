@@ -4,12 +4,9 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory;
-import org.antlr.intellij.plugin.psi.MyPsiUtils;
 import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.intellij.plugin.validation.GrammarIssuesCollector;
 import org.antlr.runtime.ANTLRFileStream;
@@ -24,9 +21,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<GrammarIssue>> {
-    // NOTE: can't use instance var as only 1 instance
-
-    public static final Logger LOG = Logger.getInstance("ANTLRv4ExternalAnnotator");
 
     /** Called first; return file */
 	@Override
@@ -48,44 +42,56 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 					  List<GrammarIssue> issues,
 					  @NotNull AnnotationHolder holder)
 	{
-		for (int i = 0; i < issues.size(); i++) {
-			GrammarIssue issue = issues.get(i);
-
+		for ( GrammarIssue issue : issues ) {
 			if ( issue.getOffendingTokens().isEmpty() ) {
-				Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
-				annotation.setFileLevelAnnotation(true);
-				continue;
-			}
-
-			for (int j = 0; j < issue.getOffendingTokens().size(); j++) {
-				Token t = issue.getOffendingTokens().get(j);
-				if ( t instanceof CommonToken && tokenBelongsToFile(t, file) ) {
-					CommonToken ct = (CommonToken)t;
-					int startIndex = ct.getStartIndex();
-					int stopIndex = ct.getStopIndex();
-
-					if (startIndex >= file.getTextLength()) {
-						// can happen in case of a 'mismatched input EOF' error
-						startIndex = stopIndex = file.getTextLength() - 1;
-					}
-
-					if (startIndex < 0) {
-						// can happen on empty files, in that case we won't be able to show any error :/
-						startIndex = 0;
-					}
-
-					TextRange range = new TextRange(startIndex, stopIndex + 1);
-					ErrorSeverity severity = ErrorSeverity.INFO;
-					if ( issue.getMsg().getErrorType()!=null ) {
-						severity = issue.getMsg().getErrorType().severity;
-					}
-
-					Optional<Annotation> annotation = annotate(holder, issue, range, severity);
-					annotation.ifPresent(a -> registerFixForAnnotation(a, issue));
-				}
+				annotateFileIssue(file, holder, issue);
+			} else {
+				annotateIssue(file, holder, issue);
 			}
 		}
-		super.apply(file, issues, holder);
+	}
+
+	private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
+		Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
+		annotation.setFileLevelAnnotation(true);
+	}
+
+	private void annotateIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
+		for ( Token t : issue.getOffendingTokens() ) {
+			if ( t instanceof CommonToken && tokenBelongsToFile(t, file) ) {
+				TextRange range = getTokenRange((CommonToken) t, file);
+				ErrorSeverity severity = getIssueSeverity(issue);
+
+				Optional<Annotation> annotation = annotate(holder, issue, range, severity);
+				annotation.ifPresent(a -> registerFixForAnnotation(a, issue));
+			}
+		}
+	}
+
+	private ErrorSeverity getIssueSeverity(GrammarIssue issue) {
+		if ( issue.getMsg().getErrorType()!=null ) {
+			return issue.getMsg().getErrorType().severity;
+		}
+
+		return ErrorSeverity.INFO;
+	}
+
+	@NotNull
+	private TextRange getTokenRange(CommonToken ct, @NotNull PsiFile file) {
+		int startIndex = ct.getStartIndex();
+		int stopIndex = ct.getStopIndex();
+
+		if ( startIndex >= file.getTextLength() ) {
+			// can happen in case of a 'mismatched input EOF' error
+			startIndex = stopIndex = file.getTextLength() - 1;
+		}
+
+		if ( startIndex<0 ) {
+			// can happen on empty files, in that case we won't be able to show any error :/
+			startIndex = 0;
+		}
+
+		return new TextRange(startIndex, stopIndex + 1);
 	}
 
 	private boolean tokenBelongsToFile(Token t, @NotNull PsiFile file) {
@@ -122,26 +128,6 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 		TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
 		Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType());
 		intentionAction.ifPresent(annotation::registerFix);
-	}
-
-	public static String getFindVocabFileNameFromGrammarFile(PsiFile file) {
-		final FindVocabFileRunnable findVocabAction = new FindVocabFileRunnable(file);
-		ApplicationManager.getApplication().runReadAction(findVocabAction);
-		return findVocabAction.vocabName;
-	}
-
-	protected static class FindVocabFileRunnable implements Runnable {
-		public String vocabName;
-		private final PsiFile file;
-
-		public FindVocabFileRunnable(PsiFile file) {
-			this.file = file;
-		}
-
-		@Override
-		public void run() {
-			vocabName = MyPsiUtils.findTokenVocabIfAny((ANTLRv4FileRoot) file);
-		}
 	}
 
 }
