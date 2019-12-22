@@ -1,0 +1,3 @@
+grammar missingRule;
+
+myRule: newRule;

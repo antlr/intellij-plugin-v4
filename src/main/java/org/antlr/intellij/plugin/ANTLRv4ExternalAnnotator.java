@@ -63,7 +63,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 				ErrorSeverity severity = getIssueSeverity(issue);
 
 				Optional<Annotation> annotation = annotate(holder, issue, range, severity);
-				annotation.ifPresent(a -> registerFixForAnnotation(a, issue));
+				annotation.ifPresent(a -> registerFixForAnnotation(a, issue, file));
 			}
 		}
 	}
@@ -124,9 +124,9 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 		return Optional.empty();
 	}
 
-	static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue) {
+	static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue, PsiFile file) {
 		TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
-		Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType());
+		Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
 		intentionAction.ifPresent(annotation::registerFix);
 	}
 
