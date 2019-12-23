@@ -9,9 +9,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import java.util.Objects;
+
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getOrCreateGrammarProperties;
-import static org.apache.commons.lang3.ObjectUtils.notEqual;
 
 public class ConfigANTLRPerGrammar extends DialogWrapper {
     private JPanel dialogContents;
@@ -85,11 +86,11 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	}
 
 	boolean isModified(ANTLRv4GrammarProperties originalProperties) {
-		return notEqual(originalProperties.getOutputDir(), getOutputDirText())
-				|| notEqual(originalProperties.getLibDir(), getLibDirText())
-				|| notEqual(originalProperties.getEncoding(), getFileEncodingText())
-				|| notEqual(originalProperties.getPackage(), getPackageFieldText())
-				|| notEqual(originalProperties.getLanguage(), getLanguageText());
+		return !Objects.equals(originalProperties.getOutputDir(), getOutputDirText())
+				|| !Objects.equals(originalProperties.getLibDir(), getLibDirText())
+				|| !Objects.equals(originalProperties.getEncoding(), getFileEncodingText())
+				|| !Objects.equals(originalProperties.getPackage(), getPackageFieldText())
+				|| !Objects.equals(originalProperties.getLanguage(), getLanguageText());
 	}
 
 	String getLanguageText() {

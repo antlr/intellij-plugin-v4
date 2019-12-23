@@ -42,6 +42,21 @@ public class ANTLRv4GrammarProperties implements Cloneable {
     @Property
     boolean generateVisitor;
 
+    public ANTLRv4GrammarProperties() {
+    }
+
+    public ANTLRv4GrammarProperties(ANTLRv4GrammarProperties source) {
+        this.fileName = source.fileName;
+        this.autoGen = source.autoGen;
+        this.outputDir = source.outputDir;
+        this.libDir = source.libDir;
+        this.encoding = source.encoding;
+        this.pkg = source.pkg;
+        this.language = source.language;
+        this.generateListener = source.generateListener;
+        this.generateVisitor = source.generateVisitor;
+    }
+
     public boolean shouldAutoGenerateParser() {
         return autoGen;
     }

@@ -3,7 +3,6 @@ package org.antlr.intellij.plugin.configdialogs;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Property;
-import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class ANTLRv4GrammarPropertiesStore {
 			return properties;
 		}
 
-		ANTLRv4GrammarProperties newProperties = ObjectUtils.clone(properties);
+		ANTLRv4GrammarProperties newProperties = new ANTLRv4GrammarProperties(properties);
 		newProperties.fileName = grammarFile;
 
 		add(newProperties);
