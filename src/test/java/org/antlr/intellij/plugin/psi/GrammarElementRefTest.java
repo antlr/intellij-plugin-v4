@@ -2,14 +2,14 @@ package org.antlr.intellij.plugin.psi;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.TestUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
+public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCase {
 
 	public void testReferenceToLexerRule() {
 		myFixture.configureByFiles("SimpleGrammar.g4");
@@ -201,7 +201,7 @@ public class GrammarElementRefTest extends LightCodeInsightFixtureTestCase {
 
 	@Nullable
 	private PsiElement resolveRefAtCaret() {
-		PsiElement elementAtCaret = getFile().findElementAt(myFixture.getCaretOffset());
+		PsiElement elementAtCaret = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
 
 		if (elementAtCaret != null) {
 			PsiReference ref = elementAtCaret.getReference();
