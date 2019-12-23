@@ -28,6 +28,12 @@ public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposabl
         return "ANTLR4ProjectSettings";
     }
 
+    @Nullable
+    @Override
+    public Runnable enableSearch(String option) {
+        return null;
+    }
+
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {

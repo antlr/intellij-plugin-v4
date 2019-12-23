@@ -53,7 +53,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 	public static JBPopup createAmbigTreesPopup(final PreviewState previewState,
 	                                            final AmbiguityInfo ambigInfo) {
-		final JBList list = new JBList<>("Show all phrase interpretations");
+		final JBList list = new JBList("Show all phrase interpretations");
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JBPopupFactory factory = JBPopupFactory.getInstance();
 		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
@@ -104,7 +104,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 	public static JBPopup createLookaheadTreesPopup(final PreviewState previewState,
 	                                                final LookaheadEventInfo lookaheadInfo) {
-		final JBList list = new JBList<>("Show all lookahead interpretations");
+		final JBList list = new JBList("Show all lookahead interpretations");
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JBPopupFactory factory = JBPopupFactory.getInstance();
 		PopupChooserBuilder builder = factory.createListPopupBuilder(list);

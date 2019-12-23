@@ -5,7 +5,7 @@ env:
   # see https://www.jetbrains.com/idea/download/previous.html
   - IDEA_VERSION=IC-2016.1
   - IDEA_VERSION=IC-2016.3.8
-  - IDEA_VERSION=IC-2017.3.7
+  - IDEA_VERSION=IC-2017.3.6
   - IDEA_VERSION=IC-2018.2.8
   - IDEA_VERSION=IC-2018.3.6
   - IDEA_VERSION=IC-2019.1.4

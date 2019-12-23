@@ -23,7 +23,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
-import com.intellij.vcs.log.ui.frame.WrappedFlowLayout;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.Icons;
