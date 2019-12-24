@@ -436,7 +436,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewState.parsingResult =
 			ParsingUtils.parseText(previewState.g, previewState.lg,
 								   previewState.startRuleName,
-								   grammarFile, inputText);
+								   grammarFile, inputText, project);
 		if ( previewState.parsingResult==null ) {
 			return null;
 		}

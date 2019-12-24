@@ -12,6 +12,11 @@ import javax.swing.*;
 
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;
 
+/**
+ * The UI that allows viewing/modifying default grammar settings for an entire project.
+ *
+ * @see ConfigANTLRPerGrammar
+ */
 public class ANTLRv4ProjectSettings implements SearchableConfigurable, Disposable {
 
     private ConfigANTLRPerGrammar configurationForm;

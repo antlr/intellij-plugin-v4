@@ -3,8 +3,10 @@ package org.antlr.intellij.plugin.configdialogs;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import org.antlr.intellij.plugin.parsing.CaseChangingStrategy;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -14,6 +16,11 @@ import java.util.Objects;
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getOrCreateGrammarProperties;
 
+/**
+ * The UI that allows viewing/modifying grammar settings for a given grammar file.
+ *
+ * @see ANTLRv4ProjectSettings
+ */
 public class ConfigANTLRPerGrammar extends DialogWrapper {
     private JPanel dialogContents;
 	private JCheckBox generateParseTreeListenerCheckBox;
@@ -24,6 +31,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	private JTextField fileEncodingField;
 	protected JCheckBox autoGenerateParsersCheckBox;
 	protected JTextField languageField;
+	private JComboBox<CaseChangingStrategy> caseTransformation;
 
 	private ConfigANTLRPerGrammar(final Project project) {
 		super(project, false);
@@ -68,6 +76,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		fileEncodingField.setText(grammarProperties.getEncoding());
 		packageField.setText(grammarProperties.getPackage());
 		languageField.setText(grammarProperties.getLanguage());
+		caseTransformation.setSelectedItem(grammarProperties.getCaseChangingStrategy());
 		generateParseTreeListenerCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeListener());
 		generateParseTreeVisitorCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeVisitor());
 	}
@@ -81,6 +90,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		grammarProperties.encoding = getFileEncodingText();
 		grammarProperties.pkg = getPackageFieldText();
 		grammarProperties.language = getLanguageText();
+		grammarProperties.caseChangingStrategy = getCaseChangingStrategy();
 		grammarProperties.generateListener = generateParseTreeListenerCheckBox.isSelected();
 		grammarProperties.generateVisitor = generateParseTreeVisitorCheckBox.isSelected();
 	}
@@ -90,7 +100,8 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 				|| !Objects.equals(originalProperties.getLibDir(), getLibDirText())
 				|| !Objects.equals(originalProperties.getEncoding(), getFileEncodingText())
 				|| !Objects.equals(originalProperties.getPackage(), getPackageFieldText())
-				|| !Objects.equals(originalProperties.getLanguage(), getLanguageText());
+				|| !Objects.equals(originalProperties.getLanguage(), getLanguageText())
+				|| !Objects.equals(originalProperties.caseChangingStrategy, getCaseChangingStrategy());
 	}
 
 	String getLanguageText() {
@@ -113,6 +124,10 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return outputDirField.getText();
 	}
 
+	private CaseChangingStrategy getCaseChangingStrategy() {
+		return (CaseChangingStrategy) caseTransformation.getSelectedItem();
+	}
+
 	@Nullable
 	@Override
 	protected JComponent createCenterPanel() {
@@ -128,5 +143,10 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 				", outputDirField=" + outputDirField +
 				", libDirField=" + libDirField +
 				'}';
+	}
+
+	private void createUIComponents() {
+		//noinspection rawtypes,unchecked (for IntelliJ 2016.1)
+		caseTransformation = new ComboBox(CaseChangingStrategy.values());
 	}
 }

@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.configdialogs;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Property;
+import org.antlr.intellij.plugin.parsing.CaseChangingStrategy;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -99,6 +100,7 @@ public class ANTLRv4GrammarPropertiesStore {
 		defaultSettings.language = "";
 		defaultSettings.generateListener = true;
 		defaultSettings.generateVisitor = true;
+		defaultSettings.caseChangingStrategy = CaseChangingStrategy.LEAVE_AS_IS;
 
 		return defaultSettings;
 	}

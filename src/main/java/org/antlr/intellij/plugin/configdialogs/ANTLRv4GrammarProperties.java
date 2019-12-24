@@ -3,12 +3,21 @@ package org.antlr.intellij.plugin.configdialogs;
 import com.intellij.openapi.components.PathMacroManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
+import org.antlr.intellij.plugin.parsing.CaseChangingStrategy;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 
 import java.io.File;
 
+/**
+ * Holds all the settings related to a given grammar file. These settings
+ * can be used during code generation, in the Preview window etc.
+ * <p>
+ * Settings can be modified via a user interface in {@link ConfigANTLRPerGrammar}
+ * and are saved in {@code .idea/misc.xml} thanks to {@link ANTLRv4GrammarPropertiesComponent}.
+ */
 @Tag("PerGrammarGenerationSettings")
 public class ANTLRv4GrammarProperties implements Cloneable {
 
@@ -42,6 +51,10 @@ public class ANTLRv4GrammarProperties implements Cloneable {
     @Property
     boolean generateVisitor;
 
+    @Property
+    @OptionTag(converter = CaseChangingStrategyConverter.class)
+    CaseChangingStrategy caseChangingStrategy = CaseChangingStrategy.LEAVE_AS_IS;
+
     public ANTLRv4GrammarProperties() {
     }
 
@@ -55,6 +68,7 @@ public class ANTLRv4GrammarProperties implements Cloneable {
         this.language = source.language;
         this.generateListener = source.generateListener;
         this.generateVisitor = source.generateVisitor;
+        this.caseChangingStrategy = source.caseChangingStrategy;
     }
 
     public boolean shouldAutoGenerateParser() {
@@ -87,6 +101,10 @@ public class ANTLRv4GrammarProperties implements Cloneable {
 
     public boolean shouldGenerateParseTreeVisitor() {
         return generateVisitor;
+    }
+
+    public CaseChangingStrategy getCaseChangingStrategy() {
+        return caseChangingStrategy;
     }
 
     public String resolveOutputDirName(Project project, VirtualFile contentRoot, String package_) {

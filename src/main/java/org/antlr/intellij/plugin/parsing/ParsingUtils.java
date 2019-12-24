@@ -12,14 +12,15 @@ import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.v4.Tool;
 import org.antlr.v4.parse.ANTLRParser;
-import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.InputMismatchException;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.misc.Predicate;
@@ -39,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;
 
 public class ParsingUtils {
 	public static Grammar BAD_PARSER_GRAMMAR;
@@ -252,10 +255,13 @@ public class ParsingUtils {
 										  LexerGrammar lg,
 										  String startRuleName,
 										  final VirtualFile grammarFile,
-										  String inputText)
+										  String inputText,
+										  Project project)
 		throws IOException
 	{
-		ANTLRInputStream input = new ANTLRInputStream(inputText);
+		ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, grammarFile);
+		CharStream input = grammarProperties.getCaseChangingStrategy()
+				.applyTo(CharStreams.fromString(inputText, grammarFile.getPath()));
 		LexerInterpreter lexEngine;
 		lexEngine = lg.createLexerInterpreter(input);
 		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
