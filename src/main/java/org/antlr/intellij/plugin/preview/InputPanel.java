@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.DocumentAdapter;
@@ -164,18 +165,19 @@ public class InputPanel {
 //			return;
 //		}
 
+		previewPanel.clearParseTree();
+		clearErrorConsole();
+
 		// wipe old and make new one
 		if ( previewState!=null ) {
 			releaseEditor(previewState);
 			createManualInputPreviewEditor(previewState);
 		}
-		previewPanel.clearParseTree();
-		clearErrorConsole();
 	}
 
 	public void createManualInputPreviewEditor(final PreviewState previewState) {
 		final EditorFactory factory = EditorFactory.getInstance();
-		Document doc = factory.createDocument(previewState.manualInputText);
+		Document doc = factory.createDocument("");
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
@@ -188,6 +190,9 @@ public class InputPanel {
 		Editor editor = createPreviewEditor(previewState.grammarFile, doc);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
+
+		// Set text last to trigger change events
+		ApplicationManager.getApplication().runWriteAction(() -> doc.setText(previewState.manualInputText));
 	}
 
 	public void selectFileEvent() {
