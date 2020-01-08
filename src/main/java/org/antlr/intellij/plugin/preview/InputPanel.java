@@ -233,7 +233,6 @@ public class InputPanel {
 
 		// wipe old and make new one
 		releaseEditor(previewState);
-		inputDocument.setReadOnly(true);
 		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
@@ -260,8 +259,8 @@ public class InputPanel {
 					previewPanel.updateParseTreeFromDoc(grammarFileForThisPreviewEditor);
 				}
 			}
-		                       );
-		final Editor editor = factory.createEditor(doc, previewPanel.project);
+		);
+		final Editor editor = factory.createViewer(doc, previewPanel.project);
 		// force right margin
 		((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
 		EditorSettings settings = editor.getSettings();
