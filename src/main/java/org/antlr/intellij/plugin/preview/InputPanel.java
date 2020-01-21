@@ -187,7 +187,7 @@ public class InputPanel {
 			}
 		                       );
 
-		Editor editor = createPreviewEditor(previewState.grammarFile, doc);
+		Editor editor = createPreviewEditor(previewState.grammarFile, doc, false);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
 
@@ -220,7 +220,7 @@ public class InputPanel {
 
 		// wipe old and make new one
 		releaseEditor(previewState);
-		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument);
+		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument, true);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
 		clearErrorConsole();
@@ -228,7 +228,7 @@ public class InputPanel {
 		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
 	}
 
-	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc) {
+	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc, boolean readOnly) {
 		LOG.info("createEditor: create new editor for "+grammarFile.getPath()+" "+previewPanel.project.getName());
 		final EditorFactory factory = EditorFactory.getInstance();
 		doc.addDocumentListener(
@@ -247,7 +247,9 @@ public class InputPanel {
 				}
 			}
 		);
-		final Editor editor = factory.createViewer(doc, previewPanel.project);
+		final Editor editor = readOnly
+				? factory.createViewer(doc, previewPanel.project)
+				: factory.createEditor(doc, previewPanel.project);
 		// force right margin
 		((EditorMarkupModel) editor.getMarkupModel()).setErrorStripeVisible(true);
 		EditorSettings settings = editor.getSettings();
