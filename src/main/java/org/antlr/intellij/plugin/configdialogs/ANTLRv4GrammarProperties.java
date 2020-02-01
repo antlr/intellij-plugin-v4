@@ -11,6 +11,8 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 
 import java.io.File;
 
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
 /**
  * Holds all the settings related to a given grammar file. These settings
  * can be used during code generation, in the Preview window etc.
@@ -117,7 +119,7 @@ public class ANTLRv4GrammarProperties implements Cloneable {
             outputDirName = contentRoot.getPath() + File.separator + outputDirName;
         }
         // add package if any
-        if ( !package_.equals(RunANTLROnGrammarFile.MISSING) ) {
+        if ( isNotBlank(package_) ) {
             outputDirName += File.separator + package_.replace('.', File.separatorChar);
         }
         return outputDirName;

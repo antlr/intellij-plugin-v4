@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.parsing;
 
-import com.google.common.base.Strings;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.notification.Notification;
@@ -43,19 +42,20 @@ import java.util.regex.Pattern;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;
 import static org.antlr.intellij.plugin.psi.MyPsiUtils.findChildrenOfType;
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
 public class RunANTLROnGrammarFile extends Task.Modal {
 	public static final Logger LOG = Logger.getInstance("RunANTLROnGrammarFile");
 	public static final String OUTPUT_DIR_NAME = "gen" ;
-	public static final String MISSING = "";
 	public static final String groupDisplayId = "ANTLR 4 Parser Generation";
 
 	private static final Pattern PACKAGE_DEFINITION_REGEX = Pattern.compile("package\\s+[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+[0-9a-z_];");
 
-	public VirtualFile grammarFile;
-	public Project project;
-	private boolean forceGeneration;
+	private final VirtualFile grammarFile;
+	private final Project project;
+	private final boolean forceGeneration;
 
 	public RunANTLROnGrammarFile(VirtualFile grammarFile,
 								 @Nullable final Project project,
@@ -193,18 +193,15 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		String sourcePath = getParentDir(vfile);
 
 		String package_ = grammarProperties.getPackage();
-		if ( package_.equals(MISSING) && !hasPackageDeclarationInHeader(project, vfile)) {
+		if ( isBlank(package_) && !hasPackageDeclarationInHeader(project, vfile)) {
 			package_ = ProjectRootManager.getInstance(project).getFileIndex().getPackageNameByDirectory(vfile.getParent());
-			if ( Strings.isNullOrEmpty(package_)) {
-				package_ = MISSING;
-			}
 		}
-		if ( !package_.equals(MISSING) ) {
+		if ( isNotBlank(package_) ) {
 			args.put("-package", package_);
 		}
 
 		String language = grammarProperties.getLanguage();
-		if ( !language.equals(MISSING) ) {
+		if ( isNotBlank(language) ) {
 			args.put("-Dlanguage="+language, "");
 		}
 
@@ -221,7 +218,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		args.put("-lib", libDir);
 
 		String encoding = grammarProperties.getEncoding();
-		if ( !encoding.equals(MISSING) ) {
+		if ( isNotBlank(encoding) ) {
 			args.put("-encoding", encoding);
 		}
 
@@ -278,9 +275,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 		VirtualFile contentRoot = getContentRoot(project, grammarFile);
 		Map<String,String> argMap = getANTLRArgs(project, grammarFile);
 		String package_ = argMap.get("-package");
-		if ( package_==null ) {
-			package_ = MISSING;
-		}
+
 		return getGrammarProperties(project, grammarFile)
 				.resolveOutputDirName(project, contentRoot, package_);
 	}
