@@ -88,6 +88,28 @@ public class Issue374Test extends TestCase {
 		assertTrue(listener.getSyntaxErrors().isEmpty());
 	}
 
+	public void test_parser_rule_allows_options() {
+		// Given
+		String grammar = "parser grammar Sample;\n" +
+				"options { key = value; }\n" +
+				"entry\n" +
+				"options { key = value; }\n" +
+				": 'text' EOF ;";
+
+		ANTLRv4Parser parser = createParser(grammar);
+
+		SyntaxErrorListener listener = new SyntaxErrorListener();
+		ANTLRv4Lexer lexer = (ANTLRv4Lexer) parser.getInputStream().getTokenSource();
+		lexer.addErrorListener(listener);
+		parser.addErrorListener(listener);
+
+		// When
+		parser.grammarSpec();
+
+		// Then
+		assertTrue(listener.getSyntaxErrors().isEmpty());
+	}
+
 	private ANTLRv4Parser createParser(String grammar) {
 		CharStream charStream = CharStreams.fromString(grammar);
 		ANTLRv4Lexer lexer = new ANTLRv4Lexer(charStream);
