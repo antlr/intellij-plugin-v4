@@ -116,6 +116,15 @@ channels {
 		}
 	}
 
+    protected void handleOptionsRBrace() {
+        if (_mode == ANTLRv4Lexer.Options) {
+            insideOptionsBlock = false;
+        }
+
+        setType(ANTLRv4Lexer.RBRACE);
+        popMode();
+    }
+
 	@Override
 	public Token emit() {
 	    if ((_type == OPTIONS || _type == TOKENS || _type == CHANNELS)
@@ -580,7 +589,8 @@ mode Options;
         ;
 
     OPT_RBRACE
-        : RBrace -> type (RBRACE) , popMode
+        : RBrace
+        { handleOptionsRBrace(); }
         ;
 
     OPT_ID
