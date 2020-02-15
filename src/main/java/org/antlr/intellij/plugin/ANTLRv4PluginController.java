@@ -176,8 +176,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	// editor listeners released in editorReleased() events.
 	public void uninstallListeners() {
 		VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileAdapter);
-		MessageBusConnection msgBus = project.getMessageBus().connect(project);
-		msgBus.disconnect();
+
+		if ( !project.isDisposed() ) {
+			MessageBusConnection msgBus = project.getMessageBus().connect(project);
+			msgBus.disconnect();
+		}
 	}
 
 	@Override
