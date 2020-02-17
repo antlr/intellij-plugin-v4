@@ -3,8 +3,8 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupChooserBuilder;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -24,19 +24,19 @@ import org.antlr.v4.tool.GrammarParserInterpreter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+
 public class ShowAmbigTreesDialog extends JDialog {
-	public static final int MAX_PHRASE_WIDTH = 25;
+	private static final int MAX_PHRASE_WIDTH = 25;
+
 	private JPanel contentPane;
 	private JButton buttonOK;
-	protected JScrollPane treeScrollPane;
-	protected JSlider treeSizeSlider;
-	protected JLabel ambigPhraseLabel;
-	public List<? extends RuleContext> ambiguousParseTrees;
-	public TreeViewer[] treeViewers;
-	public PreviewState previewState;
+	private JScrollPane treeScrollPane;
+	private JSlider treeSizeSlider;
+	private JLabel ambigPhraseLabel;
+	private TreeViewer[] treeViewers;
 
 	public ShowAmbigTreesDialog() {
 		setContentPane(contentPane);
@@ -159,16 +159,14 @@ public class ShowAmbigTreesDialog extends JDialog {
 	}
 
 	public void setTrees(PreviewState previewState,
-						 List<? extends RuleContext> trees,
+						 List<? extends RuleContext> ambiguousParseTrees,
 						 String title,
 						 int highlightTreeIndex,
 						 boolean highlightDiffs) {
-		this.previewState = previewState;
-		this.ambiguousParseTrees = trees;
 		if ( ambiguousParseTrees!=null ) {
 			int numTrees = ambiguousParseTrees.size();
 			setTitle(title);
-			treeViewers = new TreeViewer[ambiguousParseTrees.size()];
+			treeViewers = new TreeViewer[numTrees];
 			JBPanel panelOfTrees = new JBPanel();
 			PreviewInterpreterRuleContext chosenTree =
 				(PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
@@ -186,17 +184,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 				treeViewers[i].setHighlightedBoxColor(new JBColor(JBColor.lightGray, JBColor.GREEN));
 
 				// highlight root so people can see it across trees; might not be top node
-				final Tree root = ParsingUtils.findOverriddenDecisionRoot(ctx);
-				if ( root==null ) {
-					// I saw this when a (...)+ exit branch was taken here
-//					declarationSpecifiers
-//					    :   declarationSpecifier+
-//					    ;
-					// TODO: display a message?
-				}
-				treeViewers[i].addHighlightedNodes(new ArrayList<Tree>() {{
-					add(root);
-				}});
+				treeViewers[i].addHighlightedNodes(singletonList(ParsingUtils.findOverriddenDecisionRoot(ctx)));
 				if ( ctx!=chosenTree ) {
 					mark(chosenTree, ctx);
 				}
@@ -227,11 +215,11 @@ public class ShowAmbigTreesDialog extends JDialog {
 		markFromRoots(t, u);
 
 		// Get leaves so we can do a difference between the trees starting at the bottom and top
-		List<Tree> tleaves = ParsingUtils.getAllLeaves(t);
-		List<Tree> uleaves = ParsingUtils.getAllLeaves(u);
+		List<TerminalNode> tleaves = ParsingUtils.getAllLeaves(t);
+		List<TerminalNode> uleaves = ParsingUtils.getAllLeaves(u);
 
-		TerminalNode first_tleaf = (TerminalNode) tleaves.get(0);
-		TerminalNode first_uleaf = (TerminalNode) uleaves.get(0);
+		TerminalNode first_tleaf = tleaves.get(0);
+		TerminalNode first_uleaf = uleaves.get(0);
 		final int first = Math.max(first_tleaf.getSymbol().getTokenIndex(),
 		                           first_uleaf.getSymbol().getTokenIndex());
 
