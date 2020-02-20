@@ -50,7 +50,7 @@
         </children>
       </grid>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
-        <constraints border-constraint="West"/>
+        <constraints border-constraint="East"/>
         <properties>
           <background awt-color="lightGray"/>
           <editable value="false"/>

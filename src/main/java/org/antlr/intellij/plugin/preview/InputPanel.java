@@ -3,6 +3,8 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
@@ -49,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
+
 // Not a view itself but delegates to one.
 
 public class InputPanel {
@@ -88,6 +92,7 @@ public class InputPanel {
 	private PreviewEditorMouseListener editorMouseListener;
 
 	public InputPanel(final PreviewPanel previewPanel) {
+		createUIComponents();
 		WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
 		layout.setAlignment(FlowLayout.CENTER);
 		this.startRuleAndInputPanel.setLayout(layout);
@@ -152,7 +157,21 @@ public class InputPanel {
 	}
 
 	private void createUIComponents() {
-		// TODO: place custom component creation code here
+		final AnAction refreshAction = new AnAction("Refresh Preview", "Refresh preview", AllIcons.Actions.Refresh) {
+			@Override
+			public void actionPerformed(@NotNull AnActionEvent e) {
+				// TODO we shouldn't have to saveAll for this, we could work on Documents instead
+				FileDocumentManager.getInstance().saveAllDocuments();
+				previewPanel.updateParseTreeFromDoc(previewState.grammarFile);
+			}
+		};
+
+		DefaultActionGroup actionGroup = new DefaultActionGroup(
+				refreshAction
+		);
+
+		ActionToolbar bar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
+		outerMostPanel.add(bar.getComponent(), BorderLayout.WEST);
 	}
 
 	public void selectInputEvent() {
