@@ -12,4 +12,6 @@ env:
   - IDEA_VERSION=IC-2019.2.4
   - IDEA_VERSION=IC-2019.3.1
 install:
-  - sed -i '/ideaVersion=/c\ideaVersion='"$IDEA_VERSION"'' gradle.properties
+  - ./gradlew -PideaVersion="$IDEA_VERSION" assemble
+script:
+  - ./gradlew check --stacktrace
