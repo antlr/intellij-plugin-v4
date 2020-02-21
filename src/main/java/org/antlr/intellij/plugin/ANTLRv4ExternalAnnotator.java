@@ -49,6 +49,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 				annotateIssue(file, holder, issue);
 			}
 		}
+
+		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(file.getProject());
+		if ( controller!=null ) {
+			controller.getPreviewPanel().autoRefreshPreview(file.getVirtualFile());
+		}
 	}
 
 	private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {

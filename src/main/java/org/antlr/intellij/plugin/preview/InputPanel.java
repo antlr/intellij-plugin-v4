@@ -157,12 +157,17 @@ public class InputPanel {
 	}
 
 	private void createUIComponents() {
-		final AnAction refreshAction = new AnAction("Refresh Preview", "Refresh preview", AllIcons.Actions.Refresh) {
+		final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
+				"Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
+
 			@Override
-			public void actionPerformed(@NotNull AnActionEvent e) {
-				// TODO we shouldn't have to saveAll for this, we could work on Documents instead
-				FileDocumentManager.getInstance().saveAllDocuments();
-				previewPanel.updateParseTreeFromDoc(previewState.grammarFile);
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return previewPanel != null && previewPanel.isAutoRefresh();
+			}
+
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
+				previewPanel.setAutoRefresh(state);
 			}
 		};
 
