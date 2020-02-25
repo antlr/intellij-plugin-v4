@@ -218,10 +218,9 @@ public class ShowAmbigTreesDialog extends JDialog {
 		List<TerminalNode> tleaves = ParsingUtils.getAllLeaves(t);
 		List<TerminalNode> uleaves = ParsingUtils.getAllLeaves(u);
 
-		TerminalNode first_tleaf = tleaves.get(0);
-		TerminalNode first_uleaf = uleaves.get(0);
-		final int first = Math.max(first_tleaf.getSymbol().getTokenIndex(),
-		                           first_uleaf.getSymbol().getTokenIndex());
+		int firstTleafTokenIndex = tleaves.isEmpty() ? -1 : tleaves.get(0).getSymbol().getTokenIndex();
+		int firstUleafTokenIndex = uleaves.isEmpty() ? -1 : uleaves.get(0).getSymbol().getTokenIndex();
+		final int first = Math.max(firstTleafTokenIndex, firstUleafTokenIndex);
 
 		// filter so we start in same place
 		tleaves = Utils.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
