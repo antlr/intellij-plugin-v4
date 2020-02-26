@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.configdialogs;
 
+import com.intellij.openapi.fileTypes.WildcardFileNameMatcher;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Property;
@@ -15,7 +16,7 @@ import java.util.Objects;
  */
 public class ANTLRv4GrammarPropertiesStore {
 
-	private static final ANTLRv4GrammarProperties DEFAULT_GRAMMAR_PROPERTIES = initDefaultGrammarProperties();
+	static final ANTLRv4GrammarProperties DEFAULT_GRAMMAR_PROPERTIES = initDefaultGrammarProperties();
 
 	@Property
 	private List<ANTLRv4GrammarProperties> perGrammarGenerationSettings = new ArrayList<>();
@@ -59,14 +60,14 @@ public class ANTLRv4GrammarPropertiesStore {
 	@Nullable
 	private ANTLRv4GrammarProperties findSettingsForFile(String fileName) {
 		for (ANTLRv4GrammarProperties settings : perGrammarGenerationSettings) {
-			if (settings.fileName.equals(fileName)) {
+			WildcardFileNameMatcher wildcardFileNameMatcher = new WildcardFileNameMatcher(settings.fileName);
+			if (wildcardFileNameMatcher.acceptsCharSequence(fileName)) {
 				return settings;
 			}
 		}
 
 		return null;
 	}
-
 	public static ANTLRv4GrammarProperties getGrammarProperties(Project project, VirtualFile grammarFile) {
 		return getGrammarProperties(project, grammarFile.getPath());
 	}
