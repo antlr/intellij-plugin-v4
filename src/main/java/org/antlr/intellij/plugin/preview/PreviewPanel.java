@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -33,6 +35,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
 /** The top level contents of the preview tool window created by
  *  intellij automatically. Since we need grammars to interpret,
@@ -78,6 +82,29 @@ public class PreviewPanel extends JPanel {
 		splitPane.setSecondComponent(createParseTreeAndProfileTabbedPanel());
 
 		this.add(splitPane, BorderLayout.CENTER);
+		this.add(createButtonBar().getComponent(), BorderLayout.WEST);
+	}
+
+	private ActionToolbar createButtonBar() {
+		final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
+				"Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
+
+			@Override
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return autoRefresh;
+			}
+
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
+				autoRefresh = state;
+			}
+		};
+
+		DefaultActionGroup actionGroup = new DefaultActionGroup(
+				refreshAction
+		);
+
+		return ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
 	}
 
 	private InputPanel getEditorPanel() {
@@ -333,14 +360,6 @@ public class PreviewPanel extends JPanel {
 
 	public InputPanel getInputPanel() {
 		return inputPanel;
-	}
-
-	public boolean isAutoRefresh() {
-		return autoRefresh;
-	}
-
-	public void setAutoRefresh(boolean autoRefresh) {
-		this.autoRefresh = autoRefresh;
 	}
 
 	public void autoRefreshPreview(VirtualFile virtualFile) {

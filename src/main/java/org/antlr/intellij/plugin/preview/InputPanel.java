@@ -3,8 +3,6 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
@@ -50,8 +48,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
 // Not a view itself but delegates to one.
 
@@ -157,26 +153,6 @@ public class InputPanel {
 	}
 
 	private void createUIComponents() {
-		final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
-				"Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
-
-			@Override
-			public boolean isSelected(@NotNull AnActionEvent e) {
-				return previewPanel != null && previewPanel.isAutoRefresh();
-			}
-
-			@Override
-			public void setSelected(@NotNull AnActionEvent e, boolean state) {
-				previewPanel.setAutoRefresh(state);
-			}
-		};
-
-		DefaultActionGroup actionGroup = new DefaultActionGroup(
-				refreshAction
-		);
-
-		ActionToolbar bar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
-		outerMostPanel.add(bar.getComponent(), BorderLayout.WEST);
 	}
 
 	public void selectInputEvent() {
