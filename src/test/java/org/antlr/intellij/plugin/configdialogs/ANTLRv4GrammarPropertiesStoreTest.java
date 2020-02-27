@@ -49,6 +49,22 @@ public class ANTLRv4GrammarPropertiesStoreTest {
         Assert.assertSame(grammarProperties, testGrammarProperties);
     }
 
+    @Test
+    public void shouldPreferExactMatchOverWildcard() {
+        // given:
+        ANTLRv4GrammarPropertiesStore propertiesStore = new ANTLRv4GrammarPropertiesStore();
+        propertiesStore.add(createGrammarProperties("/home/grammars/test/NotMyGrammar.java"));
+        propertiesStore.add(createGrammarProperties("/home/*/test/*.java"));
+        ANTLRv4GrammarProperties myGrammarProperties = createGrammarProperties(MY_GRAMMAR_PATH);
+        propertiesStore.add(myGrammarProperties);
+
+        // when:
+        ANTLRv4GrammarProperties grammarProperties = propertiesStore.getGrammarProperties(MY_GRAMMAR_PATH);
+
+        // then:
+        Assert.assertSame(grammarProperties, myGrammarProperties);
+    }
+
     private ANTLRv4GrammarProperties createGrammarProperties(String fileName) {
         ANTLRv4GrammarProperties antlRv4GrammarProperties = new ANTLRv4GrammarProperties();
         antlRv4GrammarProperties.fileName = fileName;

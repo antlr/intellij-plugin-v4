@@ -60,6 +60,12 @@ public class ANTLRv4GrammarPropertiesStore {
 	@Nullable
 	private ANTLRv4GrammarProperties findSettingsForFile(String fileName) {
 		for (ANTLRv4GrammarProperties settings : perGrammarGenerationSettings) {
+			if (settings.fileName.equals(fileName)) {
+				return settings;
+			}
+		}
+
+		for (ANTLRv4GrammarProperties settings : perGrammarGenerationSettings) {
 			WildcardFileNameMatcher wildcardFileNameMatcher = new WildcardFileNameMatcher(settings.fileName);
 			if (wildcardFileNameMatcher.acceptsCharSequence(fileName)) {
 				return settings;
