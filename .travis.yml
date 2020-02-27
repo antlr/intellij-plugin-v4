@@ -14,4 +14,6 @@ env:
   - IDEA_VERSION=IC-2019.3.3
   - IDEA_VERSION=IC-201-EAP-SNAPSHOT
 install:
-  - sed -i '/ideaVersion=/c\ideaVersion='"$IDEA_VERSION"'' gradle.properties
+  - ./gradlew -PideaVersion="$IDEA_VERSION" assemble
+script:
+  - ./gradlew check --stacktrace

@@ -4,6 +4,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory;
@@ -48,6 +49,11 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 			} else {
 				annotateIssue(file, holder, issue);
 			}
+		}
+
+		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(file.getProject());
+		if ( controller!=null && !ApplicationManager.getApplication().isUnitTestMode() ) {
+			controller.getPreviewPanel().autoRefreshPreview(file.getVirtualFile());
 		}
 	}
 

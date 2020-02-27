@@ -58,6 +58,11 @@ public class PreviewPanel extends JPanel {
 
 	public ProfilerPanel profilerPanel;
 
+	/**
+	 * Indicates if the preview should be automatically refreshed after grammar changes.
+	 */
+	private boolean autoRefresh = true;
+
 	public PreviewPanel(Project project) {
 		this.project = project;
 		createGUI();
@@ -328,5 +333,23 @@ public class PreviewPanel extends JPanel {
 
 	public InputPanel getInputPanel() {
 		return inputPanel;
+	}
+
+	public boolean isAutoRefresh() {
+		return autoRefresh;
+	}
+
+	public void setAutoRefresh(boolean autoRefresh) {
+		this.autoRefresh = autoRefresh;
+	}
+
+	public void autoRefreshPreview(VirtualFile virtualFile) {
+		final ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+
+		if (autoRefresh
+				&& controller != null
+				&& inputPanel.previewState.startRuleName != null) {
+			ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
+		}
 	}
 }

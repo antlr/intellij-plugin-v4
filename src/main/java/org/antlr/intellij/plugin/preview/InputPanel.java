@@ -3,6 +3,9 @@ package org.antlr.intellij.plugin.preview;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.DocumentAdapter;
@@ -44,18 +47,23 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
+
 // Not a view itself but delegates to one.
 
 public class InputPanel {
-	public static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
-	public static final int MAX_STACK_DISPLAY = 30;
-	public static final int MAX_HINT_WIDTH = 110;
+	private static final Key<SyntaxError> SYNTAX_ERROR = Key.create("SYNTAX_ERROR");
+	private static final int MAX_STACK_DISPLAY = 30;
+	private static final int MAX_HINT_WIDTH = 110;
+	private static final Logger LOG = Logger.getInstance("ANTLR InputPanel");
+	private static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
+	private static final int ERROR_LAYER = HighlighterLayer.ERROR;
+	private static final String missingStartRuleLabelText = "%s start rule: <select from navigator or grammar>";
+	private static final String startRuleLabelText = "%s start rule: %s";
 
 	private JRadioButton inputRadioButton;
 	private JRadioButton fileRadioButton;
@@ -65,33 +73,26 @@ public class InputPanel {
 	private JPanel radioButtonPanel;
 	private JPanel startRuleAndInputPanel;
 	private TextFieldWithBrowseButton fileChooser;
-	protected JPanel outerMostPanel;
-
-	public static final Logger LOG = Logger.getInstance("ANTLR InputPanel");
-	public static final int TOKEN_INFO_LAYER = HighlighterLayer.SELECTION; // Show token info over errors
-	public static final int ERROR_LAYER = HighlighterLayer.ERROR;
+	private JPanel outerMostPanel;
 
 	/**
 	 * switchToGrammar() was seeing an empty slot instead of a previous
 	 * editor or placeHolder. Figured it was an order of operations thing
 	 * and synchronized add/remove ops. Works now w/o error.
 	 */
-	public final Object swapEditorComponentLock = new Object();
+	private final Object swapEditorComponentLock = new Object();
 
-	public static final String missingStartRuleLabelText =
-		"%s start rule: <select from navigator or grammar>";
-	public static final String startRuleLabelText = "%s start rule: %s";
-
-	public PreviewPanel previewPanel;
+	private PreviewPanel previewPanel;
 
 	/**
 	 * state for grammar in current editor, not editor where user is typing preview input!
 	 */
 	public PreviewState previewState;
 
-	PreviewEditorMouseListener editorMouseListener;
+	private PreviewEditorMouseListener editorMouseListener;
 
 	public InputPanel(final PreviewPanel previewPanel) {
+		createUIComponents();
 		WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
 		layout.setAlignment(FlowLayout.CENTER);
 		this.startRuleAndInputPanel.setLayout(layout);
@@ -101,7 +102,7 @@ public class InputPanel {
 			FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
 		ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseActionListener =
 			new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
-				"Select input file", null,
+				"Select Input File", null,
 				fileChooser,
 				previewPanel.project,
 				singleFileDescriptor,
@@ -133,12 +134,7 @@ public class InputPanel {
 			onFileChosen(chosenFile);
 		});
 		fileChooser.addBrowseFolderListener(previewPanel.project, browseActionListener);
-		fileChooser.getButton().addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fileRadioButton.setSelected(true);
-			}
-		});
+		fileChooser.getButton().addActionListener(e -> fileRadioButton.setSelected(true));
 		fileChooser.setTextFieldPreferredWidth(40);
 
 		inputRadioButton.addActionListener(e -> selectInputEvent());
@@ -161,15 +157,26 @@ public class InputPanel {
 	}
 
 	private void createUIComponents() {
-		// TODO: place custom component creation code here
-	}
+		final AnAction refreshAction = new ToggleAction("Refresh Preview Automatically",
+				"Refresh preview automatically upon grammar changes", AllIcons.Actions.Refresh) {
 
-	public JTextArea getErrorConsole() {
-		return errorConsole;
-	}
+			@Override
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return previewPanel != null && previewPanel.isAutoRefresh();
+			}
 
-	public JLabel getStartRuleLabel() {
-		return startRuleLabel;
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
+				previewPanel.setAutoRefresh(state);
+			}
+		};
+
+		DefaultActionGroup actionGroup = new DefaultActionGroup(
+				refreshAction
+		);
+
+		ActionToolbar bar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
+		outerMostPanel.add(bar.getComponent(), BorderLayout.WEST);
 	}
 
 	public void selectInputEvent() {
@@ -182,18 +189,19 @@ public class InputPanel {
 //			return;
 //		}
 
+		previewPanel.clearParseTree();
+		clearErrorConsole();
+
 		// wipe old and make new one
 		if ( previewState!=null ) {
 			releaseEditor(previewState);
 			createManualInputPreviewEditor(previewState);
 		}
-		previewPanel.clearParseTree();
-		clearErrorConsole();
 	}
 
 	public void createManualInputPreviewEditor(final PreviewState previewState) {
 		final EditorFactory factory = EditorFactory.getInstance();
-		Document doc = factory.createDocument(previewState.manualInputText);
+		Document doc = factory.createDocument("");
 		doc.addDocumentListener(
 			new DocumentAdapter() {
 				@Override
@@ -206,6 +214,9 @@ public class InputPanel {
 		Editor editor = createPreviewEditor(previewState.grammarFile, doc, false);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
+
+		// Set text last to trigger change events
+		ApplicationManager.getApplication().runWriteAction(() -> doc.setText(previewState.manualInputText));
 	}
 
 	public void selectFileEvent() {
@@ -271,50 +282,6 @@ public class InputPanel {
 		settings.setLineMarkerAreaShown(true);
 		installListeners(editor);
 
-//		EditorGutter gutter = editor.getGutter();
-//		gutter.registerTextAnnotation(
-//			new TextAnnotationGutterProvider() {
-//				@Nullable
-//				@Override
-//				public String getLineText(int line, Editor editor) {
-//					return "foo";
-//				}
-//
-//				@Nullable
-//				@Override
-//				public String getToolTip(int line, Editor editor) {
-//					return "tool tip";
-//				}
-//
-//				@Override
-//				public EditorFontType getStyle(int line, Editor editor) {
-//					return null;
-//				}
-//
-//				@Nullable
-//				@Override
-//				public ColorKey getColor(int line, Editor editor) {
-//					return EditorColors.MODIFIED_LINES_COLOR;
-//				}
-//
-//				@Nullable
-//				@Override
-//				public Color getBgColor(int line, Editor editor) {
-//					return JBColor.WHITE;
-//				}
-//
-//				@Override
-//				public List<AnAction> getPopupActions(int line, Editor editor) {
-//					return null;
-//				}
-//
-//				@Override
-//				public void gutterClosed() {
-//
-//				}
-//			}
-//		);
-
 		return editor;
 	}
 
@@ -375,14 +342,6 @@ public class InputPanel {
 		return editor;
 	}
 
-	public String getChosenFileName() {
-		return fileChooser.getText();
-	}
-
-	public boolean fileInputIsSelected() {
-		return fileRadioButton.isSelected();
-	}
-
 	public void releaseEditor(PreviewState previewState) {
 		uninstallListeners(previewState.getInputEditor());
 
@@ -432,10 +391,6 @@ public class InputPanel {
 
 	public void displayErrorInParseErrorConsole(SyntaxError e) {
 		String msg = getErrorDisplayString(e);
-		errorConsole.insert(msg+'\n', errorConsole.getText().length());
-	}
-
-	public void displayErrorInParseErrorConsole(String msg) {
 		errorConsole.insert(msg+'\n', errorConsole.getText().length());
 	}
 
@@ -565,35 +520,30 @@ public class InputPanel {
 		Token stopToken = tokenStream.get(tokenInterval.b);
 		Interval sourceInterval =
 			Interval.of(startToken.getStartIndex(), stopToken.getStopIndex()+1);
-//		int ruleIndex = parent.getRuleIndex();
-//		String ruleName = parser.getRuleNames()[ruleIndex];
-//        System.out.println("parent " + ruleName + " region " + sourceInterval);
 
 		List<String> stack = parser.getRuleInvocationStack(parent);
 		Collections.reverse(stack);
 
 		if ( stack.size()>MAX_STACK_DISPLAY ) {
 			// collapse contiguous dups to handle left-recursive stacks
-			List<Pair<String, Integer>> smaller = new ArrayList<Pair<String, Integer>>();
+			List<Pair<String, Integer>> smaller = new ArrayList<>();
 			int last = 0;
-			smaller.add(new Pair<String, Integer>(stack.get(0), 1)); // init to having first element, count of 1
+			smaller.add(new Pair<>(stack.get(0), 1)); // init to having first element, count of 1
 			for (int i = 1; i<stack.size(); i++) {
 				String s = stack.get(i);
 				if ( smaller.get(last).a.equals(s) ) {
-					smaller.set(last, new Pair<String, Integer>(s, smaller.get(last).b+1));
+					smaller.set(last, new Pair<>(s, smaller.get(last).b + 1));
 				}
 				else {
-					smaller.add(new Pair<String, Integer>(s, 1));
+					smaller.add(new Pair<>(s, 1));
 					last++;
 				}
 			}
-			stack = new ArrayList<String>();
-			for (int i = 0; i<smaller.size(); i++) {
-				Pair<String, Integer> pair = smaller.get(i);
+			stack = new ArrayList<>();
+			for ( Pair<String, Integer> pair : smaller ) {
 				if ( pair.b>1 ) {
-					stack.add(pair.a+"^"+pair.b);
-				}
-				else {
+					stack.add(pair.a + "^" + pair.b);
+				} else {
 					stack.add(pair.a);
 				}
 			}
@@ -718,45 +668,39 @@ public class InputPanel {
 			return;
 		}
 
-		List<String> msgList = new ArrayList<String>();
+		List<String> msgList = new ArrayList<>();
 		boolean foundDecisionEvent = false;
-		for (int i = 0; i<highlightersAtOffset.size(); i++) {
-			RangeHighlighter r = highlightersAtOffset.get(i);
+		for ( RangeHighlighter r : highlightersAtOffset ) {
 			DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
 			String msg;
 			if ( eventInfo!=null ) {
 				// TODO: move decision event stuff to profiler?
 				if ( eventInfo instanceof AmbiguityInfo ) {
-					msg = "Ambiguous upon alts "+eventInfo.configs.getAlts().toString();
-				}
-				else if ( eventInfo instanceof ContextSensitivityInfo ) {
+					msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
+				} else if ( eventInfo instanceof ContextSensitivityInfo ) {
 					msg = "Context-sensitive";
-				}
-				else if ( eventInfo instanceof LookaheadEventInfo ) {
-					int k = eventInfo.stopIndex-eventInfo.startIndex+1;
-					msg = "Deepest lookahead k="+k;
-				}
-				else if ( eventInfo instanceof PredicateEvalInfo ) {
+				} else if ( eventInfo instanceof LookaheadEventInfo ) {
+					int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
+					msg = "Deepest lookahead k=" + k;
+				} else if ( eventInfo instanceof PredicateEvalInfo ) {
 					PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
 					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
-					                                                    previewState,
-					                                                    evalInfo.semctx, evalInfo.predictedAlt,
-					                                                    evalInfo.evalResult);
-					msg = msg+(!evalInfo.fullCtx ? " (DFA)" : "");
-				}
-				else {
-					msg = "Unknown decision event: "+eventInfo;
+							previewState,
+							evalInfo.semctx, evalInfo.predictedAlt,
+							evalInfo.evalResult);
+					msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
+				} else {
+					msg = "Unknown decision event: " + eventInfo;
 				}
 				foundDecisionEvent = true;
-			}
-			else {
+			} else {
 				// error tool tips
 				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 				msg = getErrorDisplayString(errorUnderCursor);
 				if ( msg.length()>MAX_HINT_WIDTH ) {
-					msg = msg.substring(0, MAX_HINT_WIDTH)+"...";
+					msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
 				}
-				if ( msg.indexOf('<')>=0 ) {
+				if ( msg.indexOf('<') >= 0 ) {
 					msg = msg.replaceAll("<", "&lt;");
 				}
 			}
@@ -765,10 +709,10 @@ public class InputPanel {
 		String combinedMsg = Utils.join(msgList.iterator(), "\n");
 		HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
 		if ( foundDecisionEvent ) {
-			showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg.toString());
+			showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg);
 		}
 		else {
-			showPreviewEditorErrorToolTip(editor, offset, hintMgr, combinedMsg.toString());
+			showPreviewEditorErrorToolTip(editor, offset, hintMgr, combinedMsg);
 		}
 	}
 
@@ -808,7 +752,7 @@ public class InputPanel {
 			b = ((LexerNoViableAltException) cause).getStartIndex()+1;
 		}
 		else {
-			Token offendingToken = (Token) e.getOffendingSymbol();
+			Token offendingToken = e.getOffendingSymbol();
 			a = offendingToken.getStartIndex();
 			b = offendingToken.getStopIndex()+1;
 		}
