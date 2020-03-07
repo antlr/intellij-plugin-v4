@@ -73,13 +73,10 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Added navigation to imported grammars and rules (<a href="https://github.com/antlr/intellij-plugin-v4/issues/104">#104</a>)</li>
-	    <li>Added support for case-insensitive grammars in the preview window (<a href="https://github.com/antlr/intellij-plugin-v4/issues/376">#376</a>)</li>
-	    <li>Added support for macros like $PROJECT_DIR$ in grammar properties (<a href="https://github.com/antlr/intellij-plugin-v4/issues/300">#300</a>)</li>
-	    <li>Added a quick fix to create missing rules</li>
-	    <li>Updated ANTLR to v4.8-1</li>
+	    <li>The Preview window is now automatically refreshed upon changes in a grammar (<a href="https://github.com/antlr/intellij-plugin-v4/issues/312">#312</a>)</li>
+	    <li>Fixed an exception thrown after closing a project (<a href="https://github.com/antlr/intellij-plugin-v4/issues/386">#386</a>)</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.13+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.14+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
