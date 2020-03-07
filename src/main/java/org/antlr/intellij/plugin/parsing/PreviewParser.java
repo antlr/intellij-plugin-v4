@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.parsing;
 
+import com.intellij.openapi.progress.ProgressManager;
 import org.antlr.v4.runtime.InterpreterRuleContext;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
@@ -20,7 +21,7 @@ public class PreviewParser extends GrammarParserInterpreter {
 	/** Map each preview editor token to the grammar ATN state used to match it.
 	 *  Saves us having to create special token subclass and token factory.
 	 */
-	public Map<Token, Integer> inputTokenToStateMap = new HashMap<Token, Integer>();
+	public Map<Token, Integer> inputTokenToStateMap = new HashMap<>();
 
 	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER; // not sure about error nodes
 
@@ -46,6 +47,8 @@ public class PreviewParser extends GrammarParserInterpreter {
 
 	@Override
 	protected int visitDecisionState(DecisionState p) {
+		ProgressManager.checkCanceled();
+
 		int predictedAlt = super.visitDecisionState(p);
 		if ( p.getNumberOfTransitions()>1 ) {
 //			System.out.println("decision "+p.decision+": "+predictedAlt);

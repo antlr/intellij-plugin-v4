@@ -16,13 +16,12 @@ import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.util.BackgroundTaskUtil;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
@@ -36,8 +35,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
-import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
-import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
@@ -50,7 +47,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +85,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
 	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
+
+	private ProgressIndicator parsingProgressIndicator;
 
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
@@ -423,28 +421,39 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return new File(pathOne).equals(new File(pathTwo));
 	}
 
-	public ParsingResult parseText(final VirtualFile grammarFile, String inputText) throws IOException {
+	public void parseText(final VirtualFile grammarFile, String inputText) {
 		// Wipes out the console and also any error annotations
 		previewPanel.inputPanel.clearParseErrors();
 
 		final PreviewState previewState = getPreviewState(grammarFile);
 
-		long start = System.nanoTime();
-		previewState.parsingResult =
-			ParsingUtils.parseText(previewState.g, previewState.lg,
-								   previewState.startRuleName,
-								   grammarFile, inputText, project);
-		if ( previewState.parsingResult==null ) {
-			return null;
+		abortCurrentParsing();
+
+		// Parse text in a background thread to avoid freezing the UI if the grammar is badly written
+		// an takes ages to interpret the input.
+		parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
+				(indicator) -> {
+					long start = System.nanoTime();
+
+					previewState.parsingResult = ParsingUtils.parseText(
+							previewState.g, previewState.lg, previewState.startRuleName,
+							grammarFile, inputText, project
+					);
+
+					return () -> previewPanel.onParsingCompleted(previewState, System.nanoTime() - start);
+				},
+				() -> previewPanel.notifySlowParsing(),
+				ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS,
+				false
+		);
+	}
+
+	public void abortCurrentParsing() {
+		if ( parsingProgressIndicator!=null ) {
+			parsingProgressIndicator.cancel();
+			parsingProgressIndicator = null;
+			previewPanel.onParsingCancelled();
 		}
-		long stop = System.nanoTime();
-
-		previewPanel.profilerPanel.setProfilerData(previewState, stop-start);
-
-		SyntaxErrorListener syntaxErrorListener = previewState.parsingResult.syntaxErrorListener;
-		previewPanel.inputPanel.showParseErrors(syntaxErrorListener.getSyntaxErrors());
-
-		return previewState.parsingResult;
 	}
 
 	public PreviewPanel getPreviewPanel() {

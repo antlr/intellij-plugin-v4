@@ -31,7 +31,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +66,9 @@ public class PreviewPanel extends JPanel {
 	 */
 	private boolean autoRefresh = true;
 
+	private ActionToolbar buttonBar;
+	private final CancelParserAction cancelParserAction = new CancelParserAction();
+
 	public PreviewPanel(Project project) {
 		this.project = project;
 		createGUI();
@@ -82,7 +84,8 @@ public class PreviewPanel extends JPanel {
 		splitPane.setSecondComponent(createParseTreeAndProfileTabbedPanel());
 
 		this.add(splitPane, BorderLayout.CENTER);
-		this.add(createButtonBar().getComponent(), BorderLayout.WEST);
+		this.buttonBar = createButtonBar();
+		this.add(buttonBar.getComponent(), BorderLayout.WEST);
 	}
 
 	private ActionToolbar createButtonBar() {
@@ -100,9 +103,7 @@ public class PreviewPanel extends JPanel {
 			}
 		};
 
-		DefaultActionGroup actionGroup = new DefaultActionGroup(
-				refreshAction
-		);
+		DefaultActionGroup actionGroup = new DefaultActionGroup(refreshAction, cancelParserAction);
 
 		return ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
 	}
@@ -317,15 +318,15 @@ public class PreviewPanel extends JPanel {
 	}
 
 	private void indicateInvalidGrammarInParseTreePane() {
-		setParseTree(Collections.emptyList(),
-					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "Issues with parser and/or lexer grammar(s) prevent preview; see ANTLR 'Tool Output' pane")));
+		showError("Issues with parser and/or lexer grammar(s) prevent preview; see ANTLR 'Tool Output' pane");
+	}
+
+	private void showError(String message) {
+		setParseTree(Collections.emptyList(), new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE, message)));
 	}
 
 	private void indicateNoStartRuleInParseTreePane() {
-		setParseTree(Collections.emptyList(),
-					 new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE,
-														  "No start rule is selected")));
+		showError("No start rule is selected");
 	}
 
 	public void updateParseTreeFromDoc(VirtualFile grammarFile) {
@@ -338,24 +339,13 @@ public class PreviewPanel extends JPanel {
 			indicateInvalidGrammarInParseTreePane();
 			return;
 		}
-		try {
-			Editor editor = inputPanel.getInputEditor();
-			if ( editor==null ) return;
-			final String inputText = editor.getDocument().getText();
-			ParsingResult results = controller.parseText(grammarFile, inputText);
-			if ( results!=null) {
-				updateTreeViewer(previewState,results);
-			}
-			else if ( previewState.startRuleName==null ) {
-				indicateNoStartRuleInParseTreePane();
-			}
-			else {
-				indicateInvalidGrammarInParseTreePane();
-			}
-		}
-		catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
+
+		Editor editor = inputPanel.getInputEditor();
+		if ( editor==null ) return;
+		final String inputText = editor.getDocument().getText();
+
+		// The controller will call us back when it's done parsing
+		controller.parseText(grammarFile, inputText);
 	}
 
 	public InputPanel getInputPanel() {
@@ -370,5 +360,31 @@ public class PreviewPanel extends JPanel {
 				&& inputPanel.previewState.startRuleName != null) {
 			ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
 		}
+	}
+
+	public void onParsingCompleted(PreviewState previewState, long duration) {
+		cancelParserAction.setEnabled(false);
+		buttonBar.updateActionsImmediately();
+
+		if ( previewState.parsingResult!=null ) {
+			updateTreeViewer(previewState, previewState.parsingResult);
+			profilerPanel.setProfilerData(previewState, duration);
+			inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
+		} else if ( previewState.startRuleName==null ) {
+			indicateNoStartRuleInParseTreePane();
+		} else {
+			indicateInvalidGrammarInParseTreePane();
+		}
+	}
+
+	public void notifySlowParsing() {
+		cancelParserAction.setEnabled(true);
+		buttonBar.updateActionsImmediately();
+	}
+
+	public void onParsingCancelled() {
+		cancelParserAction.setEnabled(false);
+		buttonBar.updateActionsImmediately();
+		showError("Parsing was aborted");
 	}
 }

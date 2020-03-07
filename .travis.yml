@@ -4,7 +4,7 @@ jdk:
 env:
   # see https://www.jetbrains.com/idea/download/previous.html
   # and https://www.jetbrains.com/intellij-repository/snapshots/
-  - IDEA_VERSION=IC-2016.1
+  - IDEA_VERSION=IC-2016.2
   - IDEA_VERSION=IC-2016.3.8
   - IDEA_VERSION=IC-2017.3.6
   - IDEA_VERSION=IC-2018.2.8
