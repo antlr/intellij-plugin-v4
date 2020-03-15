@@ -23,10 +23,13 @@ public class PreviewParser extends GrammarParserInterpreter {
 	 */
 	public Map<Token, Integer> inputTokenToStateMap = new HashMap<>();
 
+	private final LexerWatchdog lexerWatchdog;
+
 	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER; // not sure about error nodes
 
 	public PreviewParser(Grammar g, ATN atn, TokenStream input) {
 		super(g, atn, input);
+		lexerWatchdog = new LexerWatchdog(input, this);
 	}
 
 	public PreviewParser(Grammar g, TokenStream input) {
@@ -63,7 +66,9 @@ public class PreviewParser extends GrammarParserInterpreter {
 
 	@Override
 	public Token match(int ttype) throws RecognitionException {
-//		System.out.println("match ATOM state " + getState() + ": " + _input.LT(1));
+		lexerWatchdog.checkLexerIsNotStuck();
+
+		//		System.out.println("match ATOM state " + getState() + ": " + _input.LT(1));
 		Token t = super.match(ttype);
 		// track which ATN state matches each token
 		inputTokenToStateMap.put(t, getState());
@@ -75,6 +80,8 @@ public class PreviewParser extends GrammarParserInterpreter {
 
 	@Override
 	public Token matchWildcard() throws RecognitionException {
+		lexerWatchdog.checkLexerIsNotStuck();
+
 //		System.out.println("match anything state "+getState());
 		inputTokenToStateMap.put(_input.LT(1), getState());
 		lastSuccessfulMatchState = getState();
