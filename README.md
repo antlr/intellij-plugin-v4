@@ -1,10 +1,10 @@
 # IntelliJ Idea Plugin for ANTLR v4 [![Build Travis-CI Status](https://travis-ci.org/antlr/intellij-plugin-v4.svg?branch=master)](https://travis-ci.org/antlr/intellij-plugin-v4) [![Latest version](https://img.shields.io/jetbrains/plugin/v/7358.svg?label=latest%20version)](https://plugins.jetbrains.com/plugin/7358) ![Downloads](https://img.shields.io/jetbrains/plugin/d/7358.svg)
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 2016.2 .. 2019.3 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
+An [IntelliJ](https://www.jetbrains.com/idea/) 2016.2 .. 2020.2 plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.8-1. Works with Intellij and other JetBrains IDEs.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.8-1. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
 
 Features:
 
