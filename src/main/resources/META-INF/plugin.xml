@@ -1,13 +1,13 @@
 <idea-plugin>
   <id>org.antlr.intellij.plugin</id>
-  <name>ANTLR v4 grammar plugin</name>
+  <name>ANTLR v4</name>
   <version>will be replaced by gradle</version>
   <vendor email="parrt@antlr.org" url="https://github.com/antlr/intellij-plugin-v4">ANTLR Project</vendor>
 
   <description><![CDATA[
   <p>
       This plugin is for ANTLR v4 grammars and includes ANTLR 4.8-1. It works with
-      2016.2-2019.3.  It should work in other JetBrains IDEs.
+      2016.2-2020.2.  It should work in other JetBrains IDEs.
      </p>
 
      <ul>
@@ -73,8 +73,8 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>The Preview window is now automatically refreshed upon changes in a grammar (<a href="https://github.com/antlr/intellij-plugin-v4/issues/312">#312</a>)</li>
-	    <li>Fixed an exception thrown after closing a project (<a href="https://github.com/antlr/intellij-plugin-v4/issues/386">#386</a>)</li>
+	    <li>Fixed incorrect parsing of `option` keywords in rules (<a href="https://github.com/antlr/intellij-plugin-v4/issues/403">#403</a>)</li>
+	    <li>Added a safeguard against bad grammars that cause infinite loops or OOME (<a href="https://github.com/antlr/intellij-plugin-v4/issues/381">#381</a> and <a href="https://github.com/antlr/intellij-plugin-v4/issues/393">#393</a>)</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.14+is%3Aclosed">fixed issues</a>.
       ]]>

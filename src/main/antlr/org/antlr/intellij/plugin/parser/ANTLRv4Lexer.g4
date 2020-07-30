@@ -228,6 +228,20 @@ channels {
 			_input.release(tokenStartMarker);
 		}
 	}
+
+    private boolean isFollowedByBrace() {
+        int i = 1;
+
+        while ( _input.LA(i)==' '
+                || _input.LA(i)=='\t'
+                || _input.LA(i)=='\f'
+                || _input.LA(i)=='\n'
+                || _input.LA(i)=='\r' ) {
+            i++;
+        }
+
+        return _input.LA(i)=='{';
+    }
 }
 
 // ======================================================
@@ -293,15 +307,15 @@ BEGIN_ACTION
 // they would be ambiguous with the keyword vs some other identifier.  OPTIONS,
 // TOKENS, & CHANNELS blocks are handled idiomatically in dedicated lexical modes.
 OPTIONS
-	: 'options' -> pushMode (Options)
+	: 'options' {isFollowedByBrace()}? -> pushMode (Options)
 	;
 
 TOKENS
-	: 'tokens' -> pushMode (Tokens)
+	: 'tokens' {isFollowedByBrace()}? -> pushMode (Tokens)
 	;
 
 CHANNELS
-	: 'channels' -> pushMode (Channels)
+	: 'channels' {isFollowedByBrace()}? -> pushMode (Channels)
 	;
 
 IMPORT
