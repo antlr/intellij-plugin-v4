@@ -1,5 +1,7 @@
 package org.antlr.intellij.plugin.configdialogs;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.WildcardFileNameMatcher;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Property;
@@ -15,7 +17,9 @@ import java.util.Objects;
  */
 public class ANTLRv4GrammarPropertiesStore {
 
-	private static final ANTLRv4GrammarProperties DEFAULT_GRAMMAR_PROPERTIES = initDefaultGrammarProperties();
+	private static final Logger logger = Logger.getInstance(ANTLRv4GrammarPropertiesStore.class.getName());
+
+	static final ANTLRv4GrammarProperties DEFAULT_GRAMMAR_PROPERTIES = initDefaultGrammarProperties();
 
 	@Property
 	private List<ANTLRv4GrammarProperties> perGrammarGenerationSettings = new ArrayList<>();
@@ -40,7 +44,7 @@ public class ANTLRv4GrammarPropertiesStore {
 		return grammarSettings;
 	}
 
-	public ANTLRv4GrammarProperties getOrCreateGrammarProperties(String grammarFile) {
+	private ANTLRv4GrammarProperties getOrCreateGrammarProperties(String grammarFile) {
 
 		ANTLRv4GrammarProperties properties = getGrammarProperties(grammarFile);
 
@@ -64,7 +68,25 @@ public class ANTLRv4GrammarPropertiesStore {
 			}
 		}
 
+		for (ANTLRv4GrammarProperties settings : perGrammarGenerationSettings) {
+			if (matchesWildcardPattern(fileName, settings)) {
+				return settings;
+			}
+		}
+
 		return null;
+	}
+
+	private boolean matchesWildcardPattern(String fileName, ANTLRv4GrammarProperties settings) {
+		try {
+			WildcardFileNameMatcher wildcardFileNameMatcher = new WildcardFileNameMatcher(settings.fileName);
+			if (wildcardFileNameMatcher.acceptsCharSequence(fileName)) {
+				return true;
+			}
+		} catch (Exception e){
+			logger.warn("Unable to check if wildcard matches file name: "+fileName, e);
+		}
+		return false;
 	}
 
 	public static ANTLRv4GrammarProperties getGrammarProperties(Project project, VirtualFile grammarFile) {
