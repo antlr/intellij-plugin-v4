@@ -220,9 +220,11 @@ class HierarchyViewer extends JPanel {
 				return;
 			}
 
-			Editor editor = previewPanel.inputPanel.getInputEditor();
-			editor.getSelectionModel().removeSelection();
-			editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
+			if (startIndex >= 0) {
+				Editor editor = previewPanel.inputPanel.getInputEditor();
+				editor.getSelectionModel().removeSelection();
+				editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
+			}
 		}
 	}
 }
