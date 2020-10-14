@@ -14,6 +14,7 @@ env:
   - IDEA_VERSION=IC-2019.3.3
   - IDEA_VERSION=IC-2020.1
   - IDEA_VERSION=IC-2020.2
+  - IDEA_VERSION=IC-203-EAP-SNAPSHOT
 install:
   - ./gradlew -PideaVersion="$IDEA_VERSION" assemble
 script:
