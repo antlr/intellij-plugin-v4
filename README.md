@@ -6,7 +6,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 2016.2 .. 2020.2 plugin for ANTLR
 
 This plugin is for ANTLR v4 grammars and includes ANTLR 4.8-1. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
 
-Features:
+## Features:
 
 - syntax highlighting
 - syntax error checking
@@ -54,6 +54,15 @@ ctrl-return, or whatever you have configured for the generate pop-up,
 will bring up a list of things you can generate. The only one so far is
 a generator to create lexical rules for any literals, referenced in the parser
  grammar, that have not been defined.
+
+## Limitations
+
+The `ANTLR Preview` window is based on a grammar interpreter, not on the actual generated parser. 
+This means that things like actions and predicates will not be evaluated during live preview,
+because the interpreter is language agnostic. 
+
+For the same reasons, if your parser and/or lexer classes extend a custom implementation of the 
+base parser/lexer classes, your custom code will *not* be run during live preview. 
 
 ## History
 
