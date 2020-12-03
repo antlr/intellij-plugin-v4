@@ -11,6 +11,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
@@ -54,7 +55,7 @@ class ParseTreeContextualMenu {
             FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project) null);
 
             String fileName = "parseTree" + (isMacNativSaveDialog ? ".png" : "");
-            VirtualFileWrapper vf = dialog.save(null, fileName);
+            VirtualFileWrapper vf = dialog.save((VirtualFile) null, fileName);
 
             if (vf == null) {
                 return;
