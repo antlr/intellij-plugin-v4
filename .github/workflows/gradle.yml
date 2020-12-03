@@ -1,0 +1,55 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Java CI
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        env:
+          # see https://www.jetbrains.com/idea/download/previous.html
+          # and https://www.jetbrains.com/intellij-repository/snapshots/
+          - IDEA_VERSION: IC-2016.2
+          - IDEA_VERSION: IC-2016.3.8
+          - IDEA_VERSION: IC-2017.3.6
+          - IDEA_VERSION: IC-2018.2.8
+          - IDEA_VERSION: IC-2018.3.6
+          - IDEA_VERSION: IC-2019.1.4
+          - IDEA_VERSION: IC-2019.2.4
+          - IDEA_VERSION: IC-2019.3.3
+          - IDEA_VERSION: IC-2020.1
+          - IDEA_VERSION: IC-2020.2
+          - IDEA_VERSION: IC-2020.3
+            JDK_VERSION: '11'
+          - IDEA_VERSION: IU-LATEST-EAP-SNAPSHOT
+            JDK_VERSION: '11'
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+        if: matrix.env.JDK_VERSION != '11'
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+        if: matrix.env.JDK_VERSION == '11'
+      - name: Build with Gradle
+        run: |
+          ./gradlew -PideaVersion=${IDEA_VERSION} buildPlugin
+          echo "DIST_FILE=$(find build/distributions/ -name 'antlr-intellij-plugin-v4-*.zip' -exec basename {} \;)" >> $GITHUB_ENV
+        env: ${{ matrix.env }}
+      - name: Archive distribution artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{env.DIST_FILE}}
+          path: build/distributions/antlr-intellij-plugin-v4-*.zip
+        if: matrix.env.IDEA_VERSION == 'IC-2020.3'
