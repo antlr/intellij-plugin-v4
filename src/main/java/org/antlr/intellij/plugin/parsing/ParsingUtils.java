@@ -256,20 +256,21 @@ public class ParsingUtils {
 		return null;
 	}
 
-	public static Tool createANTLRToolForLoadingGrammars() {
+	public static Tool createANTLRToolForLoadingGrammars(ANTLRv4GrammarProperties grammarProperties) {
 		Tool antlr = new Tool();
 		antlr.errMgr = new PluginIgnoreMissingTokensFileErrorManager(antlr);
 		antlr.errMgr.setFormat("antlr");
 		LoadGrammarsToolListener listener = new LoadGrammarsToolListener(antlr);
 		antlr.removeListeners();
 		antlr.addListener(listener);
+		antlr.libDirectory = grammarProperties.getLibDir();
 		return antlr;
 	}
 
 	/** Get lexer and parser grammars */
 	public static Grammar[] loadGrammars(VirtualFile grammarFile, Project project) {
 		ANTLRv4PluginController.LOG.info("loadGrammars "+grammarFile.getPath()+" "+project.getName());
-		Tool antlr = createANTLRToolForLoadingGrammars();
+		Tool antlr = createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
 		LoadGrammarsToolListener listener = (LoadGrammarsToolListener)antlr.getListeners().get(0);
 
 		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
@@ -363,7 +364,7 @@ public class ParsingUtils {
 	 *     	XLexer given grammar name X
 	 */
 	public static LexerGrammar loadLexerGrammarFor(Grammar g, Project project) {
-		Tool antlr = createANTLRToolForLoadingGrammars();
+		Tool antlr = createANTLRToolForLoadingGrammars(getGrammarProperties(project, g.fileName));
 		LoadGrammarsToolListener listener = (LoadGrammarsToolListener)antlr.getListeners().get(0);
 		LexerGrammar lg = null;
 		VirtualFile lexerGrammarFile;

@@ -85,7 +85,7 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 			if ( previewState.g==null && previewState.lg!=null) {
 				Grammar g = previewState.lg;
 				String language = g.getOptionString(ANTLRv4GrammarProperties.PROP_LANGUAGE);
-				Tool tool = ParsingUtils.createANTLRToolForLoadingGrammars();
+				Tool tool = ParsingUtils.createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
 				CodeGenerator gen = new CodeGenerator(tool, g, language);
 				gen.writeVocabFile();
 			}
