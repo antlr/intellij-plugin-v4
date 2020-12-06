@@ -73,12 +73,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Updated to ANTLR 4.9</li>
-	    <li>Added support for wildcards in grammar settings (<a href="https://github.com/antlr/intellij-plugin-v4/issues/390">#390</a>)</li>
-	    <li>Fixed incorrect parsing of `option` keywords in rules (<a href="https://github.com/antlr/intellij-plugin-v4/issues/403">#403</a>)</li>
-	    <li>Added a safeguard against bad grammars that cause infinite loops or OOME (<a href="https://github.com/antlr/intellij-plugin-v4/issues/381">#381</a> and <a href="https://github.com/antlr/intellij-plugin-v4/issues/393">#393</a>)</li>
+	    <li>xxx (<a href="https://github.com/antlr/intellij-plugin-v4/issues/xxx">#xxx</a>)</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.15+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.16+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
