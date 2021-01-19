@@ -46,6 +46,8 @@ dependencies {
 }
 
 generateGrammarSource {
+    include("**/ANTLRv4*.g4")
+
     arguments += [
             "-package", "org.antlr.intellij.plugin.parser",
             "-lib", "src/main/antlr/org/antlr/intellij/plugin/parser",

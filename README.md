@@ -4,7 +4,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 2016.2 .. 2020.3 plugin for ANTLR
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.9. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
 
 ## Features:
 
