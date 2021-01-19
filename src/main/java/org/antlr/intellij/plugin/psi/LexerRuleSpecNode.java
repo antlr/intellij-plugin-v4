@@ -22,7 +22,7 @@ public class LexerRuleSpecNode extends RuleSpecNode {
 	}
 
 	@Override
-	public GrammarElementRefNode getId() {
+	public GrammarElementRefNode getNameIdentifier() {
 		GrammarElementRefNode tr = PsiTreeUtil.getChildOfType(this, LexerRuleRefNode.class);
 		if ( tr==null ) {
 			LOG.error("can't find LexerRuleRefNode child of "+this.getText(), (Throwable)null);

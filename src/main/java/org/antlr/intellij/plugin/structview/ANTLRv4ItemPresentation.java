@@ -39,7 +39,7 @@ public class ANTLRv4ItemPresentation implements ItemPresentation {
 		}
 		if ( element instanceof ModeSpecNode ) {
 			ModeSpecNode mode = (ModeSpecNode) element;
-			GrammarElementRefNode modeId = mode.getId();
+			GrammarElementRefNode modeId = mode.getNameIdentifier();
 			if ( modeId!=null ) {
 				return modeId.getName();
 			}

@@ -3,7 +3,7 @@ package org.antlr.intellij.plugin.psi;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Root of lexer, parser rule defs */
-public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNamedElement {
+public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNameIdentifierOwner {
 	protected String name = null; // an override to input text ID
 
 	public RuleSpecNode(@NotNull final ASTNode node) {
@@ -21,7 +21,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 	@Override
 	public String getName() {
 		if ( name!=null ) return name;
-		GrammarElementRefNode id = getId();
+		GrammarElementRefNode id = getNameIdentifier();
 		if ( id!=null ) {
 			return id.getText();
 		}
@@ -29,7 +29,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 	}
 
 	@Nullable
-	public abstract GrammarElementRefNode getId();
+	public abstract GrammarElementRefNode getNameIdentifier();
 
 	@Override
 	public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
@@ -42,7 +42,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		          extract the necessary node from it.
 		 */
 //		System.out.println("rename "+this+" to "+name);
-		GrammarElementRefNode id = getId();
+		GrammarElementRefNode id = getNameIdentifier();
 		id.replace(MyPsiUtils.createLeafFromText(getProject(),
 												 getContext(),
 												 name, getRuleRefType()));
@@ -60,7 +60,7 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 
 	@Override
 	public int getTextOffset() {
-		GrammarElementRefNode id = getId();
+		GrammarElementRefNode id = getNameIdentifier();
 		if ( id!=null ) return id.getTextOffset();
 		return super.getTextOffset();
 	}

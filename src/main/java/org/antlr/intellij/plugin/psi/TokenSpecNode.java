@@ -21,7 +21,7 @@ public class TokenSpecNode extends RuleSpecNode {
 	}
 
 	@Override
-	public GrammarElementRefNode getId() {
+	public GrammarElementRefNode getNameIdentifier() {
 		return PsiTreeUtil.getChildOfType(this, LexerRuleRefNode.class);
 	}
 

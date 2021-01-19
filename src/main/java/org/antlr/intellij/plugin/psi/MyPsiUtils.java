@@ -81,7 +81,7 @@ public class MyPsiUtils {
 					return false;
 				}
 
-				GrammarElementRefNode id = ((RuleSpecNode) element1).getId();
+				GrammarElementRefNode id = ((RuleSpecNode) element1).getNameIdentifier();
 				return id != null && id.getText().equals(ruleName);
 			}
 		};

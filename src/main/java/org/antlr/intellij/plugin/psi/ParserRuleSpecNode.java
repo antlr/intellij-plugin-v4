@@ -22,7 +22,7 @@ public class ParserRuleSpecNode extends RuleSpecNode {
 	}
 
 	@Override
-	public GrammarElementRefNode getId() {
+	public GrammarElementRefNode getNameIdentifier() {
 		GrammarElementRefNode rr = PsiTreeUtil.getChildOfType(this, ParserRuleRefNode.class);
 		if ( rr==null ) {
 			LOG.error("can't find ParserRuleRefNode child of "+this.getText(), (Throwable)null);
