@@ -42,7 +42,7 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  *  this object creates and caches lexer/parser grammars for
  *  each grammar file it gets notified about.
  */
-public class PreviewPanel extends JPanel {
+public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
 	//com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
 	//perhaps in a few more years they will get around to backporting whatever it was they fixed.
 	// until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
@@ -60,6 +60,7 @@ public class PreviewPanel extends JPanel {
 	public HierarchyViewer hierarchyViewer;
 
 	public ProfilerPanel profilerPanel;
+	private TokenStreamViewer tokenStreamViewer;
 
 	/**
 	 * Indicates if the preview should be automatically refreshed after grammar changes.
@@ -131,6 +132,10 @@ public class PreviewPanel extends JPanel {
 
 		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.getComponent());
+
+		tokenStreamViewer = new TokenStreamViewer();
+		tokenStreamViewer.addParsingResultSelectionListener(this);
+		tabbedPane.addTab("Tokens", tokenStreamViewer);
 
 		return tabbedPane;
 	}
@@ -302,6 +307,7 @@ public class PreviewPanel extends JPanel {
 				treeViewer.setTree(result.tree);
 				hierarchyViewer.setTreeTextProvider(provider);
 				hierarchyViewer.setTree(result.tree);
+				tokenStreamViewer.setParsingResult(result.parser);
 			}
 			else {
 				treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
@@ -387,5 +393,13 @@ public class PreviewPanel extends JPanel {
 		cancelParserAction.setEnabled(false);
 		buttonBar.updateActionsImmediately();
 		showError("Parsing was aborted");
+	}
+
+	@Override
+	public void onLexerTokenSelected(Token token) {
+		int startIndex = token.getStartIndex();
+		int stopIndex = token.getStopIndex();
+
+		inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
 	}
 }
