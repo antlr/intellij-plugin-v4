@@ -357,6 +357,7 @@ public class PreviewPanel extends JPanel {
 
 		if (autoRefresh
 				&& controller != null
+				&& inputPanel.previewState != null
 				&& inputPanel.previewState.startRuleName != null) {
 			ApplicationManager.getApplication().invokeLater(() -> controller.grammarFileSavedEvent(virtualFile));
 		}
