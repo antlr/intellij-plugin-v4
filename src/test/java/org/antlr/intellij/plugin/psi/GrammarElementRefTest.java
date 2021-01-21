@@ -145,6 +145,15 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 		});
 	}
 
+	public void testReferencesToTokenVocabFileString() {
+		myFixture.configureByFiles("FooParser2.g4", "FooLexer.g4");
+
+		moveCaret(55);
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> {
+			assertEquals("FooLexer.g4", file.getName());
+		});
+	}
+
 	public void testReferenceToImportedFile() {
 		myFixture.configureByFiles("importing.g4", "imported.g4");
 

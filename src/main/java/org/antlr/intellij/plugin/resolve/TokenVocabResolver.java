@@ -8,6 +8,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.psi.*;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import static org.antlr.intellij.plugin.ANTLRv4TokenTypes.RULE_ELEMENT_TYPES;
@@ -19,7 +20,7 @@ public class TokenVocabResolver {
 	 * grammar file.
 	 */
 	@Nullable
-	public static PsiFile resolveTokenVocabFile(GrammarElementRefNode reference) {
+	public static PsiFile resolveTokenVocabFile(PsiElement reference) {
 		PsiElement optionValue = PsiTreeUtil.findFirstParent(reference, TokenVocabResolver::isOptionValue);
 
 		if (optionValue != null) {
@@ -29,7 +30,8 @@ public class TokenVocabResolver {
 				PsiElement optionName = PsiTreeUtil.getDeepestFirst(option);
 
 				if (optionName.getText().equals("tokenVocab")) {
-					return findRelativeFile(reference.getText(), reference.getContainingFile());
+					String text = StringUtils.strip(reference.getText(), "'");
+					return findRelativeFile(text, reference.getContainingFile());
 				}
 			}
 		}

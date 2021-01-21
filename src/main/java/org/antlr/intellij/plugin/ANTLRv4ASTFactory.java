@@ -54,6 +54,9 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		else if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ) {
 			t = new LexerRuleRefNode(type, text);
 		}
+		else if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL) ) {
+			t = new StringLiteralElement(type, text);
+		}
 		else {
 			t = new LeafPsiElement(type, text);
 		}
