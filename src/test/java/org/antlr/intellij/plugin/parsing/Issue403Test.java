@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.parsing;
 
+import com.intellij.openapi.util.io.StreamUtil;
 import junit.framework.TestCase;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
@@ -7,7 +8,6 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -123,7 +123,7 @@ public class Issue403Test extends TestCase {
 
 	public void test_SqlBase() throws IOException {
 		// Given
-		String grammar = IOUtils.toString(getClass().getResourceAsStream("/parser/SqlBase.g4"), StandardCharsets.UTF_8);
+		String grammar = StreamUtil.readText(getClass().getResourceAsStream("/parser/SqlBase.g4"), StandardCharsets.UTF_8);
 
 		ANTLRv4Parser parser = createParser(grammar);
 
