@@ -44,7 +44,7 @@ jobs:
         if: matrix.env.JDK_VERSION == '11'
       - name: Build with Gradle
         run: |
-          ./gradlew -PideaVersion=${IDEA_VERSION} check buildPlugin
+          ./gradlew -PideaVersion=${IDEA_VERSION} --stacktrace check buildPlugin
           echo "DIST_FILE=$(find build/distributions/ -name 'antlr-intellij-plugin-v4-*.zip' -exec basename {} .zip \;)" >> $GITHUB_ENV
         env: ${{ matrix.env }}
       - name: Archive distribution artifact
