@@ -73,7 +73,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>xxx (<a href="https://github.com/antlr/intellij-plugin-v4/issues/xxx">#xxx</a>)</li>
+	    <li>Fixed a NPE in Preview panel (<a href="https://github.com/antlr/intellij-plugin-v4/issues/413">#413</a>)</li>
+	    <li>Fixed highlighting of rules in 2019.3 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/432">#432</a>)</li>
+	    <li>Fixed "Location of imported grammars" which was not used correctly (<a href="https://github.com/antlr/intellij-plugin-v4/issues/383">#383</a>)</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.16+is%3Aclosed">fixed issues</a>.
       ]]>
