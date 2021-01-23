@@ -173,11 +173,13 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 # Build notes
 
-We [moved to gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. I added minimal notes to the readme but basically enable gradle, plugin development plugins from intellij preferences, add the gradle file via gradle tool pane then launch `runIde` task.  Gotta set the jdk to normal jdk not intellij application folder (like I have in `/opt`).  Do this to run:
+We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project, you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit` plugins enabled. Use `File > Open` and select the `build.gradle` file to import the project. Once everything is imported, you can run a sandboxed IDE using the `runIde` task, either from the `Gradle` tool window of from the CLI:
 
 ```
 cd ~/antlr/code/intellij-plugin-v4
-gradle runIdea
+./gradlew runIde
 ```
 
-Or from gradle build pane, `runIde`.  
+To launch unit tests, run `./gradlew check`.
+
+To build a zipped version of the plugin and its dependencies, run `./gradlew buildPlugin`.
