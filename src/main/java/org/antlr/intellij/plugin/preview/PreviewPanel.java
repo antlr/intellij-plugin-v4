@@ -32,8 +32,6 @@ import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -233,16 +231,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		else {
 			int sliderValue = (int) ((viewer.getScale() - 1.0) * 1000);
 			scaleSlider = new JSlider(JSlider.HORIZONTAL, -999, 1000, sliderValue);
-			scaleSlider.addChangeListener(
-				new ChangeListener() {
-					@Override
-					public void stateChanged(ChangeEvent e) {
-						int v = ((JSlider) e.getSource()).getValue();
-						if ( viewer.hasTree() ) {
-							viewer.setScale(v/1000.0+1.0);
-						}
-					}
-				});
+			scaleSlider.addChangeListener(e -> {
+				int v = ((JSlider) e.getSource()).getValue();
+				if ( viewer.hasTree() ) {
+					viewer.setScale(v / 1000.0 + 1.0);
+				}
+			});
 		}
 		return scaleSlider;
 	}
@@ -263,7 +257,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			updateParseTreeFromDoc(previewState.grammarFile);
 		}
 		else {
-			setParseTree(Collections.<String>emptyList(), null); // blank tree
+			setParseTree(Collections.emptyList(), null); // blank tree
 		}
 
 		profilerPanel.grammarFileSaved(previewState, grammarFile);
@@ -306,12 +300,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			setParseTree(Collections.emptyList(), null); // blank tree
 		}
 
-		if ( previewState.g==null && previewState.lg!=null ) {
-			setEnabled(false);
-		}
-		else {
-			setEnabled(true);
-		}
+		setEnabled(previewState.g!=null || previewState.lg==null);
 	}
 
 	@Override
