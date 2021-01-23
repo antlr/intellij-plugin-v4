@@ -4,6 +4,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
@@ -20,10 +21,13 @@ import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
+import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,8 +95,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		inputPanel.addCaretListener(new CaretAdapter() {
 			@Override
 			public void caretPositionChanged(@NotNull CaretEvent event) {
-				if ( scrollFromSource ) {
-					tokenStreamViewer.onInputTextSelected(event.getCaret().getOffset());
+				Caret caret = event.getCaret();
+
+				if ( scrollFromSource && caret != null ) {
+					tokenStreamViewer.onInputTextSelected(caret.getOffset());
+					hierarchyViewer.selectNodeAtOffset(caret.getOffset());
 				}
 			}
 		});
@@ -169,7 +176,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		setupContextMenu(treeViewer);
 		tabbedPane.addTab("Parse tree", pair.b);
 
-		hierarchyViewer = new HierarchyViewer(null, this);
+		hierarchyViewer = new HierarchyViewer(null);
+		hierarchyViewer.addParsingResultSelectionListener(this);
 		tabbedPane.addTab("Hierarchy", hierarchyViewer);
 
 		profilerPanel = new ProfilerPanel(project, this);
@@ -451,5 +459,27 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		int stopIndex = token.getStopIndex();
 
 		inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
+	}
+
+	@Override
+	public void onParserRuleSelected(Tree tree) {
+		int startIndex;
+		int stopIndex;
+
+		if ( tree instanceof ParserRuleContext ) {
+			startIndex = ((ParserRuleContext) tree).getStart().getStartIndex();
+			stopIndex = ((ParserRuleContext) tree).getStop().getStopIndex();
+		} else if ( tree instanceof TerminalNode ) {
+			startIndex = ((TerminalNode) tree).getSymbol().getStartIndex();
+			stopIndex = ((TerminalNode) tree).getSymbol().getStopIndex();
+		} else {
+			return;
+		}
+
+		if ( startIndex>=0 ) {
+			Editor editor = inputPanel.getInputEditor();
+			editor.getSelectionModel().removeSelection();
+			editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
+		}
 	}
 }

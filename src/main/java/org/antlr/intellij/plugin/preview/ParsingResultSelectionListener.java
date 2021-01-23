@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.Tree;
 
 /**
  * Fired when a parsing result element (token or matched rule)
@@ -10,4 +11,6 @@ import org.antlr.v4.runtime.Token;
 public interface ParsingResultSelectionListener {
 
 	void onLexerTokenSelected(Token token);
+
+	void onParserRuleSelected(Tree rule);
 }

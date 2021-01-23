@@ -1,11 +1,5 @@
 package org.antlr.intellij.plugin.preview;
 
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.intellij.plugin.Icons;
 import org.antlr.v4.gui.TreeTextProvider;
@@ -15,83 +9,42 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreePath;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.intellij.icons.AllIcons.Actions.Find;
-import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
-import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
+/**
+ * A Preview sub-tab that displays a hierarchical tree of matched parser rules.
+ */
+class HierarchyViewer extends JPanel implements TreeSelectionListener {
 
-class HierarchyViewer extends JPanel {
+	private final JTree myTree = new com.intellij.ui.treeStructure.Tree();
+	private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
 
-	private boolean scrollFromSource = false;
-	private boolean highlightSource = false;
-	private PreviewPanel previewPanel;
-
-	private JTree myTree = new com.intellij.ui.treeStructure.Tree();
 	private TreeTextProvider treeTextProvider;
 
-	HierarchyViewer(Tree tree, PreviewPanel previewPanel) {
-		this.previewPanel = previewPanel;
-
+	HierarchyViewer(Tree tree) {
 		setupComponents();
 		setupTree(tree);
+	}
 
-		myTree.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON1) {
-					onClick(e);
-				}
-			}
-		});
+	/**
+	 * Registers a new rule selection listener.
+	 */
+	public void addParsingResultSelectionListener(ParsingResultSelectionListener listener) {
+		selectionListeners.add(listener);
 	}
 
 	private void setupComponents() {
 		setLayout(new BorderLayout(0, 0));
 
 		JScrollPane scrollPane = new JBScrollPane(myTree);
-		ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from source", null, AutoscrollFromSource) {
-			@Override
-			public boolean isSelected(@NotNull AnActionEvent e) {
-				return scrollFromSource;
-			}
-
-			@Override
-			public void setSelected(@NotNull AnActionEvent e, boolean state) {
-				scrollFromSource = state;
-			}
-		};
-		ToggleAction scrollToSourceBtn = new ToggleAction("Highlight source", null, Find) {
-			@Override
-			public boolean isSelected(@NotNull AnActionEvent e) {
-				return highlightSource;
-			}
-
-			@Override
-			public void setSelected(@NotNull AnActionEvent e, boolean state) {
-				highlightSource = state;
-			}
-		};
-
-		DefaultActionGroup actionGroup = new DefaultActionGroup(
-			scrollFromSourceBtn,
-			scrollToSourceBtn
-		);
-		ActionToolbar bar = ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, true);
-
-		add(bar.getComponent(), BorderLayout.NORTH);
 		add(scrollPane, BorderLayout.CENTER);
 	}
 
@@ -103,6 +56,7 @@ class HierarchyViewer extends JPanel {
 		renderer.setClosedIcon(Icons.PARSER_RULE);
 		renderer.setLeafIcon(Icons.LEXER_RULE);
 		myTree.setCellRenderer(renderer);
+		myTree.addTreeSelectionListener(this);
 	}
 
 	public void setTree(Tree tree) {
@@ -118,7 +72,7 @@ class HierarchyViewer extends JPanel {
 	}
 
 	private MutableTreeNode wrap(final Tree tree) {
-		if (tree == null) {
+		if ( tree==null ) {
 			return null;
 		}
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(tree) {
@@ -130,26 +84,23 @@ class HierarchyViewer extends JPanel {
 
 		};
 
-		for (int i = 0; i < tree.getChildCount(); i++) {
+		for ( int i = 0; i<tree.getChildCount(); i++ ) {
 			root.add(wrap(tree.getChild(i)));
 		}
 		return root;
 	}
 
 	public void selectNodeAtOffset(int offset) {
-		if (!scrollFromSource) {
-			return;
-		}
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) myTree.getModel().getRoot();
 		if ( root==null ) {
 			return; // probably because the grammar is not valid
 		}
 		Tree tree = (Tree) root.getUserObject();
 
-		if (tree instanceof ParseTree) {
+		if ( tree instanceof ParseTree ) {
 			DefaultMutableTreeNode atOffset = getNodeAtOffset(root, offset);
 
-			if (atOffset != null) {
+			if ( atOffset!=null ) {
 				TreePath path = new TreePath(atOffset.getPath());
 				myTree.getSelectionModel().setSelectionPath(path);
 				myTree.scrollPathToVisible(path);
@@ -161,25 +112,24 @@ class HierarchyViewer extends JPanel {
 	private DefaultMutableTreeNode getNodeAtOffset(DefaultMutableTreeNode node, int offset) {
 		Tree tree = (Tree) node.getUserObject();
 
-		if (tree instanceof ParserRuleContext) {
-			ParserRuleContext ctx = (ParserRuleContext)tree;
+		if ( tree instanceof ParserRuleContext ) {
+			ParserRuleContext ctx = (ParserRuleContext) tree;
 			if ( inBounds(ctx, offset) ) {
-				for (int i = 0; i < node.getChildCount(); i++) {
+				for ( int i = 0; i<node.getChildCount(); i++ ) {
 					DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
 					DefaultMutableTreeNode atOffset = getNodeAtOffset(child, offset);
 
-					if (atOffset != null) {
+					if ( atOffset!=null ) {
 						return atOffset;
 					}
 				}
 				// None of the children match, so it must be this node
 				return node;
 			}
-		}
-		else if (tree instanceof TerminalNode) {
+		} else if ( tree instanceof TerminalNode ) {
 			TerminalNode terminal = (TerminalNode) tree;
 
-			if (terminal.getSymbol().getStartIndex() <= offset && terminal.getSymbol().getStopIndex() >= offset) {
+			if ( terminal.getSymbol().getStartIndex()<=offset && terminal.getSymbol().getStopIndex()>=offset ) {
 				return node;
 			}
 		}
@@ -196,35 +146,17 @@ class HierarchyViewer extends JPanel {
 		return false;
 	}
 
-	private void onClick(MouseEvent e) {
-		if (highlightSource) {
-			TreePath path = myTree.getClosestPathForLocation(e.getX(), e.getY());
-			if (path == null) {
-				return;
-			}
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-			Tree tree = (Tree) node.getUserObject();
+	/**
+	 * Fired when a rule is selected in the tree to highlight the corresponding text in the input editor.
+	 */
+	@Override
+	public void valueChanged(TreeSelectionEvent e) {
+		TreePath path = e.getPath();
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+		Tree tree = (Tree) node.getUserObject();
 
-			int startIndex;
-			int stopIndex;
-
-			if (tree instanceof ParserRuleContext) {
-				startIndex = ((ParserRuleContext) tree).getStart().getStartIndex();
-				stopIndex = ((ParserRuleContext) tree).getStop().getStopIndex();
-			}
-			else if (tree instanceof TerminalNode) {
-				startIndex = ((TerminalNode) tree).getSymbol().getStartIndex();
-				stopIndex = ((TerminalNode) tree).getSymbol().getStopIndex();
-			}
-			else {
-				return;
-			}
-
-			if (startIndex >= 0) {
-				Editor editor = previewPanel.inputPanel.getInputEditor();
-				editor.getSelectionModel().removeSelection();
-				editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
-			}
+		for ( ParsingResultSelectionListener listener : selectionListeners ) {
+			listener.onParserRuleSelected(tree);
 		}
 	}
 }
