@@ -5,6 +5,8 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.event.CaretAdapter;
+import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
@@ -35,6 +37,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.intellij.icons.AllIcons.Actions.Find;
+import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
 import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
 
 /** The top level contents of the preview tool window created by
@@ -67,6 +71,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	 */
 	private boolean autoRefresh = true;
 
+	private boolean scrollFromSource = false;
+	private boolean highlightSource = false;
+
 	private ActionToolbar buttonBar;
 	private final CancelParserAction cancelParserAction = new CancelParserAction();
 
@@ -81,6 +88,14 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		// Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
 		Splitter splitPane = new Splitter();
 		inputPanel = getEditorPanel();
+		inputPanel.addCaretListener(new CaretAdapter() {
+			@Override
+			public void caretPositionChanged(@NotNull CaretEvent event) {
+				if ( scrollFromSource ) {
+					tokenStreamViewer.onInputTextSelected(event.getCaret().getOffset());
+				}
+			}
+		});
 		splitPane.setFirstComponent(inputPanel.getComponent());
 		splitPane.setSecondComponent(createParseTreeAndProfileTabbedPanel());
 
@@ -103,8 +118,35 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 				autoRefresh = state;
 			}
 		};
+		ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from Source", null, AutoscrollFromSource) {
+			@Override
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return scrollFromSource;
+			}
 
-		DefaultActionGroup actionGroup = new DefaultActionGroup(refreshAction, cancelParserAction);
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
+				scrollFromSource = state;
+			}
+		};
+		ToggleAction scrollToSourceBtn = new ToggleAction("Highlight Source", null, Find) {
+			@Override
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return highlightSource;
+			}
+
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
+				highlightSource = state;
+			}
+		};
+
+		DefaultActionGroup actionGroup = new DefaultActionGroup(
+				refreshAction,
+				cancelParserAction,
+				scrollFromSourceBtn,
+				scrollToSourceBtn
+		);
 
 		return ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
 	}
@@ -395,8 +437,16 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		showError("Parsing was aborted");
 	}
 
+	/**
+	 * Fired when a token is selected in the {@link TokenStreamViewer} to let us know that we should highlight
+	 * the corresponding text in the editor.
+	 */
 	@Override
 	public void onLexerTokenSelected(Token token) {
+		if (!highlightSource) {
+			return;
+		}
+
 		int startIndex = token.getStartIndex();
 		int stopIndex = token.getStopIndex();
 

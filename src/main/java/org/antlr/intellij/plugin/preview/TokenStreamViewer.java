@@ -1,13 +1,11 @@
 package org.antlr.intellij.plugin.preview;
 
-import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -17,10 +15,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.intellij.icons.AllIcons.Actions.Find;
-import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
-import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_ID;
-
 /**
  * A Preview sub-tab that displays a token stream as a list of tokens.
  */
@@ -29,14 +23,15 @@ class TokenStreamViewer extends JPanel implements ListSelectionListener {
 	private final JBList<Token> tokenList = new JBList<>();
 	private final List<ParsingResultSelectionListener> selectionListeners = new ArrayList<>();
 
-	private boolean scrollFromSource = false;
-	private boolean highlightSource = false;
 	private Parser recognizer;
 
 	public TokenStreamViewer() {
 		setupComponents();
 	}
 
+	/**
+	 * Updates the view with the token stream contained in the given {@code parser}.
+	 */
 	public void setParsingResult(Parser parser) {
 		BufferedTokenStream tokenStream = (BufferedTokenStream) parser.getTokenStream();
 		List<? extends Token> tokens = tokenStream.getTokens();
@@ -45,52 +40,49 @@ class TokenStreamViewer extends JPanel implements ListSelectionListener {
 		tokenList.setListData(tokens.toArray(new Token[0]));
 	}
 
+	/**
+	 * Registers a new token selection listener.
+	 */
+	public void addParsingResultSelectionListener(ParsingResultSelectionListener listener) {
+		selectionListeners.add(listener);
+	}
+
+	/**
+	 * Fired when a token is selected in the view, and propagates the event to {@code selectionListeners}.
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		Token token = tokenList.getSelectedValue();
+		selectionListeners.forEach(l -> l.onLexerTokenSelected(token));
+	}
+
+	/**
+	 * Fired when the caret is moved in the input editor to let us know that we should select the corresponding
+	 * token.
+	 */
+	public void onInputTextSelected(int caretPosition) {
+		for ( int i = 0; i<tokenList.getModel().getSize(); i++ ) {
+			Token token = tokenList.getModel().getElementAt(i);
+			if ( token.getStartIndex()<=caretPosition && caretPosition<=token.getStopIndex() ) {
+				tokenList.setSelectedIndex(i);
+				break;
+			}
+		}
+	}
+
 	private void setupComponents() {
 		setLayout(new BorderLayout(0, 0));
 
-		tokenList.installCellRenderer(token -> new JBLabel(toString(token)));
+		tokenList.installCellRenderer((Token token) -> new JBLabel(toString(token)));
 		tokenList.addListSelectionListener(this);
-
-		ActionToolbar toolbar = createToolbar();
-		add(toolbar.getComponent(), BorderLayout.NORTH);
 
 		JBScrollPane scrollPane = new JBScrollPane(tokenList);
 		add(scrollPane, BorderLayout.CENTER);
 	}
 
-	// TODO this was copy-pasted from HierarchyViewer
-	private ActionToolbar createToolbar() {
-		ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from Source", null, AutoscrollFromSource) {
-			@Override
-			public boolean isSelected(@NotNull AnActionEvent e) {
-				return scrollFromSource;
-			}
-
-			@Override
-			public void setSelected(@NotNull AnActionEvent e, boolean state) {
-				scrollFromSource = state;
-			}
-		};
-		ToggleAction scrollToSourceBtn = new ToggleAction("Highlight Source", null, Find) {
-			@Override
-			public boolean isSelected(@NotNull AnActionEvent e) {
-				return highlightSource;
-			}
-
-			@Override
-			public void setSelected(@NotNull AnActionEvent e, boolean state) {
-				highlightSource = state;
-			}
-		};
-
-		DefaultActionGroup actionGroup = new DefaultActionGroup(
-				scrollFromSourceBtn,
-				scrollToSourceBtn
-		);
-
-		return ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID + "aaaa", actionGroup, true);
-	}
-
+	/**
+	 * Custom version of {@link Token#toString()} that shows the token name instead of its numeric value.
+	 */
 	private String toString(Token t) {
 
 		String channelStr = "";
@@ -112,19 +104,5 @@ class TokenStreamViewer extends JPanel implements ListSelectionListener {
 				t.getTokenIndex(), t.getStartIndex(), t.getStopIndex(), txt, typeString, channelStr,
 				t.getLine(), t.getCharPositionInLine()
 		);
-	}
-
-	public void addParsingResultSelectionListener(ParsingResultSelectionListener listener) {
-		selectionListeners.add(listener);
-	}
-
-	@Override
-	public void valueChanged(ListSelectionEvent e) {
-		if ( !highlightSource ) {
-			return;
-		}
-
-		Token token = tokenList.getSelectedValue();
-		selectionListeners.forEach(l -> l.onLexerTokenSelected(token));
 	}
 }
