@@ -146,7 +146,6 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	}
 
 	private void createUIComponents() {
-		//noinspection rawtypes,unchecked (for IntelliJ 2016.1)
-		caseTransformation = new ComboBox(CaseChangingStrategy.values());
+		caseTransformation = new ComboBox<>(CaseChangingStrategy.values());
 	}
 }

@@ -13,7 +13,7 @@ public class StringLiteralRef extends PsiReferenceBase<StringLiteralElement> {
 		super(node, TextRange.from(1, node.getTextLength() - 2));
 	}
 
-	@Override // For compatibility with 2016.x
+	@Override // For compatibility with 2017.x
 	public Object[] getVariants() {
 		return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
 	}

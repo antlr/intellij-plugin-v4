@@ -583,7 +583,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		public void contentsChanged(VirtualFileEvent event) {
 			final VirtualFile vfile = event.getFile();
 			if ( !vfile.getName().endsWith(".g4") ) return;
-			if ( !projectIsClosed ) grammarFileSavedEvent(vfile);
+			if ( !projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) grammarFileSavedEvent(vfile);
 		}
 	}
 
