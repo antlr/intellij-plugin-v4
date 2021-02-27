@@ -587,7 +587,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	private class MyFileEditorManagerAdapter extends FileEditorManagerAdapter {
+	private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
 			if ( !projectIsClosed ) currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());

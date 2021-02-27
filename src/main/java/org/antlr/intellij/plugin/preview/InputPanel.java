@@ -129,7 +129,7 @@ public class InputPanel {
 			        .findFileByPath(fileChooser.getText());
 			onFileChosen(chosenFile);
 		});
-		fileChooser.addBrowseFolderListener(previewPanel.project, browseActionListener);
+		fileChooser.addActionListener(browseActionListener);
 		fileChooser.getButton().addActionListener(e -> fileRadioButton.setSelected(true));
 		fileChooser.setTextFieldPreferredWidth(40);
 
