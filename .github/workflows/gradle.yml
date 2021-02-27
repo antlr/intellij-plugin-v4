@@ -15,10 +15,10 @@ jobs:
         env:
           # see https://www.jetbrains.com/idea/download/previous.html
           # and https://www.jetbrains.com/intellij-repository/snapshots/
-          - IDEA_VERSION: IC-2017.1.6
-          - IDEA_VERSION: IC-2017.3.6
-          - IDEA_VERSION: IC-2018.2.8
-          - IDEA_VERSION: IC-2018.3.6
+#          - IDEA_VERSION: IC-2017.1.6
+#          - IDEA_VERSION: IC-2017.3.6
+#          - IDEA_VERSION: IC-2018.2.8
+#          - IDEA_VERSION: IC-2018.3.6
           - IDEA_VERSION: IC-2019.1.4
           - IDEA_VERSION: IC-2019.2.4
           - IDEA_VERSION: IC-2019.3.3

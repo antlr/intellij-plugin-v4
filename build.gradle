@@ -54,3 +54,10 @@ generateGrammarSource {
             "-Xexact-output-dir"
     ]
 }
+
+test {
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+}
