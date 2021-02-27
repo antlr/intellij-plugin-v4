@@ -30,6 +30,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.tool.Rule;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,7 +38,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static com.intellij.icons.AllIcons.Actions.Find;
 import static com.intellij.icons.AllIcons.General.AutoscrollFromSource;
@@ -257,7 +257,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			updateParseTreeFromDoc(previewState.grammarFile);
 		}
 		else {
-			setParseTree(Collections.emptyList(), null); // blank tree
+			clearTabs(null); // blank tree
 		}
 
 		profilerPanel.grammarFileSaved(previewState, grammarFile);
@@ -297,7 +297,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			updateParseTreeFromDoc(grammarFile); // regens tree and profile data
 		}
 		else {
-			setParseTree(Collections.emptyList(), null); // blank tree
+			clearTabs(null); // blank tree
 		}
 
 		setEnabled(previewState.g!=null || previewState.lg==null);
@@ -331,10 +331,13 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		inputPanel.releaseEditor(previewState);
 	}
 
-	private void setParseTree(final List<String> ruleNames, final ParseTree tree) {
+	private void clearTabs(@Nullable ParseTree tree) {
 		ApplicationManager.getApplication().invokeLater(() -> {
-			treeViewer.setRuleNames(ruleNames);
+			treeViewer.setRuleNames(Collections.emptyList());
 			treeViewer.setTree(tree);
+			hierarchyViewer.setRuleNames(Collections.emptyList());
+			hierarchyViewer.setTree(null);
+			tokenStreamViewer.clear();
 		});
 	}
 
@@ -359,7 +362,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 
 	void clearParseTree() {
-		setParseTree(Collections.emptyList(), null);
+		clearTabs(null);
 	}
 
 	private void indicateInvalidGrammarInParseTreePane() {
@@ -367,7 +370,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	private void showError(String message) {
-		setParseTree(Collections.emptyList(), new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE, message)));
+		clearTabs(new TerminalNodeImpl(new CommonToken(Token.INVALID_TYPE, message)));
 	}
 
 	private void indicateNoStartRuleInParseTreePane() {

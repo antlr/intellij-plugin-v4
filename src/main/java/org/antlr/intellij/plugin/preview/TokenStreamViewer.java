@@ -40,6 +40,11 @@ class TokenStreamViewer extends JPanel implements ListSelectionListener {
 		tokenList.setListData(tokens.toArray(new Token[0]));
 	}
 
+	public void clear() {
+		this.recognizer = null;
+		this.tokenList.setListData(new Token[0]);
+	}
+
 	/**
 	 * Registers a new token selection listener.
 	 */
@@ -53,7 +58,10 @@ class TokenStreamViewer extends JPanel implements ListSelectionListener {
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		Token token = tokenList.getSelectedValue();
-		selectionListeners.forEach(l -> l.onLexerTokenSelected(token));
+
+		if ( token!=null ) {
+			selectionListeners.forEach(l -> l.onLexerTokenSelected(token));
+		}
 	}
 
 	/**
