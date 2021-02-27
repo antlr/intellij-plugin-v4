@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
+import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.TestUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -186,6 +187,9 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 
 	@Override
 	protected void tearDown() throws Exception {
+		// This can avoid exceptions
+		ANTLRv4PluginController.getInstance(getProject()).getConsole().setOutputPaused(true);
+
 		TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
 	}
 
