@@ -42,7 +42,7 @@ dependencies {
     }
     implementation "org.antlr:antlr4-intellij-adaptor:0.1"
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.7.7'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
 }
 
 generateGrammarSource {
