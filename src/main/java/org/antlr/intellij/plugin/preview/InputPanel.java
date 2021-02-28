@@ -6,6 +6,7 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
@@ -86,6 +87,8 @@ public class InputPanel {
 	public PreviewState previewState;
 
 	private PreviewEditorMouseListener editorMouseListener;
+
+	private List<CaretListener> caretListeners = new ArrayList<>();
 
 	public InputPanel(final PreviewPanel previewPanel) {
 		createUIComponents();
@@ -335,12 +338,18 @@ public class InputPanel {
 		}
 		editor.addEditorMouseMotionListener(editorMouseListener);
 		editor.addEditorMouseListener(editorMouseListener);
+		for ( CaretListener listener : caretListeners ) {
+			editor.getCaretModel().addCaretListener(listener);
+		}
 	}
 
 	public void uninstallListeners(Editor editor) {
 		if ( editor==null ) return;
 		editor.removeEditorMouseListener(editorMouseListener);
 		editor.removeEditorMouseMotionListener(editorMouseListener);
+		for ( CaretListener listener : caretListeners ) {
+			editor.getCaretModel().removeCaretListener(listener);
+		}
 	}
 
 	public void setStartRuleName(VirtualFile grammarFile, String startRuleName) {
@@ -758,5 +767,9 @@ public class InputPanel {
 
 	public static String getErrorDisplayString(SyntaxError e) {
 		return "line "+e.getLine()+":"+e.getCharPositionInLine()+" "+e.getMessage();
+	}
+
+	public void addCaretListener(CaretListener caretListener) {
+		this.caretListeners.add(caretListener);
 	}
 }
