@@ -80,7 +80,6 @@ public class MyActionUtils {
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			int a = r.getStartOffset();
 			int b = r.getEndOffset();
-//			System.out.printf("#%d: %d..%d %s\n", i, a, b, r.toString());
 			if (offset >= a && offset < b) { // cursor is over some kind of highlighting
 				highlightersAtOffset.add(r);
 			}
@@ -126,7 +125,6 @@ public class MyActionUtils {
 	public static RuleSpecNode getRuleSurroundingRef(PsiElement selectedPsiNode,
 	                                                 final Class<? extends RuleSpecNode> ruleSpecNodeClass)
 	{
-//		System.out.println("selectedPsiNode: "+selectedPsiNode);
 		if ( selectedPsiNode==null ) { // didn't select a node in parse tree
 			return null;
 		}

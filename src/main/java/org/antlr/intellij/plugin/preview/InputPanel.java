@@ -79,16 +79,16 @@ public class InputPanel {
 	 */
 	private final Object swapEditorComponentLock = new Object();
 
-	private PreviewPanel previewPanel;
+	private final PreviewPanel previewPanel;
 
 	/**
 	 * state for grammar in current editor, not editor where user is typing preview input!
 	 */
 	public PreviewState previewState;
 
-	private PreviewEditorMouseListener editorMouseListener;
+	private final PreviewEditorMouseListener editorMouseListener;
 
-	private List<CaretListener> caretListeners = new ArrayList<>();
+	private final List<CaretListener> caretListeners = new ArrayList<>();
 
 	public InputPanel(final PreviewPanel previewPanel) {
 		createUIComponents();
@@ -160,14 +160,6 @@ public class InputPanel {
 
 	public void selectInputEvent() {
 		inputRadioButton.setSelected(true);
-
-		// get state for grammar in current editor, not editor where user is typing preview input!
-//		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(previewPanel.project);
-//		final PreviewState previewState = controller.getPreviewState();
-//		if (previewState == null) {
-//			return;
-//		}
-
 		previewPanel.clearParseTree();
 		clearErrorConsole();
 
@@ -236,17 +228,9 @@ public class InputPanel {
 		final EditorFactory factory = EditorFactory.getInstance();
 		doc.addDocumentListener(
 			new DocumentAdapter() {
-				VirtualFile grammarFileForThisPreviewEditor;
-
-				{
-					{ // faux ctor
-						this.grammarFileForThisPreviewEditor = grammarFile;
-					}
-				}
-
 				@Override
 				public void documentChanged(DocumentEvent event) {
-					previewPanel.updateParseTreeFromDoc(grammarFileForThisPreviewEditor);
+					previewPanel.updateParseTreeFromDoc(grammarFile);
 				}
 			}
 		);
@@ -451,7 +435,6 @@ public class InputPanel {
 			return;
 		}
 
-//		System.out.println("token = "+tokenUnderCursor);
 		String channelInfo = "";
 		int channel = tokenUnderCursor.getChannel();
 		if ( channel!=Token.DEFAULT_CHANNEL ) {
@@ -536,21 +519,6 @@ public class InputPanel {
 		String stackS = Utils.join(stack.toArray(), "\n");
 		highlightAndOfferHint(editor, offset, sourceInterval,
 		                      JBColor.BLUE, EffectType.ROUNDED_BOX, stackS);
-
-
-		// Code for a balloon.
-
-//		JBPopupFactory popupFactory = JBPopupFactory.getInstance();
-//		BalloonBuilder builder =
-//		    popupFactory.createHtmlTextBalloonBuilder(Utils.join(stack.toArray(), "<br>"),
-//												  MessageType.INFO, null);
-//		builder.setHideOnClickOutside(true);
-//		Balloon balloon = builder.createBalloon();
-//		MouseEvent mouseEvent = event.getMouseEvent();
-//		Point point = mouseEvent.getPoint();
-//		point.translate(10, -15);
-//		RelativePoint where = new RelativePoint(mouseEvent.getComponent(), point);
-//		balloon.show(where, Balloon.Position.above);
 	}
 
 	public void highlightAndOfferHint(Editor editor, int offset,

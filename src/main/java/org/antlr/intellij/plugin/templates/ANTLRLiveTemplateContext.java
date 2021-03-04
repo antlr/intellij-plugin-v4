@@ -30,10 +30,6 @@ public abstract class ANTLRLiveTemplateContext extends TemplateContextType {
 		}
 		PsiElement element = file.findElementAt(offset);
 
-//		String trace = DebugUtil.currentStackTrace();
-//		System.out.println("isInContext: element " + element +", text="+element.getText());
-//		System.out.println(trace);
-
 		if ( element==null ) {
 			return false;
 		}

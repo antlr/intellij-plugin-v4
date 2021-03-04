@@ -242,8 +242,6 @@ public class ShowAmbigTreesDialog extends JDialog {
 				if ( !tancestor.equals(uancestor) ) break;
 				tancestor.reached = true;
 				uancestor.reached = true;
-//				if (tancestor == t || uancestor == u)
-//					break; // stop if we hit incoming root nodes
 				a++;
 			}
 		}

@@ -247,7 +247,6 @@ public class ParsingUtils {
 		if ( start==null ) {
 			return null; // can't find start rule
 		}
-//		System.out.println("parse test ----------------------------");
 		ParseTree t = parser.parse(start.index);
 
 		if ( t!=null ) {

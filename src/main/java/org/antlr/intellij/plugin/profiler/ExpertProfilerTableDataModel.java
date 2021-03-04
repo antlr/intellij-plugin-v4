@@ -37,7 +37,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     };
 
 	// microsecond decimal precision
-	private NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
+	private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
 
     public ExpertProfilerTableDataModel(ParseInfo parseInfo) {
         this.parseInfo = parseInfo;

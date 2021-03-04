@@ -24,7 +24,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
     };
 
 	// microsecond decimal precision
-	private NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
+	private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
 
 	public SimpleProfilerTableDataModel(ParseInfo parseInfo) {
         this.parseInfo = parseInfo;

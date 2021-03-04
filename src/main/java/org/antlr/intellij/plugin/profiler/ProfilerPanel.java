@@ -166,7 +166,6 @@ public class ProfilerPanel {
 
 		org.antlr.runtime.TokenStream tokens = previewState.g.tokenStream;
 		if ( region.a>=tokens.size() || region.b>=tokens.size() ) {
-//			System.out.println("out of range: " + region + " tokens.size()=" + tokens.size());
 			return;
 		}
 		CommonToken startToken = (CommonToken) tokens.get(region.a);
@@ -195,8 +194,6 @@ public class ProfilerPanel {
 			HighlighterTargetArea.EXACT_RANGE
 		                                                                         );
 		rangeHighlighter.putUserData(DECISION_INFO_KEY, decisionInfo);
-
-//		System.out.println("dec " + decision + " from " + startToken + " to " + stopToken);
 
 		ScrollingModel scrollingModel = grammarEditor.getScrollingModel();
 		CaretModel caretModel = grammarEditor.getCaretModel();

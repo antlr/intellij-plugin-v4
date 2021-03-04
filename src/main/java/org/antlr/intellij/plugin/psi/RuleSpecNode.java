@@ -41,7 +41,6 @@ public abstract class RuleSpecNode extends ASTWrapperPsiElement implements PsiNa
 		          node in its parse tree, build the parse tree and
 		          extract the necessary node from it.
 		 */
-//		System.out.println("rename "+this+" to "+name);
 		GrammarElementRefNode id = getNameIdentifier();
 		id.replace(MyPsiUtils.createLeafFromText(getProject(),
 												 getContext(),

@@ -15,7 +15,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMotionListener {
-	private InputPanel inputPanel;
+	private final InputPanel inputPanel;
 
 	public PreviewEditorMouseListener(InputPanel inputPanel) {
 		this.inputPanel = inputPanel;
@@ -112,7 +112,6 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		MouseEvent mouseEvent=e.getMouseEvent();
 		Editor editor=e.getEditor();
 		int offset = MyActionUtils.getMouseOffset(mouseEvent, editor);
-//		System.out.println("offset="+offset);
 
 		if ( offset >= editor.getDocument().getTextLength() ) {
 			return -1;

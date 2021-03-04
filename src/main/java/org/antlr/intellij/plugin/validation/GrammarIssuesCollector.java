@@ -182,12 +182,10 @@ public class GrammarIssuesCollector {
         Map<String,GrammarAST> ruleDefs = new HashMap<String,GrammarAST>();
         for (GrammarAST x : ruleNodes) {
             if ( x.getParent().getType()==ANTLRParser.RULE ) {
-//				System.out.println("def "+x);
                 ruleDefs.put(x.getText(), x);
             }
             else if ( x instanceof RuleRefAST) {
                 RuleRefAST r = (RuleRefAST) x;
-//				System.out.println("ref "+r);
                 ruleRefs.add(r.getText());
             }
         }

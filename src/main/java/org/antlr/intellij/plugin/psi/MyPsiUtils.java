@@ -205,17 +205,6 @@ public class MyPsiUtils {
 		return vocabName;
 	}
 
-	// Can use this in file root node to change find behavior:
-	//	@Override
-	//	public PsiElement findElementAt(int offset) {
-	//		System.out.println("looking for element at " + offset);
-	//		PsiElement p = dfs(this, offset);
-	//		if ( p!=null ) {
-	//			System.out.println("found at "+p+"="+p.getText());
-	//		}
-	//		return p;
-	//	}
-
 	public static PsiElement findElement(PsiElement startNode, int offset) {
 		PsiElement p = startNode;
 		if ( p==null ) return null;
@@ -224,12 +213,9 @@ public class MyPsiUtils {
 							   ", class="+p.getClass().getSimpleName()+
 							   ", text="+p.getNode().getText()+
 							   ", node range="+p.getTextRange());
-//		if ( p.getTextRange().contains(offset) && p instanceof PreviewTokenNode) {
-//			return p;
-//		}
+
 		PsiElement c = p.getFirstChild();
 		while ( c!=null ) {
-			//			System.out.println("visit child "+c+", text="+c.getNode().getText());
 			PsiElement result = findElement(c, offset);
 			if ( result!=null ) {
 				return result;

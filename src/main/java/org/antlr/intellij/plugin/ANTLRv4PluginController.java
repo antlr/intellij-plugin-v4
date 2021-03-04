@@ -400,7 +400,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				// s has a lexer with same filename, see if there is a parser grammar
 				// (not a combined grammar)
 				if ( s.g!=null && s.g.getType()==ANTLRParser.PARSER ) {
-//					System.out.println(s.lg.fileName+" vs "+grammarFileName+", g="+s.g.name+", type="+s.g.getTypeString());
 					return s;
 				}
 			}
@@ -542,17 +541,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public static VirtualFile getCurrentEditorFile(Project project) {
 		FileEditorManager fmgr = FileEditorManager.getInstance(project);
 		// "If more than one file is selected (split), the file with most recent focused editor is returned first." from IDE doc on method
-		VirtualFile files[] = fmgr.getSelectedFiles();
+		VirtualFile[] files = fmgr.getSelectedFiles();
 		if ( files.length == 0 ) {
 			return null;
 		}
 		return files[0];
 	}
-
-//	public Editor getCurrentGrammarEditor() {
-//		FileEditorManager edMgr = FileEditorManager.getInstance(project);
-//		return edMgr.getSelectedTextEditor();
-//	}
 
 	public VirtualFile getCurrentGrammarFile() {
 		return getCurrentGrammarFile(project);

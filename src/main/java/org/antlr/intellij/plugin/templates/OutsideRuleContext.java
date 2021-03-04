@@ -15,13 +15,11 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 
 	@Override
 	public boolean isInContext(@NotNull PsiFile file, PsiElement element, int offset) {
-//		System.out.println("offset="+offset);
 		CommonTokenStream tokens = ParsingUtils.tokenizeANTLRGrammar(file.getText());
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(tokens, offset);
 		if ( tokenUnderCursor==null ) {
 			return false; // sometimes happens at the eof
 		}
-//		System.out.println(tokenUnderCursor);
 		int tokenIndex = tokenUnderCursor.getTokenIndex();
 		Token nextRealToken = ParsingUtils.nextRealToken(tokens, tokenIndex);
 		Token previousRealToken = ParsingUtils.previousRealToken(tokens, tokenIndex);
@@ -39,22 +37,16 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 			if ( prevPrevRealToken==null ) {
 				return false;
 			}
-//			System.out.println("prevPrevRealToken="+prevPrevRealToken);
 			Token prevPrevPrevRealToken = ParsingUtils.previousRealToken(tokens, prevPrevRealToken.getTokenIndex());
 			if ( prevPrevPrevRealToken==null ) {
 				return false;
 			}
-//			System.out.println("prevPrevPrevRealToken="+prevPrevPrevRealToken);
 			if ( prevPrevPrevRealToken.getType()!=ANTLRv4Parser.AT &&
 				 prevPrevPrevRealToken.getType()!=ANTLRv4Parser.COLONCOLON )
 			{
 				return false;
 			}
 		}
-
-//		System.out.println("next = "+(nextRealTokenType!=Token.EOF?ANTLRv4Parser.tokenNames[nextRealTokenType]:"<EOF>"));
-//		System.out.println("prev = "+ANTLRv4Parser.tokenNames[previousRealTokenType]);
-//		System.out.println(tokens.getTokens());
 
 		boolean okBefore =
 			previousRealTokenType == ANTLRv4Parser.RBRACE ||
@@ -65,7 +57,6 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 				nextRealTokenType == ANTLRv4Parser.RULE_REF ||
 				nextRealTokenType == Token.EOF;
 		if ( okBefore && okAfter) {
-//			System.out.println("in context");
 			return true;
 		}
 		return false;

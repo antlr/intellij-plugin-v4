@@ -84,7 +84,6 @@ public class LiteralChooser extends DialogWrapper {
 
 	private class MyTreeSelectionListener implements TreeSelectionListener {
 		public void valueChanged(TreeSelectionEvent e) {
-//			System.out.println("select event ----------");
 			TreePath[] paths = e.getPaths();
 			if (paths == null) return;
 			for (int i = 0; i < paths.length; i++) {
@@ -94,7 +93,6 @@ public class LiteralChooser extends DialogWrapper {
 					if (userObject instanceof LiteralChooserObject) {
 						LiteralChooserObject literalObject = (LiteralChooserObject) userObject;
 						String text = literalObject.getText();
-//						System.out.println("selected " + text);
 						if ( e.isAddedPath(paths[i]) ) {
 							if ( selectedElements.contains(text) ) {
 								selectedElements.remove(text);
@@ -102,7 +100,6 @@ public class LiteralChooser extends DialogWrapper {
 							else {
 								selectedElements.add(text);
 							}
-//							System.out.println("added path: "+text);
 							CheckedTreeNode checkedNode = (CheckedTreeNode) node;
 
 							checkedNode.setChecked(!checkedNode.isChecked()); // toggle

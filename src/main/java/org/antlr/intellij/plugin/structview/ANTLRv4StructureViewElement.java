@@ -15,9 +15,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ANTLRv4StructureViewElement implements StructureViewTreeElement, SortableTreeElement {
-	private PsiElement element;
+	private final PsiElement element;
 
 	public ANTLRv4StructureViewElement(PsiElement element) {
 		this.element = element;
@@ -104,9 +105,7 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 
 		ANTLRv4StructureViewElement that = (ANTLRv4StructureViewElement)o;
 
-		if (element != null ? !element.equals(that.element) : that.element != null) return false;
-
-		return true;
+		return Objects.equals(element, that.element);
 	}
 
 	@Override

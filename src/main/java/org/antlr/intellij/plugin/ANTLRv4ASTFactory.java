@@ -60,7 +60,6 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		else {
 			t = new LeafPsiElement(type, text);
 		}
-//		System.out.println("createLeaf "+t+" from "+type+" "+text);
 		return t;
     }
 

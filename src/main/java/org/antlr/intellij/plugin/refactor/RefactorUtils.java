@@ -227,11 +227,5 @@ public class RefactorUtils {
 			getAncestorWithType(selNode, ANTLRv4Parser.RuleSpecContext.class);
 
 		return ruleRoot.getStop().getStopIndex() + 2; // insert after '\n' following ';'
-
-//		int ruleIndex = childIndexOf(ruleRoot.getParent(), ruleRoot);
-//		ParserRuleContext nextRuleRoot = (ParserRuleContext)ruleRoot.getParent().getChild(ruleIndex+1);
-//		if ( nextRuleRoot==null ) { // this rule must be last in grammar; put after ';' of this rule
-//		}
-//		return nextRuleRoot.getStart().getStartIndex();
 	}
 }

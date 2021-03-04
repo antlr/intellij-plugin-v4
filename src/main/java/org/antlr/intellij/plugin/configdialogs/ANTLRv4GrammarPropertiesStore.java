@@ -22,7 +22,7 @@ public class ANTLRv4GrammarPropertiesStore {
 	static final ANTLRv4GrammarProperties DEFAULT_GRAMMAR_PROPERTIES = initDefaultGrammarProperties();
 
 	@Property
-	private List<ANTLRv4GrammarProperties> perGrammarGenerationSettings = new ArrayList<>();
+	private final List<ANTLRv4GrammarProperties> perGrammarGenerationSettings = new ArrayList<>();
 
 	public void add(ANTLRv4GrammarProperties properties) {
 		perGrammarGenerationSettings.add(properties);

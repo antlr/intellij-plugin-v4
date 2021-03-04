@@ -99,18 +99,15 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 		final Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		final Document doc = editor.getDocument();
 		final CommonTokenStream tokens = (CommonTokenStream) parser.getTokenStream();
-//		System.out.println(selectedElements);
 		if (selectedElements != null) {
 			String text = doc.getText();
 			int cursorOffset = editor.getCaretModel().getOffset();
 			// make sure it's not in middle of rule; put between.
-//					System.out.println("offset "+cursorOffset);
 			Collection<ParseTree> allRuleNodes = XPath.findAll(tree, "//ruleSpec", parser);
 			for (ParseTree r : allRuleNodes) {
 				Interval extent = r.getSourceInterval(); // token indexes
 				int start = tokens.get(extent.a).getStartIndex();
 				int stop = tokens.get(extent.b).getStopIndex();
-//						System.out.println("rule "+r.getChild(0).getText()+": "+start+".."+stop);
 				if (cursorOffset < start) {
 					// before this rule, so must be between previous and this one
 					cursorOffset = start; // put right before this rule

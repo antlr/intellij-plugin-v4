@@ -14,7 +14,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 public class UberTreeViewer extends TreeViewer {
-	private boolean highlightUnreachedNodes;
+	private final boolean highlightUnreachedNodes;
 
 	public UberTreeViewer(List<String> ruleNames, Tree tree, boolean highlightUnreachedNodes) {
 		super(ruleNames, tree);

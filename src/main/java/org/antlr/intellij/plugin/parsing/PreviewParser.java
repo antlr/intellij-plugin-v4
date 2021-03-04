@@ -54,7 +54,6 @@ public class PreviewParser extends GrammarParserInterpreter {
 
 		int predictedAlt = super.visitDecisionState(p);
 		if ( p.getNumberOfTransitions()>1 ) {
-//			System.out.println("decision "+p.decision+": "+predictedAlt);
 			if ( p.decision==this.overrideDecision &&
 			this._input.index()==this.overrideDecisionInputIndex ) {
 				((PreviewInterpreterRuleContext)overrideDecisionRoot).isDecisionOverrideRoot = true;
@@ -68,12 +67,10 @@ public class PreviewParser extends GrammarParserInterpreter {
 	public Token match(int ttype) throws RecognitionException {
 		lexerWatchdog.checkLexerIsNotStuck();
 
-		//		System.out.println("match ATOM state " + getState() + ": " + _input.LT(1));
 		Token t = super.match(ttype);
 		// track which ATN state matches each token
 		inputTokenToStateMap.put(t, getState());
 		lastSuccessfulMatchState = getState();
-//		CommonToken tokenInGrammar = previewState.stateToGrammarRegionMap.get(getState());
 		return t;
 	}
 
@@ -82,7 +79,6 @@ public class PreviewParser extends GrammarParserInterpreter {
 	public Token matchWildcard() throws RecognitionException {
 		lexerWatchdog.checkLexerIsNotStuck();
 
-//		System.out.println("match anything state "+getState());
 		inputTokenToStateMap.put(_input.LT(1), getState());
 		lastSuccessfulMatchState = getState();
 		return super.matchWildcard();
