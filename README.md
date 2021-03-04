@@ -171,9 +171,14 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 ![Live preview](images/color-prefs.png)
 
-# Build notes
+# Contributing
 
-We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project, you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit` plugins enabled. Use `File > Open` and select the `build.gradle` file to import the project. Once everything is imported, you can run a sandboxed IDE using the `runIde` task, either from the `Gradle` tool window of from the CLI:
+We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project, 
+you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit` 
+plugins enabled. 
+
+Use `File > Open` and select the `build.gradle` file to import the project. Once everything is imported, you can run a 
+sandboxed IDE using the `runIde` task, either from the `Gradle` tool window of from the CLI:
 
 ```
 cd ~/antlr/code/intellij-plugin-v4
@@ -183,3 +188,5 @@ cd ~/antlr/code/intellij-plugin-v4
 To launch unit tests, run `./gradlew check`.
 
 To build a zipped version of the plugin and its dependencies, run `./gradlew buildPlugin`.
+
+A high level description of how the plugin works can be found in `ARCHITECTURE.md`.
