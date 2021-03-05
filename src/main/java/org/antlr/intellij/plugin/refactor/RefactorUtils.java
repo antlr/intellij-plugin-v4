@@ -197,7 +197,7 @@ public class RefactorUtils {
 	}
 
 	public static List<TerminalNode> getAllRuleRefNodes(Parser parser, ParseTree tree, String ruleName) {
-		List<TerminalNode> nodes = new ArrayList<TerminalNode>();
+		List<TerminalNode> nodes = new ArrayList<>();
 		Collection<ParseTree> ruleRefs;
 		if ( Grammar.isTokenName(ruleName) ) {
 			ruleRefs = XPath.findAll(tree, "//lexerRuleBlock//TOKEN_REF", parser);

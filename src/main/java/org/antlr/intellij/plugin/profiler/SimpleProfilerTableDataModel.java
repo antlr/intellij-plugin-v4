@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	public ParseInfo parseInfo;
-    public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
+    public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
     public static final String[] columnNames = {
             "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };

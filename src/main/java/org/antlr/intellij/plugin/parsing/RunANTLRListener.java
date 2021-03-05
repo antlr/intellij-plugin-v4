@@ -14,7 +14,7 @@ import java.util.List;
  *  not for annotation of grammar.
  */
 public class RunANTLRListener implements ANTLRToolListener {
-	public final List<String> all = new ArrayList<String>();
+	public final List<String> all = new ArrayList<>();
 	public Tool tool;
 	public ConsoleView console;
 	public boolean hasOutput = false;

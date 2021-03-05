@@ -146,7 +146,7 @@ public class ProfilerPanel {
 			model = new SimpleProfilerTableDataModel(parseInfo);
 		}
 		profilerDataTable.setModel(model);
-		profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
+		profilerDataTable.setRowSorter(new TableRowSorter<>(model));
 	}
 
 	public void selectDecisionInGrammar(PreviewState previewState, int decision) {

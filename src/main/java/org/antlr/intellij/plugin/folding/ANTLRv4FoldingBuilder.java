@@ -112,7 +112,7 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
     }
 
     private static void addCommentDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
-        Set<PsiElement> processedComments = new HashSet<PsiElement>();
+        Set<PsiElement> processedComments = new HashSet<>();
         for (PsiElement comment : MyPsiUtils.findChildrenOfType(root, ANTLRv4TokenTypes.COMMENTS)) {
             IElementType type = comment.getNode().getElementType();
             if (processedComments.contains(comment)) continue;

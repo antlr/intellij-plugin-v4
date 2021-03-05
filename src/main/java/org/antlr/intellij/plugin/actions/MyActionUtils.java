@@ -76,7 +76,7 @@ public class MyActionUtils {
 	public static List<RangeHighlighter> getRangeHighlightersAtOffset(Editor editor, int offset) {
 		MarkupModel markupModel = editor.getMarkupModel();
 		// collect all highlighters and combine to make a single tool tip
-		List<RangeHighlighter> highlightersAtOffset = new ArrayList<RangeHighlighter>();
+		List<RangeHighlighter> highlightersAtOffset = new ArrayList<>();
 		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
 			int a = r.getStartOffset();
 			int b = r.getEndOffset();

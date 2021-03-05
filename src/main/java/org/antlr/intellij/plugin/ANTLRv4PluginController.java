@@ -79,7 +79,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public ToolWindow consoleWindow;
 
 	public Map<String, PreviewState> grammarToPreviewState =
-		Collections.synchronizedMap(new HashMap<String, PreviewState>());
+		Collections.synchronizedMap(new HashMap<>());
 	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
 

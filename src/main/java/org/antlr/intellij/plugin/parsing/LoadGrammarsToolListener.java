@@ -12,8 +12,8 @@ import java.util.List;
  *  swallows them for now. The external annotator shows errors.
  */
 public class LoadGrammarsToolListener extends DefaultToolListener {
-    public List<String> grammarErrorMessages = new ArrayList<String>();
-    public List<String> grammarWarningMessages = new ArrayList<String>();
+    public List<String> grammarErrorMessages = new ArrayList<>();
+    public List<String> grammarWarningMessages = new ArrayList<>();
 	public LoadGrammarsToolListener(Tool tool) { super(tool); }
 
 	@Override

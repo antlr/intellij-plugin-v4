@@ -142,7 +142,7 @@ public class GrammarIssuesCollector {
             issue.getOffendingTokens().add(t);
         }
         else if ( issue.getMsg() instanceof LeftRecursionCyclesMessage) {
-            List<String> rulesToHighlight = new ArrayList<String>();
+            List<String> rulesToHighlight = new ArrayList<>();
             LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage) issue.getMsg();
             Collection<? extends Collection<Rule>> cycles =
                 (Collection<? extends Collection<Rule>>)lmsg.getArgs()[0];
@@ -178,8 +178,8 @@ public class GrammarIssuesCollector {
         List<GrammarAST> ruleNodes = g.ast.getNodesWithTypePreorderDFS(IntervalSet.of(ANTLRParser.RULE_REF));
         // in case of errors, we walk AST ourselves
         // ANTLR's Grammar object might have bailed on rule defs etc...
-        Set<String> ruleRefs = new HashSet<String>();
-        Map<String,GrammarAST> ruleDefs = new HashMap<String,GrammarAST>();
+        Set<String> ruleRefs = new HashSet<>();
+        Map<String,GrammarAST> ruleDefs = new HashMap<>();
         for (GrammarAST x : ruleNodes) {
             if ( x.getParent().getType()==ANTLRParser.RULE ) {
                 ruleDefs.put(x.getText(), x);

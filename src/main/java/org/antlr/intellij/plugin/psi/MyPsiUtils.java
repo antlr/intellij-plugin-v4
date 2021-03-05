@@ -161,7 +161,7 @@ public class MyPsiUtils {
 	}
 
 	public static PsiElement[] collectChildrenOfType(PsiElement root, final IElementType tokenType) {
-		List<PsiElement> elems = new ArrayList<PsiElement>();
+		List<PsiElement> elems = new ArrayList<>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getNode().getElementType() == tokenType ) {
 				elems.add(child);
@@ -171,7 +171,7 @@ public class MyPsiUtils {
 	}
 
 	public static PsiElement findChildOfType(PsiElement root, final IElementType tokenType) {
-		List<PsiElement> elems = new ArrayList<PsiElement>();
+		List<PsiElement> elems = new ArrayList<>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getNode().getElementType() == tokenType ) {
 				return child;
@@ -181,7 +181,7 @@ public class MyPsiUtils {
 	}
 
 	public static PsiElement[] collectChildrenWithText(PsiElement root, final String text) {
-		List<PsiElement> elems = new ArrayList<PsiElement>();
+		List<PsiElement> elems = new ArrayList<>();
 		for (PsiElement child : root.getChildren()) {
 			if ( child.getText().equals(text) ) {
 				elems.add(child);

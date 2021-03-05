@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 
 public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public ParseInfo parseInfo;
-    public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<String, Integer>();
+    public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
     public static final String[] columnNames = {
         "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k",
 		"Min SLL k", "Min LL k",
