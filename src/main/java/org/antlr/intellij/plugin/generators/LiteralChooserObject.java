@@ -10,10 +10,6 @@ public class LiteralChooserObject {
 	private final String text;
 	private final Icon icon;
 
-	public LiteralChooserObject(final String text) {
-		this(text, null);
-	}
-
 	public LiteralChooserObject(final String text, @Nullable final Icon icon) {
 		this.text = text;
 		this.icon = icon;

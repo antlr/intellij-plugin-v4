@@ -292,7 +292,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			updateGrammarObjectsFromFile(newFile, false);
 		}
 		if ( previewPanel!=null ) {
-			previewPanel.grammarFileChanged(oldFile, newFile);
+			previewPanel.grammarFileChanged(newFile);
 		}
 	}
 

@@ -91,7 +91,6 @@ public class InputPanel {
 	private final List<CaretListener> caretListeners = new ArrayList<>();
 
 	public InputPanel(final PreviewPanel previewPanel) {
-		createUIComponents();
 		WrappedFlowLayout layout = new WrappedFlowLayout(5, 0);
 		layout.setAlignment(FlowLayout.CENTER);
 		this.startRuleAndInputPanel.setLayout(layout);
@@ -107,18 +106,7 @@ public class InputPanel {
 				singleFileDescriptor,
 				TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
 			) {
-				protected void onFileChoosen(VirtualFile chosenFile) {
-					// In 13.x, this is defined but they fixed typo (onFileChosen) and
-					// deprecated. In 15.x this method is gone so I add back for
-					// backward compatibility.
-					choose(chosenFile);
-				}
-
 				protected void onFileChosen(@NotNull VirtualFile chosenFile) {
-					choose(chosenFile);
-				}
-
-				protected void choose(VirtualFile chosenFile) {
 					// this next line is the code taken from super; pasted in
 					// to avoid compile error on super.onFileCho[o]sen
 					TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT.setText(fileChooser.getChildComponent(),
@@ -153,9 +141,6 @@ public class InputPanel {
 
 	public JPanel getComponent() {
 		return outerMostPanel;
-	}
-
-	private void createUIComponents() {
 	}
 
 	public void selectInputEvent() {
@@ -465,8 +450,7 @@ public class InputPanel {
 	 * Show tokens/region associated with parse tree parent of this token
 	 * if the alt-key is down and mouse movement occurs.
 	 */
-	public void showParseRegion(EditorMouseEvent event, Editor editor,
-	                            PreviewState previewState, int offset) {
+	public void showParseRegion(Editor editor, PreviewState previewState, int offset) {
 		Token tokenUnderCursor = ParsingUtils.getTokenUnderCursor(previewState, offset);
 		if ( tokenUnderCursor==null ) {
 			return;
@@ -610,8 +594,7 @@ public class InputPanel {
 	/**
 	 * Display syntax errors, hints in tooltips if under the cursor
 	 */
-	public static void showTooltips(EditorMouseEvent event, Editor editor,
-	                                @NotNull PreviewState previewState, int offset) {
+	public static void showTooltips(Editor editor, @NotNull PreviewState previewState, int offset) {
 		if ( previewState.parsingResult==null ) return; // no results?
 
 		// Turn off any tooltips if none under the cursor

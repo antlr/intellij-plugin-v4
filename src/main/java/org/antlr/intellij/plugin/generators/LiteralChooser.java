@@ -77,11 +77,6 @@ public class LiteralChooser extends DialogWrapper {
 		return panel;
 	}
 
-	@Override
-	protected void doOKAction() {
-		super.doOKAction();
-	}
-
 	private class MyTreeSelectionListener implements TreeSelectionListener {
 		public void valueChanged(TreeSelectionEvent e) {
 			TreePath[] paths = e.getPaths();

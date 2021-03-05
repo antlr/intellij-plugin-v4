@@ -9,11 +9,6 @@ import java.util.List;
 
 public class RunANTLROnGrammarFileTest extends LightPlatformCodeInsightTestCase {
 
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-	}
-
 	public void testPackageOptionShouldNotBeAddedIfDeclaredInHeader() {
 		VirtualFile file = VfsTestUtil.createFile(getSourceRoot(), "mypkg/myGrammarWithHeader.g4",
 				"grammar myGrammarWithHeader;\n@header { package com.foo.bar; }\nFOO: 'foo';");

@@ -37,7 +37,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		}
 
 		if ( e.getMouseEvent().getButton()==MouseEvent.BUTTON3 ) { // right click
-			rightClick(e, inputPanel.previewState, editor, offset);
+			rightClick(inputPanel.previewState, editor, offset);
 			return;
 		}
 
@@ -55,9 +55,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		InputPanel.clearDecisionEventHighlighters(editor);
 	}
 
-	public void rightClick(final EditorMouseEvent e,
-						   final PreviewState previewState,
-						   Editor editor, int offset)
+	public void rightClick(final PreviewState previewState, Editor editor, int offset)
 	{
 		if (previewState.parsingResult == null) return;
 		final List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
@@ -97,10 +95,10 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 			inputPanel.showTokenInfoUponCtrlKey(editor, inputPanel.previewState, offset);
 		}
 		else if ( mouseEvent.isAltDown() && inputPanel.previewState.parsingResult!=null ) {
-			inputPanel.showParseRegion(e, editor, inputPanel.previewState, offset);
+			inputPanel.showParseRegion(editor, inputPanel.previewState, offset);
 		}
 		else { // just moving around, show any errors or hints
-			InputPanel.showTooltips(e, editor, inputPanel.previewState, offset);
+			InputPanel.showTooltips(editor, inputPanel.previewState, offset);
 		}
 	}
 

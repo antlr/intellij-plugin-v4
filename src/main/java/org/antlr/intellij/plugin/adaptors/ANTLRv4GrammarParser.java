@@ -39,7 +39,6 @@ public class ANTLRv4GrammarParser extends ANTLRParserAdaptor {
 			return ((ANTLRv4Parser) parser).atom();
 
 		default:
-			String ruleName = ANTLRv4Parser.ruleNames[startRule];
 			throw new UnsupportedOperationException(String.format("cannot start parsing using root element %s", root));
 		}
 	}

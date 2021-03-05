@@ -273,7 +273,7 @@ public class ParsingUtils {
 		LoadGrammarsToolListener listener = (LoadGrammarsToolListener)antlr.getListeners().get(0);
 
 		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
-		Grammar g = loadGrammar(grammarFile, project, antlr);
+		Grammar g = loadGrammar(grammarFile, antlr);
 		if (g == null) {
 			reportBadGrammar(grammarFile, console);
 			return null;
@@ -326,10 +326,10 @@ public class ParsingUtils {
 	}
 
 	@Nullable
-	private static Grammar loadGrammar(VirtualFile grammarFile, Project project, Tool antlr) {
+	private static Grammar loadGrammar(VirtualFile grammarFile, Tool antlr) {
 		// basically here I am mimicking the loadGrammar() method from Tool
 		// so that I can check for an empty AST coming back.
-		GrammarRootAST grammarRootAST = parseGrammar(project, antlr, grammarFile);
+		GrammarRootAST grammarRootAST = parseGrammar(antlr, grammarFile);
 		if ( grammarRootAST==null ) {
 			return null;
 		}
@@ -341,7 +341,7 @@ public class ParsingUtils {
 		return g;
 	}
 
-	public static GrammarRootAST parseGrammar(Project project, Tool antlr, VirtualFile grammarFile) {
+	public static GrammarRootAST parseGrammar(Tool antlr, VirtualFile grammarFile) {
 		try {
 			Document document = FileDocumentManager.getInstance().getDocument(grammarFile);
 			String grammarText = document != null ? document.getText() : new String(grammarFile.contentsToByteArray());
@@ -381,7 +381,7 @@ public class ParsingUtils {
 			ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
 
 			try {
-				lg = (LexerGrammar) loadGrammar(lexerGrammarFile, project, antlr);
+				lg = (LexerGrammar) loadGrammar(lexerGrammarFile, antlr);
 				if ( lg!=null ) {
 					antlr.process(lg, false);
 				} else {

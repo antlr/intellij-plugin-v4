@@ -3,7 +3,6 @@ package org.antlr.intellij.plugin;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 public class ANTLRv4FileRoot extends PsiFileBase {
@@ -21,10 +20,4 @@ public class ANTLRv4FileRoot extends PsiFileBase {
     public String toString() {
         return "ANTLR v4 grammar file";
     }
-
-	@NotNull
-	@Override
-	public PsiElement[] getChildren() {
-		return super.getChildren();
-	}
 }

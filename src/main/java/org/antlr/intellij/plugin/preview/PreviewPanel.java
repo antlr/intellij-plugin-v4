@@ -279,12 +279,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	/** Notify the preview tool window contents that the grammar file has changed */
-	public void grammarFileChanged(VirtualFile oldFile, VirtualFile newFile) {
-		switchToGrammar(oldFile, newFile);
+	public void grammarFileChanged(VirtualFile newFile) {
+		switchToGrammar(newFile);
 	}
 
 	/** Load grammars and set editor component. */
-	private void switchToGrammar(VirtualFile oldFile, VirtualFile grammarFile) {
+	private void switchToGrammar(VirtualFile grammarFile) {
 		String grammarFileName = grammarFile.getPath();
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
