@@ -56,9 +56,7 @@ public class OutsideRuleContext extends ANTLRLiveTemplateContext {
 			nextRealTokenType == ANTLRv4Parser.TOKEN_REF ||
 				nextRealTokenType == ANTLRv4Parser.RULE_REF ||
 				nextRealTokenType == Token.EOF;
-		if ( okBefore && okAfter) {
-			return true;
-		}
-		return false;
+
+		return okBefore && okAfter;
 	}
 }

@@ -65,7 +65,7 @@ public class UniquifyRuleRefs extends AnAction {
 		// alter rule refs and dup rules
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
-			protected void run(final Result result) throws Throwable {
+			protected void run(final Result result) {
 				// do in a single action so undo works in one go
 				dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
 			}

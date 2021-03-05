@@ -76,7 +76,7 @@ public class InlineRuleAction extends AnAction {
 		// replace rule refs with rule text
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
-			protected void run(final Result result) throws Throwable {
+			protected void run(final Result result) {
 				// do in a single action so undo works in one go
 				replaceRuleRefs(doc,tokens,ruleName,rrefNodes,ruleText);
 			}

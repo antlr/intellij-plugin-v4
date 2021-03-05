@@ -148,7 +148,7 @@ public class RefactorUtils {
 	{
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
-			protected void run(final Result result) throws Throwable {
+			protected void run(final Result result) {
 				doc.replaceString(start, stop+1, text);
 			}
 		};
@@ -161,7 +161,7 @@ public class RefactorUtils {
 	{
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
-			protected void run(final Result result) throws Throwable {
+			protected void run(final Result result) {
 				doc.insertString(where, text);
 			}
 		};

@@ -141,36 +141,28 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 		myFixture.configureByFiles("FooParser.g4", "FooLexer.g4");
 
 		moveCaret(55);
-		assertResolvedMatches(ANTLRv4FileRoot.class, file -> {
-			assertEquals("FooLexer.g4", file.getName());
-		});
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("FooLexer.g4", file.getName()));
 	}
 
 	public void testReferencesToTokenVocabFileString() {
 		myFixture.configureByFiles("FooParser2.g4", "FooLexer.g4");
 
 		moveCaret(55);
-		assertResolvedMatches(ANTLRv4FileRoot.class, file -> {
-			assertEquals("FooLexer.g4", file.getName());
-		});
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("FooLexer.g4", file.getName()));
 	}
 
 	public void testReferenceToImportedFile() {
 		myFixture.configureByFiles("importing.g4", "imported.g4");
 
 		moveCaret(35);
-		assertResolvedMatches(ANTLRv4FileRoot.class, file -> {
-			assertEquals("imported.g4", file.getName());
-		});
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("imported.g4", file.getName()));
 	}
 
 	public void testReferenceToRuleInImportedFile() {
 		myFixture.configureByFiles("importing.g4", "imported.g4", "imported2.g4", "imported3.g4");
 
 		moveCaret(53);
-		assertResolvedMatches(LexerRuleSpecNode.class, node -> {
-			assertEquals("Foo", node.getName());
-		});
+		assertResolvedMatches(LexerRuleSpecNode.class, node -> assertEquals("Foo", node.getName()));
 
 		moveCaret(66);
 		assertResolvedMatches(LexerRuleSpecNode.class, node -> {

@@ -52,11 +52,8 @@ public class GrammarIssuesCollector {
         final Tool antlr = new Tool(args.toArray(new String[args.size()]));
         if ( !args.contains("-lib") ) {
             // getContainingDirectory() must be identified as a read operation on file system
-            ApplicationManager.getApplication().runReadAction(new Runnable() {
-                @Override
-                public void run() {
-                    antlr.libDirectory = file.getContainingDirectory().toString();
-                }
+            ApplicationManager.getApplication().runReadAction(() -> {
+                antlr.libDirectory = file.getContainingDirectory().toString();
             });
         }
 

@@ -22,26 +22,24 @@ public class ANTLRv4StructureViewModel
 	implements StructureViewModel.ElementInfoProvider
 {
 	private static final Sorter PARSER_LEXER_RULE_SORTER = new Sorter() {
-		public Comparator getComparator() {
-			return new Comparator() {
-				public int compare(final Object o1, final Object o2) {
-					String s1 = SorterUtil.getStringPresentation(o1);
-					String s2 = SorterUtil.getStringPresentation(o2);
-					// flip case of char 0 so it puts parser rules first
-					if ( Character.isLowerCase(s1.charAt(0)) ) {
-						s1 = Character.toUpperCase(s1.charAt(0))+s1.substring(1);
-					}
-					else {
-						s1 = Character.toLowerCase(s1.charAt(0))+s1.substring(1);
-					}
-					if ( Character.isLowerCase(s2.charAt(0)) ) {
-						s2 = Character.toUpperCase(s2.charAt(0))+s2.substring(1);
-					}
-					else {
-						s2 = Character.toLowerCase(s2.charAt(0))+s2.substring(1);
-					}
-					return s1.compareTo(s2);
+		public Comparator<?> getComparator() {
+			return (o1, o2) -> {
+				String s1 = SorterUtil.getStringPresentation(o1);
+				String s2 = SorterUtil.getStringPresentation(o2);
+				// flip case of char 0 so it puts parser rules first
+				if ( Character.isLowerCase(s1.charAt(0)) ) {
+					s1 = Character.toUpperCase(s1.charAt(0))+s1.substring(1);
 				}
+				else {
+					s1 = Character.toLowerCase(s1.charAt(0))+s1.substring(1);
+				}
+				if ( Character.isLowerCase(s2.charAt(0)) ) {
+					s2 = Character.toUpperCase(s2.charAt(0))+s2.substring(1);
+				}
+				else {
+					s2 = Character.toLowerCase(s2.charAt(0))+s2.substring(1);
+				}
+				return s1.compareTo(s2);
 			};
 		}
 
@@ -107,7 +105,7 @@ public class ANTLRv4StructureViewModel
 	 opened or when the "Autoscroll from source" option is used.
 	 */
 	@NotNull
-	protected Class[] getSuitableClasses() {
+	protected Class<?>[] getSuitableClasses() {
 		return new Class[] {ANTLRv4FileRoot.class,
 			LexerRuleSpecNode.class,
 			ParserRuleSpecNode.class};

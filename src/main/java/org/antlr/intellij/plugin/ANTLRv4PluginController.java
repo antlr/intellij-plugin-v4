@@ -469,12 +469,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public static void showConsoleWindow(final Project project) {
 		ApplicationManager.getApplication().invokeLater(
-			new Runnable() {
-				@Override
-				public void run() {
-					ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null);
-				}
-			}
+				() -> ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null)
 		);
 	}
 

@@ -27,12 +27,8 @@ import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -324,16 +320,13 @@ public class ProfilerPanel {
 	private void createUIComponents() {
 		expertCheckBox = new JBCheckBox();
 		expertCheckBox.setSelected(false);
-		expertCheckBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (previewState.parsingResult == null) {
-					// nothing has been parsed yet (no text in the editor)
-					return;
-				}
-				ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-				updateTableModelPerExpertCheckBox(parseInfo);
+		expertCheckBox.addActionListener(e -> {
+			if (previewState.parsingResult == null) {
+				// nothing has been parsed yet (no text in the editor)
+				return;
 			}
+			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
+			updateTableModelPerExpertCheckBox(parseInfo);
 		});
 		profilerDataTable = new JBTable() {
 			@Override
@@ -359,9 +352,7 @@ public class ProfilerPanel {
 		};
 		ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
 		selectionModel.addListSelectionListener(
-			new ListSelectionListener() {
-				@Override
-				public void valueChanged(ListSelectionEvent e) {
+				e -> {
 					// previewState, project set later
 					if ( e.getValueIsAdjusting() ) {
 						return; // this seems to be "mouse down" but not mouse up
@@ -383,8 +374,7 @@ public class ProfilerPanel {
 						}
 					}
 				}
-			}
-		                                       );
+		);
 		selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		ambiguityColorLabel = new JBLabel("Ambiguity");
 		ambiguityColorLabel.setForeground(AMBIGUITY_COLOR);

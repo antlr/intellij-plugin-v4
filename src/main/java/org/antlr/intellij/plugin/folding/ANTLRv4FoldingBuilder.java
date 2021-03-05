@@ -134,7 +134,6 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static void addRuleRefFoldingDescriptors(List<FoldingDescriptor> descriptors, PsiElement root) {
         for (RuleSpecNode specNode : PsiTreeUtil.findChildrenOfType(root, RuleSpecNode.class)) {
             GrammarElementRefNode refNode = PsiTreeUtil.findChildOfAnyType(specNode, GrammarElementRefNode.class);

@@ -11,7 +11,6 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.ScrollingModel;
 import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -131,12 +130,7 @@ public class MyActionUtils {
 
 		// find root of rule def
 		if ( !selectedPsiNode.getClass().equals(ruleSpecNodeClass) ) {
-			selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, new Condition<PsiElement>() {
-				@Override
-				public boolean value(PsiElement psiElement) {
-					return psiElement.getClass().equals(ruleSpecNodeClass);
-				}
-			});
+			selectedPsiNode = PsiTreeUtil.findFirstParent(selectedPsiNode, psiElement -> psiElement.getClass().equals(ruleSpecNodeClass));
 			if ( selectedPsiNode==null ) { // not in rule I guess.
 				return null;
 			}
