@@ -64,6 +64,11 @@ because the interpreter is language agnostic.
 For the same reasons, if your parser and/or lexer classes extend a custom implementation of the 
 base parser/lexer classes, your custom code will *not* be run during live preview. 
 
+As of 1.17, this limitation is partially not true. The configuration window of a grammar has a new option
+that allows using the generated parser code in the preview. In this case, the grammar must be compiled into
+a Java class (just to be on Project's target classpath). Any changes made to such grammar are not immediately
+reflected in the preview and the project must be recompiled instead.
+
 ## History
 
 See [Releases](https://github.com/antlr/intellij-plugin-v4/releases)

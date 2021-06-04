@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.CommonBundle;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
@@ -23,8 +24,11 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
@@ -34,22 +38,29 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.messages.MessageBusConnection;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarProperties;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.antlr.intellij.plugin.preview.PreviewState;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.v4.parse.ANTLRParser;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
 
 /** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
@@ -87,6 +98,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public MyFileEditorManagerAdapter myFileEditorManagerAdapter = new MyFileEditorManagerAdapter();
 
 	private ProgressIndicator parsingProgressIndicator;
+    private UrlClassLoader projectClassLoader;
 
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
@@ -119,6 +131,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// make sure the tool windows are created early
 		createToolWindows();
 		installListeners();
+        initClassLoader();
 	}
 
 	public void createToolWindows() {
@@ -196,7 +209,22 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return "antlr.ProjectComponent";
 	}
 
-	// ------------------------------
+    private void initClassLoader() {
+        List<String> compiledClassUrls = OrderEnumerator.orderEntries(project).runtimeOnly().classes().usingCache().getPathsList().getPathList();
+        final List<URL> urls = new ArrayList<>();
+
+        for (String path : compiledClassUrls) {
+            try {
+                urls.add(new File(FileUtil.toSystemIndependentName(path)).toURI().toURL());
+            } catch (MalformedURLException e1) {
+                LOG.error(e1);
+            }
+        }
+
+        this.projectClassLoader = UrlClassLoader.build().parent(TokenStream.class.getClassLoader()).urls(urls).get();
+    }
+
+    // ------------------------------
 
 	public void installListeners() {
 		LOG.info("installListeners "+project.getName());
@@ -385,18 +413,58 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	private String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
-		String grammarFileName = grammarFile.getPath();
-		PreviewState previewState = getPreviewState(grammarFile);
-		Grammar[] grammars = ParsingUtils.loadGrammars(grammarFile, project);
-		if (grammars != null) {
-			synchronized (previewState) { // build atomically
-				previewState.lg = (LexerGrammar)grammars[0];
-				previewState.g = grammars[1];
-			}
-		}
-		return grammarFileName;
-	}
+    private String updateGrammarObjectsFromFile_(VirtualFile grammarFile) {
+        String grammarFileName = grammarFile.getPath();
+        PreviewState previewState = getPreviewState(grammarFile);
+        Grammar[] grammars = ParsingUtils.loadGrammars(grammarFile, project);
+        if (grammars != null) {
+            LexerGrammar lg = (LexerGrammar) grammars[0];
+            Grammar g = grammars[1];
+
+            ANTLRv4GrammarProperties grammarProperties = ANTLRv4GrammarPropertiesStore.getGrammarProperties(project, grammarFile);
+            if (grammarProperties.isUseGeneratedParserCodeCheckBox()) {
+                String parserClassName = grammarFile.getNameWithoutExtension();
+                String lexerClassName = lg.name;
+
+                Class<Parser> parserClass = null;
+                Class<Lexer> lexerClass = null;
+
+                Class<?> tokenStreamClass = null;
+                Class<?> charStreamClass = null;
+
+                try {
+                    tokenStreamClass = Class.forName(TokenStream.class.getName(), true, this.projectClassLoader);
+                    charStreamClass = Class.forName(CharStream.class.getName(), true, this.projectClassLoader);
+
+                    parserClass = (Class<Parser>) Class.forName(parserClassName, true, this.projectClassLoader);
+                    lexerClass = (Class<Lexer>) Class.forName(lexerClassName, true, this.projectClassLoader);
+                } catch (ClassNotFoundException e) {
+                    Messages.showErrorDialog(project, "Cannot find class '" + parserClassName + "'", CommonBundle.getErrorTitle());
+                }
+
+                try {
+                    synchronized (previewState) { // build atomically
+                        previewState.lg = lg;
+                        previewState.g = g;
+                        if (lexerClass != null) {
+                            previewState.lexerCtor = lexerClass.getDeclaredConstructor(charStreamClass);
+                        }
+                        if (parserClass != null) {
+                            previewState.parserCtor = parserClass.getDeclaredConstructor(tokenStreamClass);
+                        }
+                    }
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                synchronized (previewState) {
+                    previewState.lg = lg;
+                    previewState.g = g;
+                }
+            }
+        }
+        return grammarFileName;
+    }
 
 	// TODO there could be multiple grammars importing/tokenVocab'ing this lexer grammar
 	public PreviewState getAssociatedParserIfLexer(String grammarFileName) {
@@ -441,10 +509,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				(indicator) -> {
 					long start = System.nanoTime();
 
-					previewState.parsingResult = ParsingUtils.parseText(
-							previewState.g, previewState.lg, previewState.startRuleName,
-							grammarFile, inputText, project
-					);
+                    previewState.parsingResult = ParsingUtils.parseText(
+                            previewState.g, previewState.lg, previewState.lexerCtor, previewState.parserCtor,
+                            previewState.startRuleName, grammarFile, inputText, project
+                    );
 
 					return () -> previewPanel.onParsingCompleted(previewState, System.nanoTime() - start);
 				},
