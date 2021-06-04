@@ -58,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -421,47 +422,34 @@ public class ANTLRv4PluginController implements ProjectComponent {
             LexerGrammar lg = (LexerGrammar) grammars[0];
             Grammar g = grammars[1];
 
-            ANTLRv4GrammarProperties grammarProperties = ANTLRv4GrammarPropertiesStore.getGrammarProperties(project, grammarFile);
+			Constructor<Parser> parserCtor = null;
+			Constructor<Lexer> lexerCtor = null;
+
+			ANTLRv4GrammarProperties grammarProperties = ANTLRv4GrammarPropertiesStore.getGrammarProperties(project, grammarFile);
             if (grammarProperties.isUseGeneratedParserCodeCheckBox()) {
                 String parserClassName = grammarFile.getNameWithoutExtension();
                 String lexerClassName = lg.name;
 
-                Class<Parser> parserClass = null;
-                Class<Lexer> lexerClass = null;
+				try {
+					Class<?> tokenStreamClass = Class.forName(TokenStream.class.getName(), true, this.projectClassLoader);
+					Class<?> charStreamClass = Class.forName(CharStream.class.getName(), true, this.projectClassLoader);
 
-                Class<?> tokenStreamClass = null;
-                Class<?> charStreamClass = null;
+					Class<Parser> parserClass = (Class<Parser>) Class.forName(parserClassName, true, this.projectClassLoader);
+					Class<Lexer> lexerClass = (Class<Lexer>) Class.forName(lexerClassName, true, this.projectClassLoader);
 
-                try {
-                    tokenStreamClass = Class.forName(TokenStream.class.getName(), true, this.projectClassLoader);
-                    charStreamClass = Class.forName(CharStream.class.getName(), true, this.projectClassLoader);
-
-                    parserClass = (Class<Parser>) Class.forName(parserClassName, true, this.projectClassLoader);
-                    lexerClass = (Class<Lexer>) Class.forName(lexerClassName, true, this.projectClassLoader);
-                } catch (ClassNotFoundException e) {
-                    Messages.showErrorDialog(project, "Cannot find class '" + parserClassName + "'", CommonBundle.getErrorTitle());
-                }
-
-                try {
-                    synchronized (previewState) { // build atomically
-                        previewState.lg = lg;
-                        previewState.g = g;
-                        if (lexerClass != null) {
-                            previewState.lexerCtor = lexerClass.getDeclaredConstructor(charStreamClass);
-                        }
-                        if (parserClass != null) {
-                            previewState.parserCtor = parserClass.getDeclaredConstructor(tokenStreamClass);
-                        }
-                    }
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                synchronized (previewState) {
-                    previewState.lg = lg;
-                    previewState.g = g;
+					parserCtor = parserClass.getDeclaredConstructor(tokenStreamClass);
+					lexerCtor = lexerClass.getDeclaredConstructor(charStreamClass);
+                } catch (ClassNotFoundException | NoSuchMethodException e) {
+                    LOG.warn(e);
                 }
             }
+
+			synchronized (previewState) {
+				previewState.lg = lg;
+				previewState.g = g;
+				previewState.lexerCtor = lexerCtor;
+				previewState.parserCtor = parserCtor;
+			}
         }
         return grammarFileName;
     }
