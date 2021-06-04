@@ -78,6 +78,9 @@ public class ANTLRv4GrammarProperties implements Cloneable {
     @OptionTag(converter = CaseChangingStrategyConverter.class)
     CaseChangingStrategy caseChangingStrategy = CaseChangingStrategy.LEAVE_AS_IS;
 
+    @Property
+    boolean useGeneratedParserCodeCheckBox = false;
+
     public ANTLRv4GrammarProperties() {
     }
 
@@ -92,6 +95,7 @@ public class ANTLRv4GrammarProperties implements Cloneable {
         this.generateListener = source.generateListener;
         this.generateVisitor = source.generateVisitor;
         this.caseChangingStrategy = source.caseChangingStrategy;
+        this.useGeneratedParserCodeCheckBox = source.useGeneratedParserCodeCheckBox;
     }
 
     public boolean shouldAutoGenerateParser() {
@@ -124,6 +128,10 @@ public class ANTLRv4GrammarProperties implements Cloneable {
 
     public boolean shouldGenerateParseTreeVisitor() {
         return generateVisitor;
+    }
+
+    public boolean isUseGeneratedParserCodeCheckBox() {
+        return useGeneratedParserCodeCheckBox;
     }
 
     public CaseChangingStrategy getCaseChangingStrategy() {

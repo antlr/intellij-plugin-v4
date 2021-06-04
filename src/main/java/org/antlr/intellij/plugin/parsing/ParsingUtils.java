@@ -1,13 +1,21 @@
 package org.antlr.intellij.plugin.parsing;
 
+import com.intellij.CommonBundle;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.lang.UrlClassLoader;
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.PluginIgnoreMissingTokensFileErrorManager;
@@ -31,11 +39,16 @@ import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.GrammarRootAST;
+import org.codehaus.groovy.antlr.AntlrParserPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import static org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore.getGrammarProperties;
@@ -193,64 +206,83 @@ public class ParsingUtils {
 		return new ParsingResult(parser, t, listener);
 	}
 
-	public static ParsingResult parseText(Grammar g,
-										  LexerGrammar lg,
-										  String startRuleName,
+	public static ParsingResult parseText(final Grammar g,
+										  final LexerGrammar lg,
+										  final Constructor<Lexer> lexerCtor,
+										  final Constructor<Parser> parserCtor,
+										  final String startRuleName,
 										  final VirtualFile grammarFile,
-										  String inputText,
-										  Project project) {
+										  final String inputText,
+										  final Project project) {
+		if ( g==null || lg==null ) {
+			ANTLRv4PluginController.LOG.info("parseText can't parse: missing lexer or parser no Grammar object for " +
+					(grammarFile != null ? grammarFile.getName() : "<unknown file>"));
+			return null;
+		}
+
 		ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, grammarFile);
 		CharStream input = grammarProperties.getCaseChangingStrategy()
 				.applyTo(CharStreams.fromString(inputText, grammarFile.getPath()));
-		LexerInterpreter lexEngine;
-		lexEngine = lg.createLexerInterpreter(input);
-		SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
-		lexEngine.removeErrorListeners();
-		lexEngine.addErrorListener(syntaxErrorListener);
-		CommonTokenStream tokens = new TokenStreamSubset(lexEngine);
-		return parseText(g, lg, startRuleName, grammarFile, syntaxErrorListener, tokens, 0);
+
+		try {
+			CommonTokenStream tokens;
+
+			LexerInterpreter lexEngine;
+			lexEngine = lg.createLexerInterpreter(input);
+			SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
+			lexEngine.removeErrorListeners();
+			lexEngine.addErrorListener(syntaxErrorListener);
+
+			if (lexerCtor != null) {
+				Lexer lexer = lexerCtor.newInstance(input);
+				tokens = new TokenStreamSubset(lexer);
+			} else {
+				tokens = new TokenStreamSubset(lexEngine);
+			}
+
+			Parser parser = null;
+
+			if (parserCtor != null) {
+				parser = parserCtor.newInstance(tokens);
+			}
+
+			return parseText(g, tokens, parser, syntaxErrorListener, startRuleName, 0);
+		} catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
+			ANTLRv4PluginController.LOG.error(e);
+			return null;
+		}
 	}
 
 	public static ParsingResult parseText(Grammar g,
-										  LexerGrammar lg,
-										  String startRuleName,
-										  final VirtualFile grammarFile,
-										  SyntaxErrorListener syntaxErrorListener,
 										  TokenStream tokens,
+										  Parser parser,
+										  SyntaxErrorListener syntaxErrorListener,
+										  String startRuleName,
 										  int startIndex) {
-		if ( g==null || lg==null ) {
-			ANTLRv4PluginController.LOG.info("parseText can't parse: missing lexer or parser no Grammar object for " +
-											 (grammarFile != null ? grammarFile.getName() : "<unknown file>"));
-			return null;
-		}
-
-		String grammarFileName = g.fileName;
-		if (!new File(grammarFileName).exists()) {
-			ANTLRv4PluginController.LOG.info("parseText grammar doesn't exist "+grammarFileName);
-			return null;
-		}
-
-		if ( g==BAD_PARSER_GRAMMAR || lg==BAD_LEXER_GRAMMAR ) {
-			return null;
-		}
-
 		tokens.seek(startIndex);
 
-		PreviewParser parser = new PreviewParser(g, tokens);
-		parser.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
-		parser.setProfile(true);
+		ParserInterpreter parserInterpreter;
 
-		parser.removeErrorListeners();
-		parser.addErrorListener(syntaxErrorListener);
+		if (parser != null) {
+			parserInterpreter = new PreviewParser(g, parser.getATN(), tokens);
+		} else {
+			parserInterpreter = new PreviewParser(g, tokens);
+		}
 
-		Rule start = g.getRule(startRuleName);
-		if ( start==null ) {
+		parserInterpreter.getInterpreter().setPredictionMode(PredictionMode.LL_EXACT_AMBIG_DETECTION);
+		parserInterpreter.setProfile(true);
+
+		parserInterpreter.removeErrorListeners();
+		parserInterpreter.addErrorListener(syntaxErrorListener);
+
+		int startRuleIndex = parserInterpreter.getRuleIndex(startRuleName);
+		if ( startRuleIndex==-1 ) {
 			return null; // can't find start rule
 		}
-		ParseTree t = parser.parse(start.index);
+		ParseTree t = parserInterpreter.parse(startRuleIndex);
 
 		if ( t!=null ) {
-			return new ParsingResult(parser, t, syntaxErrorListener);
+			return new ParsingResult(parserInterpreter, t, syntaxErrorListener);
 		}
 		return null;
 	}

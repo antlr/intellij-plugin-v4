@@ -32,8 +32,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	protected JCheckBox autoGenerateParsersCheckBox;
 	protected JTextField languageField;
 	private JComboBox<CaseChangingStrategy> caseTransformation;
+    private JCheckBox useGeneratedParserCodeCheckBox;
 
-	private ConfigANTLRPerGrammar(final Project project) {
+    private ConfigANTLRPerGrammar(final Project project) {
 		super(project, false);
 	}
 
@@ -79,6 +80,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		caseTransformation.setSelectedItem(grammarProperties.getCaseChangingStrategy());
 		generateParseTreeListenerCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeListener());
 		generateParseTreeVisitorCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeVisitor());
+		useGeneratedParserCodeCheckBox.setSelected(grammarProperties.isUseGeneratedParserCodeCheckBox());
 	}
 
     public void saveValues(Project project, String qualFileName) {
@@ -93,6 +95,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		grammarProperties.caseChangingStrategy = getCaseChangingStrategy();
 		grammarProperties.generateListener = generateParseTreeListenerCheckBox.isSelected();
 		grammarProperties.generateVisitor = generateParseTreeVisitorCheckBox.isSelected();
+		grammarProperties.useGeneratedParserCodeCheckBox = useGeneratedParserCodeCheckBox.isSelected();
 	}
 
 	boolean isModified(ANTLRv4GrammarProperties originalProperties) {
@@ -139,6 +142,7 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return "ConfigANTLRPerGrammar{" +
 				" generateParseTreeListenerCheckBox=" + generateParseTreeListenerCheckBox +
 				", generateParseTreeVisitorCheckBox=" + generateParseTreeVisitorCheckBox +
+				", useGeneratedParserCodeCheckBox=" + useGeneratedParserCodeCheckBox +
 				", packageField=" + packageField +
 				", outputDirField=" + outputDirField +
 				", libDirField=" + libDirField +
