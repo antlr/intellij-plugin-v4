@@ -67,7 +67,8 @@ base parser/lexer classes, your custom code will *not* be run during live previe
 As of 1.17, this limitation is partially not true. The configuration window of a grammar has a new option
 that allows using the generated parser code in the preview. In this case, the grammar must be compiled into
 a Java class (just to be on Project's target classpath). Any changes made to such grammar are not immediately
-reflected in the preview and the project must be recompiled instead.
+reflected in the preview and the project must be recompiled instead. It is also possible to specify the name of the
+compiler parser/lexer class. By default the name of the grammar is used (parser and lexer grammar).
 
 ## History
 

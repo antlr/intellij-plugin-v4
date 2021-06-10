@@ -101,6 +101,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	private ProgressIndicator parsingProgressIndicator;
     private UrlClassLoader projectClassLoader;
 
+	private Class<?> tokenStreamClass;
+	private Class<?> charStreamClass;
+
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
 	}
@@ -217,12 +220,19 @@ public class ANTLRv4PluginController implements ProjectComponent {
         for (String path : compiledClassUrls) {
             try {
                 urls.add(new File(FileUtil.toSystemIndependentName(path)).toURI().toURL());
-            } catch (MalformedURLException e1) {
+			} catch (MalformedURLException e1) {
                 LOG.error(e1);
             }
         }
 
         this.projectClassLoader = UrlClassLoader.build().parent(TokenStream.class.getClassLoader()).urls(urls).get();
+
+        try {
+			this.tokenStreamClass = Class.forName(TokenStream.class.getName(), true, this.projectClassLoader);
+			this.charStreamClass = Class.forName(CharStream.class.getName(), true, this.projectClassLoader);
+		} catch (ClassNotFoundException e) {
+			LOG.error(e);
+		}
     }
 
     // ------------------------------
@@ -426,13 +436,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 			ANTLRv4GrammarProperties grammarProperties = ANTLRv4GrammarPropertiesStore.getGrammarProperties(project, grammarFile);
             if (grammarProperties.isUseGeneratedParserCodeCheckBox()) {
-                String parserClassName = grammarFile.getNameWithoutExtension();
-                String lexerClassName = lg.name;
+                String parserClassName = grammarProperties.getGeneratedParserClassName() != null ? grammarProperties.getGeneratedParserClassName() : grammarFile.getNameWithoutExtension();
+                String lexerClassName = grammarProperties.getGeneratedLexerClassName() != null ? grammarProperties.getGeneratedLexerClassName() : lg.name;
 
 				try {
-					Class<?> tokenStreamClass = Class.forName(TokenStream.class.getName(), true, this.projectClassLoader);
-					Class<?> charStreamClass = Class.forName(CharStream.class.getName(), true, this.projectClassLoader);
-
 					Class<Parser> parserClass = (Class<Parser>) Class.forName(parserClassName, true, this.projectClassLoader);
 					Class<Lexer> lexerClass = (Class<Lexer>) Class.forName(lexerClassName, true, this.projectClassLoader);
 
