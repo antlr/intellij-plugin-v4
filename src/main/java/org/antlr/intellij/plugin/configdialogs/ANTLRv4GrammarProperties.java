@@ -60,6 +60,12 @@ public class ANTLRv4GrammarProperties implements Cloneable {
     @Property
     boolean useGeneratedParserCodeCheckBox = false;
 
+    @Property
+    String generatedParserClassName;
+
+    @Property
+    String generatedLexerClassName;
+
     public ANTLRv4GrammarProperties() {
     }
 
@@ -75,6 +81,8 @@ public class ANTLRv4GrammarProperties implements Cloneable {
         this.generateVisitor = source.generateVisitor;
         this.caseChangingStrategy = source.caseChangingStrategy;
         this.useGeneratedParserCodeCheckBox = source.useGeneratedParserCodeCheckBox;
+        this.generatedParserClassName = source.generatedParserClassName;
+        this.generatedLexerClassName = source.generatedLexerClassName;
     }
 
     public boolean shouldAutoGenerateParser() {
@@ -111,6 +119,14 @@ public class ANTLRv4GrammarProperties implements Cloneable {
 
     public boolean isUseGeneratedParserCodeCheckBox() {
         return useGeneratedParserCodeCheckBox;
+    }
+
+    public String getGeneratedParserClassName() {
+        return generatedParserClassName;
+    }
+
+    public String getGeneratedLexerClassName() {
+        return generatedLexerClassName;
     }
 
     public CaseChangingStrategy getCaseChangingStrategy() {
