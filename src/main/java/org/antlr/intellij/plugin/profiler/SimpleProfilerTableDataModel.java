@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.profiler;
 
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
@@ -9,12 +10,15 @@ import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	public ParseInfo parseInfo;
+	public Parser parser;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
     public static final String[] columnNames = {
-            "Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
+			"Rule","Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };
 
-    public static final String[] columnToolTips = {
+    public static final String[] columnToolTips =
+	{
+		"name of rule",
         "# decision invocations",
 		"Rough estimate of time (ms) spent in prediction",
 		"Total lookahead symbols examined",
@@ -26,8 +30,14 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	// microsecond decimal precision
 	private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
 
-	public SimpleProfilerTableDataModel(ParseInfo parseInfo) {
+	private String[] rule;
+	public SimpleProfilerTableDataModel(ParseInfo parseInfo,Parser parser) {
         this.parseInfo = parseInfo;
+        rule = new String[parser.getATN().decisionToState.size()];
+        for(int i=0;i<rule.length;i++)
+		{
+			rule[i] = parser.getRuleNames()[parser.getATN().getDecisionState(i).ruleIndex];
+		}
         for (int i = 0; i < columnNames.length; i++) {
             nameToColumnMap.put(columnNames[i], i);
         }
@@ -53,17 +63,19 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
         int decision = row;
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 		switch (col) { // laborious but more efficient than reflection
-            case 0:
+			case 0: return  rule[decision];
+            case 1:
 				return decisionInfo.invocations;
-			case 1:
-				return milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
 			case 2:
-				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
+				return //milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
+						decisionInfo.timeInPrediction/1000;
 			case 3:
-				return Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
+				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
 			case 4:
-				return decisionInfo.ambiguities.size();
+				return Math.max(decisionInfo.LL_MaxLook, decisionInfo.SLL_MaxLook);
 			case 5:
+				return decisionInfo.ambiguities.size();
+			case 6:
 				return decisionInfo.SLL_ATNTransitions+
 					decisionInfo.LL_ATNTransitions;
 		}

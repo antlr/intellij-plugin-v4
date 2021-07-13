@@ -94,7 +94,7 @@ public class ProfilerPanel {
 		this.previewState = previewState;
 		Parser parser = previewState.parsingResult.parser;
 		ParseInfo parseInfo = parser.getParseInfo();
-		updateTableModelPerExpertCheckBox(parseInfo);
+		updateTableModelPerExpertCheckBox(parseInfo,parser);
 		double parseTimeMS = parseTime_ns/(1000.0*1000.0);
 		// microsecond decimal precision
 		NumberFormat formatter = new DecimalFormat("#.###");
@@ -133,13 +133,13 @@ public class ProfilerPanel {
 		                          );
 	}
 
-	public void updateTableModelPerExpertCheckBox(ParseInfo parseInfo) {
+	public void updateTableModelPerExpertCheckBox(ParseInfo parseInfo,Parser parser) {
 		AbstractTableModel model;
 		if ( expertCheckBox.isSelected() ) {
 			model = new ExpertProfilerTableDataModel(parseInfo);
 		}
 		else {
-			model = new SimpleProfilerTableDataModel(parseInfo);
+			model = new SimpleProfilerTableDataModel(parseInfo,parser);
 		}
 		profilerDataTable.setModel(model);
 		profilerDataTable.setRowSorter(new TableRowSorter<>(model));
@@ -326,7 +326,7 @@ public class ProfilerPanel {
 				return;
 			}
 			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
-			updateTableModelPerExpertCheckBox(parseInfo);
+			updateTableModelPerExpertCheckBox(parseInfo,previewState.parsingResult.parser);
 		});
 		profilerDataTable = new JBTable() {
 			@Override
