@@ -18,7 +18,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 
     public static final String[] columnToolTips =
 	{
-		"name of rule",
+		"name of rule and decision no",
         "# decision invocations",
 		"Rough estimate of time (ms) spent in prediction",
 		"Total lookahead symbols examined",
@@ -33,9 +33,9 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	private String[] rule;
 	public SimpleProfilerTableDataModel(ParseInfo parseInfo,Parser parser) {
         this.parseInfo = parseInfo;
+        /*copying rule names to not hold ref to parser object*/
         rule = new String[parser.getATN().decisionToState.size()];
-        for(int i=0;i<rule.length;i++)
-		{
+        for(int i = 0; i < rule.length; i++) {
 			rule[i] = parser.getRuleNames()[parser.getATN().getDecisionState(i).ruleIndex];
 		}
         for (int i = 0; i < columnNames.length; i++) {
@@ -63,7 +63,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
         int decision = row;
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 		switch (col) { // laborious but more efficient than reflection
-			case 0: return  rule[decision];
+			case 0: return  String.format("%s (%d)",rule[decision],decision);
             case 1:
 				return decisionInfo.invocations;
 			case 2:
