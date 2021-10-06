@@ -10,14 +10,12 @@ import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	public ParseInfo parseInfo;
-	public Parser parser;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
     public static final String[] columnNames = {
 			"Rule","Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };
 
-    public static final String[] columnToolTips =
-	{
+    public static final String[] columnToolTips = {
 		"name of rule and decision no",
         "# decision invocations",
 		"Rough estimate of time (ms) spent in prediction",
@@ -27,16 +25,13 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 		"# of non-DFA transitions during prediction (cache miss)"
     };
 
-	// microsecond decimal precision
-	private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
-
-	private String[] rule;
+	private final String[] ruleNamesByDecision ;
 	public SimpleProfilerTableDataModel(ParseInfo parseInfo,Parser parser) {
         this.parseInfo = parseInfo;
         /*copying rule names to not hold ref to parser object*/
-        rule = new String[parser.getATN().decisionToState.size()];
-        for(int i = 0; i < rule.length; i++) {
-			rule[i] = parser.getRuleNames()[parser.getATN().getDecisionState(i).ruleIndex];
+		ruleNamesByDecision  = new String[parser.getATN().decisionToState.size()];
+        for(int i = 0; i < ruleNamesByDecision .length; i++) {
+			ruleNamesByDecision [i] = parser.getRuleNames()[parser.getATN().getDecisionState(i).ruleIndex];
 		}
         for (int i = 0; i < columnNames.length; i++) {
             nameToColumnMap.put(columnNames[i], i);
@@ -63,12 +58,12 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
         int decision = row;
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 		switch (col) { // laborious but more efficient than reflection
-			case 0: return  String.format("%s (%d)",rule[decision],decision);
+			case 0:
+				return  String.format("%s (%d)",ruleNamesByDecision [decision],decision);
             case 1:
 				return decisionInfo.invocations;
 			case 2:
-				return //milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
-						decisionInfo.timeInPrediction/1000;
+				return decisionInfo.timeInPrediction/1000.;
 			case 3:
 				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
 			case 4:
