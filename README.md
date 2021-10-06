@@ -189,4 +189,6 @@ To launch unit tests, run `./gradlew check`.
 
 To build a zipped version of the plugin and its dependencies, run `./gradlew buildPlugin`.
 
+You can tweak the version of the IntelliJ platform used to build/test the plugin in `gradle.properties`. Versions prior to 2018.1.5 require a JDK 1.8, but later versions also support JDK 9+.
+
 A high level description of how the plugin works can be found in `ARCHITECTURE.md`.

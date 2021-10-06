@@ -15,32 +15,21 @@ jobs:
         env:
           # see https://www.jetbrains.com/idea/download/previous.html
           # and https://www.jetbrains.com/intellij-repository/snapshots/
-          - IDEA_VERSION: IC-2017.1.6
-          - IDEA_VERSION: IC-2017.3.6
-          - IDEA_VERSION: IC-2018.2.8
-          - IDEA_VERSION: IC-2018.3.6
           - IDEA_VERSION: IC-2019.1.4
           - IDEA_VERSION: IC-2019.2.4
           - IDEA_VERSION: IC-2019.3.3
           - IDEA_VERSION: IC-2020.1
           - IDEA_VERSION: IC-2020.2
           - IDEA_VERSION: IC-2020.3
-            JDK_VERSION: '11'
+          - IDEA_VERSION: IC-2021.2
           - IDEA_VERSION: IU-LATEST-EAP-SNAPSHOT
-            JDK_VERSION: '11'
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
-        if: matrix.env.JDK_VERSION != '11'
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
           java-version: 11
-        if: matrix.env.JDK_VERSION == '11'
       - name: Build with Gradle
         run: |
           ./gradlew -PideaVersion=${IDEA_VERSION} check buildPlugin
