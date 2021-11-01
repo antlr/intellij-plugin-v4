@@ -136,7 +136,7 @@ public class ProfilerPanel {
 	public void updateTableModelPerExpertCheckBox(ParseInfo parseInfo,Parser parser) {
 		AbstractTableModel model;
 		if ( expertCheckBox.isSelected() ) {
-			model = new ExpertProfilerTableDataModel(parseInfo);
+			model = new ExpertProfilerTableDataModel(parseInfo,parser);
 		}
 		else {
 			model = new SimpleProfilerTableDataModel(parseInfo,parser);
