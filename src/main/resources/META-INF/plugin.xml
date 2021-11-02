@@ -73,14 +73,15 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>xxx (<a href="https://github.com/antlr/intellij-plugin-v4/issues/xxx">#xxx</a>)</li>
+	    <li>Added a new 'Tokens' tab in the preview (<a href="https://github.com/antlr/intellij-plugin-v4/issues/417">#417</a>)</li>
+	    <li>Updated to ANTLR 4.9.2 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/477">#477</a>)</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.17+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="171"/> <!-- requires IntelliJ 2017.1+ -->
+  <idea-version since-build="183"/> <!-- requires IntelliJ 2018.3+ -->
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
