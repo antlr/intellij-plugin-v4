@@ -147,7 +147,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 				highlightSource = state;
 			}
 		};
-		ToggleAction autoBuildTree = new ToggleAction("Build tree after parse",null,AllIcons.Toolwindows.ToolWindowHierarchy) {
+		ToggleAction autoBuildTree = new ToggleAction("Build parse tree after parse",null,AllIcons.Toolwindows.ToolWindowHierarchy) {
 			@Override
 			public boolean isSelected(@NotNull AnActionEvent e) {
 				return buildTree;
