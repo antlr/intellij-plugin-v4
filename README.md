@@ -21,7 +21,7 @@ This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. Works with Intell
 - generates Java code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
 - code completion for tokens, rule names;
 - finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
-- handles separate parsers and lectures like TParser.g4 and TLexer.g4 (1.7)
+- handles separate parsers and lexers like TParser.g4 and TLexer.g4 (1.7)
 - Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
 - has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
 - can view parse trees for input matched in more than one way (ambiguities) (1.7)
