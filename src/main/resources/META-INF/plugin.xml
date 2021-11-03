@@ -25,7 +25,7 @@
      <li> generates parser code; shortcut (ctrl-shift-G / meta-shift-G) but it's in Tools menu and popups.
      <li> code completion for tokens, rule names;
      <li> finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
-     <li> handles separate parsers and lectures like TParser.g4 and TLexer.g4 (1.7)
+     <li> handles separate parsers and lexers like TParser.g4 and TLexer.g4 (1.7)
      <li> Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
      <li> has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
      <li> view parse trees in hierarchy (sideways tree) view. (1.8)
