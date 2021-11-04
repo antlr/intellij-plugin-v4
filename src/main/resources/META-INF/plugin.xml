@@ -74,6 +74,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
   <change-notes><![CDATA[
 	<ul>
 	    <li>Added a new 'Tokens' tab in the preview (<a href="https://github.com/antlr/intellij-plugin-v4/issues/417">#417</a>)</li>
+	    <li>The profiler results now show rule names (<a href="https://github.com/antlr/intellij-plugin-v4/issues/466">#466</a>)</li>
 	    <li>Updated to ANTLR 4.9.2 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/477">#477</a>)</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.17+is%3Aclosed">fixed issues</a>.
