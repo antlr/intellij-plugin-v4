@@ -63,7 +63,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
             case 1:
 				return decisionInfo.invocations;
 			case 2:
-				return decisionInfo.timeInPrediction/1000.;
+				return decisionInfo.timeInPrediction/(1000.0 * 1000.0);
 			case 3:
 				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
 			case 4:
