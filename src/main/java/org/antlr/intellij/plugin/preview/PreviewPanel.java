@@ -75,6 +75,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 	private boolean scrollFromSource = false;
 	private boolean highlightSource = false;
+	private boolean buildTree = true;
+	private boolean buildHierarchy = true;
 
 	private ActionToolbar buttonBar;
 	private final CancelParserAction cancelParserAction = new CancelParserAction();
@@ -145,12 +147,34 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 				highlightSource = state;
 			}
 		};
+		ToggleAction autoBuildTree = new ToggleAction("Build parse tree after parse",null,AllIcons.Toolwindows.ToolWindowHierarchy) {
+			@Override
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return buildTree;
+			}
+
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) { buildTree = state; }
+		};
+		ToggleAction autoBuildHier = new ToggleAction("Build hierarchy after parse",null,AllIcons.Actions.ShowAsTree) {
+			@Override
+			public boolean isSelected(@NotNull AnActionEvent e) {
+				return buildHierarchy;
+			}
+
+			@Override
+			public void setSelected(@NotNull AnActionEvent e, boolean state) {
+				buildHierarchy = state;
+			}
+		};
 
 		DefaultActionGroup actionGroup = new DefaultActionGroup(
 				refreshAction,
 				cancelParserAction,
 				scrollFromSourceBtn,
-				scrollToSourceBtn
+				scrollToSourceBtn,
+				autoBuildTree,
+				autoBuildHier
 		);
 
 		return ActionManager.getInstance().createActionToolbar(PREVIEW_WINDOW_ID, actionGroup, false);
@@ -342,22 +366,32 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
+
 		ApplicationManager.getApplication().invokeLater(() -> {
 			if (result.parser instanceof PreviewParser) {
 				AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
-				treeViewer.setTreeTextProvider(provider);
-				treeViewer.setTree(result.tree);
-				hierarchyViewer.setTreeTextProvider(provider);
-				hierarchyViewer.setTree(result.tree);
+				if(buildTree) {
+					treeViewer.setTreeTextProvider(provider);
+					treeViewer.setTree(result.tree);
+				}
+				if(buildHierarchy) {
+					hierarchyViewer.setTreeTextProvider(provider);
+					hierarchyViewer.setTree(result.tree);
+				}
 				tokenStreamViewer.setParsingResult(result.parser);
 			}
 			else {
-				treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-				treeViewer.setTree(result.tree);
-				hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-				hierarchyViewer.setTree(result.tree);
+				if(buildTree) {
+					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+					treeViewer.setTree(result.tree);
+				}
+				if(buildHierarchy) {
+					hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+					hierarchyViewer.setTree(result.tree);
+				}
 			}
 		});
+
 	}
 
 

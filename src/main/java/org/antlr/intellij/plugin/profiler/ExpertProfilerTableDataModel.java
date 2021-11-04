@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.profiler;
 
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
@@ -38,9 +39,15 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 
 	// microsecond decimal precision
 	private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
+	private final String[] ruleNamesByDecision ;
 
-    public ExpertProfilerTableDataModel(ParseInfo parseInfo) {
+    public ExpertProfilerTableDataModel(ParseInfo parseInfo, Parser parser) {
         this.parseInfo = parseInfo;
+		/*copying rule names to not hold ref to parser object*/
+		ruleNamesByDecision  = new String[parser.getATN().decisionToState.size()];
+		for(int i = 0; i < ruleNamesByDecision .length; i++) {
+			ruleNamesByDecision [i] = parser.getRuleNames()[parser.getATN().getDecisionState(i).ruleIndex];
+		}
         for (int i = 0; i < columnNames.length; i++) {
             nameToColumnMap.put(columnNames[i], i);
         }
@@ -66,7 +73,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 		DecisionInfo decisionInfo = parseInfo.getDecisionInfo()[decision];
 		switch (col) { // laborious but more efficient than reflection
             case 0:
-                return decisionInfo.decision;
+				return  String.format("%s (%d)",ruleNamesByDecision [decision],decision);
             case 1:
                 return decisionInfo.invocations;
             case 2:

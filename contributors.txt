@@ -63,3 +63,5 @@ YYYY/MM/DD, github id, Full name, email
 2019/07/10, wojciszek, Wojciech Kruczkowski, kruczkowski.wojciech@gmail.com
 2019/11/24, nopeslide, Uffke Drechsler, nopeslide@web.de
 2020/12/05, roggenbrot, Sascha Dais, sdais@gmx.net
+2021/11/04, OleksiiKovalov, Oleksii Kovalov, Oleksii.Kovalov@outlook.com
+
