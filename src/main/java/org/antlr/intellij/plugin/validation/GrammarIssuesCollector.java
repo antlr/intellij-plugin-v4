@@ -49,7 +49,7 @@ public class GrammarIssuesCollector {
             }
         }
 
-        final Tool antlr = new Tool(args.toArray(new String[args.size()]));
+        final Tool antlr = new Tool(args.toArray(new String[0]));
         if ( !args.contains("-lib") ) {
             // getContainingDirectory() must be identified as a read operation on file system
             ApplicationManager.getApplication().runReadAction(() -> {
@@ -128,24 +128,22 @@ public class GrammarIssuesCollector {
         }
         ST msgST = null;
         if ( issue.getMsg() instanceof GrammarInfoMessage ) { // not in ANTLR so must hack it in
-            Token t = ((GrammarSemanticsMessage) issue.getMsg()).offendingToken;
+            Token t = issue.getMsg().offendingToken;
             issue.getOffendingTokens().add(t);
-            msgST = new ST("unused parser rule <arg>");
+            msgST = new ST("Unused parser rule <arg>");
             msgST.add("arg", t.getText());
             msgST.impl.name = "info";
         }
         else if ( issue.getMsg() instanceof GrammarSemanticsMessage ) {
-            Token t = ((GrammarSemanticsMessage) issue.getMsg()).offendingToken;
+            Token t = issue.getMsg().offendingToken;
             issue.getOffendingTokens().add(t);
         }
         else if ( issue.getMsg() instanceof LeftRecursionCyclesMessage) {
-            List<String> rulesToHighlight = new ArrayList<>();
             LeftRecursionCyclesMessage lmsg = (LeftRecursionCyclesMessage) issue.getMsg();
             Collection<? extends Collection<Rule>> cycles =
                 (Collection<? extends Collection<Rule>>)lmsg.getArgs()[0];
             for (Collection<Rule> cycle : cycles) {
                 for (Rule r : cycle) {
-                    rulesToHighlight.add(r.name);
                     GrammarAST nameNode = (GrammarAST)r.ast.getChild(0);
                     issue.getOffendingTokens().add(nameNode.getToken());
                 }

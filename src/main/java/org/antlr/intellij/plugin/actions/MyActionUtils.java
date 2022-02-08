@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 public class MyActionUtils {
 	public static void selectedFileIsGrammar(AnActionEvent e) {
@@ -59,8 +60,7 @@ public class MyActionUtils {
 	public static int getMouseOffset(Editor editor) {
 		Point mousePosition = editor.getContentComponent().getMousePosition();
 		LogicalPosition pos=editor.xyToLogicalPosition(mousePosition);
-		int offset = editor.logicalPositionToOffset(pos);
-		return offset;
+        return editor.logicalPositionToOffset(pos);
 	}
 
 	public static void moveCursor(Editor editor, int cursorOffset) {
@@ -86,7 +86,7 @@ public class MyActionUtils {
 		return highlightersAtOffset;
 	}
 
-	public static DecisionEventInfo getHighlighterWithDecisionEventType(List<RangeHighlighter> highlighters, Class decisionEventType) {
+	public static <T> DecisionEventInfo getHighlighterWithDecisionEventType(List<RangeHighlighter> highlighters, Class<T> decisionEventType) {
 		for (RangeHighlighter r : highlighters) {
 			DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
 			if (eventInfo != null) {
@@ -100,18 +100,21 @@ public class MyActionUtils {
 
 	public static ParserRuleRefNode getParserRuleSurroundingRef(AnActionEvent e) {
 		PsiElement selectedPsiNode = getSelectedPsiElement(e);
-		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(selectedPsiNode, ParserRuleSpecNode.class);
-		if ( ruleSpecNode==null ) return null;
-		// find the name of rule under ParserRuleSpecNode
-		return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
-	}
+        return getParserRuleRefNode(selectedPsiNode);
+    }
 
-	public static ParserRuleRefNode getParserRuleSurroundingRef(PsiElement element) {
-		RuleSpecNode ruleSpecNode = getRuleSurroundingRef(element, ParserRuleSpecNode.class);
-		if ( ruleSpecNode==null ) return null;
-		// find the name of rule under ParserRuleSpecNode
-		return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
-	}
+    @Nullable
+    public static ParserRuleRefNode getParserRuleRefNode(PsiElement selectedPsiNode) {
+        RuleSpecNode ruleSpecNode = getRuleSurroundingRef(selectedPsiNode, ParserRuleSpecNode.class);
+        if ( ruleSpecNode==null )
+            return null;
+        // find the name of rule under ParserRuleSpecNode
+        return PsiTreeUtil.findChildOfType(ruleSpecNode, ParserRuleRefNode.class);
+    }
+
+    public static ParserRuleRefNode getParserRuleSurroundingRef(PsiElement element) {
+        return getParserRuleRefNode(element);
+    }
 
 	public static LexerRuleRefNode getLexerRuleSurroundingRef(AnActionEvent e) {
 		PsiElement selectedPsiNode = getSelectedPsiElement(e);
@@ -145,7 +148,7 @@ public class MyActionUtils {
 		if ( editor==null ) { // not in editor
 			PsiElement selectedNavElement = e.getData(LangDataKeys.PSI_ELEMENT);
 			// in nav bar?
-			if ( selectedNavElement==null || !(selectedNavElement instanceof ParserRuleRefNode) ) {
+			if (!(selectedNavElement instanceof ParserRuleRefNode)) {
 				return null;
 			}
 			return selectedNavElement;
@@ -158,8 +161,7 @@ public class MyActionUtils {
 		}
 
 		int offset = editor.getCaretModel().getOffset();
-		PsiElement el = file.findElementAt(offset);
-		return el;
+        return file.findElementAt(offset);
 	}
 
 	/** Only show if selection is a lexer or parser rule */

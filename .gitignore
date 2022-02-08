@@ -1,5 +1,6 @@
 # Build intermediate
 /gen/
+/src/main/gen/
 
 # Build output
 /out/

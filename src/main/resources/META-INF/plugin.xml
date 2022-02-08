@@ -143,7 +143,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <extensions defaultExtensionNs="com.intellij">
       <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
-      <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+      <lang.syntaxHighlighterFactory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <lang.commenter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4Commenter" />
       <indexPatternBuilder implementation="org.antlr.intellij.plugin.psi.ANTLRv4IndexPatternBuilder"/>
       <lang.braceMatcher language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.editor.ANTLRv4BraceMatcher"/>
@@ -169,5 +169,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
                            displayName="ANTLR v4 default project settings"
                            instance="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"/>
       <projectService serviceImplementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesComponent"/>
+    <intentionAction>
+      <className>org.antlr.intellij.plugin.actions.intention.TestParserRuleIntentionAction</className>
+      <category>ANTLRv4</category>
+    </intentionAction>
   </extensions>
 </idea-plugin>
