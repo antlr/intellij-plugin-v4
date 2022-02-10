@@ -1,7 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.ui.components.JBScrollPane;
-import org.antlr.intellij.plugin.Icons;
+import icons.Icons;
 import org.antlr.v4.gui.TreeTextProvider;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.ParserRuleContext;

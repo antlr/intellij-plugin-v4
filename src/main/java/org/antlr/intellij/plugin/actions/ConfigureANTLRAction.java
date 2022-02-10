@@ -13,11 +13,6 @@ public class ConfigureANTLRAction extends AnAction implements DumbAware {
 	public static final Logger LOG = Logger.getInstance("ConfigureANTLRAction");
 
 	@Override
-	public void update(AnActionEvent e) {
-		MyActionUtils.selectedFileIsGrammar(e);
-	}
-
-	@Override
 	public void actionPerformed(AnActionEvent e) {
 		if ( e.getProject()==null ) {
 			LOG.error("actionPerformed no project for "+e);

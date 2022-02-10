@@ -29,9 +29,6 @@ public class TestRuleAction extends AnAction implements DumbAware {
 	@Override
 	public void update(AnActionEvent e) {
 		Presentation presentation = e.getPresentation();
-		presentation.setText("Test ANTLR Rule"); // default text
-		presentation.setIcon(AllIcons.Actions.Execute);
-
 		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
 		if ( grammarFile==null ) { // we clicked somewhere outside text or non grammar file
 			presentation.setEnabled(false);

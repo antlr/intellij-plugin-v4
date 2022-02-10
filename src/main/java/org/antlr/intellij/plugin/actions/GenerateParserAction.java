@@ -15,23 +15,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore;
-import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore;
+import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 
 /** Generate parser from ANTLR grammar;
  *  learned how to do from Grammar-Kit by Gregory Shrago.
  */
 public class GenerateParserAction extends AnAction implements DumbAware {
 	public static final Logger LOG = Logger.getInstance("ANTLR GenerateAction");
-
-	@Override
-	public void update(AnActionEvent e) {
-		MyActionUtils.selectedFileIsGrammar(e);
-	}
 
 	@Override
 	public void actionPerformed(final AnActionEvent e) {
@@ -81,8 +75,8 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 			// pop up a notification
 			Notification notification =
 				new Notification(RunANTLROnGrammarFile.groupDisplayId,
-								 "parser for " + grammarFile.getName() + " generated",
-								 "to " + gen.getOutputDirName(),
+								 "Parser for " + grammarFile.getName() + " generated",
+								 "in " + gen.getOutputDirName(),
 								 NotificationType.INFORMATION);
 			Notifications.Bus.notify(notification, project);
 		}

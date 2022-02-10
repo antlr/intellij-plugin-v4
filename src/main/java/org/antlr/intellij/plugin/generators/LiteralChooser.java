@@ -7,7 +7,7 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.antlr.intellij.plugin.Icons;
+import icons.Icons;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;

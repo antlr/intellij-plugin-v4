@@ -6,7 +6,7 @@ import com.intellij.openapi.options.colors.AttributesDescriptor;
 import com.intellij.openapi.options.colors.ColorDescriptor;
 import com.intellij.openapi.options.colors.ColorSettingsPage;
 import org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighter;
-import org.antlr.intellij.plugin.Icons;
+import icons.Icons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

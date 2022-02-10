@@ -15,6 +15,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.LexerRuleSpecNode;
@@ -23,25 +27,10 @@ import org.antlr.intellij.plugin.psi.ParserRuleSpecNode;
 import org.antlr.intellij.plugin.psi.RuleSpecNode;
 import org.antlr.v4.runtime.atn.DecisionEventInfo;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 public class MyActionUtils {
-	public static void selectedFileIsGrammar(AnActionEvent e) {
-		VirtualFile vfile = getGrammarFileFromEvent(e);
-		if ( vfile==null ) {
-			e.getPresentation().setEnabled(false);
-			return;
-		}
-		e.getPresentation().setEnabled(true); // enable action if we're looking at grammar file
-		e.getPresentation().setVisible(true);
-	}
-
-	public static VirtualFile getGrammarFileFromEvent(AnActionEvent e) {
+    public static VirtualFile getGrammarFileFromEvent(AnActionEvent e) {
 		VirtualFile[] files = LangDataKeys.VIRTUAL_FILE_ARRAY.getData(e.getDataContext());
 		if ( files==null || files.length==0 ) return null;
 		VirtualFile vfile = files[0];

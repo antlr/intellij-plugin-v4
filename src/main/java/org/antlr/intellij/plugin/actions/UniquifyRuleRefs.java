@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import java.util.List;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -21,20 +22,19 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-/** Make every ref to a rule unique by dup'ing the rule and making them
+/** Make every reference to a rule unique by duplicating the rule and making them
  *  rule1, rule2, etc...
  */
 public class UniquifyRuleRefs extends AnAction {
 	@Override
-	public void update(AnActionEvent e) {
-		MyActionUtils.showOnlyIfSelectionIsRule(e, "Dup to Make %s Refs Unique");
+	public void update(@NotNull AnActionEvent e) {
+		MyActionUtils.showOnlyIfSelectionIsRule(e, "Duplicate to Make %s References Unique");
 	}
 
 	@Override
-	public void actionPerformed(AnActionEvent e) {
+	public void actionPerformed(@NotNull AnActionEvent e) {
 		PsiElement el = MyActionUtils.getSelectedPsiElement(e);
 		if ( el==null ) return;
 
@@ -65,7 +65,7 @@ public class UniquifyRuleRefs extends AnAction {
 		// alter rule refs and dup rules
 		WriteCommandAction setTextAction = new WriteCommandAction(project) {
 			@Override
-			protected void run(final Result result) {
+			protected void run(final @NotNull Result result) {
 				// do in a single action so undo works in one go
 				dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
 			}

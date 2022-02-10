@@ -2,6 +2,7 @@ package org.antlr.intellij.plugin;
 
 import com.intellij.ide.IconProvider;
 import com.intellij.psi.PsiElement;
+import icons.Icons;
 import org.antlr.intellij.plugin.psi.LexerRuleRefNode;
 import org.antlr.intellij.plugin.psi.ModeSpecNode;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;

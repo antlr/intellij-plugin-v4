@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin;
 
 import com.intellij.openapi.fileTypes.LanguageFileType;
+import icons.Icons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
