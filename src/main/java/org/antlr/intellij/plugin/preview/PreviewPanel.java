@@ -7,8 +7,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.colors.EditorColors;
-import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
@@ -105,7 +105,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		// Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
 		Splitter splitPane = new Splitter();
 		inputPanel = getEditorPanel();
-		inputPanel.addCaretListener(new CaretAdapter() {
+		inputPanel.addCaretListener(new CaretListener() {
 			@Override
 			public void caretPositionChanged(@NotNull CaretEvent event) {
 				Caret caret = event.getCaret();
@@ -533,7 +533,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
                 HighlighterLayer.LAST,
                 ATTRIBUTES,
                 HighlighterTargetArea.EXACT_RANGE);
-        markupModel.putUserData(HIGHLIGHTED_RULE, rangeHighlighter);
+        markupModel.putUserData(HIGHLIGHTED_RULE, rangeHighlighter); // save to remove highlighter when clicking away
         rangeHighlighter.putUserData(HIGHLIGHTED_RULE, rangeHighlighter);
     }
 }

@@ -63,32 +63,45 @@ class HierarchyViewer extends JPanel implements TreeSelectionListener {
 		myTree.setModel(new DefaultTreeModel(wrap(tree), false));
 	}
 
-	public void setRuleNames(List<String> ruleNames) {
-		treeTextProvider = new TreeViewer.DefaultTreeTextProvider(ruleNames);
-	}
+    public void setRuleNames(List<String> ruleNames) {
+        treeTextProvider = new PossiblyEmptyTreeTextProvider(ruleNames);
+    }
 
-	public void setTreeTextProvider(TreeTextProvider treeTextProvider) {
-		this.treeTextProvider = treeTextProvider;
-	}
+    private static class PossiblyEmptyTreeTextProvider extends TreeViewer.DefaultTreeTextProvider {
+        private final boolean isEmpty;
 
-	private MutableTreeNode wrap(final Tree tree) {
-		if ( tree==null ) {
-			return null;
-		}
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode(tree) {
-			@Override
-			public String toString() {
-				return treeTextProvider.getText((Tree) getUserObject());
-			}
+        public PossiblyEmptyTreeTextProvider(List<String> ruleNames) {
+            super(ruleNames);
+            this.isEmpty = !ruleNames.isEmpty();
+        }
+    }
 
+    public void setTreeTextProvider(TreeTextProvider treeTextProvider) {
+        this.treeTextProvider = treeTextProvider;
+    }
 
-		};
+    private MutableTreeNode wrap(final Tree tree) {
+        if (tree == null) {
+            return null;
+        }
 
-		for ( int i = 0; i<tree.getChildCount(); i++ ) {
-			root.add(wrap(tree.getChild(i)));
-		}
-		return root;
-	}
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(tree) {
+            @Override
+            public String toString() {
+                if (treeTextProvider instanceof PossiblyEmptyTreeTextProvider &&
+                        ((PossiblyEmptyTreeTextProvider) tree).isEmpty) {
+                    return "N/A";
+                }
+
+                return treeTextProvider.getText((Tree) getUserObject());
+            }
+        };
+
+        for (int i = 0; i < tree.getChildCount(); i++) {
+            root.add(wrap(tree.getChild(i)));
+        }
+        return root;
+    }
 
 	public void selectNodeAtOffset(int offset) {
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) myTree.getModel().getRoot();
