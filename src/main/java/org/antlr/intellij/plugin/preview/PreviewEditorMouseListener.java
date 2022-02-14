@@ -5,14 +5,15 @@ import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.event.EditorMouseEventArea;
 import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.event.EditorMouseMotionListener;
+import com.intellij.openapi.editor.markup.MarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.ui.popup.JBPopup;
+import java.awt.event.MouseEvent;
+import java.util.List;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.v4.runtime.atn.AmbiguityInfo;
 import org.antlr.v4.runtime.atn.LookaheadEventInfo;
-
-import java.awt.event.MouseEvent;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMotionListener {
 	private final InputPanel inputPanel;
@@ -26,34 +27,42 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		InputPanel.clearTokenInfoHighlighters(e.getEditor());
 	}
 
-	@Override
-	public void mouseClicked(EditorMouseEvent e) {
-		final int offset = getEditorCharOffsetAndRemoveTokenHighlighters(e);
-		if ( offset<0 ) return;
+    @Override
+    public void mouseClicked(@NotNull EditorMouseEvent e) {
+        MarkupModel markupModel = e.getEditor().getMarkupModel();
+        RangeHighlighter userData = markupModel.getUserData(PreviewPanel.HIGHLIGHTED_RULE);
+        if (userData != null) {
+            markupModel.removeHighlighter(userData);
+        }
 
-		final Editor editor=e.getEditor();
-		if ( inputPanel.previewState==null ) {
-			return;
-		}
+        final int offset = getEditorCharOffsetAndRemoveTokenHighlighters(e);
+        if (offset < 0) {
+            return;
+        }
 
-		if ( e.getMouseEvent().getButton()==MouseEvent.BUTTON3 ) { // right click
-			rightClick(inputPanel.previewState, editor, offset);
-			return;
-		}
+        final Editor editor = e.getEditor();
+        if (inputPanel.previewState == null) {
+            return;
+        }
 
-		MouseEvent mouseEvent=e.getMouseEvent();
-		if ( mouseEvent.isControlDown() ) {
-			inputPanel.setCursorToGrammarElement(e.getEditor().getProject(), inputPanel.previewState, offset);
-			inputPanel.setCursorToHierarchyViewElement(offset);
-		}
-		else if ( mouseEvent.isAltDown() ) {
-			inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), inputPanel.previewState, offset);
-		}
-		else {
-			inputPanel.setCursorToHierarchyViewElement(offset);
-		}
-		InputPanel.clearDecisionEventHighlighters(editor);
-	}
+        MouseEvent mouseEvent = e.getMouseEvent();
+        if (mouseEvent.getButton() == MouseEvent.BUTTON3) { // right click
+            rightClick(inputPanel.previewState, editor, offset);
+            return;
+        }
+
+        if (mouseEvent.isControlDown()) {
+            inputPanel.setCursorToGrammarElement(e.getEditor().getProject(),
+                    inputPanel.previewState, offset);
+            inputPanel.setCursorToHierarchyViewElement(offset);
+        } else if (mouseEvent.isAltDown()) {
+            inputPanel.setCursorToGrammarRule(e.getEditor().getProject(), inputPanel.previewState,
+                    offset);
+        } else {
+            inputPanel.setCursorToHierarchyViewElement(offset);
+        }
+        InputPanel.clearDecisionEventHighlighters(editor);
+    }
 
 	public void rightClick(final PreviewState previewState, Editor editor, int offset)
 	{
@@ -80,7 +89,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 	}
 
 	@Override
-	public void mouseMoved(EditorMouseEvent e){
+	public void mouseMoved(@NotNull EditorMouseEvent e){
 		int offset = getEditorCharOffsetAndRemoveTokenHighlighters(e);
 		if ( offset<0 ) return;
 
@@ -123,18 +132,18 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 	// ------------------------
 
 	@Override
-	public void mousePressed(EditorMouseEvent e) {
+	public void mousePressed(@NotNull EditorMouseEvent e) {
 	}
 
 	@Override
-	public void mouseReleased(EditorMouseEvent e) {
+	public void mouseReleased(@NotNull EditorMouseEvent e) {
 	}
 
 	@Override
-	public void mouseEntered(EditorMouseEvent e) {
+	public void mouseEntered(@NotNull EditorMouseEvent e) {
 	}
 
 	@Override
-	public void mouseDragged(EditorMouseEvent e) {
+	public void mouseDragged(@NotNull EditorMouseEvent e) {
 	}
 }

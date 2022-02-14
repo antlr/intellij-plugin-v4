@@ -6,10 +6,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
@@ -49,7 +52,17 @@ import static org.antlr.intellij.plugin.ANTLRv4PluginController.PREVIEW_WINDOW_I
  *  each grammar file it gets notified about.
  */
 public class PreviewPanel extends JPanel implements ParsingResultSelectionListener {
-	//com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
+    public static final Key<RangeHighlighter> HIGHLIGHTED_RULE = Key.create("HIGHLIGHTED_RULE");
+
+    private static final TextAttributes ATTRIBUTES = new TextAttributes(null,
+            EditorColors.IDENTIFIER_UNDER_CARET_ATTRIBUTES
+                    .getDefaultAttributes()
+                    .getBackgroundColor(),
+            null,
+            null,
+            Font.PLAIN);
+
+    //com.apple.eawt stuff stopped working correctly in java 7 and was only recently fixed in java 9;
 	//perhaps in a few more years they will get around to backporting whatever it was they fixed.
 	// until then,  the zoomable tree viewer will only be installed if the user is running java 1.6
 	private static final boolean isTrackpadZoomSupported =
@@ -475,37 +488,52 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	 * Fired when a token is selected in the {@link TokenStreamViewer} to let us know that we should highlight
 	 * the corresponding text in the editor.
 	 */
-	@Override
-	public void onLexerTokenSelected(Token token) {
-		if (!highlightSource) {
-			return;
-		}
+    @Override
+    public void onLexerTokenSelected(Token token) {
+        if (!highlightSource) {
+            return;
+        }
 
-		int startIndex = token.getStartIndex();
-		int stopIndex = token.getStopIndex();
+        int startIndex = token.getStartIndex();
+        int stopIndex = token.getStopIndex();
 
-		inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
-	}
+        highlightRange(startIndex, stopIndex);
+    }
 
-	@Override
-	public void onParserRuleSelected(Tree tree) {
-		int startIndex;
-		int stopIndex;
+    @Override
+    public void onParserRuleSelected(Tree tree) {
+        int startIndex;
+        int stopIndex;
 
-		if ( tree instanceof ParserRuleContext ) {
-			startIndex = ((ParserRuleContext) tree).getStart().getStartIndex();
-			stopIndex = ((ParserRuleContext) tree).getStop().getStopIndex();
-		} else if ( tree instanceof TerminalNode ) {
-			startIndex = ((TerminalNode) tree).getSymbol().getStartIndex();
-			stopIndex = ((TerminalNode) tree).getSymbol().getStopIndex();
-		} else {
-			return;
-		}
+        if (tree instanceof ParserRuleContext) {
+            startIndex = ((ParserRuleContext) tree).getStart().getStartIndex();
+            int documentLength = inputPanel.getInputEditor().getDocument().getTextLength();
+            stopIndex = Math.min(((ParserRuleContext) tree).getStop().getStopIndex(), documentLength - 1);
+        } else if (tree instanceof TerminalNode) {
+            startIndex = ((TerminalNode) tree).getSymbol().getStartIndex();
+            stopIndex = ((TerminalNode) tree).getSymbol().getStopIndex();
+        } else {
+            return;
+        }
 
-		if ( startIndex>=0 ) {
-			Editor editor = inputPanel.getInputEditor();
-			editor.getSelectionModel().removeSelection();
-			editor.getSelectionModel().setSelection(startIndex, stopIndex + 1);
-		}
-	}
+        if (startIndex >= 0) {
+            highlightRange(startIndex, stopIndex);
+        }
+    }
+
+    private void highlightRange(int startIndex, int stopIndex) {
+        MarkupModel markupModel = inputPanel.getInputEditor().getMarkupModel();
+        RangeHighlighter userData = markupModel.getUserData(HIGHLIGHTED_RULE);
+        if (userData != null) {
+            markupModel.removeHighlighter(userData);
+        }
+
+        RangeHighlighter rangeHighlighter = markupModel.addRangeHighlighter(startIndex,
+                stopIndex + 1,
+                HighlighterLayer.LAST,
+                ATTRIBUTES,
+                HighlighterTargetArea.EXACT_RANGE);
+        markupModel.putUserData(HIGHLIGHTED_RULE, rangeHighlighter);
+        rangeHighlighter.putUserData(HIGHLIGHTED_RULE, rangeHighlighter);
+    }
 }

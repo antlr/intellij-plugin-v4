@@ -24,9 +24,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
+import icons.Icons;
 import org.antlr.intellij.adaptor.parser.SyntaxError;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
-import icons.Icons;
 import org.antlr.intellij.plugin.actions.MyActionUtils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
@@ -48,6 +48,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // Not a view itself but delegates to one.
 
@@ -379,15 +380,16 @@ public class InputPanel {
 	/**
 	 * Remove any previous underlining or boxing, but not errors or decision event info
 	 */
-	public static void clearTokenInfoHighlighters(Editor editor) {
-		MarkupModel markupModel = editor.getMarkupModel();
-		for (RangeHighlighter r : markupModel.getAllHighlighters()) {
-			if ( r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY)==null &&
-				r.getUserData(SYNTAX_ERROR)==null ) {
-				markupModel.removeHighlighter(r);
-			}
-		}
-	}
+    public static void clearTokenInfoHighlighters(Editor editor) {
+        MarkupModel markupModel = editor.getMarkupModel();
+        for (RangeHighlighter r : markupModel.getAllHighlighters()) {
+            if (r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY) == null &&
+                    r.getUserData(SYNTAX_ERROR) == null &&
+                    r.getUserData(PreviewPanel.HIGHLIGHTED_RULE) == null) {
+                markupModel.removeHighlighter(r);
+            }
+        }
+    }
 
 	/**
 	 * Display error messages to the console and also add annotations
@@ -593,63 +595,66 @@ public class InputPanel {
 	/**
 	 * Display syntax errors, hints in tooltips if under the cursor
 	 */
-	public static void showTooltips(Editor editor, @NotNull PreviewState previewState, int offset) {
-		if ( previewState.parsingResult==null ) return; // no results?
+    public static void showTooltips(Editor editor, @NotNull PreviewState previewState, int offset) {
+        if (previewState.parsingResult == null) return; // no results?
 
-		// Turn off any tooltips if none under the cursor
-		// find the highlighter associated with this offset
-		List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
-		if ( highlightersAtOffset.size()==0 ) {
-			return;
-		}
+        // Turn off any tooltips if none under the cursor
+        // find the highlighter associated with this offset
+        List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset)
+                .stream()
+                .filter(rangeHighlighter -> rangeHighlighter.getUserData(PreviewPanel.HIGHLIGHTED_RULE) == null)
+                .collect(Collectors.toList());
 
-		List<String> msgList = new ArrayList<>();
-		boolean foundDecisionEvent = false;
-		for ( RangeHighlighter r : highlightersAtOffset ) {
-			DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
-			String msg;
-			if ( eventInfo!=null ) {
-				// TODO: move decision event stuff to profiler?
-				if ( eventInfo instanceof AmbiguityInfo ) {
-					msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
-				} else if ( eventInfo instanceof ContextSensitivityInfo ) {
-					msg = "Context-sensitive";
-				} else if ( eventInfo instanceof LookaheadEventInfo ) {
-					int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
-					msg = "Deepest lookahead k=" + k;
-				} else if ( eventInfo instanceof PredicateEvalInfo ) {
-					PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
-					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
-							previewState,
-							evalInfo.semctx, evalInfo.predictedAlt,
-							evalInfo.evalResult);
-					msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
-				} else {
-					msg = "Unknown decision event: " + eventInfo;
-				}
-				foundDecisionEvent = true;
-			} else {
-				// error tool tips
-				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
-				msg = getErrorDisplayString(errorUnderCursor);
-				if ( msg.length()>MAX_HINT_WIDTH ) {
-					msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
-				}
-				if ( msg.indexOf('<') >= 0 ) {
-					msg = msg.replaceAll("<", "&lt;");
-				}
-			}
-			msgList.add(msg);
-		}
-		String combinedMsg = Utils.join(msgList.iterator(), "\n");
-		HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
-		if ( foundDecisionEvent ) {
-			showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg);
-		}
-		else {
-			showPreviewEditorErrorToolTip(editor, offset, hintMgr, combinedMsg);
-		}
-	}
+        if (highlightersAtOffset.size() == 0) {
+            return;
+        }
+
+        List<String> msgList = new ArrayList<>();
+        boolean foundDecisionEvent = false;
+        for (RangeHighlighter r : highlightersAtOffset) {
+            DecisionEventInfo eventInfo = r.getUserData(ProfilerPanel.DECISION_EVENT_INFO_KEY);
+            String msg;
+            if (eventInfo != null) {
+                // TODO: move decision event stuff to profiler?
+                if (eventInfo instanceof AmbiguityInfo) {
+                    msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
+                } else if (eventInfo instanceof ContextSensitivityInfo) {
+                    msg = "Context-sensitive";
+                } else if (eventInfo instanceof LookaheadEventInfo) {
+                    int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
+                    msg = "Deepest lookahead k=" + k;
+                } else if (eventInfo instanceof PredicateEvalInfo) {
+                    PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
+                    msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
+                            previewState,
+                            evalInfo.semctx, evalInfo.predictedAlt,
+                            evalInfo.evalResult);
+                    msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
+                } else {
+                    msg = "Unknown decision event: " + eventInfo;
+                }
+                foundDecisionEvent = true;
+            } else {
+                // error tool tips
+                SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
+                msg = getErrorDisplayString(errorUnderCursor);
+                if (msg.length() > MAX_HINT_WIDTH) {
+                    msg = msg.substring(0, MAX_HINT_WIDTH) + "...";
+                }
+                if (msg.indexOf('<') >= 0) {
+                    msg = msg.replaceAll("<", "&lt;");
+                }
+            }
+            msgList.add(msg);
+        }
+        String combinedMsg = Utils.join(msgList.iterator(), "\n");
+        HintManagerImpl hintMgr = (HintManagerImpl) HintManager.getInstance();
+        if (foundDecisionEvent) {
+            showDecisionEventToolTip(editor, offset, hintMgr, combinedMsg);
+        } else {
+            showPreviewEditorErrorToolTip(editor, offset, hintMgr, combinedMsg);
+        }
+    }
 
 	public static void showPreviewEditorErrorToolTip(Editor editor, int offset, HintManagerImpl hintMgr, String msg) {
 		int flags =
