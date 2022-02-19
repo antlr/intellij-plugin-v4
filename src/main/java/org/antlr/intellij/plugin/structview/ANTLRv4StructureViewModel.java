@@ -78,11 +78,11 @@ public class ANTLRv4StructureViewModel
 		return rootElement;
 	}
 
-	@NotNull
-	@Override
-	public StructureViewTreeElement getRoot() {
-		return new ANTLRv4StructureViewElement(rootElement);
-	}
+//	@NotNull
+//	@Override
+//	public StructureViewTreeElement getRoot() {
+//		return new ANTLRv4StructureViewElement(rootElement);
+//	}
 
 	@Override
 	public boolean isAlwaysShowsPlus(StructureViewTreeElement element) {
