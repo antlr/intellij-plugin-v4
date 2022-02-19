@@ -1,28 +1,26 @@
 package org.antlr.intellij.plugin.psi;
 
-import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
+import com.intellij.usageView.UsageInfo;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.TestUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCase {
-
 	public void testHighlightUsagesOfLexerRule() {
-		RangeHighlighter[] usages = myFixture.testHighlightUsages("SimpleGrammar.g4");
-
-		assertEquals(5, usages.length);
+		Collection<UsageInfo> ruleUsages = myFixture.testFindUsages("SimpleGrammar.g4");
+		assertEquals(4, ruleUsages.size());
 	}
 
 	public void testHighlightUsagesOfParserRule() {
-		RangeHighlighter[] usages = myFixture.testHighlightUsages("SimpleGrammar2.g4");
-
-		assertEquals(3, usages.length);
+		Collection<UsageInfo> ruleUsages = myFixture.testFindUsages("SimpleGrammar2.g4");
+		assertEquals(2, ruleUsages.size());
 	}
 
 	public void testReferenceToLexerRule() {
