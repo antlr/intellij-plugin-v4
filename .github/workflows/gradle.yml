@@ -22,7 +22,8 @@ jobs:
           - IDEA_VERSION: IC-2020.1
           - IDEA_VERSION: IC-2020.2
           - IDEA_VERSION: IC-2020.3
-          - IDEA_VERSION: IC-2021.2
+          - IDEA_VERSION: IC-2021.2.4
+          - IDEA_VERSION: IC-2021.3
           - IDEA_VERSION: IU-LATEST-EAP-SNAPSHOT
 
     steps:
