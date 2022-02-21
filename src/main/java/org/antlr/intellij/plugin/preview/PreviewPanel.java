@@ -520,7 +520,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		// click in input pane which then tried to select entire token like a string. Now,
 		// text is selected in input pane only when a mouse event occurs in hierarchy pane.
 		Editor editor = inputPanel.getInputEditor();
-		if ( startIndex>=0 && stopIndex+1 < editor.getDocument().getTextLength() ) {
+		if ( startIndex>=0 && stopIndex+1 <= editor.getDocument().getTextLength() ) {
 			SelectionModel selectionModel = editor.getSelectionModel();
 			selectionModel.removeSelection();
 			selectionModel.setSelection(startIndex, stopIndex + 1);
