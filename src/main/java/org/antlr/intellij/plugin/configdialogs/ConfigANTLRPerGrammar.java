@@ -32,6 +32,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 	protected JCheckBox autoGenerateParsersCheckBox;
 	protected JTextField languageField;
 	private JComboBox<CaseChangingStrategy> caseTransformation;
+    private JCheckBox useGeneratedParserCodeCheckBox;
+	private JTextField generatedParserClassName;
+	private JTextField generatedLexerClassName;
 
 	private ConfigANTLRPerGrammar(final Project project) {
 		super(project, false);
@@ -65,6 +68,15 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		libDirField.setTextFieldPreferredWidth(50);
 
 		loadValues(project, qualFileName);
+
+		useGeneratedParserCodeCheckBox.addActionListener(e -> toggleGeneratedClassNames());
+		toggleGeneratedClassNames();
+	}
+
+	private void toggleGeneratedClassNames() {
+		boolean enabled = useGeneratedParserCodeCheckBox.isSelected();
+		generatedParserClassName.setEnabled(enabled);
+		generatedLexerClassName.setEnabled(enabled);
 	}
 
 	public void loadValues(Project project, String qualFileName) {
@@ -79,6 +91,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		caseTransformation.setSelectedItem(grammarProperties.getCaseChangingStrategy());
 		generateParseTreeListenerCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeListener());
 		generateParseTreeVisitorCheckBox.setSelected(grammarProperties.shouldGenerateParseTreeVisitor());
+		useGeneratedParserCodeCheckBox.setSelected(grammarProperties.isUseGeneratedParserCodeCheckBox());
+		generatedParserClassName.setText(grammarProperties.generatedParserClassName);
+		generatedLexerClassName.setText(grammarProperties.generatedLexerClassName);
 	}
 
     public void saveValues(Project project, String qualFileName) {
@@ -93,6 +108,9 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		grammarProperties.caseChangingStrategy = getCaseChangingStrategy();
 		grammarProperties.generateListener = generateParseTreeListenerCheckBox.isSelected();
 		grammarProperties.generateVisitor = generateParseTreeVisitorCheckBox.isSelected();
+		grammarProperties.useGeneratedParserCodeCheckBox = useGeneratedParserCodeCheckBox.isSelected();
+		grammarProperties.generatedParserClassName = getGeneratedParserClassName();
+		grammarProperties.generatedLexerClassName = getGeneratedLexerClassName();
 	}
 
 	boolean isModified(ANTLRv4GrammarProperties originalProperties) {
@@ -101,7 +119,10 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 				|| !Objects.equals(originalProperties.getEncoding(), getFileEncodingText())
 				|| !Objects.equals(originalProperties.getPackage(), getPackageFieldText())
 				|| !Objects.equals(originalProperties.getLanguage(), getLanguageText())
-				|| !Objects.equals(originalProperties.caseChangingStrategy, getCaseChangingStrategy());
+				|| !Objects.equals(originalProperties.caseChangingStrategy, getCaseChangingStrategy())
+				|| !Objects.equals(originalProperties.isUseGeneratedParserCodeCheckBox(), isUseGeneratedParserCode())
+				|| !Objects.equals(originalProperties.generatedParserClassName, getGeneratedParserClassName())
+				|| !Objects.equals(originalProperties.generatedLexerClassName, getGeneratedLexerClassName());
 	}
 
 	String getLanguageText() {
@@ -124,6 +145,18 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return outputDirField.getText();
 	}
 
+	boolean isUseGeneratedParserCode() {
+		return useGeneratedParserCodeCheckBox.isSelected();
+	}
+
+	String getGeneratedParserClassName() {
+		return generatedParserClassName.getText();
+	}
+
+	String getGeneratedLexerClassName() {
+		return generatedLexerClassName.getText();
+	}
+
 	private CaseChangingStrategy getCaseChangingStrategy() {
 		return (CaseChangingStrategy) caseTransformation.getSelectedItem();
 	}
@@ -139,9 +172,12 @@ public class ConfigANTLRPerGrammar extends DialogWrapper {
 		return "ConfigANTLRPerGrammar{" +
 				" generateParseTreeListenerCheckBox=" + generateParseTreeListenerCheckBox +
 				", generateParseTreeVisitorCheckBox=" + generateParseTreeVisitorCheckBox +
+				", useGeneratedParserCodeCheckBox=" + useGeneratedParserCodeCheckBox +
 				", packageField=" + packageField +
 				", outputDirField=" + outputDirField +
 				", libDirField=" + libDirField +
+				", generatedParserClassName=" + generatedParserClassName +
+				", generatedLexerClassName=" + generatedLexerClassName +
 				'}';
 	}
 
