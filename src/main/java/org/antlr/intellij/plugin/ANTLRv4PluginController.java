@@ -278,11 +278,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 		if ( newFile.getName().endsWith(".g") ) {
 			LOG.info("currentEditorFileChangedEvent ANTLR 4 cannot handle .g files, only .g4");
-			hidePreview();
 			return;
 		}
 		if ( !newFile.getName().endsWith(".g4") ) {
-			hidePreview();
 			return;
 		}
 
