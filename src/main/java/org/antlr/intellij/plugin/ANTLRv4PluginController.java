@@ -76,11 +76,11 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public Project project;
 	public ConsoleView console;
-	public ToolWindow consoleWindow;
+	private ToolWindow consoleWindow;
 
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<>());
-	public ToolWindow previewWindow;	// same for all grammar editor
+	private ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
@@ -128,24 +128,29 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewPanel = new PreviewPanel(project);
 
 		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-		Content content = contentFactory.createContent(previewPanel, "", false);
-		content.setCloseable(false);
 
-		previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-		previewWindow.getContentManager().addContent(content);
-		previewWindow.setIcon(Icons.getToolWindow());
+		toolWindowManager.invokeLater(() -> {
+			Content content = contentFactory.createContent(previewPanel, "", false);
+			content.setCloseable(false);
+
+			previewWindow = toolWindowManager.registerToolWindow(PREVIEW_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+			previewWindow.getContentManager().addContent(content);
+			previewWindow.setIcon(Icons.getToolWindow());
+		});
 
 		TextConsoleBuilderFactory factory = TextConsoleBuilderFactory.getInstance();
 		TextConsoleBuilder consoleBuilder = factory.createBuilder(project);
 		this.console = consoleBuilder.getConsole();
 
-		JComponent consoleComponent = console.getComponent();
-		content = contentFactory.createContent(consoleComponent, "", false);
-		content.setCloseable(false);
+		toolWindowManager.invokeLater(() -> {
+			JComponent consoleComponent = console.getComponent();
+			Content content = contentFactory.createContent(consoleComponent, "", false);
+			content.setCloseable(false);
 
-		consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-		consoleWindow.getContentManager().addContent(content);
-		consoleWindow.setIcon(Icons.getToolWindow());
+			consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
+			consoleWindow.getContentManager().addContent(content);
+			consoleWindow.setIcon(Icons.getToolWindow());
+		});
 	}
 
 	@Override
@@ -335,7 +340,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		if (previewPanel != null) {
 			previewPanel.setEnabled(false);
 		}
-		previewWindow.hide(null);
+		if (previewWindow != null) {
+			previewWindow.hide(null);
+		}
 	}
 
 	/** Make sure to run after updating grammars in previewState */
