@@ -5,11 +5,11 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij" version "1.4.0"
+    id "org.jetbrains.intellij" version "1.5.2"
 }
 
 wrapper {
-    gradleVersion = '6.8'
+    gradleVersion = '7.4.2'
 }
 
 group 'antlr'
@@ -34,6 +34,7 @@ intellij {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -42,7 +43,7 @@ dependencies {
     }
     implementation "org.antlr:antlr4-intellij-adaptor:0.1"
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.3.1'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.4.0'
 }
 
 generateGrammarSource {
