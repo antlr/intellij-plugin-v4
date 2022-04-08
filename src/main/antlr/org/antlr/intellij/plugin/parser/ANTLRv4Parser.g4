@@ -207,7 +207,7 @@ labeledAlt
 
 lexerRule
 	:	DOC_COMMENT* FRAGMENT?
-		TOKEN_REF COLON lexerRuleBlock SEMI
+		TOKEN_REF optionsSpec? COLON lexerRuleBlock SEMI
 	;
 
 lexerRuleBlock
