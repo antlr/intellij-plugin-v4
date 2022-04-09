@@ -122,6 +122,9 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 
 		case WARNING_ONE_OFF:
 		case INFO:
+			/* When trying to remove the deprecation warning, you will need something like this:
+			AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, issue.getAnnotation()).range(range);
+			 */
 			return Optional.of(holder.createWeakWarningAnnotation(range, issue.getAnnotation()));
 
 		default:
