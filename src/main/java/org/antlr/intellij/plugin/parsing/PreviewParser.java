@@ -26,8 +26,6 @@ public class PreviewParser extends GrammarParserInterpreter {
 
 	public PreviewParser(Grammar g, TokenStream input) {
 		this(g, new ATNDeserializer().deserialize(ATNSerializer.getSerialized(g.getATN()).toArray()), input);
-
-//		this(g, new ATNDeserializer().deserialize(ATNSerializer.getSerializedAsChars(g.getATN())), input);
 	}
 
 	@Override
