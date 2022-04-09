@@ -1,16 +1,8 @@
 package org.antlr.intellij.plugin.parsing;
 
 import com.intellij.openapi.progress.ProgressManager;
-import org.antlr.v4.runtime.InterpreterRuleContext;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.atn.ATN;
-import org.antlr.v4.runtime.atn.ATNDeserializer;
-import org.antlr.v4.runtime.atn.ATNSerializer;
-import org.antlr.v4.runtime.atn.ATNState;
-import org.antlr.v4.runtime.atn.DecisionState;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 
@@ -33,7 +25,7 @@ public class PreviewParser extends GrammarParserInterpreter {
 	}
 
 	public PreviewParser(Grammar g, TokenStream input) {
-		this(g, new ATNDeserializer().deserialize(ATNSerializer.getSerializedAsChars(g.getATN())), input);
+		this(g, new ATNDeserializer().deserialize(ATNSerializer.getSerialized(g.getATN()).toArray()), input);
 	}
 
 	@Override
