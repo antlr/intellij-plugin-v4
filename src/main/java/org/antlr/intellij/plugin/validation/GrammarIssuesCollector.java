@@ -8,6 +8,8 @@ import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.Token;
 import org.antlr.v4.Tool;
+import org.antlr.v4.codegen.CodeGenerator;
+import org.antlr.v4.codegen.Target;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.tool.*;
@@ -19,9 +21,9 @@ import org.stringtemplate.v4.ST;
 
 import java.io.File;
 import java.io.StringReader;
+import java.lang.reflect.Constructor;
 import java.util.*;
 
-import static org.antlr.v4.codegen.CodeGenerator.targetExists;
 
 public class GrammarIssuesCollector {
     private static final String LANGUAGE_ARG_PREFIX = "-Dlanguage=";
@@ -188,5 +190,17 @@ public class GrammarIssuesCollector {
         }
         ruleDefs.keySet().removeAll(ruleRefs);
         return ruleDefs;
+    }
+
+    public static boolean targetExists(String language) {
+        String targetName = "org.antlr.v4.codegen.target."+language+"Target";
+        try {
+            Class<? extends Target> c = Class.forName(targetName).asSubclass(Target.class);
+            Constructor<? extends Target> ctor = c.getConstructor(CodeGenerator.class);
+            return true;
+        }
+        catch (Exception e) { // ignore errors; we're detecting presence only
+        }
+        return false;
     }
 }

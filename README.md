@@ -1,10 +1,10 @@
 # IntelliJ Idea Plugin for ANTLR v4 ![Java CI](https://github.com/antlr/intellij-plugin-v4/workflows/Java%20CI/badge.svg?branch=master) [![Latest version](https://img.shields.io/jetbrains/plugin/v/7358.svg?label=latest%20version)](https://plugins.jetbrains.com/plugin/7358) ![Downloads](https://img.shields.io/jetbrains/plugin/d/7358.svg)
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 2018.3 .. 2021.x plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
+An [IntelliJ](https://www.jetbrains.com/idea/) 2020.3+ plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)). (Technically, the plugin will load in 2019.2+ but you might not have much luck earlier than 2020.3)
 
 [Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.10. Works with IntelliJ IDEA and other IntelliJ-based IDEs.
 
 ## Features:
 
@@ -131,7 +131,7 @@ If you see ambiguities highlighted, those you should definitely take a look
  consistent with the speed of a generated and compiled parser but it does use
  single-stage full LL parsing which can be slower.  It needs to do that so
  that it gets full and complete profiling information. For those in the know,
- it uses PredictionMode.LL_EXACT_AMBIG_DETECTION. For really big files and
+ it uses `PredictionMode.LL_EXACT_AMBIG_DETECTION`. For really big files and
  slow grammars, there is an appreciable delay when displaying the parse tree or profiling information.
 
 ![parse-region.png](images/profiler.png)
@@ -173,7 +173,7 @@ Even when a grammar is getting a single interpretation of the input, we often wo
 
 # Contributing
 
-We [moved to Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) for 1.9. To contribute to the project, 
+We [use Gradle](https://github.com/antlr/intellij-plugin-v4/pull/295) to build. To contribute to the project, 
 you need a recent version of IntelliJ IDEA (either Community or Ultimate) with the `Gradle` and `Plugin DevKit` 
 plugins enabled. 
 
@@ -189,6 +189,21 @@ To launch unit tests, run `./gradlew check`.
 
 To build a zipped version of the plugin and its dependencies, run `./gradlew buildPlugin`.
 
-You can tweak the version of the IntelliJ platform used to build/test the plugin in `gradle.properties`. Versions prior to 2018.1.5 require a JDK 1.8, but later versions also support JDK 9+.
+You can tweak the version of the IntelliJ platform used to build/test the plugin in `gradle.properties`, such as:
+
+```
+ideaVersion=IC-2020.2.2
+```
+
+As of 1.18, java 11 is assumed but you might get away with earlier java.
 
 A high level description of how the plugin works can be found in `ARCHITECTURE.md`.
+
+# Releasing
+
+* Search for 4.9, 4.10 etc... of ANTLR.
+* Update release notes in plugin.xml
+* Test with multiple IDE versions
+* Run unit tests
+* Upload to https://plugins.jetbrains.com/plugin/add#intellij
+* Write release note in github

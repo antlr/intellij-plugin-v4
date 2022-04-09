@@ -6,8 +6,8 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.9.1. It works with
-      2018.3-2021.x.  It should work in other JetBrains IDEs.
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10. It works with
+      2020.2.1 and above.  It should work in other JetBrains IDEs.
      </p>
 
      <ul>
@@ -73,16 +73,14 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Added a new 'Tokens' tab in the preview (<a href="https://github.com/antlr/intellij-plugin-v4/issues/417">#417</a>)</li>
-	    <li>The profiler results now show rule names (<a href="https://github.com/antlr/intellij-plugin-v4/issues/466">#466</a>)</li>
-	    <li>Updated to ANTLR 4.9.2 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/477">#477</a>)</li>
+	    <li>Updated to ANTLR 4.10</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.17+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.18+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
-  <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="183"/> <!-- requires IntelliJ 2018.3+ -->
+  <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
+  <idea-version since-build="192"/> <!-- requires IntelliJ 2020.3+ due to java 11 issue really but allowing 2019.2 just in case it works for somebody -->
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
