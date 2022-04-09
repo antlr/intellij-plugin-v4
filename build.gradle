@@ -35,6 +35,9 @@ intellij {
 repositories {
     mavenCentral()
     mavenLocal()
+    maven { // Gets snapshots of antlr if needed
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
 }
 
 dependencies {
