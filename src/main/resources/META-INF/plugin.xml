@@ -6,7 +6,7 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10. It works with
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. It works with
       2020.2.1 and above.  It should work in other JetBrains IDEs.
      </p>
 
@@ -73,7 +73,8 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Updated to ANTLR 4.10</li>
+	    <li>Updated to ANTLR 4.10.1</li>
+	    <li>Fixed an exception in IDEA 2022.1 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/533">#533</a>)</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.18+is%3Aclosed">fixed issues</a>.
       ]]>
