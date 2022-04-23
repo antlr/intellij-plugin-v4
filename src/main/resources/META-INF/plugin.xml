@@ -73,7 +73,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Updated to ANTLR 4.10</li>
+	    <li>Updated to ANTLR 4.10.1</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.18+is%3Aclosed">fixed issues</a>.
       ]]>
