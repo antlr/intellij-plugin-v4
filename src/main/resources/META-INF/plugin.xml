@@ -6,8 +6,8 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10. It works with
-      2020.2.1 and above.  It should work in other JetBrains IDEs.
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. It works with
+      2020.2.1 and above (possibly earlier, min set to 2019.2).  It should work in other JetBrains IDEs.
      </p>
 
      <ul>
@@ -26,8 +26,8 @@
      <li> code completion for tokens, rule names;
      <li> finds tokenVocab option for code gen if there is a tokenVocab option, don't warn about implicit tokens.
      <li> handles separate parsers and lexers like TParser.g4 and TLexer.g4 (1.7)
-     <li> Parse tree nodes show the alternative number the parser chose to match that node. (1.7)
-     <li> has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule".
+     <li> parse tree nodes show the alternative number the parser chose to match that node. (1.7)
+     <li> has live grammar interpreter for grammar preview. Right click on rule and say "Test ANTLR Rule". <b>Please noteThat actions and semantic predicates in the grammar or not executed during this preview!</b>
      <li> view parse trees in hierarchy (sideways tree) view. (1.8)
      <li> can view parse trees for input matched in more than one way (ambiguities) (1.7)
      <li> can view lookahead trees to show how input directed ANTLR to match a particular alternative (1.7)
