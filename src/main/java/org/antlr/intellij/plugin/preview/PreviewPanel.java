@@ -21,6 +21,7 @@ import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewParser;
 import org.antlr.intellij.plugin.profiler.ProfilerPanel;
+import org.antlr.v4.misc.OrderedHashMap;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -314,6 +315,15 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		LOG.info("switchToGrammar " + grammarFileName+" "+project.getName());
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
+
+		// From 1.18, automatically set the start rule name to the first rule in the grammar
+		// if none has been specified
+		if ( previewState.g!=null && previewState.startRuleName==null ) {
+			OrderedHashMap<String, Rule> rules = previewState.g.rules;
+			if (rules != null && rules.size() > 0) {
+				previewState.startRuleName = rules.getElement(0).name;
+			}
+		}
 
 		inputPanel.switchToGrammar(previewState, grammarFile);
 		profilerPanel.switchToGrammar(previewState, grammarFile);

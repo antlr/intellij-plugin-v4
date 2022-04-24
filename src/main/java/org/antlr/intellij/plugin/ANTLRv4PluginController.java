@@ -16,7 +16,10 @@ import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -242,7 +245,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	/** The test ANTLR rule action triggers this event. This can occur
-	 *  only occur when the current editor the showing a grammar, because
+	 *  only occur when the current editor is showing a grammar, because
 	 *  that is the only time that the action is enabled. We will see
 	 *  a file changed event when the project loads the first grammar file.
 	 */
