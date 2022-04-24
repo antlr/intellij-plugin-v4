@@ -74,6 +74,13 @@ public class AltLabelTextProvider implements TreeTextProvider {
 			return text;
 		}
 
-		return parser.getVocabulary().getSymbolicName(token.getType()) + ": \"" + text + "\"";
+		String symbolicName = parser.getVocabulary().getSymbolicName(token.getType());
+		if ( symbolicName==null ) { // it's a literal like ';' or 'return'
+			return text;
+		}
+		if ( text.toUpperCase().equals(symbolicName) ) { // IMPORT:import
+			return symbolicName;
+		}
+		return symbolicName + ":" + text;
 	}
 }
