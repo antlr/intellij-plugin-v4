@@ -398,6 +398,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 				previewState.g = grammars[1];
 			}
 		}
+		else {
+			synchronized (previewState) { // build atomically
+				previewState.lg = null;
+				previewState.g = null;
+			}
+		}
 		return grammarFileName;
 	}
 
@@ -582,19 +588,25 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		public void contentsChanged(VirtualFileEvent event) {
 			final VirtualFile vfile = event.getFile();
 			if ( !vfile.getName().endsWith(".g4") ) return;
-			if ( !projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) grammarFileSavedEvent(vfile);
+			if ( !projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) {
+				grammarFileSavedEvent(vfile);
+			}
 		}
 	}
 
 	private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
-			if ( !projectIsClosed ) currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			if ( !projectIsClosed ) {
+				currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			}
 		}
 
 		@Override
 		public void fileClosed(FileEditorManager source, VirtualFile file) {
-			if ( !projectIsClosed ) editorFileClosedEvent(file);
+			if ( !projectIsClosed ) {
+				editorFileClosedEvent(file);
+			}
 		}
 	}
 

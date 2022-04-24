@@ -274,6 +274,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
+		autoSetStartRule(previewState);
+
 		ensureStartRuleExists(grammarFile);
 		inputPanel.grammarFileSaved();
 
@@ -316,14 +318,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
 		PreviewState previewState = controller.getPreviewState(grammarFile);
 
-		// From 1.18, automatically set the start rule name to the first rule in the grammar
-		// if none has been specified
-		if ( previewState.g!=null && previewState.startRuleName==null ) {
-			OrderedHashMap<String, Rule> rules = previewState.g.rules;
-			if (rules != null && rules.size() > 0) {
-				previewState.startRuleName = rules.getElement(0).name;
-			}
-		}
+		autoSetStartRule(previewState);
 
 		inputPanel.switchToGrammar(previewState, grammarFile);
 		profilerPanel.switchToGrammar(previewState, grammarFile);
@@ -336,6 +331,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		}
 
 		setEnabled(previewState.g!=null || previewState.lg==null);
+	}
+
+	/** From 1.18, automatically set the start rule name to the first rule in the grammar
+	 * if none has been specified
+	 */
+	protected void autoSetStartRule(PreviewState previewState) {
+		if ( previewState.g==null || previewState.g.rules.size()==0 ) {
+			// If there is no grammar all of a sudden, we need to unset the previous rule name
+			previewState.startRuleName = null;
+		}
+		else if ( previewState.startRuleName==null ) {
+			OrderedHashMap<String, Rule> rules = previewState.g.rules;
+			previewState.startRuleName = rules.getElement(0).name;
+		}
 	}
 
 	@Override
