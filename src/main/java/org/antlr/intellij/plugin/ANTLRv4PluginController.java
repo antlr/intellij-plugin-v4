@@ -16,7 +16,10 @@ import com.intellij.openapi.editor.event.EditorFactoryEvent;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -242,7 +245,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	/** The test ANTLR rule action triggers this event. This can occur
-	 *  only occur when the current editor the showing a grammar, because
+	 *  only occur when the current editor is showing a grammar, because
 	 *  that is the only time that the action is enabled. We will see
 	 *  a file changed event when the project loads the first grammar file.
 	 */
@@ -393,6 +396,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			synchronized (previewState) { // build atomically
 				previewState.lg = (LexerGrammar)grammars[0];
 				previewState.g = grammars[1];
+			}
+		}
+		else {
+			synchronized (previewState) { // build atomically
+				previewState.lg = null;
+				previewState.g = null;
 			}
 		}
 		return grammarFileName;
@@ -579,19 +588,25 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		public void contentsChanged(VirtualFileEvent event) {
 			final VirtualFile vfile = event.getFile();
 			if ( !vfile.getName().endsWith(".g4") ) return;
-			if ( !projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) grammarFileSavedEvent(vfile);
+			if ( !projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) {
+				grammarFileSavedEvent(vfile);
+			}
 		}
 	}
 
 	private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
-			if ( !projectIsClosed ) currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			if ( !projectIsClosed ) {
+				currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+			}
 		}
 
 		@Override
 		public void fileClosed(FileEditorManager source, VirtualFile file) {
-			if ( !projectIsClosed ) editorFileClosedEvent(file);
+			if ( !projectIsClosed ) {
+				editorFileClosedEvent(file);
+			}
 		}
 	}
 

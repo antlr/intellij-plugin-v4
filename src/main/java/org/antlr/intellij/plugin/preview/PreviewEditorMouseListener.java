@@ -55,8 +55,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 		InputPanel.clearDecisionEventHighlighters(editor);
 	}
 
-	public void rightClick(final PreviewState previewState, Editor editor, int offset)
-	{
+	public void rightClick(final PreviewState previewState, Editor editor, int offset) {
 		if (previewState.parsingResult == null) return;
 		final List<RangeHighlighter> highlightersAtOffset = MyActionUtils.getRangeHighlightersAtOffset(editor, offset);
 		if (highlightersAtOffset.size() == 0) {
@@ -80,7 +79,7 @@ class PreviewEditorMouseListener implements EditorMouseListener, EditorMouseMoti
 	}
 
 	@Override
-	public void mouseMoved(EditorMouseEvent e){
+	public void mouseMoved(EditorMouseEvent e) {
 		int offset = getEditorCharOffsetAndRemoveTokenHighlighters(e);
 		if ( offset<0 ) return;
 
