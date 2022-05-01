@@ -285,7 +285,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			return;
 		}
 		if ( !newFile.getName().endsWith(".g4") ) {
-			hidePreview();
 			return;
 		}
 
