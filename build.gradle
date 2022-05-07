@@ -65,3 +65,7 @@ test {
         exceptionFormat "full"
     }
 }
+
+runIde {
+    jvmArgs '-Xmx8G'
+}
