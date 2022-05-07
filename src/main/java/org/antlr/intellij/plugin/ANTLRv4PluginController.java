@@ -436,9 +436,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void parseText(final VirtualFile grammarFile, String inputText) {
-		// Wipes out the console and also any error annotations
-		previewPanel.inputPanel.clearParseErrors();
-
 		final PreviewState previewState = getPreviewState(grammarFile);
 
 		// Parse text in a background thread so we can cancel parsing if grammar is badly written

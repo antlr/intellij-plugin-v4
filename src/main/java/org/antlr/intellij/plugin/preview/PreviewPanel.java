@@ -463,6 +463,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		updateQueue.queue(new Update(this) {
 			@Override
 			public void run() {
+				inputPanel.clearParseErrors(); // Wipe console and also any error annotations
 				controller.parseText(grammarFile, inputText);
 			}
 		});
