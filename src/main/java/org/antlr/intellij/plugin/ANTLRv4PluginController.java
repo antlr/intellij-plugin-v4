@@ -441,10 +441,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		final PreviewState previewState = getPreviewState(grammarFile);
 
-		abortCurrentParsing();
-
-		// Parse text in a background thread to avoid freezing the UI if the grammar is badly written
-		// an takes ages to interpret the input.
+		// Parse text in a background thread so we can cancel parsing if grammar is badly written
+		// and takes ages to interpret the input.  This entire method executes as part of
+		// a MergingUpdateQueue so already executes in a thread but leaving existing mechanism
+		// as it's tied to the cancel operation.
 		parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
 				(indicator) -> {
 					long start = System.nanoTime();

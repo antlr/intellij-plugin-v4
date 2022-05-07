@@ -16,6 +16,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -83,8 +85,19 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	private ActionToolbar buttonBar;
 	private final CancelParserAction cancelParserAction = new CancelParserAction();
 
+	/** Used to avoid reparsing and also updating the parse tree upon each keystroke; also gets the
+	 *  tree view update out of the GUI event thread.
+	 */
+	private final MergingUpdateQueue updateQueue;
+
 	public PreviewPanel(Project project) {
 		this.project = project;
+		updateQueue =
+				new MergingUpdateQueue("(Re-) Parse Queue",
+						500,
+						true,
+						treeViewer
+				);
 		createGUI();
 	}
 
@@ -385,33 +398,33 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		});
 	}
 
+	/** Refresh the parse tree view. Although repainting the tree is a non-linear process,
+	 *  this method is executing as a part of a MergingUpdateQueue so it's done in the background
+	 *  and we don't update the tree after ever keystroke.
+	 */
 	private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
-
-		ApplicationManager.getApplication().invokeLater(() -> {
-			if (result.parser instanceof PreviewParser) {
-				AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
-				if(buildTree) {
-					treeViewer.setTreeTextProvider(provider);
-					treeViewer.setTree(result.tree);
-				}
-				if(buildHierarchy) {
-					hierarchyViewer.setTreeTextProvider(provider);
-					hierarchyViewer.setTree(result.tree);
-				}
-				tokenStreamViewer.setParsingResult(result.parser);
+		if (result.parser instanceof PreviewParser) {
+			AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
+			if (buildTree) {
+				treeViewer.setTreeTextProvider(provider);
+				treeViewer.setTree(result.tree);
 			}
-			else {
-				if(buildTree) {
-					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					treeViewer.setTree(result.tree);
-				}
-				if(buildHierarchy) {
-					hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					hierarchyViewer.setTree(result.tree);
-				}
+			if (buildHierarchy) {
+				hierarchyViewer.setTreeTextProvider(provider);
+				hierarchyViewer.setTree(result.tree);
 			}
-		});
-
+			tokenStreamViewer.setParsingResult(result.parser);
+		}
+		else {
+			if (buildTree) {
+				treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+				treeViewer.setTree(result.tree);
+			}
+			if (buildHierarchy) {
+				hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+				hierarchyViewer.setTree(result.tree);
+			}
+		}
 	}
 
 
@@ -447,7 +460,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		final String inputText = editor.getDocument().getText();
 
 		// The controller will call us back when it's done parsing
-		controller.parseText(grammarFile, inputText);
+		updateQueue.queue(new Update(this) {
+			@Override
+			public void run() {
+				controller.parseText(grammarFile, inputText);
+			}
+		});
 	}
 
 	public InputPanel getInputPanel() {
@@ -470,9 +488,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		buttonBar.updateActionsImmediately();
 
 		if ( previewState.parsingResult!=null ) {
-			updateTreeViewer(previewState, previewState.parsingResult);
 			profilerPanel.setProfilerData(previewState, duration);
 			inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
+			updateTreeViewer(previewState, previewState.parsingResult);
 		}
 		else if ( previewState.startRuleName==null ) {
 			indicateNoStartRuleInParseTreePane();
