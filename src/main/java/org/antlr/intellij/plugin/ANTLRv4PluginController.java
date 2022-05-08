@@ -445,11 +445,12 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
 				(indicator) -> {
 					long start = System.nanoTime();
-
+					System.out.println("PARSE START "+Thread.currentThread().getName());
 					previewState.parsingResult = ParsingUtils.parseText(
 							previewState.g, previewState.lg, previewState.startRuleName,
 							grammarFile, inputText, project
 					);
+					System.out.println("PARSE STOP "+Thread.currentThread().getName());
 
 					return () -> previewPanel.onParsingCompleted(previewState, System.nanoTime() - start);
 				},

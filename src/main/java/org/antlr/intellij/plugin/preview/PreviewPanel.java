@@ -88,12 +88,19 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	/** Used to avoid reparsing and also updating the parse tree upon each keystroke; also gets the
 	 *  tree view update out of the GUI event thread.
 	 */
-	private final MergingUpdateQueue updateQueue;
+	private final MergingUpdateQueue parseUpdateQueue;
+	private final MergingUpdateQueue treeViewUpdateQueue;
 
 	public PreviewPanel(Project project) {
 		this.project = project;
-		updateQueue =
+		parseUpdateQueue =
 				new MergingUpdateQueue("(Re-) Parse Queue",
+						500,
+						true,
+						this
+				);
+		treeViewUpdateQueue =
+				new MergingUpdateQueue("Tree View Queue",
 						500,
 						true,
 						treeViewer
@@ -403,15 +410,12 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	 *  and we don't update the tree after ever keystroke.
 	 */
 	private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
+		System.out.println("VIEW START "+Thread.currentThread().getName());
 		if (result.parser instanceof PreviewParser) {
 			AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
 			if (buildTree) {
 				treeViewer.setTreeTextProvider(provider);
 				treeViewer.setTree(result.tree);
-			}
-			if (buildHierarchy) {
-				hierarchyViewer.setTreeTextProvider(provider);
-				hierarchyViewer.setTree(result.tree);
 			}
 			tokenStreamViewer.setParsingResult(result.parser);
 		}
@@ -420,11 +424,28 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 				treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
 				treeViewer.setTree(result.tree);
 			}
+		}
+		System.out.println("VIEW STOP "+Thread.currentThread().getName());
+	}
+
+	private void updateHierarchyViewer(final PreviewState preview, final ParsingResult result) {
+		System.out.println("HIER START "+Thread.currentThread().getName());
+		if (result.parser instanceof PreviewParser) {
+			AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
+			if (buildHierarchy) {
+				// make sure we exec this stuff on the
+				hierarchyViewer.setTreeTextProvider(provider);
+				hierarchyViewer.setTree(result.tree);
+			}
+			tokenStreamViewer.setParsingResult(result.parser);
+		}
+		else {
 			if (buildHierarchy) {
 				hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
 				hierarchyViewer.setTree(result.tree);
 			}
 		}
+		System.out.println("HIER STOP "+Thread.currentThread().getName());
 	}
 
 
@@ -460,7 +481,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		final String inputText = editor.getDocument().getText();
 
 		// The controller will call us back when it's done parsing
-		updateQueue.queue(new Update(this) {
+		parseUpdateQueue.queue(new Update(this) {
 			@Override
 			public void run() {
 				inputPanel.clearParseErrors(); // Wipe console and also any error annotations
@@ -491,7 +512,26 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		if ( previewState.parsingResult!=null ) {
 			profilerPanel.setProfilerData(previewState, duration);
 			inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
-			updateTreeViewer(previewState, previewState.parsingResult);
+			// I think we're notified using GUI thread so gotta launch another and don't
+			// do it for every notification; queue them up.
+//			treeViewUpdateQueue.queue(new Update(this) {
+//				@Override
+//				public void run() {
+//					updateTreeViewer(previewState, previewState.parsingResult);
+//				}
+//			});
+			// Do on separate thread
+			if ( true ) {
+				ApplicationManager.getApplication().executeOnPooledThread(
+					new Runnable() {
+						public void run() {
+							updateTreeViewer(previewState, previewState.parsingResult);
+						}
+					}
+				);
+			}
+			// GUI thread
+			//updateHierarchyViewer(previewState, previewState.parsingResult);
 		}
 		else if ( previewState.startRuleName==null ) {
 			indicateNoStartRuleInParseTreePane();

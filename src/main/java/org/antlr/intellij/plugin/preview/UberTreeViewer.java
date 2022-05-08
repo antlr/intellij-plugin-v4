@@ -1,8 +1,11 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.DarculaColors;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import org.abego.treelayout.TreeLayout;
+import org.abego.treelayout.util.DefaultConfiguration;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -79,10 +82,48 @@ public class UberTreeViewer extends TreeViewer {
 		}
 	}
 
+	// Copied from antlr
+	private Dimension getScaledTreeSize() {
+		Dimension scaledTreeSize =
+				treeLayout.getBounds().getBounds().getSize();
+		scaledTreeSize = new Dimension((int)(scaledTreeSize.width*scale),
+				(int)(scaledTreeSize.height*scale));
+		return scaledTreeSize;
+	}
+
+	// Copied from antlr
+	private void updatePreferredSize() {
+		setPreferredSize(getScaledTreeSize());
+		invalidate();
+		if (getParent() != null) {
+			getParent().validate();
+		}
+		repaint();
+	}
+
+	// Copied from antlr and tweaked to repaint after layout (using different thread)
 	@Override
 	public void setTree(Tree root) {
 		setTextColor(JBColor.BLACK);
-		super.setTree(root);
+		if ( root!=null ) {
+			boolean useIdentity = true; // compare node identity
+			this.treeLayout =
+					new TreeLayout<Tree>(getTreeLayoutAdaptor(root),
+							new TreeViewer.VariableExtentProvide(this),
+							new DefaultConfiguration<Tree>(gapBetweenLevels,
+									gapBetweenNodes),
+							useIdentity);
+			// Let the UI display this new AST.
+			ApplicationManager.getApplication().invokeLater(() -> {
+				System.out.println("UPDATE SIZE START "+Thread.currentThread().getName());
+				updatePreferredSize();
+				System.out.println("UPDATE SIZE STOP "+Thread.currentThread().getName());
+			});
+		}
+		else {
+			this.treeLayout = null;
+			ApplicationManager.getApplication().invokeLater(this::repaint);
+		}
 	}
 
 	public boolean hasTree() {
