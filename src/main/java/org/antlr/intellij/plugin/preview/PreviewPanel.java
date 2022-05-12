@@ -16,6 +16,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -82,10 +84,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	private ActionToolbar buttonBar;
 	private final CancelParserAction cancelParserAction = new CancelParserAction();
 
+	/** Used to avoid reparsing and also updating the parse tree upon each keystroke; also gets the
+	 *  tree view update out of the GUI event thread.
+	 */
+	private final MergingUpdateQueue updateQueue;
+
 	public PreviewPanel(Project project) {
 		this.project = project;
 		createGUI();
-	}
+		updateQueue =
+				new MergingUpdateQueue("(Re-) Parse Queue",
+						500,
+						true,
+						treeViewer
+				);	}
 
 	private void createGUI() {
 		this.setLayout(new BorderLayout());
@@ -380,7 +392,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 	private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
 
-		ApplicationManager.getApplication().invokeLater(() -> {
+//		ApplicationManager.getApplication().invokeLater(() -> {
 			if (result.parser instanceof PreviewParser) {
 				AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
 				if(buildTree) {
@@ -402,7 +414,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 					hierarchyViewer.setTree(result.tree);
 				}
 			}
-		});
+//		});
 
 	}
 
@@ -439,7 +451,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		final String inputText = editor.getDocument().getText();
 
 		// The controller will call us back when it's done parsing
-		controller.parseText(grammarFile, inputText);
+		// Wipes out the console and also any error annotations
+		updateQueue.queue(new Update(this) {
+			@Override
+			public boolean canEat(Update update) {
+				return true; // kill any previous queued up parses; only last keystroke input text matters
+			}
+			@Override
+			public void run() {
+				inputPanel.clearParseErrors();
+				controller.startParsing();
+//				System.out.println("PARSE:\n"+inputText);
+				controller.parseText(grammarFile, inputText);
+			}
+		});
 	}
 
 	public InputPanel getInputPanel() {
@@ -483,6 +508,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		cancelParserAction.setEnabled(false);
 		buttonBar.updateActionsImmediately();
 		showError("Parsing was aborted");
+	}
+
+	public void startParsing() {
+		cancelParserAction.setEnabled(false);
+		buttonBar.updateActionsImmediately();
 	}
 
 	@Override
