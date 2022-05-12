@@ -68,7 +68,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	public HierarchyViewer hierarchyViewer;
 
 	public ProfilerPanel profilerPanel;
-	private TokenStreamViewer tokenStreamViewer;
 
 	/**
 	 * Indicates if the preview should be automatically refreshed after grammar changes.
@@ -100,7 +99,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 				Caret caret = event.getCaret();
 
 				if ( scrollFromSource && caret != null ) {
-					tokenStreamViewer.onInputTextSelected(caret.getOffset());
 					hierarchyViewer.selectNodeAtOffset(caret.getOffset());
 				}
 			}
@@ -206,10 +204,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.getComponent());
-
-		tokenStreamViewer = new TokenStreamViewer();
-		tokenStreamViewer.addParsingResultSelectionListener(this);
-		tabbedPane.addTab("Tokens", tokenStreamViewer);
 
 		return tabbedPane;
 	}
@@ -381,7 +375,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			treeViewer.setTree(tree);
 			hierarchyViewer.setRuleNames(Collections.emptyList());
 			hierarchyViewer.setTree(null);
-			tokenStreamViewer.clear();
 		});
 	}
 
@@ -398,7 +391,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 					hierarchyViewer.setTreeTextProvider(provider);
 					hierarchyViewer.setTree(result.tree);
 				}
-				tokenStreamViewer.setParsingResult(result.parser);
 			}
 			else {
 				if(buildTree) {
@@ -491,22 +483,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		cancelParserAction.setEnabled(false);
 		buttonBar.updateActionsImmediately();
 		showError("Parsing was aborted");
-	}
-
-	/**
-	 * Fired when a token is selected in the {@link TokenStreamViewer} to let us know that we should highlight
-	 * the corresponding text in the editor.
-	 */
-	@Override
-	public void onLexerTokenSelected(Token token) {
-		if (!highlightSource) {
-			return;
-		}
-
-		int startIndex = token.getStartIndex();
-		int stopIndex = token.getStopIndex();
-
-		inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
 	}
 
 	@Override
