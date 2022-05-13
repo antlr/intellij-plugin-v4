@@ -500,7 +500,8 @@ public class InputPanel {
 			for ( Pair<String, Integer> pair : smaller ) {
 				if ( pair.b>1 ) {
 					stack.add(pair.a + "^" + pair.b);
-				} else {
+				}
+				else {
 					stack.add(pair.a);
 				}
 			}
@@ -697,19 +698,26 @@ public class InputPanel {
 			a = offendingToken.getStartIndex();
 			b = offendingToken.getStopIndex()+1;
 		}
-		final TextAttributes attr = new TextAttributes();
-		attr.setForegroundColor(JBColor.RED);
-		attr.setEffectColor(JBColor.RED);
-		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
-		RangeHighlighter highlighter =
-			markupModel.addRangeHighlighter(a,
-			                                b,
-			                                ERROR_LAYER, // layer
-			                                attr,
-			                                HighlighterTargetArea.EXACT_RANGE);
-		highlighter.putUserData(SYNTAX_ERROR, e);
-	}
 
+		// ANTLRv4PluginController.parseText() can be slow and is done lazily. That means it
+		// is possible to parse and get error messages that are no longer appropriate because
+		// the user has started altering the input after the parse was kicked off; another parse
+		// will follow up and change the error messages and location of annotations in this input panel.
+		// Avoid trying to select text outside of doc[0..stopindex] as a general rule too.
+		if (a >= 0 && b + 1 <= editor.getDocument().getTextLength()) {
+			final TextAttributes attr = new TextAttributes();
+			attr.setForegroundColor(JBColor.RED);
+			attr.setEffectColor(JBColor.RED);
+			attr.setEffectType(EffectType.WAVE_UNDERSCORE);
+			RangeHighlighter highlighter =
+					markupModel.addRangeHighlighter(a,
+							b,
+							ERROR_LAYER, // layer
+							attr,
+							HighlighterTargetArea.EXACT_RANGE);
+			highlighter.putUserData(SYNTAX_ERROR, e);
+		}
+	}
 
 	public static void removeHighlighters(Editor editor, Key<?> key) {
 		// Remove anything with user data accessible via key

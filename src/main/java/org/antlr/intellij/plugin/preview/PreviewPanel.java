@@ -97,7 +97,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 						500,
 						true,
 						treeViewer
-				);	}
+				);
+		// If someone is typing, keep resetting timer so parsing doesn't start
+		updateQueue.setRestartTimerOnAdd(true);
+	}
 
 	private void createGUI() {
 		this.setLayout(new BorderLayout());
