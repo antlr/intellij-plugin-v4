@@ -84,9 +84,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	private ActionToolbar buttonBar;
 	private final CancelParserAction cancelParserAction = new CancelParserAction();
 
-	/** Used to avoid reparsing and also updating the parse tree upon each keystroke; also gets the
-	 *  tree view update out of the GUI event thread.
-	 */
+	/** Used to avoid reparsing and also updating the parse tree upon each keystroke. */
 	private final MergingUpdateQueue updateQueue;
 
 	public PreviewPanel(Project project) {
