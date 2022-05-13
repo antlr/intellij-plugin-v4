@@ -500,7 +500,8 @@ public class InputPanel {
 			for ( Pair<String, Integer> pair : smaller ) {
 				if ( pair.b>1 ) {
 					stack.add(pair.a + "^" + pair.b);
-				} else {
+				}
+				else {
 					stack.add(pair.a);
 				}
 			}
@@ -618,23 +619,28 @@ public class InputPanel {
 				// TODO: move decision event stuff to profiler?
 				if ( eventInfo instanceof AmbiguityInfo ) {
 					msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
-				} else if ( eventInfo instanceof ContextSensitivityInfo ) {
+				}
+				else if ( eventInfo instanceof ContextSensitivityInfo ) {
 					msg = "Context-sensitive";
-				} else if ( eventInfo instanceof LookaheadEventInfo ) {
+				}
+				else if ( eventInfo instanceof LookaheadEventInfo ) {
 					int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
 					msg = "Deepest lookahead k=" + k;
-				} else if ( eventInfo instanceof PredicateEvalInfo ) {
+				}
+				else if ( eventInfo instanceof PredicateEvalInfo ) {
 					PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
 					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
 							previewState,
 							evalInfo.semctx, evalInfo.predictedAlt,
 							evalInfo.evalResult);
 					msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
-				} else {
+				}
+				else {
 					msg = "Unknown decision event: " + eventInfo;
 				}
 				foundDecisionEvent = true;
-			} else {
+			}
+			else {
 				// error tool tips
 				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 				msg = getErrorDisplayString(errorUnderCursor);
@@ -697,19 +703,26 @@ public class InputPanel {
 			a = offendingToken.getStartIndex();
 			b = offendingToken.getStopIndex()+1;
 		}
-		final TextAttributes attr = new TextAttributes();
-		attr.setForegroundColor(JBColor.RED);
-		attr.setEffectColor(JBColor.RED);
-		attr.setEffectType(EffectType.WAVE_UNDERSCORE);
-		RangeHighlighter highlighter =
-			markupModel.addRangeHighlighter(a,
-			                                b,
-			                                ERROR_LAYER, // layer
-			                                attr,
-			                                HighlighterTargetArea.EXACT_RANGE);
-		highlighter.putUserData(SYNTAX_ERROR, e);
-	}
 
+		// ANTLRv4PluginController.parseText() can be slow and is done lazily. That means it
+		// is possible to parse and get error messages that are no longer appropriate because
+		// the user has started altering the input after the parse was kicked off; another parse
+		// will follow up and change the error messages and location of annotations in this input panel.
+		// Avoid trying to select text outside of doc[0..stopindex] as a general rule too.
+		if (a >= 0 && b + 1 <= editor.getDocument().getTextLength()) {
+			final TextAttributes attr = new TextAttributes();
+			attr.setForegroundColor(JBColor.RED);
+			attr.setEffectColor(JBColor.RED);
+			attr.setEffectType(EffectType.WAVE_UNDERSCORE);
+			RangeHighlighter highlighter =
+					markupModel.addRangeHighlighter(a,
+							b,
+							ERROR_LAYER, // layer
+							attr,
+							HighlighterTargetArea.EXACT_RANGE);
+			highlighter.putUserData(SYNTAX_ERROR, e);
+		}
+	}
 
 	public static void removeHighlighters(Editor editor, Key<?> key) {
 		// Remove anything with user data accessible via key

@@ -29,7 +29,8 @@ public class LexerWatchdog {
 	public void checkLexerIsNotStuck() {
 		if ( currentIndex==tokenStream.index() ) {
 			iterationsOnCurrentIndex++;
-		} else {
+		}
+		else {
 			currentIndex = tokenStream.index();
 			iterationsOnCurrentIndex = 1;
 		}

@@ -16,6 +16,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.parsing.ParsingResult;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
@@ -68,7 +70,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	public HierarchyViewer hierarchyViewer;
 
 	public ProfilerPanel profilerPanel;
-	private TokenStreamViewer tokenStreamViewer;
 
 	/**
 	 * Indicates if the preview should be automatically refreshed after grammar changes.
@@ -83,9 +84,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	private ActionToolbar buttonBar;
 	private final CancelParserAction cancelParserAction = new CancelParserAction();
 
+	/** Used to avoid reparsing and also updating the parse tree upon each keystroke. */
+	private final MergingUpdateQueue updateQueue;
+
 	public PreviewPanel(Project project) {
 		this.project = project;
 		createGUI();
+		updateQueue =
+				new MergingUpdateQueue("(Re-) Parse Queue",
+						500,
+						true,
+						treeViewer
+				);
+		// If someone is typing, keep resetting timer so parsing doesn't start
+		updateQueue.setRestartTimerOnAdd(true);
 	}
 
 	private void createGUI() {
@@ -100,7 +112,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 				Caret caret = event.getCaret();
 
 				if ( scrollFromSource && caret != null ) {
-					tokenStreamViewer.onInputTextSelected(caret.getOffset());
 					hierarchyViewer.selectNodeAtOffset(caret.getOffset());
 				}
 			}
@@ -206,10 +217,6 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 		profilerPanel = new ProfilerPanel(project, this);
 		tabbedPane.addTab("Profiler", profilerPanel.getComponent());
-
-		tokenStreamViewer = new TokenStreamViewer();
-		tokenStreamViewer.addParsingResultSelectionListener(this);
-		tabbedPane.addTab("Tokens", tokenStreamViewer);
 
 		return tabbedPane;
 	}
@@ -381,37 +388,36 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			treeViewer.setTree(tree);
 			hierarchyViewer.setRuleNames(Collections.emptyList());
 			hierarchyViewer.setTree(null);
-			tokenStreamViewer.clear();
 		});
 	}
 
 	private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
-
-		ApplicationManager.getApplication().invokeLater(() -> {
-			if (result.parser instanceof PreviewParser) {
-				AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
-				if(buildTree) {
-					treeViewer.setTreeTextProvider(provider);
-					treeViewer.setTree(result.tree);
-				}
-				if(buildHierarchy) {
-					hierarchyViewer.setTreeTextProvider(provider);
-					hierarchyViewer.setTree(result.tree);
-				}
-				tokenStreamViewer.setParsingResult(result.parser);
+//		long start = System.nanoTime();
+//		System.out.println("START updateTreeViewer "+Thread.currentThread().getName());
+		if (result.parser instanceof PreviewParser) {
+			AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
+			if(buildTree) {
+				treeViewer.setTreeTextProvider(provider);
+				treeViewer.setTree(result.tree);
 			}
-			else {
-				if(buildTree) {
-					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					treeViewer.setTree(result.tree);
-				}
-				if(buildHierarchy) {
-					hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					hierarchyViewer.setTree(result.tree);
-				}
+			if(buildHierarchy) {
+				hierarchyViewer.setTreeTextProvider(provider);
+				hierarchyViewer.setTree(result.tree);
 			}
-		});
-
+		}
+		else {
+			if(buildTree) {
+				treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+				treeViewer.setTree(result.tree);
+			}
+			if(buildHierarchy) {
+				hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+				hierarchyViewer.setTree(result.tree);
+			}
+		}
+//		long parseTime_ns = System.nanoTime() - start;
+//		double parseTimeMS = parseTime_ns/(1000.0*1000.0);
+//		System.out.println("STOP updateTreeViewer "+Thread.currentThread().getName()+" "+parseTimeMS+"ms");
 	}
 
 
@@ -447,7 +453,20 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		final String inputText = editor.getDocument().getText();
 
 		// The controller will call us back when it's done parsing
-		controller.parseText(grammarFile, inputText);
+		// Wipes out the console and also any error annotations
+		updateQueue.queue(new Update(this) {
+			@Override
+			public boolean canEat(Update update) {
+				return true; // kill any previous queued up parses; only last keystroke input text matters
+			}
+			@Override
+			public void run() {
+				inputPanel.clearParseErrors();
+				controller.startParsing();
+//				System.out.println("PARSE:\n"+inputText);
+				controller.parseText(grammarFile, inputText);
+			}
+		});
 	}
 
 	public InputPanel getInputPanel() {
@@ -466,20 +485,22 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	public void onParsingCompleted(PreviewState previewState, long duration) {
-		cancelParserAction.setEnabled(false);
-		buttonBar.updateActionsImmediately();
+		ApplicationManager.getApplication().invokeLater(() -> { // make sure we're on GUI thread for this block
+			cancelParserAction.setEnabled(false);
+			buttonBar.updateActionsImmediately();
 
-		if ( previewState.parsingResult!=null ) {
-			updateTreeViewer(previewState, previewState.parsingResult);
-			profilerPanel.setProfilerData(previewState, duration);
-			inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
-		}
-		else if ( previewState.startRuleName==null ) {
-			indicateNoStartRuleInParseTreePane();
-		}
-		else {
-			indicateInvalidGrammarInParseTreePane();
-		}
+			if (previewState.parsingResult != null) {
+				updateTreeViewer(previewState, previewState.parsingResult);
+				profilerPanel.setProfilerData(previewState, duration);
+				inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
+			}
+			else if (previewState.startRuleName == null) {
+				indicateNoStartRuleInParseTreePane();
+			}
+			else {
+				indicateInvalidGrammarInParseTreePane();
+			}
+		});
 	}
 
 	public void notifySlowParsing() {
@@ -493,20 +514,9 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		showError("Parsing was aborted");
 	}
 
-	/**
-	 * Fired when a token is selected in the {@link TokenStreamViewer} to let us know that we should highlight
-	 * the corresponding text in the editor.
-	 */
-	@Override
-	public void onLexerTokenSelected(Token token) {
-		if (!highlightSource) {
-			return;
-		}
-
-		int startIndex = token.getStartIndex();
-		int stopIndex = token.getStopIndex();
-
-		inputPanel.getInputEditor().getSelectionModel().setSelection(startIndex, stopIndex + 1);
+	public void startParsing() {
+		cancelParserAction.setEnabled(false);
+		buttonBar.updateActionsImmediately();
 	}
 
 	@Override

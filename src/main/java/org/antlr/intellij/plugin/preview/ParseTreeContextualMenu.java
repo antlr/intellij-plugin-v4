@@ -69,7 +69,8 @@ class ParseTreeContextualMenu {
 
             if ("svg".equals(imageFormat)) {
                 exportToSvg(parseTreeViewer, file, useTransparentBackground);
-            } else {
+            }
+            else {
                 exportToImage(parseTreeViewer, file, useTransparentBackground, imageFormat);
             }
         });

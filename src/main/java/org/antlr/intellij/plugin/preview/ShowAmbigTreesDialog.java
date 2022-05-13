@@ -191,7 +191,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 				JBPanel wrapper = new JBPanel(new BorderLayout());
 				if ( i==highlightTreeIndex ) {
 					wrapper.setBackground(JBColor.white);
-				} else if ( UIUtil.isUnderDarcula() ) {
+				}
+				else if ( UIUtil.isUnderDarcula() ) {
 					wrapper.setBackground(Gray._43);
 				}
 				wrapper.add(treeViewers[i], BorderLayout.CENTER);

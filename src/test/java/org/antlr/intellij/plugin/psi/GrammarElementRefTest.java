@@ -192,7 +192,8 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 			if (matcher != null) {
 				matcher.accept((T) psiElement);
 			}
-		} else {
+		}
+		else {
 			fail("Reference resolved to nothing");
 		}
 	}
@@ -224,10 +225,12 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 
 			if (ref != null) {
 				return ref.resolve();
-			} else {
+			}
+			else {
 				fail("No reference at caret");
 			}
-		} else {
+		}
+		else {
 			fail("No element at caret");
 		}
 

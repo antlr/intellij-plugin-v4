@@ -178,7 +178,8 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
             element = element.getNextSibling();
             if (element instanceof PsiWhiteSpace) {
                 element = element.getNextSibling();
-            } else {
+            }
+            else {
                 break;
             }
         }
@@ -287,11 +288,14 @@ public class ANTLRv4FoldingBuilder extends CustomFoldingBuilder {
 
         if (element.getNode().getElementType() == LINE_COMMENT_TOKEN) {
             return "//...";
-        } else if ( element instanceof ModeSpecNode ) {
+        }
+        else if ( element instanceof ModeSpecNode ) {
             return ";...";
-        } else if (element instanceof RuleSpecNode) {
+        }
+        else if (element instanceof RuleSpecNode) {
             return ":...;";
-        } else if (element instanceof AtAction) {
+        }
+        else if (element instanceof AtAction) {
             return "{...}";
         }
         return "...";

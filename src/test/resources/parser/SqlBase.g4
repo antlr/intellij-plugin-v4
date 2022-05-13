@@ -40,7 +40,8 @@ grammar SqlBase;
     if (nextChar >= 'A' && nextChar <= 'Z' || nextChar >= '0' && nextChar <= '9' ||
       nextChar == '_') {
       return false;
-    } else {
+    }
+    else {
       return true;
     }
   }

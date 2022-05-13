@@ -126,7 +126,8 @@ class HierarchyViewer extends JPanel implements TreeSelectionListener {
 				// None of the children match, so it must be this node
 				return node;
 			}
-		} else if ( tree instanceof TerminalNode ) {
+		}
+		else if ( tree instanceof TerminalNode ) {
 			TerminalNode terminal = (TerminalNode) tree;
 
 			if ( terminal.getSymbol().getStartIndex()<=offset && terminal.getSymbol().getStopIndex()>=offset ) {
