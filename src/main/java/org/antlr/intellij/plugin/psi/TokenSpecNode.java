@@ -44,7 +44,8 @@ public class TokenSpecNode extends RuleSpecNode {
 			if (parent != null) {
 				if (parent.getElementType() == ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_tokensSpec)) {
 					return new TokenSpecNode(node);
-				} else if (parent.getElementType() == ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_channelsSpec)) {
+				}
+				else if (parent.getElementType() == ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_channelsSpec)) {
 					return new ChannelSpecNode(node);
 				}
 			}

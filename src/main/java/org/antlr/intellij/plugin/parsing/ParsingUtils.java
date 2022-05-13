@@ -384,7 +384,8 @@ public class ParsingUtils {
 				lg = (LexerGrammar) loadGrammar(lexerGrammarFile, antlr);
 				if ( lg!=null ) {
 					antlr.process(lg, false);
-				} else {
+				}
+				else {
 					reportBadGrammar(lexerGrammarFile, console);
 				}
 			}

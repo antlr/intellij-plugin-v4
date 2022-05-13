@@ -100,7 +100,8 @@ public class ExtractRuleAction extends AnAction {
 					extractSelection(psiFile, editor, selectionModel);
 				}
 			}, PsiElement::getText);
-		} else {
+		}
+		else {
 			extractSelection(psiFile, editor, selectionModel);
 		}
 	}
@@ -164,7 +165,8 @@ public class ExtractRuleAction extends AnAction {
 			// do all as one operation.
 			if ( insertionPoint >= doc.getTextLength() ) {
 				doc.insertString(doc.getTextLength(), newRule);
-			} else {
+			}
+			else {
 				doc.insertString(insertionPoint, newRule);
 			}
 			doc.replaceString(selectionModel.getSelectionStart(), selectionModel.getSelectionEnd(), nameChooser.ruleName);

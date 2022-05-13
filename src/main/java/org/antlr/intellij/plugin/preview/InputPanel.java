@@ -619,23 +619,28 @@ public class InputPanel {
 				// TODO: move decision event stuff to profiler?
 				if ( eventInfo instanceof AmbiguityInfo ) {
 					msg = "Ambiguous upon alts " + eventInfo.configs.getAlts().toString();
-				} else if ( eventInfo instanceof ContextSensitivityInfo ) {
+				}
+				else if ( eventInfo instanceof ContextSensitivityInfo ) {
 					msg = "Context-sensitive";
-				} else if ( eventInfo instanceof LookaheadEventInfo ) {
+				}
+				else if ( eventInfo instanceof LookaheadEventInfo ) {
 					int k = eventInfo.stopIndex - eventInfo.startIndex + 1;
 					msg = "Deepest lookahead k=" + k;
-				} else if ( eventInfo instanceof PredicateEvalInfo ) {
+				}
+				else if ( eventInfo instanceof PredicateEvalInfo ) {
 					PredicateEvalInfo evalInfo = (PredicateEvalInfo) eventInfo;
 					msg = ProfilerPanel.getSemanticContextDisplayString(evalInfo,
 							previewState,
 							evalInfo.semctx, evalInfo.predictedAlt,
 							evalInfo.evalResult);
 					msg = msg + (!evalInfo.fullCtx ? " (DFA)" : "");
-				} else {
+				}
+				else {
 					msg = "Unknown decision event: " + eventInfo;
 				}
 				foundDecisionEvent = true;
-			} else {
+			}
+			else {
 				// error tool tips
 				SyntaxError errorUnderCursor = r.getUserData(SYNTAX_ERROR);
 				msg = getErrorDisplayString(errorUnderCursor);

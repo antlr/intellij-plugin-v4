@@ -84,7 +84,8 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 					super.visitElement(element);
 				}
 			}.visitElement(element);
-		} else if ( element instanceof ModeSpecNode ) {
+		}
+		else if ( element instanceof ModeSpecNode ) {
 			LexerRuleSpecNode[] lexerRules = PsiTreeUtil.getChildrenOfType(element, LexerRuleSpecNode.class);
 
 			if ( lexerRules != null ) {
