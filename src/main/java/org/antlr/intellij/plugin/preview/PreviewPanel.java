@@ -394,31 +394,32 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	private void updateTreeViewer(final PreviewState preview, final ParsingResult result) {
-
-//		ApplicationManager.getApplication().invokeLater(() -> {
-			if (result.parser instanceof PreviewParser) {
-				AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
-				if(buildTree) {
-					treeViewer.setTreeTextProvider(provider);
-					treeViewer.setTree(result.tree);
-				}
-				if(buildHierarchy) {
-					hierarchyViewer.setTreeTextProvider(provider);
-					hierarchyViewer.setTree(result.tree);
-				}
+//		long start = System.nanoTime();
+//		System.out.println("START updateTreeViewer "+Thread.currentThread().getName());
+		if (result.parser instanceof PreviewParser) {
+			AltLabelTextProvider provider = new AltLabelTextProvider(result.parser, preview.g);
+			if(buildTree) {
+				treeViewer.setTreeTextProvider(provider);
+				treeViewer.setTree(result.tree);
 			}
-			else {
-				if(buildTree) {
-					treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					treeViewer.setTree(result.tree);
-				}
-				if(buildHierarchy) {
-					hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
-					hierarchyViewer.setTree(result.tree);
-				}
+			if(buildHierarchy) {
+				hierarchyViewer.setTreeTextProvider(provider);
+				hierarchyViewer.setTree(result.tree);
 			}
-//		});
-
+		}
+		else {
+			if(buildTree) {
+				treeViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+				treeViewer.setTree(result.tree);
+			}
+			if(buildHierarchy) {
+				hierarchyViewer.setRuleNames(Arrays.asList(preview.g.getRuleNames()));
+				hierarchyViewer.setTree(result.tree);
+			}
+		}
+//		long parseTime_ns = System.nanoTime() - start;
+//		double parseTimeMS = parseTime_ns/(1000.0*1000.0);
+//		System.out.println("STOP updateTreeViewer "+Thread.currentThread().getName()+" "+parseTimeMS+"ms");
 	}
 
 
@@ -486,20 +487,22 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	public void onParsingCompleted(PreviewState previewState, long duration) {
-		cancelParserAction.setEnabled(false);
-		buttonBar.updateActionsImmediately();
+		ApplicationManager.getApplication().invokeLater(() -> { // make sure we're on GUI thread for this block
+			cancelParserAction.setEnabled(false);
+			buttonBar.updateActionsImmediately();
 
-		if ( previewState.parsingResult!=null ) {
-			updateTreeViewer(previewState, previewState.parsingResult);
-			profilerPanel.setProfilerData(previewState, duration);
-			inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
-		}
-		else if ( previewState.startRuleName==null ) {
-			indicateNoStartRuleInParseTreePane();
-		}
-		else {
-			indicateInvalidGrammarInParseTreePane();
-		}
+			if (previewState.parsingResult != null) {
+				updateTreeViewer(previewState, previewState.parsingResult);
+				profilerPanel.setProfilerData(previewState, duration);
+				inputPanel.showParseErrors(previewState.parsingResult.syntaxErrorListener.getSyntaxErrors());
+			}
+			else if (previewState.startRuleName == null) {
+				indicateNoStartRuleInParseTreePane();
+			}
+			else {
+				indicateInvalidGrammarInParseTreePane();
+			}
+		});
 	}
 
 	public void notifySlowParsing() {

@@ -439,9 +439,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		final PreviewState previewState = getPreviewState(grammarFile);
 
 		// Parse text in a background thread to avoid freezing the UI if the grammar is badly written
-		// an takes ages to interpret the input.
+		// and takes forever to interpret the input.
 		parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
 				(indicator) -> {
+//					System.out.println("PARSE START "+Thread.currentThread().getName());
 					long start = System.nanoTime();
 
 					previewState.parsingResult = ParsingUtils.parseText(
@@ -449,6 +450,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 							grammarFile, inputText, project
 					);
 
+//					long parseTime_ns = System.nanoTime() - start;
+//					double parseTimeMS = parseTime_ns/(1000.0*1000.0);
+//					System.out.println("PARSE STOP "+Thread.currentThread().getName()+" "+parseTimeMS+"ms");
 					return () -> previewPanel.onParsingCompleted(previewState, System.nanoTime() - start);
 				},
 				() -> previewPanel.notifySlowParsing(),
