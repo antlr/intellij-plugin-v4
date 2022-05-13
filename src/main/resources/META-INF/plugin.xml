@@ -73,10 +73,11 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Updated to ANTLR 4.10.1</li>
-	    <li>Fixed an exception in IDEA 2022.1 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/533">#495</a>)</li>
+	    <li>dramatically improved GUI responsiveness for large inputs in the preview input pane.</li>
+	    <li>I cleaned up the parse tree to get rid of all of the “null:” stuff.</li>
+	    <li>The first parser rule is automatically selected now as the start rule as a convenience.</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.18+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.19+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
