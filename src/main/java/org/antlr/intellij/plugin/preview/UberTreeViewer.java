@@ -65,7 +65,8 @@ public class UberTreeViewer extends TreeViewer {
 		// draw the text on top of the box (possibly multiple lines)
 		if ( tree instanceof ErrorNode || ruleFailedAndMatchedNothing ) {
 			g.setColor(Gray._64);
-		} else {
+		}
+		else {
 			g.setColor(textColor);
 		}
 		String s = getText(tree);

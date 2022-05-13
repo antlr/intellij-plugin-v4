@@ -101,7 +101,8 @@ public class AddTokenDefinitionFix extends BaseIntentionAction {
         String fragment = String.valueOf(c);
         if (Character.isLetter(c)) {
             return fragment;
-        } else {
+        }
+        else {
             return "'" + fragment + "'";
         }
     }

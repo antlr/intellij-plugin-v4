@@ -46,7 +46,8 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 		for ( GrammarIssue issue : issues ) {
 			if ( issue.getOffendingTokens().isEmpty() ) {
 				annotateFileIssue(file, holder, issue);
-			} else {
+			}
+			else {
 				annotateIssue(file, holder, issue);
 			}
 		}

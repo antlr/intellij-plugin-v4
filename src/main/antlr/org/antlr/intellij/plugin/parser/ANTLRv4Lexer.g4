@@ -110,7 +110,8 @@ channels {
 		if (insideOptionsBlock) {
 			setType(ANTLRv4Lexer.BEGIN_ACTION);
 			pushMode(ANTLRv4Lexer.Action);
-		} else {
+		}
+        else {
 			setType(ANTLRv4Lexer.LBRACE);
 			insideOptionsBlock = true;
 		}
@@ -144,7 +145,8 @@ channels {
 			String firstChar = _input.getText(Interval.of(_tokenStartCharIndex, _tokenStartCharIndex));
 			if (Character.isUpperCase(firstChar.charAt(0))) {
 				_type = TOKEN_REF;
-			} else {
+			}
+            else {
 				_type = RULE_REF;
 			}
 
