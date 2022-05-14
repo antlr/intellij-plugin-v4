@@ -49,7 +49,8 @@ channels {
 
 @members {
     // Generic type for OPTIONS, TOKENS and CHANNELS
-    private int PREQUEL_CONSTRUCT = -10;
+    private static final int PREQUEL_CONSTRUCT = -10;
+    private static final int OPTIONS_CONSTRUCT = -11;
 
 	/** Track whether we are inside of a rule and whether it is lexical parser.
 	 *  _currentRuleType==Token.INVALID_TYPE means that we are outside of a rule.
@@ -132,8 +133,15 @@ channels {
 	            && _currentRuleType == Token.INVALID_TYPE) { // enter prequel construct ending with an RBRACE
 	        _currentRuleType = PREQUEL_CONSTRUCT;
 	    }
-	    else if (_type == RBRACE && _currentRuleType == PREQUEL_CONSTRUCT) { // exit prequel construct
-	        _currentRuleType = Token.INVALID_TYPE;
+	    else if (_type == ANTLRv4Lexer.OPTIONS && _currentRuleType == ANTLRv4Lexer.TOKEN_REF) {
+             _currentRuleType = OPTIONS_CONSTRUCT;
+	    } else if (_type == RBRACE) {
+	        if (_currentRuleType == PREQUEL_CONSTRUCT) { // exit prequel construct
+	            _currentRuleType = Token.INVALID_TYPE;
+	        }
+	        else if (_currentRuleType == OPTIONS_CONSTRUCT) { // exit options
+	            _currentRuleType = ANTLRv4Lexer.TOKEN_REF;
+	        }
 	    }
         else if (_type == AT && _currentRuleType == Token.INVALID_TYPE) { // enter action
             _currentRuleType = AT;
@@ -154,8 +162,10 @@ channels {
 				_currentRuleType = _type;                 // set to inside lexer or parser rule
 			}
 		}
-		else if (_type == SEMI) {                  // exit rule def
-			_currentRuleType = Token.INVALID_TYPE;
+		else if (_type == SEMI) {
+		    if (_currentRuleType != OPTIONS_CONSTRUCT) { // ';' in options { .... }. Don't change anything.
+			    _currentRuleType = Token.INVALID_TYPE; // exit rule def
+			}
 		}
 
 		return super.emit();
