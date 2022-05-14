@@ -21,9 +21,9 @@ public class TokenStreamSubset extends CommonTokenStream {
 	}
 
 	public void setIndexOfLastToken(int indexOfLastToken) {
-		System.out.println("setIndexOfLastToken("+indexOfLastToken+")");
+//		System.out.println("setIndexOfLastToken("+indexOfLastToken+")");
 		if ( indexOfLastToken<0 ) {
-			System.out.println("replacing "+saveToken.getTokenIndex()+" with "+saveToken);
+//			System.out.println("replacing "+saveToken.getTokenIndex()+" with "+saveToken);
 			tokens.set(saveToken.getTokenIndex(), saveToken);
 //			this.indexOfLastToken = indexOfLastToken;
 			return;
@@ -31,10 +31,10 @@ public class TokenStreamSubset extends CommonTokenStream {
 		int i = indexOfLastToken + 1; // we want to keep token at indexOfLastToken
 		sync(i);
 		saveToken = tokens.get(i);
-		System.out.println("saving "+saveToken);
+//		System.out.println("saving "+saveToken);
 		CommonToken stopToken = new CommonToken(saveToken);
 		stopToken.setType(STOP_TOKEN_TYPE);
-		System.out.println("setting "+i+" to "+stopToken);
+//		System.out.println("setting "+i+" to "+stopToken);
 		tokens.set(i, stopToken);
 //		this.indexOfLastToken = indexOfLastToken;
 	}

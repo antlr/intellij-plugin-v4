@@ -191,11 +191,11 @@ public class MyPsiUtils {
 	public static PsiElement findElement(PsiElement startNode, int offset) {
 		PsiElement p = startNode;
 		if ( p==null ) return null;
-		System.out.println(Thread.currentThread().getName()+": visit root "+p+
-							   ", offset="+offset+
-							   ", class="+p.getClass().getSimpleName()+
-							   ", text="+p.getNode().getText()+
-							   ", node range="+p.getTextRange());
+//		System.out.println(Thread.currentThread().getName()+": visit root "+p+
+//							   ", offset="+offset+
+//							   ", class="+p.getClass().getSimpleName()+
+//							   ", text="+p.getNode().getText()+
+//							   ", node range="+p.getTextRange());
 
 		PsiElement c = p.getFirstChild();
 		while ( c!=null ) {
