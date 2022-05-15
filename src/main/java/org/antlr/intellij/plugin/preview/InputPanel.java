@@ -545,8 +545,8 @@ public class InputPanel {
 		}
 
 		PreviewParser parser = (PreviewParser) previewState.parsingResult.parser;
-		Integer atnState = parser.inputTokenToStateMap.get(tokenUnderCursor);
-		if ( atnState==null ) { // likely an error token
+		int atnState = parser.inputTokenToStateMap.getOrDefault(tokenUnderCursor, -1);
+		if ( atnState==-1 ) { // likely an error token
 			//LOG.error("no ATN state for input token " + tokenUnderCursor);
 			return;
 		}

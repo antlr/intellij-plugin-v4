@@ -1,19 +1,17 @@
 package org.antlr.intellij.plugin.parsing;
 
 import com.intellij.openapi.progress.ProgressManager;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.GrammarParserInterpreter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class PreviewParser extends GrammarParserInterpreter {
 	/** Map each preview editor token to the grammar ATN state used to match it.
 	 *  Saves us having to create special token subclass and token factory.
 	 */
-	public Map<Token, Integer> inputTokenToStateMap = new HashMap<>();
+	public Object2IntOpenHashMap<Token> inputTokenToStateMap = new Object2IntOpenHashMap<>();
 
 	private final LexerWatchdog lexerWatchdog;
 
