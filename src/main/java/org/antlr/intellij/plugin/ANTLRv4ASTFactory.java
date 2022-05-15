@@ -16,10 +16,9 @@ import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.intellij.plugin.psi.*;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
-	private static final Map<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<>();
+	private static final HashMap<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new HashMap<>();
 	static {
 		// later auto gen with tokens from some spec in grammar?
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.Factory.INSTANCE);
