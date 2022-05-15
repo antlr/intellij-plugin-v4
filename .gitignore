@@ -38,7 +38,8 @@ intellij-plugin-v4.iml
 .idea/dbnavigator.xml
 .idea/preferred-vcs.xml
 .idea/codeStyleSettings.xml
-
+.idea/highlightedFiles.xml
+.idea/jarRepositories.xml
 
 
 

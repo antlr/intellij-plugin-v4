@@ -22,6 +22,9 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 	public static final IFileElementType FILE =
 		new IFileElementType(ANTLRv4Language.INSTANCE);
 
+	private final ANTLRv4LexerAdaptor lexer = new ANTLRv4LexerAdaptor(new ANTLRv4Lexer(null));
+	private final ANTLRv4GrammarParser parser = new ANTLRv4GrammarParser();
+
 	public ANTLRv4ParserDefinition() {
 		PSIElementTypeFactory.defineLanguageIElementTypes(
 				ANTLRv4Language.INSTANCE,
@@ -33,13 +36,12 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 	@NotNull
 	@Override
 	public Lexer createLexer(Project project) {
-		ANTLRv4Lexer lexer = new ANTLRv4Lexer(null);
-		return new ANTLRv4LexerAdaptor(lexer);
+		return lexer;
 	}
 
 	@NotNull
 	public PsiParser createParser(final Project project) {
-		return new ANTLRv4GrammarParser();
+		return parser;
 	}
 
 	@NotNull
