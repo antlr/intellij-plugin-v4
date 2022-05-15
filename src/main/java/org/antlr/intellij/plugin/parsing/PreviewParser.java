@@ -29,7 +29,10 @@ public class PreviewParser extends GrammarParserInterpreter {
 	@Override
 	public void reset() {
 		super.reset();
-		inputTokenToStateMap.clear();
+
+		// TODO: figure out why in the world this _can_ be null?!
+		if(inputTokenToStateMap != null) inputTokenToStateMap.clear();
+
 		lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER;
 	}
 
