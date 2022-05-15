@@ -489,7 +489,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public static void showConsoleWindow(final Project project) {
 		ApplicationManager.getApplication().invokeLater(
-				() -> ANTLRv4PluginController.getInstance(project).getConsoleWindow().show(null)
+			() -> {
+				ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+				if(controller == null) {
+					return;
+				}
+				ToolWindow window = controller.getConsoleWindow();
+				if(window == null) {
+					return;
+				}
+				window.show(null);
+			}
 		);
 	}
 

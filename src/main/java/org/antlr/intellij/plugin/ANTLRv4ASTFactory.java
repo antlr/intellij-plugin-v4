@@ -10,7 +10,7 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.antlr.intellij.adaptor.parser.PsiElementFactory;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
@@ -18,17 +18,17 @@ import org.antlr.intellij.plugin.psi.*;
 import org.jetbrains.annotations.NotNull;
 
 public class ANTLRv4ASTFactory extends ASTFactory {
-	private static final Int2ObjectOpenHashMap<PsiElementFactory> ruleElementTypeToPsiFactory = new Int2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<IElementType, PsiElementFactory> ruleElementTypeToPsiFactory = new Object2ObjectOpenHashMap<>();
 
 	static {
 		// later auto gen with tokens from some spec in grammar?
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_rules, RulesNode.Factory.INSTANCE);
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_parserRuleSpec, ParserRuleSpecNode.Factory.INSTANCE);
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_lexerRule, LexerRuleSpecNode.Factory.INSTANCE);
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_grammarSpec, GrammarSpecNode.Factory.INSTANCE);
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_modeSpec, ModeSpecNode.Factory.INSTANCE);
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_action, AtAction.Factory.INSTANCE);
-		ruleElementTypeToPsiFactory.put(ANTLRv4Parser.RULE_identifier, TokenSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_rules), RulesNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_parserRuleSpec), ParserRuleSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_lexerRule), LexerRuleSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_grammarSpec), GrammarSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_modeSpec), ModeSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_identifier), TokenSpecNode.Factory.INSTANCE);
 	}
 
 	/** Create a FileElement for root or a parse tree CompositeElement (not
@@ -47,34 +47,29 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 	 */
     @Override
     public LeafElement createLeaf(@NotNull IElementType type, @NotNull CharSequence text) {
-		LeafElement t;
 		if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.RULE_REF) ) {
-			t = new ParserRuleRefNode(type, text);
+			return new ParserRuleRefNode(type, text);
 		}
 		else if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.TOKEN_REF) ) {
-			t = new LexerRuleRefNode(type, text);
+			return new LexerRuleRefNode(type, text);
 		}
 		else if ( type == ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(ANTLRv4Lexer.STRING_LITERAL) ) {
-			t = new StringLiteralElement(type, text);
+			return new StringLiteralElement(type, text);
 		}
 		else {
-			t = new LeafPsiElement(type, text);
+			return new LeafPsiElement(type, text);
 		}
-		return t;
     }
 
 	public static PsiElement createInternalParseTreeNode(ASTNode node) {
-		PsiElement t;
-		int typeIndex = node.getElementType().getIndex();
-		PsiElementFactory factory = ruleElementTypeToPsiFactory.get(typeIndex);
+		PsiElementFactory factory = ruleElementTypeToPsiFactory.get(node.getElementType());
+
 		if (factory != null) {
-			t = factory.createElement(node);
+			return factory.createElement(node);
 		}
 		else {
-			t = new ASTWrapperPsiElement(node);
+			return new ASTWrapperPsiElement(node);
 		}
-
-		return t;
 	}
 
 }

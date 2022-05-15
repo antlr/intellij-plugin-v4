@@ -21,10 +21,13 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.antlr.v4.tool.GrammarParserInterpreter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 
@@ -53,10 +56,10 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 	public static JBPopup createAmbigTreesPopup(final PreviewState previewState,
 	                                            final AmbiguityInfo ambigInfo) {
-		final JBList list = new JBList("Show all phrase interpretations");
+		final JBList<?> list = new JBList<>("Show all phrase interpretations");
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JBPopupFactory factory = JBPopupFactory.getInstance();
-		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
+		PopupChooserBuilder<?> builder = factory.createListPopupBuilder(list);
 		builder.setItemChoosenCallback(() -> popupAmbigTreesDialog(previewState, ambigInfo));
 		return builder.createPopup();
 	}
@@ -80,7 +83,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 		} catch (ParseCancellationException pce) {
 			// should be no errors for ambiguities, unless original
 			// input itself has errors. Just display error in this case.
-			JBPanel errPanel = new JBPanel(new BorderLayout());
+			JBPanel<?> errPanel = new JBPanel<>(new BorderLayout());
 			errPanel.add(new JBLabel("Cannot display ambiguous trees while there are syntax errors in your input."));
 			dialog.treeScrollPane.setViewportView(errPanel);
 		}
@@ -104,10 +107,10 @@ public class ShowAmbigTreesDialog extends JDialog {
 
 	public static JBPopup createLookaheadTreesPopup(final PreviewState previewState,
 	                                                final LookaheadEventInfo lookaheadInfo) {
-		final JBList list = new JBList("Show all lookahead interpretations");
+		final JBList<?> list = new JBList<>("Show all lookahead interpretations");
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JBPopupFactory factory = JBPopupFactory.getInstance();
-		PopupChooserBuilder builder = factory.createListPopupBuilder(list);
+		PopupChooserBuilder<?> builder = factory.createListPopupBuilder(list);
 		builder.setItemChoosenCallback(() -> popupLookaheadTreesDialog(previewState, lookaheadInfo));
 
 		return builder.createPopup();
@@ -129,7 +132,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 		if ( parser.getNumberOfSyntaxErrors()>0 ) {
 			// should be no errors for ambiguities, unless original
 			// input itself has errors. Just display error in this case.
-			JBPanel errPanel = new JBPanel(new BorderLayout());
+			JBPanel<?> errPanel = new JBPanel<>(new BorderLayout());
 			errPanel.add(new JBLabel("Cannot display lookahead trees while there are syntax errors in your input."));
 			dialog.treeScrollPane.setViewportView(errPanel);
 			lookaheadParseTrees = null;
@@ -167,7 +170,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 			int numTrees = ambiguousParseTrees.size();
 			setTitle(title);
 			treeViewers = new TreeViewer[numTrees];
-			JBPanel panelOfTrees = new JBPanel();
+			JBPanel<?> panelOfTrees = new JBPanel<>();
 			PreviewInterpreterRuleContext chosenTree =
 				(PreviewInterpreterRuleContext) ambiguousParseTrees.get(highlightTreeIndex);
 			panelOfTrees.setLayout(new BoxLayout(panelOfTrees, BoxLayout.X_AXIS));
@@ -188,7 +191,7 @@ public class ShowAmbigTreesDialog extends JDialog {
 				if ( ctx!=chosenTree ) {
 					mark(chosenTree, ctx);
 				}
-				JBPanel wrapper = new JBPanel(new BorderLayout());
+				JBPanel<?> wrapper = new JBPanel<>(new BorderLayout());
 				if ( i==highlightTreeIndex ) {
 					wrapper.setBackground(JBColor.white);
 				}
@@ -224,9 +227,11 @@ public class ShowAmbigTreesDialog extends JDialog {
 		final int first = Math.max(firstTleafTokenIndex, firstUleafTokenIndex);
 
 		// filter so we start in same place
-		tleaves = Utils.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
-		uleaves = Utils.filter(uleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
+		Predicate<TerminalNode> filter = getLeafFilter(first);
+		tleaves = Utils.filter(ArrayList::new, tleaves, filter);
+		uleaves = Utils.filter(ArrayList::new, uleaves, filter);
 		int n = Math.min(tleaves.size(), uleaves.size());
+
 		for (int i = 0; i<n; i++) { // for each leaf in t and u
 			Tree tleaf = tleaves.get(i);
 			Tree uleaf = uleaves.get(i);
@@ -246,6 +251,10 @@ public class ShowAmbigTreesDialog extends JDialog {
 				a++;
 			}
 		}
+	}
+
+	private static @NotNull Predicate<TerminalNode> getLeafFilter(int first) {
+		return tree -> ((Token) tree.getPayload()).getTokenIndex() >= first;
 	}
 
 	public static void markFromRoots(final PreviewInterpreterRuleContext t, final PreviewInterpreterRuleContext u) {

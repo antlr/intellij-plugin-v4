@@ -1,17 +1,16 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.util.containers.Predicate;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class Utils {
-	public static <T> List<T> filter(Collection<T> data, Predicate<T> pred) {
+	public static <T, L extends List<T>> L filter(Supplier<L> factory, Collection<T> data, Predicate<T> pred) {
 		if ( data==null ) return null;
-		List<T> filtered = new ArrayList<>();
-		for (T x : data) {
-			if ( pred.apply(x) ) filtered.add(x);
+		final L filtered = factory.get();
+		for (final T x : data) {
+			if ( pred.test(x) ) filtered.add(x);
 		}
 		return filtered;
 	}
