@@ -8,10 +8,6 @@ plugins {
     id "org.jetbrains.intellij" version "1.5.3"
 }
 
-wrapper {
-    gradleVersion = '7.4.2'
-}
-
 group 'antlr'
 version pluginVersion
 
