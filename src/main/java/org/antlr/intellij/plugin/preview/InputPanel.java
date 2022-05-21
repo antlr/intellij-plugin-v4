@@ -234,7 +234,7 @@ public class InputPanel {
 
 	public void grammarFileSaved() {
 		clearParseErrors();
-		if ( previewState.startRuleName!=null ) {
+		if ( previewState!=null && previewState.startRuleName!=null ) {
 			setStartRuleName(previewState.grammarFile, previewState.startRuleName);
 		}
 		else {
