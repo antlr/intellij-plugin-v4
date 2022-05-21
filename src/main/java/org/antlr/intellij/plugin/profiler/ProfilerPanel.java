@@ -61,6 +61,41 @@ public class ProfilerPanel {
 	protected JBTable profilerDataTable;
 	protected JLabel deepestLookaheadLabel;
 
+	protected class ProfilerJBTable extends JBTable {
+		@Override
+		public void setEnabled(boolean enabled) {
+			super.setEnabled(enabled);
+		}
+
+		@Override
+		protected JTableHeader createDefaultTableHeader() {
+			return new ProfilerTableHeader();
+		}
+
+		@Override
+		public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
+			return new ProfileTableCellRenderer();
+		}
+
+		protected class ProfilerTableHeader extends JBTableHeader {
+			@Override
+			public void setEnabled(boolean enabled) {
+				super.setEnabled(enabled);
+			}
+
+			public String getToolTipText(MouseEvent e) {
+				Point p = e.getPoint();
+				int index = columnModel.getColumnIndexAtX(p.x);
+				int realIndex = columnModel.getColumn(index).getModelIndex();
+				TableModel model = getModel();
+				if ( model instanceof ProfilerTableDataModel) {
+					return ((ProfilerTableDataModel) model).getColumnToolTips()[realIndex];
+				}
+				return model.getColumnName(realIndex);
+			}
+		}
+	}
+
 	public void grammarFileSaved(PreviewState previewState, VirtualFile grammarFile) {
 		// leave model and such alone.
 	}
@@ -328,28 +363,7 @@ public class ProfilerPanel {
 			ParseInfo parseInfo = previewState.parsingResult.parser.getParseInfo();
 			updateTableModelPerExpertCheckBox(parseInfo,previewState.parsingResult.parser);
 		});
-		profilerDataTable = new JBTable() {
-			@Override
-			protected JTableHeader createDefaultTableHeader() {
-				return new JTableHeader(columnModel) {
-					public String getToolTipText(MouseEvent e) {
-						Point p = e.getPoint();
-						int index = columnModel.getColumnIndexAtX(p.x);
-						int realIndex = columnModel.getColumn(index).getModelIndex();
-						TableModel model = getModel();
-						if ( model instanceof ProfilerTableDataModel ) {
-							return ((ProfilerTableDataModel) model).getColumnToolTips()[realIndex];
-						}
-						return model.getColumnName(realIndex);
-					}
-				};
-			}
-
-			@Override
-			public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
-				return new ProfileTableCellRenderer();
-			}
-		};
+		profilerDataTable = new ProfilerJBTable();
 		ListSelectionModel selectionModel = profilerDataTable.getSelectionModel();
 		selectionModel.addListSelectionListener(
 				e -> {
@@ -385,5 +399,4 @@ public class ProfilerPanel {
 		deepestLookaheadLabel = new JBLabel("Deepest lookahead");
 		deepestLookaheadLabel.setForeground(DEEPESTLOOK_COLOR);
 	}
-
 }

@@ -361,6 +361,10 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 	}
 
 	private void setEnabledRecursive(Component component, boolean enabled) {
+		if (component instanceof JTable) {
+			// seems there's a special case
+			((JTable) component).getTableHeader().setEnabled(enabled);
+		}
 		if (component instanceof Container) {
 			for (Component child : ((Container) component).getComponents()) {
 				child.setEnabled(enabled);
