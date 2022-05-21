@@ -73,9 +73,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Live templates weren't working. back on.</li>
+	    <li>Profiler table columns didn't sort when clicked. Fixed.</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.19+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.19.2+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 

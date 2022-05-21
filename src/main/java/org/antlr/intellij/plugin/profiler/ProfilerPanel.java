@@ -69,7 +69,7 @@ public class ProfilerPanel {
 		this.previewState = previewState;
 		DefaultTableModel model = new DefaultTableModel();
 		profilerDataTable.setModel(model);
-		profilerDataTable.setRowSorter(new TableRowSorter<AbstractTableModel>(model));
+		profilerDataTable.setAutoCreateRowSorter(true);
 	}
 
 	public void mouseEnteredGrammarEditorEvent(VirtualFile vfile, EditorMouseEvent e) {
