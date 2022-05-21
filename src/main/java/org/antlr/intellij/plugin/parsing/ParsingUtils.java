@@ -61,7 +61,7 @@ public class ParsingUtils {
 		i++; // search after current i token
 		if ( i>=n || i<0 ) return null;
 		Token t = tokens.get(i);
-		while ( t.getChannel()==Token.HIDDEN_CHANNEL ) {
+		while ( t.getChannel()!=Token.DEFAULT_CHANNEL ) {  // Parser must parse tokens on DEFAULT_CHANNEL
 			if ( t.getType()==Token.EOF ) {
 				TokenSource tokenSource = tokens.getTokenSource();
 				if ( tokenSource==null ) {
@@ -85,7 +85,7 @@ public class ParsingUtils {
 		i--; // search before current i token
 		if ( i>=size || i<0 ) return null;
 		Token t = tokens.get(i);
-		while ( t.getChannel()==Token.HIDDEN_CHANNEL ) {
+		while ( t.getChannel()!=Token.DEFAULT_CHANNEL ) { // Parser must parse tokens on DEFAULT_CHANNEL
 			i--;
 			if ( i<0 ) return null;
 			t = tokens.get(i);
