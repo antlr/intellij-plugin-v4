@@ -390,8 +390,8 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		ApplicationManager.getApplication().invokeLater(() -> {
 			treeViewer.setRuleNames(Collections.emptyList());
 			treeViewer.setTree(tree);
-			hierarchyViewer.setRuleNames(Collections.emptyList());
 			hierarchyViewer.setTree(null);
+			hierarchyViewer.setRuleNames(Collections.emptyList());
 		});
 	}
 
