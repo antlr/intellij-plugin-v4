@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import static com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl.MockToolWindow;
+import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.jetbrains.annotations.Nullable;
@@ -45,9 +45,9 @@ public class Issue559Test extends BasePlatformTestCase {
         return vf;
     }
 
-    private MockToolWindow createToolWindow() {
+    private ToolWindowHeadlessManagerImpl.MockToolWindow createToolWindow() {
 
-        return new MockToolWindow(getProject()) {
+        return new ToolWindowHeadlessManagerImpl.MockToolWindow(getProject()) {
 
             private Boolean isVisible = true;
 
