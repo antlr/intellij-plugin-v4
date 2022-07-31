@@ -53,6 +53,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
@@ -83,7 +84,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<>());
-	private ToolWindow previewWindow;	// same for all grammar editor
+	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
@@ -598,7 +599,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
+	public class MyFileEditorManagerAdapter implements FileEditorManagerListener {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
 			if ( !projectIsClosed ) {
@@ -608,7 +609,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		@Override
 		public void fileClosed(FileEditorManager source, VirtualFile file) {
-			if ( !projectIsClosed ) {
+			if ( !projectIsClosed && Objects.requireNonNull(source.getSelectedEditor()).getFile().equals(file) ) {
 				editorFileClosedEvent(file);
 			}
 		}
