@@ -439,6 +439,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public void parseText(final VirtualFile grammarFile, String inputText) {
 		final PreviewState previewState = getPreviewState(grammarFile);
 
+		// No need to parse empty text during unit tests, yet...
+		if (inputText.isEmpty() && ApplicationManager.getApplication().isUnitTestMode()) return;
+
 		// Parse text in a background thread to avoid freezing the UI if the grammar is badly written
 		// and takes forever to interpret the input.
 		parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
