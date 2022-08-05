@@ -8,6 +8,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
+import org.antlr.intellij.plugin.TestUtils;
 import org.antlr.intellij.plugin.preview.PreviewPanel;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -69,8 +70,8 @@ public class Issue559Test extends BasePlatformTestCase {
     }
 
     @Override
-    protected void tearDown() {
-        EditorFactory.getInstance().releaseEditor(myFixture.getEditor());
+    protected void tearDown() throws Exception {
+        TestUtils.tearDownIgnoringObjectNotDisposedException(() -> super.tearDown());
     }
 
 

@@ -174,6 +174,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewWindow = null;
 		consoleWindow = null;
 		project = null;
+
+		// We can't dispose of the preview state map during unit tests
+		if (ApplicationManager.getApplication().isUnitTestMode()) return;
 		grammarToPreviewState = null;
 	}
 
@@ -475,6 +478,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public void startParsing() {
 		parsingProgressIndicator = null;
+		if (previewPanel == null) return;
 		previewPanel.inputPanel.clearParseErrors(); // Wipes out the console and also any error annotations
 		previewPanel.startParsing();
 	}
@@ -505,13 +509,14 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// make sure only one thread tries to add a preview state object for a given file
 		String grammarFileName = grammarFile.getPath();
 		// Have we seen this grammar before?
-		PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
-		if ( stateForCurrentGrammar!=null ) {
-			return stateForCurrentGrammar; // seen this before
+		if (grammarToPreviewState != null) {
+			PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
+			if ( stateForCurrentGrammar!=null ) {
+				return stateForCurrentGrammar; // seen this before
+			}
 		}
-
 		// not seen, must create state
-		stateForCurrentGrammar = new PreviewState(project, grammarFile);
+		PreviewState stateForCurrentGrammar = new PreviewState(project, grammarFile);
 		grammarToPreviewState.put(grammarFileName, stateForCurrentGrammar);
 
 		return stateForCurrentGrammar;
