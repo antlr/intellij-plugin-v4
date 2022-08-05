@@ -52,12 +52,10 @@ public class Issue559Test extends BasePlatformTestCase {
 
             private Boolean isVisible = true;
 
-            @Override
             public void hide(@Nullable Runnable runnable) {
                 isVisible = false;
             }
 
-            @Override
             public boolean isVisible() {
                 return isVisible;
             }
