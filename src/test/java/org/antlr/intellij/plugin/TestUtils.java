@@ -18,7 +18,7 @@ public class TestUtils {
 				StringWriter stringWriter = new StringWriter();
 				e.printStackTrace(new PrintWriter(stringWriter));
 				String stack = stringWriter.toString();
-				if ( stack.contains("ANTLRv4PluginController.createToolWindows")
+				if ( stack.contains("ANTLRv4PluginController.createToolWindows") || stack.contains("Issue559Test")
 						|| stack.contains("org.antlr.intellij.plugin.preview.InputPanel.createPreviewEditor") ) {
 					return;
 				}
