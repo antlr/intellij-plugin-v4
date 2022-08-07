@@ -1,5 +1,6 @@
 package org.antlr.intellij.plugin.preview;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
@@ -59,6 +60,10 @@ public class PreviewState {
 	}
 
 	public synchronized void releaseEditor() {
+
+		// Editor can't be release during unit tests, because it is used by multiple tests
+		if (ApplicationManager.getApplication().isUnitTestMode()) return;
+
 		// It would appear that the project closed event occurs before these
 		// close grammars sometimes. Very strange. check for null editor.
 		if (inputEditor != null) {

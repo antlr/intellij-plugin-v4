@@ -53,6 +53,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
@@ -83,7 +84,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public Map<String, PreviewState> grammarToPreviewState =
 		Collections.synchronizedMap(new HashMap<>());
-	private ToolWindow previewWindow;	// same for all grammar editor
+	public ToolWindow previewWindow;	// same for all grammar editor
 	public PreviewPanel previewPanel;	// same for all grammar editor
 
 	public MyVirtualFileAdapter myVirtualFileAdapter = new MyVirtualFileAdapter();
@@ -173,6 +174,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		previewWindow = null;
 		consoleWindow = null;
 		project = null;
+
+		// We can't dispose of the preview state map during unit tests
+		if (ApplicationManager.getApplication().isUnitTestMode()) return;
 		grammarToPreviewState = null;
 	}
 
@@ -438,6 +442,9 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	public void parseText(final VirtualFile grammarFile, String inputText) {
 		final PreviewState previewState = getPreviewState(grammarFile);
 
+		// No need to parse empty text during unit tests, yet...
+		if (inputText.isEmpty() && ApplicationManager.getApplication().isUnitTestMode()) return;
+
 		// Parse text in a background thread to avoid freezing the UI if the grammar is badly written
 		// and takes forever to interpret the input.
 		parsingProgressIndicator = BackgroundTaskUtil.executeAndTryWait(
@@ -471,6 +478,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	public void startParsing() {
 		parsingProgressIndicator = null;
+		if (previewPanel == null) return;
 		previewPanel.inputPanel.clearParseErrors(); // Wipes out the console and also any error annotations
 		previewPanel.startParsing();
 	}
@@ -501,13 +509,14 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		// make sure only one thread tries to add a preview state object for a given file
 		String grammarFileName = grammarFile.getPath();
 		// Have we seen this grammar before?
-		PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
-		if ( stateForCurrentGrammar!=null ) {
-			return stateForCurrentGrammar; // seen this before
+		if (grammarToPreviewState != null) {
+			PreviewState stateForCurrentGrammar = grammarToPreviewState.get(grammarFileName);
+			if ( stateForCurrentGrammar!=null ) {
+				return stateForCurrentGrammar; // seen this before
+			}
 		}
-
 		// not seen, must create state
-		stateForCurrentGrammar = new PreviewState(project, grammarFile);
+		PreviewState stateForCurrentGrammar = new PreviewState(project, grammarFile);
 		grammarToPreviewState.put(grammarFileName, stateForCurrentGrammar);
 
 		return stateForCurrentGrammar;
@@ -598,7 +607,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
+	public class MyFileEditorManagerAdapter implements FileEditorManagerListener {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
 			if ( !projectIsClosed ) {
@@ -608,7 +617,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		@Override
 		public void fileClosed(FileEditorManager source, VirtualFile file) {
-			if ( !projectIsClosed ) {
+			if ( !projectIsClosed && Objects.requireNonNull(source.getSelectedEditor()).getFile().equals(file) ) {
 				editorFileClosedEvent(file);
 			}
 		}
