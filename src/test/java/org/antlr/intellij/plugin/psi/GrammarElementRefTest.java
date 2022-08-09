@@ -118,7 +118,7 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 		assertResolvedMatches(LexerRuleSpecNode.class, element -> {
 			assertEquals("TOKEN1", element.getName());
 			assertEquals(66, element.getTextOffset());
-			assertEquals("FooLexer.g4", element.getContainingFile().getName());
+			assertEquals("FooLexer", element.getContainingFile().getName());
 		});
 
 		moveCaret(85);
@@ -131,7 +131,7 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 		assertResolvedMatches(TokenSpecNode.class, element -> {
 			assertEquals("STRING", element.getName());
 			assertEquals(34, element.getTextOffset());
-			assertEquals("FooLexer.g4", element.getContainingFile().getName());
+			assertEquals("FooLexer", element.getContainingFile().getName());
 		});
 	}
 
@@ -139,21 +139,21 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 		myFixture.configureByFiles("FooParser.g4", "FooLexer.g4");
 
 		moveCaret(55);
-		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("FooLexer.g4", file.getName()));
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("FooLexer", file.getName()));
 	}
 
 	public void testReferencesToTokenVocabFileString() {
 		myFixture.configureByFiles("FooParser2.g4", "FooLexer.g4");
 
 		moveCaret(55);
-		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("FooLexer.g4", file.getName()));
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("FooLexer", file.getName()));
 	}
 
 	public void testReferenceToImportedFile() {
 		myFixture.configureByFiles("importing.g4", "imported.g4");
 
 		moveCaret(35);
-		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("imported.g4", file.getName()));
+		assertResolvedMatches(ANTLRv4FileRoot.class, file -> assertEquals("imported", file.getName()));
 	}
 
 	public void testReferenceToRuleInImportedFile() {
@@ -165,13 +165,13 @@ public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCa
 		moveCaret(66);
 		assertResolvedMatches(LexerRuleSpecNode.class, node -> {
 			assertEquals("Bar", node.getName());
-			assertEquals("imported2.g4", node.getContainingFile().getName());
+			assertEquals("imported2", node.getContainingFile().getName());
 		});
 
 		moveCaret(80);
 		assertResolvedMatches(LexerRuleSpecNode.class, node -> {
 			assertEquals("Baz", node.getName());
-			assertEquals("imported3.g4", node.getContainingFile().getName());
+			assertEquals("imported3", node.getContainingFile().getName());
 		});
 	}
 

@@ -168,5 +168,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
                            instance="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"/>
       <projectService serviceImplementation="org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesComponent"/>
       <lang.refactoringSupport language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.refactor.ANTLRv4RefactoringSupport"/>
+      <renamePsiElementProcessor implementation="org.antlr.intellij.plugin.refactor.RenameGrammarProcessor"/>
+      <renameInputValidator implementation="org.antlr.intellij.plugin.refactor.GrammarRenameInputValidator"/>
   </extensions>
 </idea-plugin>

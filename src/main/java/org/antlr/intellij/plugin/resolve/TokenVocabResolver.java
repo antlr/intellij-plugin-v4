@@ -1,6 +1,8 @@
 package org.antlr.intellij.plugin.resolve;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -89,4 +91,9 @@ public class TokenVocabResolver {
 
 		return null;
 	}
+
+	public static VirtualFile findRelativeTokenFile(String baseName, ANTLRv4FileRoot file) {
+		return VfsUtil.findRelativeFile(file.getVirtualFile().getParent(), baseName + ".tokens");
+	}
+
 }

@@ -4,7 +4,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.util.IncorrectOperationException;
+import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,8 +24,13 @@ public abstract class GrammarElementRefNode extends LeafPsiElement implements Ps
 	}
 
 	@Override
-	public PsiElement setName(@NotNull String name) throws IncorrectOperationException {
-		throw new IncorrectOperationException("Can't rename grammar reference identifier");
+	public PsiElement setName(@NotNull String newName) {
+		name = newName;
+		replace(MyPsiUtils.createLeafFromText(getProject(),
+				getContext(),
+				newName,
+				ANTLRv4TokenTypes.TOKEN_ELEMENT_TYPES.get(org.antlr.intellij.plugin.parser.ANTLRv4Lexer.TOKEN_REF)));
+		return this;
 	}
 
 	@Override
