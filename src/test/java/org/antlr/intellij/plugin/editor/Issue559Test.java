@@ -1,6 +1,5 @@
 package org.antlr.intellij.plugin.editor;
 
-import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -52,7 +51,7 @@ public class Issue559Test extends BasePlatformTestCase {
     @Override
     protected void tearDown() throws Exception {
         TestUtils.tearDownIgnoringObjectNotDisposedException(() -> {
-            EditorFactory.getInstance().releaseEditor(myFixture.getEditor());
+            TestUtils.releaseEditorIfNotDisposed(myFixture.getEditor());
             super.tearDown();
         });
     }
