@@ -1,12 +1,18 @@
 package org.antlr.intellij.plugin;
 
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.lang.CompoundRuntimeException;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class TestUtils {
+
+	public static void releaseEditorIfNotDisposed(Editor editor) {
+		if (!editor.isDisposed()) EditorFactory.getInstance().releaseEditor(editor);
+	}
+
 	public static void tearDownIgnoringObjectNotDisposedException(ThrowableRunnable<Exception> delegate) throws Exception {
 		try {
 			delegate.run();

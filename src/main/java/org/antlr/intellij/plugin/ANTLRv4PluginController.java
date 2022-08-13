@@ -6,6 +6,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -20,6 +21,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -35,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.messages.MessageBusConnection;
@@ -53,7 +57,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
@@ -92,6 +95,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	private ProgressIndicator parsingProgressIndicator;
 
+	private final Map<String, Long> grammarFileMods = new HashMap<>();
+
 	public ANTLRv4PluginController(Project project) {
 		this.project = project;
 	}
@@ -110,6 +115,16 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void initComponent() {
+
+		final FileTypeManager fileTypeManager = FileTypeManager.getInstance();
+		final String defaultExtension = ANTLRv4FileType.INSTANCE.getDefaultExtension();
+
+		WriteCommandAction.runWriteCommandAction(this.project, () ->
+				fileTypeManager.removeAssociatedExtension(FileTypes.PLAIN_TEXT, defaultExtension));
+
+		WriteCommandAction.runWriteCommandAction(this.project, () ->
+				fileTypeManager.associateExtension(ANTLRv4FileType.INSTANCE, defaultExtension));
+
 	}
 
 	@Override
@@ -267,7 +282,17 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	public void grammarFileSavedEvent(VirtualFile grammarFile) {
-		LOG.info("grammarFileSavedEvent "+grammarFile.getPath()+" "+project.getName());
+
+		Long modCount = grammarFile.getModificationCount();
+		String grammarFilePath = grammarFile.getPath();
+
+		if (grammarFileMods.containsKey(grammarFilePath) && grammarFileMods.get(grammarFilePath).equals(modCount)) {
+			return;
+		}
+
+		grammarFileMods.put(grammarFilePath, modCount);
+
+		LOG.info("grammarFileSavedEvent "+grammarFilePath+" "+project.getName());
 		updateGrammarObjectsFromFile(grammarFile, true); // force reload
 		if ( previewPanel!=null ) {
 			previewPanel.grammarFileSaved(grammarFile);
@@ -277,24 +302,32 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile) {
+	public void currentEditorFileChangedEvent(VirtualFile oldFile, VirtualFile newFile, boolean modified) {
 		LOG.info("currentEditorFileChangedEvent "+(oldFile!=null?oldFile.getPath():"none")+
 				 " -> "+(newFile!=null?newFile.getPath():"none")+" "+project.getName());
 		if ( newFile==null ) { // all files must be closed I guess
 			return;
 		}
-		if ( newFile.getName().endsWith(".g") ) {
+
+		String newFileExt = newFile.getExtension();
+
+		if (newFileExt == null) {
+			return;
+		}
+
+		if (newFileExt.equals("g")) {
 			LOG.info("currentEditorFileChangedEvent ANTLR 4 cannot handle .g files, only .g4");
 			hidePreview();
 			return;
 		}
-		if ( !newFile.getName().endsWith(".g4") ) {
+
+		if ( !newFileExt.equals("g4") ) {
 			return;
 		}
 
 		// When switching from a lexer grammar, update its objects in case the grammar was modified.
 		// The updated objects might be needed later by another dependant grammar.
-		if ( oldFile != null && oldFile.getName().endsWith(".g4")) {
+		if ( oldFile != null && oldFile.getExtension().equals("g4") && modified) {
 			updateGrammarObjectsFromFile(oldFile, true);
 		}
 
@@ -611,13 +644,37 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		@Override
 		public void selectionChanged(FileEditorManagerEvent event) {
 			if ( !projectIsClosed ) {
-				currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile());
+				boolean modified = false;
+
+				if (event.getOldEditor() != null) {
+					if (event.getOldEditor().isModified()) {
+						modified = true;
+					} else {
+						VirtualFile oldFile = event.getOldEditor().getFile();
+						String oldFilePath = oldFile.getPath();
+						Long modCount = oldFile.getModificationCount();
+						modified = grammarFileMods.containsKey(oldFilePath) &&
+								!grammarFileMods.get(oldFilePath).equals(modCount);
+					}
+
+				}
+
+				if (modified) {
+					PsiDocumentManager psiMgr = PsiDocumentManager.getInstance(project);
+					FileDocumentManager docMgr = FileDocumentManager.getInstance();
+					Document doc = docMgr.getDocument(event.getOldFile());
+					if ( !psiMgr.isCommitted(doc) || docMgr.isDocumentUnsaved(doc) ) {
+						psiMgr.commitDocument(doc);
+						docMgr.saveDocument(doc);
+					}
+				}
+				currentEditorFileChangedEvent(event.getOldFile(), event.getNewFile(), modified);
 			}
 		}
 
 		@Override
 		public void fileClosed(FileEditorManager source, VirtualFile file) {
-			if ( !projectIsClosed && Objects.requireNonNull(source.getSelectedEditor()).getFile().equals(file) ) {
+			if ( !projectIsClosed && (source != null && source.getSelectedEditor() != null && source.getSelectedEditor().getFile().equals(file)) ) {
 				editorFileClosedEvent(file);
 			}
 		}
