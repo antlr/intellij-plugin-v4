@@ -6,7 +6,7 @@
 
   <description><![CDATA[
   <p>
-      This plugin is for ANTLR v4 grammars and includes ANTLR 4.10.1. It works with
+      This plugin is for ANTLR v4 grammars and includes ANTLR 4.11.1. It works with
       2020.2.1 and above (possibly earlier, min set to 2019.2).  It should work in other JetBrains IDEs.
      </p>
 
@@ -73,9 +73,10 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Profiler table columns didn't sort when clicked. Fixed.</li>
+	    <li>ANTLR bumped from 4.10.1 to 4.11.1</li>
+	    <li>A number of bug fixes</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.19.2+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.19.3+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
