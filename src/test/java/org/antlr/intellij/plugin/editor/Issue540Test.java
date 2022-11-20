@@ -13,6 +13,7 @@ import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.TestUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+
 import java.io.File;
 
 public class Issue540Test extends BasePlatformTestCase {
@@ -38,6 +39,13 @@ public class Issue540Test extends BasePlatformTestCase {
         switchToFile(parserFile);
         assertTrue(TOKENS_FILE.exists());
         long lastModified1 = TOKENS_FILE.lastModified();
+
+        try {
+            Thread.sleep(100); // Wait for 100ms to ensure that the file update
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // Switch to lexer file, add token, and check if tokens file was updated
         switchToFile(lexerFile);
