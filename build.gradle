@@ -9,7 +9,7 @@ plugins {
 }
 
 wrapper {
-    gradleVersion = '7.4.2'
+    gradleVersion = '7.5'
 }
 
 group 'antlr'
@@ -20,8 +20,8 @@ apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'antlr'
 
 compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
 }
 
 intellij {
