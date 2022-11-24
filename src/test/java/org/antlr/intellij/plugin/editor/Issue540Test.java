@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.editor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -98,9 +99,8 @@ public class Issue540Test extends BasePlatformTestCase {
         FileUtils.forceDeleteOnExit(LEXER_FILE);
         FileUtils.forceDeleteOnExit(PARSER_FILE);
         FileUtils.forceDeleteOnExit(new File(getTestDataGenPath()));
-        TestUtils.tearDownIgnoringObjectNotDisposedException(() -> {
-            super.tearDown();
-        });
+        EditorFactory.getInstance().releaseEditor(myFixture.getEditor());
+        TestUtils.tearDownIgnoringObjectNotDisposedException(super::tearDown);
     }
 
 }

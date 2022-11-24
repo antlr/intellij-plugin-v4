@@ -6,7 +6,6 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -21,8 +20,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -57,6 +54,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
@@ -115,16 +113,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 	@Override
 	public void initComponent() {
-
-		final FileTypeManager fileTypeManager = FileTypeManager.getInstance();
-		final String defaultExtension = ANTLRv4FileType.INSTANCE.getDefaultExtension();
-
-		WriteCommandAction.runWriteCommandAction(this.project, () ->
-				fileTypeManager.removeAssociatedExtension(FileTypes.PLAIN_TEXT, defaultExtension));
-
-		WriteCommandAction.runWriteCommandAction(this.project, () ->
-				fileTypeManager.associateExtension(ANTLRv4FileType.INSTANCE, defaultExtension));
-
 	}
 
 	@Override
