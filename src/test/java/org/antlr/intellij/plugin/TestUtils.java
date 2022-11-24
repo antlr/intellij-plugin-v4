@@ -24,9 +24,8 @@ public class TestUtils {
 				StringWriter stringWriter = new StringWriter();
 				e.printStackTrace(new PrintWriter(stringWriter));
 				String stack = stringWriter.toString();
-				System.out.println(e.getStackTrace()[0].getClassName());
 				if ( stack.contains("ANTLRv4PluginController.createToolWindows") ||
-
+						stack.contains("GrammarRenameTest") ||
 						stack.contains("Issue559") || stack.contains("Issue540") || stack.contains("Issue569") ||
 						stack.contains("org.antlr.intellij.plugin.preview.InputPanel.createPreviewEditor") ) {
 					return;

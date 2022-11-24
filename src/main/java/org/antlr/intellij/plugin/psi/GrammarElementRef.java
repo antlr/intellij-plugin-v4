@@ -60,6 +60,10 @@ public class GrammarElementRef extends PsiReferenceBase<GrammarElementRefNode> {
 			return importedFile;
 		}
 
+		if ( MyPsiUtils.isGrammarName(getElement())) {
+			return getElement().getContainingFile();
+		}
+
 		GrammarSpecNode grammar = PsiTreeUtil.getContextOfType(getElement(), GrammarSpecNode.class);
 		PsiElement specNode = MyPsiUtils.findSpecNode(grammar, ruleName);
 

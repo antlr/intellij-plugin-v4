@@ -17,6 +17,9 @@ import org.antlr.intellij.plugin.ANTLRv4Language;
 import org.antlr.intellij.plugin.ANTLRv4TokenTypes;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.jetbrains.annotations.Nullable;
+import static org.antlr.intellij.plugin.parser.ANTLRv4Parser.RULE_identifier;
+import static org.antlr.intellij.plugin.parser.ANTLRv4Parser.RULE_optionValue;
+import static org.antlr.intellij.plugin.parser.ANTLRv4Parser.RULE_grammarType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -186,6 +189,37 @@ public class MyPsiUtils {
 			}
 		}
 		return vocabName;
+	}
+
+	public static Boolean isGrammarName(PsiElement element) {
+
+		PsiElement parent = element.getParent();
+
+		if (parent == null || !isRuleType(parent, RULE_identifier)) return false;
+
+		if (parent.getParent() != null && isRuleType(parent.getParent(), RULE_optionValue)) {
+			return true;
+		}
+
+		if (parent.getPrevSibling() != null && parent.getPrevSibling().getPrevSibling() != null) {
+			return isRuleType(parent.getPrevSibling().getPrevSibling(), RULE_grammarType);
+		}
+
+		return false;
+
+	}
+
+	public static Boolean isGrammarNameVocabOption(PsiElement element) {
+		if (!isGrammarName(element)) return false;
+		PsiElement parent = element.getParent();
+		return (parent.getParent() != null && isRuleType(parent.getParent(), RULE_optionValue));
+	}
+
+	public static Boolean isRuleType(PsiElement element,int type){
+		return element
+				.getNode()
+				.getElementType()
+				.equals(ANTLRv4TokenTypes.getRuleElementType(type));
 	}
 
 	public static PsiElement findElement(PsiElement startNode, int offset) {
