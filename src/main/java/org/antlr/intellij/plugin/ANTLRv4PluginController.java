@@ -104,6 +104,10 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			LOG.error("getInstance: project is null");
 			return null;
 		}
+		if ( project.isDisposed() ) {
+			LOG.error("getInstance: project is already disposed");
+			return null;
+		}
 		ANTLRv4PluginController pc = project.getComponent(ANTLRv4PluginController.class);
 		if ( pc==null ) {
 			LOG.error("getInstance: getComponent() for "+project.getName()+" returns null");
