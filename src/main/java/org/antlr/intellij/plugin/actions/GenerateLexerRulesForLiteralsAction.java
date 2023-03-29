@@ -41,16 +41,16 @@ public class GenerateLexerRulesForLiteralsAction extends AnAction {
 	public void update(AnActionEvent e) {
 		Presentation presentation = e.getPresentation();
 		VirtualFile grammarFile = MyActionUtils.getGrammarFileFromEvent(e);
-		if ( grammarFile==null ) {
+		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
+		Editor editor = e.getData(PlatformDataKeys.EDITOR);
+
+		if (grammarFile == null || file == null || editor == null ) {
 			presentation.setEnabled(false);
 			return;
 		}
-		PsiFile file = e.getData(LangDataKeys.PSI_FILE);
-		Editor editor = e.getData(PlatformDataKeys.EDITOR);
 		PsiElement selectedElement = BaseRefactoringAction.getElementAtCaret(editor, file);
 		if ( selectedElement==null ) { // we clicked somewhere outside text
 			presentation.setEnabled(false);
-			return;
 		}
 	}
 

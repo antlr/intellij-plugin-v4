@@ -199,12 +199,18 @@ public class InputPanel {
 
 		// wipe old and make new one
 		releaseEditor(previewState);
-		Editor editor = createPreviewEditor(controller.getCurrentGrammarFile(), inputDocument, true);
+
+		VirtualFile currentGrammarFile = controller != null ? controller.getCurrentGrammarFile() : null;
+		if (currentGrammarFile == null) {
+			return;
+		}
+
+		Editor editor = createPreviewEditor(currentGrammarFile, inputDocument, true);
 		setEditorComponent(editor.getComponent()); // do before setting state
 		previewState.setInputEditor(editor);
 		clearErrorConsole();
 
-		previewPanel.updateParseTreeFromDoc(controller.getCurrentGrammarFile());
+		previewPanel.updateParseTreeFromDoc(currentGrammarFile);
 	}
 
 	public Editor createPreviewEditor(final VirtualFile grammarFile, Document doc, boolean readOnly) {
