@@ -319,7 +319,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		// When switching from a lexer grammar, update its objects in case the grammar was modified.
 		// The updated objects might be needed later by another dependant grammar.
-		if ( oldFile != null && oldFile.getExtension().equals("g4") && modified) {
+		if ( oldFile != null && "g4".equals(oldFile.getExtension()) && modified) {
 			updateGrammarObjectsFromFile(oldFile, true);
 		}
 
