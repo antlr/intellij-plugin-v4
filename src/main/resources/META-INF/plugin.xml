@@ -82,6 +82,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
   </change-notes>
 
   <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
+  <!-- can be overriden by the Gradle build if needed -->
   <idea-version since-build="203"/> <!-- requires IntelliJ 2020.3+ due to java 11 issue really -->
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products

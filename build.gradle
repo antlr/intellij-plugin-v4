@@ -29,7 +29,12 @@ intellij {
 
     pluginName = 'antlr-intellij-plugin-v4'
     downloadSources = true
-    updateSinceUntilBuild = false
+    updateSinceUntilBuild = true
+
+    patchPluginXml {
+        sinceBuild = sinceBuildVersion
+        untilBuild = untilBuildVersion
+    }
 }
 
 repositories {

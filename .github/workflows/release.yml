@@ -1,10 +1,12 @@
 # This workflow will build a Java project with Gradle
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
-name: Java CI
+name: Java CI for releases
 
-on: [ push, pull_request ]
-
+on:
+  create:
+    tags:
+      - *
 jobs:
   build:
 
@@ -16,13 +18,22 @@ jobs:
           # see https://www.jetbrains.com/idea/download/previous.html
           # and https://www.jetbrains.com/intellij-repository/snapshots/
           - IDEA_VERSION: IC-2020.3 # Oldest supported version
+            SINCE_VERSION: 203
+            UNTIL_VERSION: 210.*
+            ARTIFACT_SUFFIX: "-2020"
           - IDEA_VERSION: IC-2021.3.3
+            SINCE_VERSION: 210
+            UNTIL_VERSION: 220.*
+            ARTIFACT_SUFFIX: "-2021"
           - IDEA_VERSION: IC-2022.3.3
+            SINCE_VERSION: 220
+            UNTIL_VERSION: 230.*
+            ARTIFACT_SUFFIX: "-2022"
             JDK_VERSION: 17
           - IDEA_VERSION: IC-2023.1
+            SINCE_VERSION: 230
             JDK_VERSION: 17
-          - IDEA_VERSION: IU-LATEST-EAP-SNAPSHOT
-            JDK_VERSION: 17
+            ARTIFACT_SUFFIX:
 
     steps:
       - uses: actions/checkout@v3
@@ -38,13 +49,15 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
+
       - name: Build with Gradle
         run: |
-          ./gradlew -PideaVersion=${IDEA_VERSION} check buildPlugin
+          ./gradlew -PideaVersion=${IDEA_VERSION} -PsinceBuildVersion=${SINCE_VERSION} -PuntilBuildVersion=${UNTIL_VERSION} check buildPlugin
+          [ ! -z "${ARTIFACT_SUFFIX}" ] && for f in `find build/distributions/ -name  'antlr-intellij-plugin-v4-*.zip'`; do mv -- "$f" "${f%.zip}${ARTIFACT_SUFFIX}.zip"; done
         env: ${{ matrix.env }}
+
       - name: Archive distribution artifact
         uses: actions/upload-artifact@v3
         with:
-          name: "antlr-intellij-development"
+          name: "antlr-intellij${{ARTIFACT_SUFFIX}}"
           path: build/distributions/antlr-intellij-plugin-v4-*.zip
-        if: matrix.env.IDEA_VERSION == 'IC-2020.3'
