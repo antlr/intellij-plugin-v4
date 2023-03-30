@@ -26,24 +26,26 @@ jobs:
             JDK_VERSION: 17
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK 11
         if: matrix.env.JDK_VERSION != '17'
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: 11
+          distribution: temurin
       - name: Set up JDK 17
         if: matrix.env.JDK_VERSION == '17'
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: 17
+          distribution: temurin
       - name: Build with Gradle
         run: |
           ./gradlew -PideaVersion=${IDEA_VERSION} check buildPlugin
           echo "DIST_FILE=$(find build/distributions/ -name 'antlr-intellij-plugin-v4-*.zip' -exec basename {} .zip \;)" >> $GITHUB_ENV
         env: ${{ matrix.env }}
       - name: Archive distribution artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{env.DIST_FILE}}
           path: build/distributions/antlr-intellij-plugin-v4-*.zip
