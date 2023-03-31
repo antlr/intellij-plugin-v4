@@ -73,10 +73,11 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>ANTLR bumped from 4.10.1 to 4.11.1</li>
-	    <li>A number of bug fixes</li>
+	    <li>ANTLR bumped from 4.11.1 to 4.12.0 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/620">#620</a>)</li>
+	    <li>Fixed compatibility with IntelliJ Platform 2023.1 (<a href="https://github.com/antlr/intellij-plugin-v4/issues/605">#605</a>)</li>
+	    <li>A number of other bug fixes</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.19.3+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.20+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
