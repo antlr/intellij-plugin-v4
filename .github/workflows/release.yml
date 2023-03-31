@@ -6,7 +6,7 @@ name: Java CI for releases
 on:
   create:
     tags:
-      - *
+      - '*'
 jobs:
   build:
 
