@@ -127,51 +127,53 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	private void antlr(VirtualFile vfile) {
 		if ( vfile==null ) return;
 
-		LOG.info("antlr(\""+vfile.getPath()+"\")");
-		List<String> args = getANTLRArgsAsList(project, vfile);
+		ApplicationManager.getApplication().runReadAction(() -> {
+			LOG.info("antlr(\""+vfile.getPath()+"\")");
+			List<String> args = getANTLRArgsAsList(project, vfile);
 
-		String sourcePath = getParentDir(vfile);
-		String fullyQualifiedInputFileName = sourcePath+File.separator+vfile.getName();
-		args.add(fullyQualifiedInputFileName); // add grammar file last
+			String sourcePath = getParentDir(vfile);
+			String fullyQualifiedInputFileName = sourcePath+File.separator+vfile.getName();
+			args.add(fullyQualifiedInputFileName); // add grammar file last
 
-		String lexerGrammarFileName = ParsingUtils.getLexerNameFromParserFileName(fullyQualifiedInputFileName);
-		if ( new File(lexerGrammarFileName).exists() ) {
-			// build the lexer too as the grammar surely uses it if it exists
-			args.add(lexerGrammarFileName);
-		}
+			String lexerGrammarFileName = ParsingUtils.getLexerNameFromParserFileName(fullyQualifiedInputFileName);
+			if ( new File(lexerGrammarFileName).exists() ) {
+				// build the lexer too as the grammar surely uses it if it exists
+				args.add(lexerGrammarFileName);
+			}
 
-		LOG.info("args: " + Utils.join(args.iterator(), " "));
+			LOG.info("args: " + Utils.join(args.iterator(), " "));
 
-		Tool antlr = new Tool(args.toArray(new String[args.size()]));
+			Tool antlr = new Tool(args.toArray(new String[args.size()]));
 
-		ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
-		String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-		console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-		antlr.removeListeners();
-		RunANTLRListener listener = new RunANTLRListener(antlr, console);
-		antlr.addListener(listener);
+			ConsoleView console = ANTLRv4PluginController.getInstance(project).getConsole();
+			String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+			console.print(timeStamp+": antlr4 "+Misc.join(args.iterator(), " ")+"\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+			antlr.removeListeners();
+			RunANTLRListener listener = new RunANTLRListener(antlr, console);
+			antlr.addListener(listener);
 
-		try {
-			antlr.processGrammarsOnCommandLine();
-		}
-		catch (Throwable e) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-			String msg = sw.toString();
-			Notification notification =
-				new Notification(groupDisplayId,
-					"can't generate parser for " + vfile.getName(),
-					e.toString(),
-					NotificationType.INFORMATION);
-			Notifications.Bus.notify(notification, project);
-			console.print(timeStamp + ": antlr4 " + msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-			listener.hasOutput = true; // show console below
-		}
+			try {
+				antlr.processGrammarsOnCommandLine();
+			}
+			catch (Throwable e) {
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				e.printStackTrace(pw);
+				String msg = sw.toString();
+				Notification notification =
+					new Notification(groupDisplayId,
+						"can't generate parser for " + vfile.getName(),
+						e.toString(),
+						NotificationType.INFORMATION);
+				Notifications.Bus.notify(notification, project);
+				console.print(timeStamp + ": antlr4 " + msg + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+				listener.hasOutput = true; // show console below
+			}
 
-		if ( listener.hasOutput ) {
-			ANTLRv4PluginController.showConsoleWindow(project);
-		}
+			if ( listener.hasOutput ) {
+				ANTLRv4PluginController.showConsoleWindow(project);
+			}
+		});
 	}
 
 	public static List<String> getANTLRArgsAsList(Project project, VirtualFile vfile) {
