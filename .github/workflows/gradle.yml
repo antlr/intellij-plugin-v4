@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         env:
           # see https://www.jetbrains.com/idea/download/previous.html
