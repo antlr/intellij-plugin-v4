@@ -16,24 +16,24 @@ import java.util.function.Consumer;
 public class GrammarElementRefTest extends LightPlatformCodeInsightFixtureTestCase {
 	public void testFindUsagesOfLexerRule() {
 		Collection<UsageInfo> ruleUsages = myFixture.testFindUsages("SimpleGrammar.g4");
-		assertEquals(4, ruleUsages.size());
+		assertEquals(3, ruleUsages.size());
 	}
 
 	public void testFindUsagesOfParserRule() {
 		Collection<UsageInfo> ruleUsages = myFixture.testFindUsages("SimpleGrammar2.g4");
-		assertEquals(2, ruleUsages.size());
+		assertEquals(1, ruleUsages.size());
 	}
 
 	public void testHighlightUsagesOfLexerRule() {
 		RangeHighlighter[] usages = myFixture.testHighlightUsages("SimpleGrammar.g4");
 
-		assertEquals(5, usages.length);
+		assertEquals(4, usages.length);
 	}
 
 	public void testHighlightUsagesOfParserRule() {
 		RangeHighlighter[] usages = myFixture.testHighlightUsages("SimpleGrammar2.g4");
 
-		assertEquals(3, usages.length);
+		assertEquals(2, usages.length);
 	}
 
 	public void testReferenceToLexerRule() {

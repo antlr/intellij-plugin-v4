@@ -10,6 +10,13 @@ public class ParserRuleRefNode extends GrammarElementRefNode {
 
 	@Override
 	public PsiReference getReference() {
+		if (isDeclaration()) {
+			return null;
+		}
 		return new GrammarElementRef(this, getText());
+	}
+
+	private boolean isDeclaration() {
+        return getParent() instanceof ParserRuleSpecNode;
 	}
 }
