@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -157,6 +158,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			JComponent consoleComponent = console.getComponent();
 			Content content = contentFactory.createContent(consoleComponent, "", false);
 			content.setCloseable(false);
+			content.setDisposer(console);
 
 			consoleWindow = toolWindowManager.registerToolWindow(CONSOLE_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
 			consoleWindow.getContentManager().addContent(content);
@@ -170,8 +172,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		//synchronized ( shutdownLock ) { // They should be called from EDT only so no lock
 		projectIsClosed = true;
 		uninstallListeners();
-
-		console.dispose();
 
 		for (PreviewState it : grammarToPreviewState.values()) {
 			previewPanel.inputPanel.releaseEditor(it);
