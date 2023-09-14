@@ -1,12 +1,10 @@
 package org.antlr.intellij.plugin.structview;
 
 import com.intellij.ide.structureView.StructureViewTreeElement;
-import com.intellij.ide.util.treeView.smartTree.SortableTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.antlr.intellij.plugin.ANTLRv4FileRoot;
@@ -17,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ANTLRv4StructureViewElement implements StructureViewTreeElement, SortableTreeElement {
+public class ANTLRv4StructureViewElement implements StructureViewTreeElement {
 	private final PsiElement element;
 
 	public ANTLRv4StructureViewElement(PsiElement element) {
@@ -46,12 +44,6 @@ public class ANTLRv4StructureViewElement implements StructureViewTreeElement, So
 	public boolean canNavigateToSource() {
 		return element instanceof NavigationItem &&
 			   ((NavigationItem)element).canNavigateToSource();
-	}
-
-	@NotNull
-	@Override
-	public String getAlphaSortKey() {
-		return element instanceof PsiNamedElement ? ((PsiNamedElement) element).getName() : "";
 	}
 
 	@NotNull
