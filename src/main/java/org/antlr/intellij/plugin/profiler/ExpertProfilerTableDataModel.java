@@ -4,15 +4,15 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedHashMap;
 
 public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
     public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
     public static final String[] columnNames = {
-        "Decision", "Invocations", "Time", "# DFA states", "LL failover", "Total k",
+        "Decision", "Invocations", "Time (ms)", "# DFA states", "LL failover", "Total k",
 		"Min SLL k", "Min LL k",
 		"Max SLL k", "Max LL k",
         "DFA k", "SLL-ATN k", "LL-ATN k", "Full context", "Ambiguities", "Predicates"
@@ -37,8 +37,6 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
 		"# of predicate evaluations"
     };
 
-	// microsecond decimal precision
-	private final NumberFormat milliUpToMicroFormatter = new DecimalFormat("#.###");
 	private final String[] ruleNamesByDecision ;
 
     public ExpertProfilerTableDataModel(ParseInfo parseInfo, Parser parser) {
@@ -77,7 +75,7 @@ public class ExpertProfilerTableDataModel extends ProfilerTableDataModel {
             case 1:
                 return decisionInfo.invocations;
             case 2:
-				return milliUpToMicroFormatter.format(decisionInfo.timeInPrediction / (1000.0 * 1000.0));
+	            return BigDecimal.valueOf(decisionInfo.timeInPrediction / (1000.0 * 1000.0)).setScale(3, RoundingMode.HALF_DOWN);
             case 3:
                 return parseInfo.getDFASize(decision);
             case 4:

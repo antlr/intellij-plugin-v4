@@ -4,15 +4,15 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.atn.DecisionInfo;
 import org.antlr.v4.runtime.atn.ParseInfo;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedHashMap;
 
 public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
 	public ParseInfo parseInfo;
     public LinkedHashMap<String, Integer> nameToColumnMap = new LinkedHashMap<>();
     public static final String[] columnNames = {
-			"Rule","Invocations", "Time", "Total k", "Max k", "Ambiguities", "DFA cache miss"
+			"Rule","Invocations", "Time (ms)", "Total k", "Max k", "Ambiguities", "DFA cache miss"
     };
 
     public static final String[] columnToolTips = {
@@ -63,7 +63,7 @@ public class SimpleProfilerTableDataModel extends ProfilerTableDataModel {
             case 1:
 				return decisionInfo.invocations;
 			case 2:
-				return decisionInfo.timeInPrediction/(1000.0 * 1000.0);
+				return BigDecimal.valueOf(decisionInfo.timeInPrediction / (1000.0 * 1000.0)).setScale(3, RoundingMode.HALF_DOWN);
 			case 3:
 				return decisionInfo.LL_TotalLook+decisionInfo.SLL_TotalLook;
 			case 4:
