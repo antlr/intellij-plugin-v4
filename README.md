@@ -1,10 +1,10 @@
 # IntelliJ Idea Plugin for ANTLR v4 ![Java CI](https://github.com/antlr/intellij-plugin-v4/workflows/Java%20CI/badge.svg?branch=master) [![Latest version](https://img.shields.io/jetbrains/plugin/v/7358.svg?label=latest%20version)](https://plugins.jetbrains.com/plugin/7358) ![Downloads](https://img.shields.io/jetbrains/plugin/d/7358.svg)
 
-An [IntelliJ](https://www.jetbrains.com/idea/) 2020.3+ plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)). (Technically, the plugin will load in 2019.2+ but you might not have much luck earlier than 2020.3)
+An [IntelliJ](https://www.jetbrains.com/idea/) 2020.3+ plugin for ANTLR v4 ([plugin source at github](https://github.com/antlr/intellij-plugin-v4)).
 
-[Plugin page at intellij](http://plugins.jetbrains.com/plugin/7358?pr=idea)
+[Plugin page at JetBrains Marketplace](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.13.0. Works with 
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.13.1. Works with 
 IntelliJ IDEA and other IntelliJ-based IDEs.
 
 ## Features:
