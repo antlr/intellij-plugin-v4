@@ -15,19 +15,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.svggen.SVGGraphics2DIOException;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
+import org.apache.commons.lang3.StringUtils;
+import org.jfree.svg.SVGGraphics2D;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 /**
@@ -39,7 +37,7 @@ class ParseTreeContextualMenu {
     static void showPopupMenu(UberTreeViewer parseTreeViewer, MouseEvent event) {
         JPopupMenu menu = new JPopupMenu();
 
-        menu.add(createExportMenuItem(parseTreeViewer, "Export to image (white background)", false));
+        menu.add(createExportMenuItem(parseTreeViewer, "Export to image (current background)", false));
         menu.add(createExportMenuItem(parseTreeViewer, "Export to image (transparent background)", true));
 
         menu.show(parseTreeViewer, event.getX(), event.getY());
@@ -107,9 +105,7 @@ class ParseTreeContextualMenu {
     }
 
     private static void exportToSvg(UberTreeViewer parseTreeViewer, File file, boolean useTransparentBackground) {
-        DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-        Document document = domImpl.createDocument("http://www.w3.org/2000/svg", "svg", null);
-        SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
+        SVGGraphics2D svgGenerator = new SVGGraphics2D(parseTreeViewer.getWidth(), parseTreeViewer.getHeight());
 
         if (!useTransparentBackground) {
             svgGenerator.setColor(JBColor.WHITE);
@@ -117,11 +113,11 @@ class ParseTreeContextualMenu {
         }
         parseTreeViewer.paint(svgGenerator);
 
-        try {
-            svgGenerator.stream(file.getAbsolutePath(), true);
-        } catch (SVGGraphics2DIOException e) {
+        try (var writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(svgGenerator.getSVGDocument());
+        } catch (IOException e) {
             Logger.getInstance(ParseTreeContextualMenu.class)
-                    .error("Error while exporting parse tree to SVG file " + file.getAbsolutePath(), e);
+                .error("Error while exporting parse tree to SVG file " + file.getAbsolutePath(), e);
         }
     }
 }
