@@ -265,11 +265,14 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	}
 
 	private static VirtualFile getContentRoot(Project project, VirtualFile vfile) {
-		VirtualFile root =
-				ProjectRootManager.getInstance(project)
-						.getFileIndex().getContentRootForFile(vfile);
-		if (root != null) return root;
-		return vfile.getParent();
+		return ReadAction.compute(() -> {
+			VirtualFile root = ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(vfile);
+
+			if (root != null) {
+				return root;
+			}
+			return vfile.getParent();
+		});
 	}
 
 	public String getOutputDirName() {
