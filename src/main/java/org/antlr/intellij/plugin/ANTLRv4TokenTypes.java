@@ -5,6 +5,7 @@ import com.intellij.psi.tree.TokenSet;
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.adaptor.lexer.TokenIElementType;
+import org.antlr.intellij.plugin.adaptors.ANTLRv4LexerAdaptor;
 import org.antlr.intellij.plugin.parser.ANTLRv4Lexer;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.intellij.lang.annotations.MagicConstant;
@@ -13,6 +14,10 @@ import java.util.List;
 
 public class ANTLRv4TokenTypes {
 	public static IElementType BAD_TOKEN_TYPE = new IElementType("BAD_TOKEN", ANTLRv4Language.INSTANCE);
+
+	static {
+		ANTLRv4LexerAdaptor.initializeElementTypeFactory();
+	}
 
 	public static final List<TokenIElementType> TOKEN_ELEMENT_TYPES =
 		PSIElementTypeFactory.getTokenIElementTypes(ANTLRv4Language.INSTANCE);

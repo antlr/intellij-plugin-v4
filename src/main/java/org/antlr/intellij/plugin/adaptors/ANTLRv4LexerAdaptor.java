@@ -12,6 +12,10 @@ public class ANTLRv4LexerAdaptor extends ANTLRLexerAdaptor {
 
 	// In case a lexer was created outside our ParserDefinition
 	static {
+		initializeElementTypeFactory();
+	}
+
+	public static void initializeElementTypeFactory() {
 		PSIElementTypeFactory.defineLanguageIElementTypes(
 				ANTLRv4Language.INSTANCE,
 				ANTLRv4Lexer.tokenNames,
