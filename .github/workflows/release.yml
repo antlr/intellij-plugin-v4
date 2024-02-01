@@ -4,9 +4,10 @@
 name: Java CI for releases
 
 on:
-  create:
-    tags:
-      - '*'
+  release:
+    types:
+      - published
+
 jobs:
   build:
 
