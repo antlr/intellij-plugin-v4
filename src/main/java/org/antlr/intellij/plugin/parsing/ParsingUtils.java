@@ -310,6 +310,9 @@ public class ParsingUtils {
 			case ANTLRParser.COMBINED :
 				lg = g.getImplicitLexer();
 				if ( lg==null ) {
+					String msg = "No implicit lexer grammar found in combined grammar " + g.name
+						+ ". Did you mean to declare a `parser grammar` instead?\n";
+					console.print(msg, ConsoleViewContentType.ERROR_OUTPUT);
 					lg = BAD_LEXER_GRAMMAR;
 				}
 				ANTLRv4PluginController.LOG.info("loadGrammars combined: "+lg.name+", "+g.name);

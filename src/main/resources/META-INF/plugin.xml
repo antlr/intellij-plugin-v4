@@ -74,6 +74,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
   <change-notes><![CDATA[
 	<ul>
 	    <li>Fixed syntax highlighting in 2024.1 EAP (<a href="https://github.com/antlr/intellij-plugin-v4/issues/691">#691</a>)</li>
+	    <li>Explain when a grammar might lack the `parser` keyword (<a href="https://github.com/antlr/intellij-plugin-v4/issues/687">#687</a>)</li>
     </ul>
 	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.23.1fix+is%3Aclosed">fixed issues</a>.
       ]]>
