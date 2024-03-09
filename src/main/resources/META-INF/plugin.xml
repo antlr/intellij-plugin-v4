@@ -73,11 +73,9 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <change-notes><![CDATA[
 	<ul>
-	    <li>Fixed NullPointerException on startup (<a href="https://github.com/antlr/intellij-plugin-v4/issues/681">#681</a>)</li>
-	    <li>Fixed read access error when using the Preview window (<a href="https://github.com/antlr/intellij-plugin-v4/issues/677">#677</a>)</li>
-	    <li>Fixed broken SVG export (<a href="https://github.com/antlr/intellij-plugin-v4/issues/669">#669</a>)</li>
+	    <li>Fixed syntax highlighting in 2024.1 EAP (<a href="https://github.com/antlr/intellij-plugin-v4/issues/691">#691</a>)</li>
     </ul>
-	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.23+is%3Aclosed">fixed issues</a>.
+	 See the complete list of <a href="https://github.com/antlr/intellij-plugin-v4/issues?q=milestone%3A1.23.1fix+is%3Aclosed">fixed issues</a>.
       ]]>
   </change-notes>
 
@@ -144,7 +142,7 @@ For really big files and slow grammars, there is an appreciable delay when displ
 
   <extensions defaultExtensionNs="com.intellij">
       <fileTypeFactory implementation="org.antlr.intellij.plugin.ANTLRv4FileTypeFactory"/>
-      <lang.syntaxHighlighterFactory key="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
+      <lang.syntaxHighlighterFactory language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4SyntaxHighlighterFactory"/>
       <lang.commenter language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.ANTLRv4Commenter" />
       <indexPatternBuilder implementation="org.antlr.intellij.plugin.psi.ANTLRv4IndexPatternBuilder"/>
       <lang.braceMatcher language="ANTLRv4" implementationClass="org.antlr.intellij.plugin.editor.ANTLRv4BraceMatcher"/>
@@ -163,8 +161,8 @@ For really big files and slow grammars, there is an appreciable delay when displ
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
 
       <defaultLiveTemplates file="/liveTemplates/lexer/user.xml"/>
-	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
-	  <liveTemplateContext implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
+	  <liveTemplateContext contextId="OTHER" implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
+	  <liveTemplateContext contextId="OTHER" implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
       <projectConfigurable groupId="language"
                            id="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"
                            displayName="ANTLR v4 default project settings"
