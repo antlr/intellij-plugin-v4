@@ -1,14 +1,19 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
-import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
@@ -106,7 +111,7 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 		// Had to set min size / preferred size in InputPanel.form to get slider to allow left shift of divider
 		Splitter splitPane = new Splitter();
 		inputPanel = getEditorPanel();
-		inputPanel.addCaretListener(new CaretAdapter() {
+		inputPanel.addCaretListener(new CaretListener() {
 			@Override
 			public void caretPositionChanged(@NotNull CaretEvent event) {
 				Caret caret = event.getCaret();

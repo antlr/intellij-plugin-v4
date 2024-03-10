@@ -11,10 +11,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.event.EditorFactoryAdapter;
 import com.intellij.openapi.editor.event.EditorFactoryEvent;
-import com.intellij.openapi.editor.event.EditorMouseAdapter;
+import com.intellij.openapi.editor.event.EditorFactoryListener;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -26,12 +26,11 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -55,7 +54,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /** This object is the controller for the ANTLR plug-in. It receives
  *  events and can send them on to its contained components. For example,
@@ -226,7 +224,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 
 		EditorFactory factory = EditorFactory.getInstance();
 		factory.addEditorFactoryListener(
-			new EditorFactoryAdapter() {
+			new EditorFactoryListener() {
 				@Override
 				public void editorCreated(@NotNull EditorFactoryEvent event) {
 					final Editor editor = event.getEditor();
@@ -610,7 +608,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		return null;
 	}
 
-	private class GrammarEditorMouseAdapter extends EditorMouseAdapter {
+	private class GrammarEditorMouseAdapter implements EditorMouseListener {
 		@Override
 		public void mouseClicked(EditorMouseEvent e) {
 			Document doc = e.getEditor().getDocument();
@@ -621,7 +619,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 		}
 	}
 
-	private class MyVirtualFileAdapter extends VirtualFileAdapter {
+	private class MyVirtualFileAdapter implements VirtualFileListener {
 		@Override
 		public void contentsChanged(VirtualFileEvent event) {
 			final VirtualFile vfile = event.getFile();
