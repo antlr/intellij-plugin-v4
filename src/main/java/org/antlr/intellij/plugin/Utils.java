@@ -1,6 +1,6 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.util.containers.Predicate;
+import java.util.function.Predicate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,7 +11,7 @@ public class Utils {
 		if ( data==null ) return null;
 		List<T> filtered = new ArrayList<>();
 		for (T x : data) {
-			if ( pred.apply(x) ) filtered.add(x);
+			if ( pred.test(x) ) filtered.add(x);
 		}
 		return filtered;
 	}
