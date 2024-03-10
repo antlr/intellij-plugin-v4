@@ -1,9 +1,5 @@
 package org.antlr.intellij.plugin.refactor;
 
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.project.Project;
 import org.antlr.intellij.plugin.parser.ANTLRv4Parser;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
@@ -132,40 +128,6 @@ public class RefactorUtils {
 			p = p.getParent();
 		}
 		return null;
-	}
-
-	public static int childIndexOf(ParseTree t, ParseTree child) {
-		if ( t==null || child==null ) return -1;
-		for (int i = 0; i < t.getChildCount(); i++) {
-			if ( child==t.getChild(i) ) return i;
-		}
-		return -1;
-	}
-
-	public static void replaceText(final Project project, final Document doc,
-	                               final int start, final int stop, // inclusive
-	                               final String text)
-	{
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) {
-				doc.replaceString(start, stop+1, text);
-			}
-		};
-		setTextAction.execute();
-	}
-
-	public static void insertText(final Project project, final Document doc,
-	                              final int where,
-	                              final String text)
-	{
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) {
-				doc.insertString(where, text);
-			}
-		};
-		setTextAction.execute();
 	}
 
 	/** Get start/stop of an entire rule including semi and then clean up

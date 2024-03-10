@@ -4,8 +4,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -23,6 +21,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;
+
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /** Make every ref to a rule unique by dup'ing the rule and making them
  *  rule1, rule2, etc...
@@ -63,14 +63,10 @@ public class UniquifyRuleRefs extends AnAction {
 		if ( ruleDefNameNode==null ) return;
 
 		// alter rule refs and dup rules
-		WriteCommandAction setTextAction = new WriteCommandAction(project) {
-			@Override
-			protected void run(final Result result) {
-				// do in a single action so undo works in one go
-				dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes);
-			}
-		};
-		setTextAction.execute();
+		runWriteCommandAction(project, () ->
+			// do in a single action so undo works in one go
+			dupRuleAndMakeRefsUnique(doc, ruleName, rrefNodes)
+		);
 	}
 
 	public void dupRuleAndMakeRefsUnique(Document doc,
