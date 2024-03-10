@@ -4,7 +4,7 @@ import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -115,12 +115,8 @@ public class ANTLRv4PluginController implements ProjectComponent {
 	}
 
 	@Override
-	public void initComponent() {
-	}
-
-	@Override
 	public void projectOpened() {
-		IdeaPluginDescriptor plugin = PluginManager.getPlugin(PluginId.getId(PLUGIN_ID));
+		IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID));
 		String version = "unknown";
 		if ( plugin!=null ) {
 			version = plugin.getVersion();
@@ -196,10 +192,6 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			MessageBusConnection msgBus = project.getMessageBus().connect(project);
 			msgBus.disconnect();
 		}
-	}
-
-	@Override
-	public void disposeComponent() {
 	}
 
 	@NotNull

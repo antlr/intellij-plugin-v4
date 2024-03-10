@@ -57,10 +57,6 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 		return new ANTLRv4FileRoot(viewProvider);
 	}
 
-	public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
-		return SpaceRequirements.MAY;
-	}
-
 	/** Convert from internal parse node (AST they call it) to final PSI node. This
 	 *  converts only internal rule nodes apparently, not leaf nodes. Leaves
 	 *  are just tokens I guess.

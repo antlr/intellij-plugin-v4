@@ -1,14 +1,13 @@
 package org.antlr.intellij.plugin;
 
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
-import org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory;
 import org.antlr.intellij.plugin.validation.GrammarIssue;
 import org.antlr.intellij.plugin.validation.GrammarIssuesCollector;
 import org.antlr.runtime.ANTLRFileStream;
@@ -20,7 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
+
+import static org.antlr.intellij.plugin.actions.AnnotationIntentActionsFactory.getFix;
 
 public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<GrammarIssue>> {
 
@@ -62,8 +62,10 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 	}
 
 	private void annotateFileIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
-		Annotation annotation = holder.createWarningAnnotation(file, issue.getAnnotation());
-		annotation.setFileLevelAnnotation(true);
+		holder.newAnnotation(HighlightSeverity.WARNING, issue.getAnnotation())
+			.fileLevel()
+			.range(file)
+			.create();
 	}
 
 	private void annotateIssue(@NotNull PsiFile file, @NotNull AnnotationHolder holder, GrammarIssue issue) {
@@ -72,8 +74,7 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 				TextRange range = getTokenRange((CommonToken) t, file);
 				ErrorSeverity severity = getIssueSeverity(issue);
 
-				Optional<Annotation> annotation = annotate(holder, issue, range, severity);
-				annotation.ifPresent(a -> registerFixForAnnotation(a, issue, file));
+				annotate(holder, issue, range, severity, file);
 			}
 		}
 	}
@@ -114,33 +115,31 @@ public class ANTLRv4ExternalAnnotator extends ExternalAnnotator<PsiFile, List<Gr
 		return true;
 	}
 
-	private Optional<Annotation> annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity) {
+	private void annotate(@NotNull AnnotationHolder holder, GrammarIssue issue, TextRange range, ErrorSeverity severity, @NotNull PsiFile file) {
+		AnnotationBuilder annotationBuilder = null;
 		switch ( severity ) {
 		case ERROR:
 		case ERROR_ONE_OFF:
 		case FATAL:
-			return Optional.of(holder.createErrorAnnotation(range, issue.getAnnotation()));
-
+			annotationBuilder = holder.newAnnotation(HighlightSeverity.ERROR, issue.getAnnotation()).range(range);
+			break;
 		case WARNING:
-			return Optional.of(holder.createWarningAnnotation(range, issue.getAnnotation()));
-
+			annotationBuilder = holder.newAnnotation(HighlightSeverity.WARNING, issue.getAnnotation()).range(range);
+			break;
 		case WARNING_ONE_OFF:
 		case INFO:
 			/* When trying to remove the deprecation warning, you will need something like this:
 			AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, issue.getAnnotation()).range(range);
 			 */
-			return Optional.of(holder.createWeakWarningAnnotation(range, issue.getAnnotation()));
-
+			annotationBuilder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, issue.getAnnotation()).range(range);
 		default:
 			break;
 		}
-		return Optional.empty();
-	}
 
-	static void registerFixForAnnotation(Annotation annotation, GrammarIssue issue, PsiFile file) {
-		TextRange textRange = new TextRange(annotation.getStartOffset(), annotation.getEndOffset());
-		Optional<IntentionAction> intentionAction = AnnotationIntentActionsFactory.getFix(textRange, issue.getMsg().getErrorType(), file);
-		intentionAction.ifPresent(annotation::registerFix);
+		if (annotationBuilder != null) {
+			getFix(range, issue.getMsg().getErrorType(), file)
+					.ifPresent(annotationBuilder::withFix);
+			annotationBuilder.create();
+		}
 	}
-
 }

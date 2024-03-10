@@ -1,45 +1,50 @@
 package org.antlr.intellij.plugin;
 
-import com.google.common.collect.Iterables;
-import com.intellij.lang.annotation.Annotation;
-import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.psi.PsiFile;
-import org.antlr.intellij.plugin.validation.CreateRuleFix;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.antlr.intellij.plugin.validation.AddTokenDefinitionFix;
-import org.antlr.intellij.plugin.validation.GrammarIssue;
-import org.antlr.v4.tool.ANTLRMessage;
-import org.antlr.v4.tool.ErrorType;
+import org.antlr.intellij.plugin.validation.CreateRuleFix;
 import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
 
-public class ANTLRv4ExternalAnnotatorTest {
+import java.util.List;
+import java.util.Objects;
 
-    @Test
-    public void shouldRegisterTokenDefinitionQuickFix() {
-        // given:
-        Annotation annotation = new Annotation(0,0, HighlightSeverity.WARNING, "msg", "tooltip");
+public class ANTLRv4ExternalAnnotatorTest extends BasePlatformTestCase {
 
-        // when:
-        ANTLRv4ExternalAnnotator.registerFixForAnnotation(annotation, new GrammarIssue(new ANTLRMessage(ErrorType.IMPLICIT_TOKEN_DEFINITION)), null);
-
-        // then:
-        Annotation.QuickFixInfo quickFix = Iterables.getOnlyElement(annotation.getQuickFixes());
-        Assert.assertTrue(quickFix.quickFix instanceof AddTokenDefinitionFix);
+    @Override
+    protected void tearDown() throws Exception {
+        TestUtils.tearDownIgnoringObjectNotDisposedException(super::tearDown);
     }
 
-    @Test
-    public void shouldRegisterCreateRuleQuickFix() {
+    public void testShouldRegisterTokenDefinitionQuickFix() {
         // given:
-        Annotation annotation = new Annotation(0,0, HighlightSeverity.WARNING, "msg", "tooltip");
-        PsiFile file = Mockito.mock(PsiFile.class);
-        Mockito.when(file.getText()).thenReturn("sample text");
+        myFixture.configureByText("test.g4", "grammar test; rule: TOKEN;");
 
         // when:
-        ANTLRv4ExternalAnnotator.registerFixForAnnotation(annotation, new GrammarIssue(new ANTLRMessage(ErrorType.UNDEFINED_RULE_REF)), file);
+        List<HighlightInfo> result = myFixture.doHighlighting();
 
         // then:
-        Annotation.QuickFixInfo quickFix = Iterables.getOnlyElement(annotation.getQuickFixes());
-        Assert.assertTrue(quickFix.quickFix instanceof CreateRuleFix);
+        var quickFix = result.stream()
+            .map(el -> el.findRegisteredQuickFix((action, range) -> action))
+            .filter(Objects::nonNull)
+            .findFirst().orElseThrow();
+
+        Assert.assertTrue(quickFix.getAction() instanceof AddTokenDefinitionFix);
+    }
+
+    public void testShouldRegisterCreateRuleQuickFix() {
+        // given:
+        myFixture.configureByText("test.g4", "grammar test; rule: undefined_rule;");
+
+        // when:
+        List<HighlightInfo> result = myFixture.doHighlighting();
+
+        // then:
+        var quickFix = result.stream()
+            .map(el -> el.findRegisteredQuickFix((action, range) -> action))
+            .filter(Objects::nonNull)
+            .findFirst().orElseThrow();
+
+        Assert.assertTrue(quickFix.getAction() instanceof CreateRuleFix);
     }
 }
