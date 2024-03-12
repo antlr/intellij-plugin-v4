@@ -17,6 +17,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Key;
@@ -70,13 +71,7 @@ public class InputPanel {
 	private JPanel startRuleAndInputPanel;
 	private TextFieldWithBrowseButton fileChooser;
 	private JPanel outerMostPanel;
-
-	/**
-	 * switchToGrammar() was seeing an empty slot instead of a previous
-	 * editor or placeHolder. Figured it was an order of operations thing
-	 * and synchronized add/remove ops. Works now w/o error.
-	 */
-	private final Object swapEditorComponentLock = new Object();
+	private Splitter editorSplitter;
 
 	private final PreviewPanel previewPanel;
 
@@ -272,17 +267,7 @@ public class InputPanel {
 	}
 
 	public void setEditorComponent(JComponent editor) {
-		BorderLayout layout = (BorderLayout) outerMostPanel.getLayout();
-		String EDITOR_SPOT_COMPONENT = BorderLayout.CENTER;
-		// atomically remove old
-		synchronized (swapEditorComponentLock) {
-			Component editorSpotComp = layout.getLayoutComponent(EDITOR_SPOT_COMPONENT);
-			if ( editorSpotComp!=null ) {
-				editorSpotComp.setVisible(false);
-				outerMostPanel.remove(editorSpotComp); // remove old editor if it's there
-			}
-			outerMostPanel.add(editor, EDITOR_SPOT_COMPONENT);
-		}
+		editorSplitter.setFirstComponent(editor);
 	}
 
 	public Editor getInputEditor() {
