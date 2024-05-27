@@ -49,6 +49,16 @@
           </grid>
         </children>
       </grid>
+      <component id="57495" class="com.intellij.openapi.ui.Splitter" binding="editorSplitter">
+        <constraints border-constraint="Center"/>
+        <properties>
+          <dividerWidth value="3"/>
+          <firstComponent value="4d6c1"/>
+          <orientation value="true"/>
+          <proportion value="0.8"/>
+          <secondComponent value="37477"/>
+        </properties>
+      </component>
       <component id="4d6c1" class="javax.swing.JTextArea" binding="placeHolder">
         <constraints border-constraint="East"/>
         <properties>
