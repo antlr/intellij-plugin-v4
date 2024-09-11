@@ -20,8 +20,8 @@ apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'antlr'
 
 compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 intellij {

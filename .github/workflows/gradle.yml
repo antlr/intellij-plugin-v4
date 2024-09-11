@@ -16,27 +16,13 @@ jobs:
         env:
           # see https://www.jetbrains.com/idea/download/previous.html
           # and https://www.jetbrains.com/intellij-repository/snapshots/
-          - IDEA_VERSION: IC-2020.3 # Oldest supported version
-          - IDEA_VERSION: IC-2021.3.3
-          - IDEA_VERSION: IC-2022.3.3
-            JDK_VERSION: 17
+          - IDEA_VERSION: IC-2022.3 # Oldest supported version
           - IDEA_VERSION: IC-2023.1
-            JDK_VERSION: 17
           - IDEA_VERSION: IC-2023.3.2
-            JDK_VERSION: 17
-          - IDEA_VERSION: IU-LATEST-EAP-SNAPSHOT
-            JDK_VERSION: 17
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
-        if: matrix.env.JDK_VERSION != '17'
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          distribution: temurin
       - name: Set up JDK 17
-        if: matrix.env.JDK_VERSION == '17'
         uses: actions/setup-java@v3
         with:
           java-version: 17
@@ -50,4 +36,4 @@ jobs:
         with:
           name: "antlr-intellij-development"
           path: build/distributions/antlr-intellij-plugin-v4-*.zip
-        if: matrix.env.IDEA_VERSION == 'IC-2020.3'
+        if: matrix.env.IDEA_VERSION == 'IC-2022.3'

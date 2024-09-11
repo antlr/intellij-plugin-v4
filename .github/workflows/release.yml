@@ -18,34 +18,21 @@ jobs:
         env:
           # see https://www.jetbrains.com/idea/download/previous.html
           # and https://www.jetbrains.com/intellij-repository/snapshots/
-          - IDEA_VERSION: IC-2020.3 # Oldest supported version
-            SINCE_VERSION: 203
-            UNTIL_VERSION: 210.*
-            VERSION_SUFFIX: "-2020"
-          - IDEA_VERSION: IC-2021.3.3
-            SINCE_VERSION: 210
-            UNTIL_VERSION: 220.*
-            VERSION_SUFFIX: "-2021"
           - IDEA_VERSION: IC-2022.3.3
-            SINCE_VERSION: 220
+            SINCE_VERSION: 223
             UNTIL_VERSION: 230.*
             VERSION_SUFFIX: "-2022"
-            JDK_VERSION: 17
           - IDEA_VERSION: IC-2023.1
             SINCE_VERSION: 230
-            JDK_VERSION: 17
+            UNTIL_VERSION: 240.*
+            VERSION_SUFFIX: "-2023"
+          - IDEA_VERSION: IC-2023.1
+            SINCE_VERSION: 240
             VERSION_SUFFIX:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
-        if: matrix.env.JDK_VERSION != '17'
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          distribution: temurin
       - name: Set up JDK 17
-        if: matrix.env.JDK_VERSION == '17'
         uses: actions/setup-java@v3
         with:
           java-version: 17
