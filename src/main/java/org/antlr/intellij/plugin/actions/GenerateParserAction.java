@@ -3,6 +3,7 @@ package org.antlr.intellij.plugin.actions;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -17,6 +18,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import org.antlr.intellij.plugin.configdialogs.ANTLRv4GrammarPropertiesStore;
 import org.antlr.intellij.plugin.parsing.RunANTLROnGrammarFile;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.HashSet;
@@ -31,6 +33,11 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 	@Override
 	public void update(AnActionEvent e) {
 		MyActionUtils.selectedFileIsGrammar(e);
+	}
+
+	@Override
+	public @NotNull ActionUpdateThread getActionUpdateThread() {
+		return ActionUpdateThread.BGT;
 	}
 
 	@Override

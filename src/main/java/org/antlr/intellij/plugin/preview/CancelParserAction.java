@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.preview;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
@@ -23,6 +24,11 @@ public class CancelParserAction extends AnAction {
 		super.update(e);
 
 		e.getPresentation().setEnabled(enabled);
+	}
+
+	@Override
+	public @NotNull ActionUpdateThread getActionUpdateThread() {
+		return ActionUpdateThread.EDT;
 	}
 
 	@Override

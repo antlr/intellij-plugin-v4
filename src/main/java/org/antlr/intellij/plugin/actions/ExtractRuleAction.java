@@ -79,6 +79,11 @@ public class ExtractRuleAction extends AnAction {
 	}
 
 	@Override
+	public @NotNull ActionUpdateThread getActionUpdateThread() {
+		return ActionUpdateThread.BGT;
+	}
+
+	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
 		PsiElement el = MyActionUtils.getSelectedPsiElement(e);
 		if ( el==null ) return;

@@ -1,6 +1,7 @@
 package org.antlr.intellij.plugin.actions;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -17,6 +18,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.antlr.intellij.plugin.ANTLRv4PluginController;
 import org.antlr.intellij.plugin.psi.ParserRuleRefNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -79,6 +81,11 @@ public class TestRuleAction extends AnAction implements DumbAware {
 		else {
 			presentation.setEnabled(false);
 		}
+	}
+
+	@Override
+	public @NotNull ActionUpdateThread getActionUpdateThread() {
+		return ActionUpdateThread.EDT;
 	}
 
 	@Override
