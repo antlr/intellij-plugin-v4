@@ -4,7 +4,7 @@ An [IntelliJ](https://www.jetbrains.com/idea/) 2022.3+ plugin for ANTLR v4 ([plu
 
 [Plugin page at JetBrains Marketplace](http://plugins.jetbrains.com/plugin/7358?pr=idea)
 
-This plugin is for ANTLR v4 grammars and includes ANTLR 4.13.1. Works with 
+This plugin is for ANTLR v4 grammars and includes ANTLR 4.13.2. Works with 
 IntelliJ IDEA and other IntelliJ-based IDEs.
 
 ## Features:
