@@ -52,7 +52,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 			if ( editor!=null ) {
 				Point mousePosition = editor.getContentComponent().getMousePosition();
 				if ( mousePosition!=null ) {
-					LogicalPosition pos = editor.xyToLogicalPosition(mousePosition);
+					LogicalPosition pos = e.getUpdateSession().compute(this, "xyToLogicalPosition", ActionUpdateThread.EDT, () -> editor.xyToLogicalPosition(mousePosition));
 					int offset = editor.logicalPositionToOffset(pos);
 					PsiFile file = e.getData(LangDataKeys.PSI_FILE);
 					if ( file!=null ) {
@@ -85,7 +85,7 @@ public class TestRuleAction extends AnAction implements DumbAware {
 
 	@Override
 	public @NotNull ActionUpdateThread getActionUpdateThread() {
-		return ActionUpdateThread.EDT;
+		return ActionUpdateThread.BGT;
 	}
 
 	@Override

@@ -137,6 +137,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			public void setSelected(@NotNull AnActionEvent e, boolean state) {
 				autoRefresh = state;
 			}
+
+			@Override
+			public @NotNull ActionUpdateThread getActionUpdateThread() {
+				return ActionUpdateThread.BGT;
+			}
 		};
 		ToggleAction scrollFromSourceBtn = new ToggleAction("Scroll from Source", null, AutoscrollFromSource) {
 			@Override
@@ -147,6 +152,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			@Override
 			public void setSelected(@NotNull AnActionEvent e, boolean state) {
 				scrollFromSource = state;
+			}
+
+			@Override
+			public @NotNull ActionUpdateThread getActionUpdateThread() {
+				return ActionUpdateThread.BGT;
 			}
 		};
 		ToggleAction scrollToSourceBtn = new ToggleAction("Highlight Source", null, Find) {
@@ -159,6 +169,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			public void setSelected(@NotNull AnActionEvent e, boolean state) {
 				highlightSource = state;
 			}
+
+			@Override
+			public @NotNull ActionUpdateThread getActionUpdateThread() {
+				return ActionUpdateThread.BGT;
+			}
 		};
 		ToggleAction autoBuildTree = new ToggleAction("Build parse tree after parse",null,AllIcons.Toolwindows.ToolWindowHierarchy) {
 			@Override
@@ -168,6 +183,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 
 			@Override
 			public void setSelected(@NotNull AnActionEvent e, boolean state) { buildTree = state; }
+
+			@Override
+			public @NotNull ActionUpdateThread getActionUpdateThread() {
+				return ActionUpdateThread.BGT;
+			}
 		};
 		ToggleAction autoBuildHier = new ToggleAction("Build hierarchy after parse",null,AllIcons.Actions.ShowAsTree) {
 			@Override
@@ -178,6 +198,11 @@ public class PreviewPanel extends JPanel implements ParsingResultSelectionListen
 			@Override
 			public void setSelected(@NotNull AnActionEvent e, boolean state) {
 				buildHierarchy = state;
+			}
+
+			@Override
+			public @NotNull ActionUpdateThread getActionUpdateThread() {
+				return ActionUpdateThread.BGT;
 			}
 		};
 
