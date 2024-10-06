@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templateSet group="user">
+<templateSet group="ANTLR">
 
 	<template name="rid" value="$NAME$ : [a-zA-Z_]+ [a-zA-Z0-9_]* ;" description="Create identifier rule" toReformat="false" toShortenFQNames="true">
 		<variable name="NAME" expression="" defaultValue="&quot;ID&quot;" alwaysStopAt="true" />

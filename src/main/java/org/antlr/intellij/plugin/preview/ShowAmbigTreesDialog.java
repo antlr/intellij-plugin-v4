@@ -8,8 +8,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
-import org.antlr.intellij.plugin.Utils;
 import org.antlr.intellij.plugin.parsing.ParsingUtils;
 import org.antlr.intellij.plugin.parsing.PreviewInterpreterRuleContext;
 import org.antlr.v4.gui.TreeViewer;
@@ -224,8 +224,8 @@ public class ShowAmbigTreesDialog extends JDialog {
 		final int first = Math.max(firstTleafTokenIndex, firstUleafTokenIndex);
 
 		// filter so we start in same place
-		tleaves = Utils.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
-		uleaves = Utils.filter(uleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
+		tleaves = ContainerUtil.filter(tleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
+		uleaves = ContainerUtil.filter(uleaves, tree -> ((Token) tree.getPayload()).getTokenIndex()>=first);
 		int n = Math.min(tleaves.size(), uleaves.size());
 		for (int i = 0; i<n; i++) { // for each leaf in t and u
 			Tree tleaf = tleaves.get(i);

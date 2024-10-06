@@ -162,8 +162,8 @@ For really big files and slow grammars, there is an appreciable delay when displ
                 implementationClass="org.antlr.intellij.plugin.ANTLRv4FindUsagesProvider"/>
 
       <defaultLiveTemplates file="/liveTemplates/lexer/user.xml"/>
-	  <liveTemplateContext contextId="OTHER" implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
-	  <liveTemplateContext contextId="OTHER" implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
+	  <liveTemplateContext contextId="ANTLR" baseContextId="OTHER" implementation="org.antlr.intellij.plugin.templates.ANTLRGenericContext"/>
+	  <liveTemplateContext contextId="ANTLR_OUTSIDE" baseContextId="ANTLR" implementation="org.antlr.intellij.plugin.templates.OutsideRuleContext"/>
       <projectConfigurable groupId="language"
                            id="org.antlr.intellij.plugin.configdialogs.ANTLRv4ProjectSettings"
                            displayName="ANTLR v4 default project settings"

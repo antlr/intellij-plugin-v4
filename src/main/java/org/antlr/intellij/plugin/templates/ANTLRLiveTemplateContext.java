@@ -5,16 +5,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilBase;
 import org.antlr.intellij.plugin.ANTLRv4Language;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ANTLRLiveTemplateContext extends TemplateContextType {
-	public ANTLRLiveTemplateContext(@NotNull @NonNls String id,
-									@NotNull String presentableName,
-									@Nullable Class<? extends TemplateContextType> baseContextType)
+	public ANTLRLiveTemplateContext(@NotNull String presentableName)
 	{
-		super(id, presentableName, baseContextType);
+		super(presentableName);
 	}
 
 	protected abstract boolean isInContext(@NotNull PsiFile file, @NotNull PsiElement element, int offset);
