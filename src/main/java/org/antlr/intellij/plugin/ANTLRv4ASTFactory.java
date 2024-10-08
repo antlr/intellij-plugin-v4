@@ -29,6 +29,7 @@ public class ANTLRv4ASTFactory extends ASTFactory {
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_modeSpec), ModeSpecNode.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_action), AtAction.Factory.INSTANCE);
 		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_identifier), TokenSpecNode.Factory.INSTANCE);
+		ruleElementTypeToPsiFactory.put(ANTLRv4TokenTypes.RULE_ELEMENT_TYPES.get(ANTLRv4Parser.RULE_delegateGrammar), DelegateGrammarNode.Factory.INSTANCE);
 	}
 
 	/** Create a FileElement for root or a parse tree CompositeElement (not
