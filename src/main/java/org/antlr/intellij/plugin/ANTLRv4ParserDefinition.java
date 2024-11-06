@@ -57,7 +57,8 @@ public class ANTLRv4ParserDefinition implements ParserDefinition {
 		return new ANTLRv4FileRoot(viewProvider);
 	}
 
-	public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+	@Override
+	public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
 		return SpaceRequirements.MAY;
 	}
 
