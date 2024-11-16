@@ -19,6 +19,8 @@ public class PreviewParser extends GrammarParserInterpreter {
 
 	protected int lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER; // not sure about error nodes
 
+	private boolean warnedAboutPredicates = false;
+
 	public PreviewParser(Grammar g, ATN atn, TokenStream input) {
 		super(g, atn, input);
 		lexerWatchdog = new LexerWatchdog(input, this);
@@ -33,6 +35,7 @@ public class PreviewParser extends GrammarParserInterpreter {
 		super.reset();
 		if ( inputTokenToStateMap!=null ) inputTokenToStateMap.clear();
 		lastSuccessfulMatchState = ATNState.INVALID_STATE_NUMBER;
+		warnedAboutPredicates = false;
 	}
 
 	@Override
@@ -74,5 +77,24 @@ public class PreviewParser extends GrammarParserInterpreter {
 		inputTokenToStateMap.put(_input.LT(1), getState());
 		lastSuccessfulMatchState = getState();
 		return super.matchWildcard();
+	}
+
+	@Override
+	public void action(RuleContext _localctx, int ruleIndex, int actionIndex) {
+		warnAboutPredicatesAndActions();
+	}
+
+	@Override
+	public boolean sempred(RuleContext _localctx, int ruleIndex, int actionIndex) {
+		warnAboutPredicatesAndActions();
+		return super.sempred(_localctx, ruleIndex, actionIndex);
+	}
+
+	private void warnAboutPredicatesAndActions() {
+		if (!warnedAboutPredicates) {
+			notifyErrorListeners("WARNING: predicates and actions are not run by this interpreter. " +
+					"Results may vary from the actual generated parser!");
+			warnedAboutPredicates = true;
+		}
 	}
 }
