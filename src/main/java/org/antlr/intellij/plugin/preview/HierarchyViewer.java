@@ -153,8 +153,8 @@ class HierarchyViewer extends JPanel implements TreeSelectionListener {
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		AWTEvent currentEvent = EventQueue.getCurrentEvent();
-		Object eventSource = currentEvent.getSource();
-		if ( !(eventSource instanceof com.intellij.ui.treeStructure.Tree) )	{
+
+		if ( currentEvent == null || !(currentEvent.getSource() instanceof com.intellij.ui.treeStructure.Tree) )	{
 			// Do not try to highlight input unless we got a mouse event in the hierarchy viewer
 			// otherwise it selects entire token when you click in the input pane. E.g., an
 			// entire string or keyword when you're trying to click-n-edit in input pane.
