@@ -31,9 +31,9 @@ jobs:
             VERSION_SUFFIX:
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: temurin
@@ -44,7 +44,7 @@ jobs:
         env: ${{ matrix.env }}
 
       - name: Archive distribution artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "antlr-intellij${{matrix.env.VERSION_SUFFIX}}"
           path: build/distributions/antlr-intellij-plugin-v4-*.zip

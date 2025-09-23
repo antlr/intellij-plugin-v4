@@ -19,11 +19,12 @@ jobs:
           - IDEA_VERSION: IC-2022.3 # Oldest supported version
           - IDEA_VERSION: IC-2023.1
           - IDEA_VERSION: IC-2023.3.2
+          - IDEA_VERSION: IC-2025.2
 
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: temurin
