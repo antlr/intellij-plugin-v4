@@ -61,6 +61,10 @@ dependencies {
     intellijPlatform {
         create(platformType, platformVersion)
         testFramework(TestFrameworkType.Platform.INSTANCE)
+
+        if (platformVersion >= '2026.2') {
+            bundledModule("intellij.platform.structureView")
+        }
     }
     antlr("org.antlr:antlr4:$antlr4Version") { // use ANTLR version 4
         exclude group:'com.ibm.icu', module:'icu4j'
