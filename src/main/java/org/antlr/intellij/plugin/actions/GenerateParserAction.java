@@ -79,19 +79,19 @@ public class GenerateParserAction extends AnAction implements DumbAware {
 			// if everything already saved (not stale) then run ANTLR
 			// if had to be saved and autogen NOT on, then run ANTLR
 			// Otherwise, the save file event will have or will run ANTLR.
-			ProgressManager.getInstance().run(gen); //, "Generating", canBeCancelled, e.getData(PlatformDataKeys.PROJECT));
-
-			// refresh from disk to see new files
-			Set<File> generatedFiles = new HashSet<>();
-			generatedFiles.add(new File(gen.getOutputDirName()));
-			LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
-			// pop up a notification
-			Notification notification =
-				new Notification(RunANTLROnGrammarFile.groupDisplayId,
-								 "parser for " + grammarFile.getName() + " generated",
-								 "to " + gen.getOutputDirName(),
-								 NotificationType.INFORMATION);
-			Notifications.Bus.notify(notification, project);
+			gen.setOnCompleted(() -> {
+				final String outputDir = gen.getOutputDirName();
+				Set<File> generatedFiles = new HashSet<>();
+				generatedFiles.add(new File(outputDir));
+				LocalFileSystem.getInstance().refreshIoFiles(generatedFiles, true, true, null);
+				Notification notification =
+					new Notification(RunANTLROnGrammarFile.groupDisplayId,
+									 "parser for " + grammarFile.getName() + " generated",
+									 "to " + outputDir,
+									 NotificationType.INFORMATION);
+				Notifications.Bus.notify(notification, project);
+			});
+			ProgressManager.getInstance().run(gen);
 		}
 	}
 }

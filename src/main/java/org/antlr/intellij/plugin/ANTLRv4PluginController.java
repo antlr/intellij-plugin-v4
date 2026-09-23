@@ -627,7 +627,7 @@ public class ANTLRv4PluginController implements ProjectComponent {
 			final VirtualFile vfile = event.getFile();
 			if ( !vfile.getName().endsWith(".g4") ) return;
 			if ( !projectIsClosed && !ApplicationManager.getApplication().isUnitTestMode()) {
-				grammarFileSavedEvent(vfile);
+				ApplicationManager.getApplication().invokeLater(() -> grammarFileSavedEvent(vfile));
 			}
 		}
 	}
