@@ -47,7 +47,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 // learned how to do from Grammar-Kit by Gregory Shrago
-public class RunANTLROnGrammarFile extends Task.Modal {
+public class RunANTLROnGrammarFile extends Task.Backgroundable {
 	public static final Logger LOG = Logger.getInstance("RunANTLROnGrammarFile");
 	public static final String OUTPUT_DIR_NAME = "gen" ;
 	public static final String groupDisplayId = "ANTLR 4 Parser Generation";
@@ -57,6 +57,8 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	private final VirtualFile grammarFile;
 	private final Project project;
 	private final boolean forceGeneration;
+	private String cachedOutputDirName;
+	private Runnable onCompleted;
 
 	public RunANTLROnGrammarFile(VirtualFile grammarFile,
 								 @Nullable final Project project,
@@ -73,24 +75,38 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	@Override
 	public void run(@NotNull ProgressIndicator indicator) {
 		indicator.setIndeterminate(true);
-		ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, grammarFile);
-		boolean autogen = grammarProperties.shouldAutoGenerateParser();
-		if ( forceGeneration || (autogen && isGrammarStale(grammarProperties)) ) {
-			ReadAction.run(() -> antlr(grammarFile));
+		try {
+			ReadAction.run(() -> {
+				ANTLRv4GrammarProperties grammarProperties = getGrammarProperties(project, grammarFile);
+				boolean autogen = grammarProperties.shouldAutoGenerateParser();
+				if ( forceGeneration || (autogen && isGrammarStale(grammarProperties)) ) {
+					antlr(grammarFile);
+				}
+				else {
+					ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
+					final PreviewState previewState = controller.getPreviewState(grammarFile);
+					// is lexer file? gen .tokens file no matter what as tokens might have changed;
+					// a parser that feeds off of that file will need to see the changes.
+					if ( previewState.g==null && previewState.lg!=null) {
+						Grammar g = previewState.lg;
+						String language = g.getOptionString(ANTLRv4GrammarProperties.PROP_LANGUAGE);
+						Tool tool = ParsingUtils.createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
+						CodeGenerator gen = CodeGenerator.create(tool, g, language);
+						gen.writeVocabFile();
+					}
+				}
+				cachedOutputDirName = computeOutputDirName();
+			});
 		}
-		else {
-			ANTLRv4PluginController controller = ANTLRv4PluginController.getInstance(project);
-			final PreviewState previewState = controller.getPreviewState(grammarFile);
-			// is lexer file? gen .tokens file no matter what as tokens might have changed;
-			// a parser that feeds off of that file will need to see the changes.
-			if ( previewState.g==null && previewState.lg!=null) {
-				Grammar g = previewState.lg;
-				String language = g.getOptionString(ANTLRv4GrammarProperties.PROP_LANGUAGE);
-				Tool tool = ParsingUtils.createANTLRToolForLoadingGrammars(getGrammarProperties(project, grammarFile));
-				CodeGenerator gen = CodeGenerator.create(tool, g, language);
-				gen.writeVocabFile();
+		finally {
+			if ( onCompleted != null ) {
+				ApplicationManager.getApplication().invokeLater(onCompleted);
 			}
 		}
+	}
+
+	public void setOnCompleted(@Nullable Runnable onCompleted) {
+		this.onCompleted = onCompleted;
 	}
 
 	// TODO: lots of duplication with antlr() function.
@@ -276,6 +292,13 @@ public class RunANTLROnGrammarFile extends Task.Modal {
 	}
 
 	public String getOutputDirName() {
+		if ( cachedOutputDirName != null ) {
+			return cachedOutputDirName;
+		}
+		return computeOutputDirName();
+	}
+
+	private String computeOutputDirName() {
 		VirtualFile contentRoot = getContentRoot(project, grammarFile);
 		Map<String,String> argMap = getANTLRArgs(project, grammarFile);
 		String package_ = argMap.get("-package");
